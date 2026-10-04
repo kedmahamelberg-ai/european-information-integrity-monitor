@@ -779,3 +779,15 @@ dialog::backdrop {
 .collection-status p {
   margin: 6px 0;
 }
+
+.map-key {
+  flex-wrap: wrap;
+}
+.size-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.size-key svg {
+  flex-shrink: 0;
+}

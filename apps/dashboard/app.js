@@ -114,7 +114,7 @@ function renderCollection() {
   panel.hidden = demo || !progress?.batches?.length;
   if (panel.hidden) return;
   const b = progress.batches.at(-1);
-  panel.innerHTML = `<strong>Real collection · ${esc(b.id)} · ${esc(human(b.status))}</strong>
+  panel.innerHTML = `<strong>Real collection · ${esc(b.id)} · ${esc({ discovery_complete: "Screening news relevance", sampling_complete: "Retrieving sampled comments", comments_complete: "Classifying sampled content", classification_complete: "Calculating research measures", analytics_complete: "Awaiting human validation" }[b.status] || human(b.status))}</strong>
     <p>${b.candidates.toLocaleString()} candidates discovered · ${b.relevance_checked.toLocaleString()} relevance checks completed · ${b.classified.toLocaleString()} videos classified.</p>
     <p class="small">Snapshot exported ${esc(new Date(progress.as_of).toLocaleString())}. Counts update on deployment and after collection completes. Research scores require human validation of 100 videos and 20 comment clusters. <a href="https://github.com/kedmahamelberg-ai/european-information-integrity-monitor/actions/workflows/weekly.yml" target="_blank" rel="noopener">View collection run ↗</a></p>`;
 }
@@ -196,9 +196,9 @@ function render() {
       )
       .join("");
   }
-  $(".map-key").hidden = collecting;
+  $(".map-key").hidden = false;
   $(".map-note").textContent = collecting
-    ? "Marker size: discovered candidates mentioning each country. One video can concern several countries. Neutral color indicates coverage, not a research score."
+    ? "Circle area scales with candidate count within the current filters; the largest circle matches the legend maximum. One video can concern several countries. Colour remains neutral until research scores are available."
     : "Marker size: analyzed videos. A country marks content about that country, not the behaviour of its population or government.";
   renderMap();
   renderCountry();
@@ -236,6 +236,38 @@ function renderMap() {
       "Discovery coverage · candidate videos · analysis pending";
   const coverage = collecting ? coverageRows(false) : [];
   const all = rows(false);
+  const counts = new Map(
+    countries.map((c) => [
+      c.iso2,
+      collecting
+        ? sum(
+            coverage.filter((x) => x.countries.includes(c.iso2)),
+            (x) => x.candidates,
+          )
+        : all.filter((x) => x.countries.includes(c.iso2)).length,
+    ]),
+  );
+  const maxCount = Math.max(1, ...counts.values());
+  const radius = (count) =>
+    count ? Math.max(4, 22 * Math.sqrt(count / maxCount)) : 3;
+  const legendCounts = [
+    ...new Set([
+      Math.max(1, Math.round(maxCount / 4)),
+      Math.max(1, Math.round(maxCount / 2)),
+      maxCount,
+    ]),
+  ];
+  $(".map-key").innerHTML =
+    `<span>Circle area · ${collecting ? "candidates" : "analyzed videos"}</span>` +
+    legendCounts
+      .map(
+        (n) =>
+          `<span class="size-key"><svg width="48" height="48" aria-hidden="true"><circle cx="24" cy="24" r="${radius(n)}" fill="#80b5b1" stroke="#527f83"/></svg><span>${n}</span></span>`,
+      )
+      .join("") +
+    (collecting
+      ? "<span>Colour: not yet scored</span>"
+      : '<span class="scale"></span><span>Lower score</span><span>Higher score</span><span class="ring"></span><span>High experimental AAI</span>');
   $("#markers").innerHTML = countries
     .map((c) => {
       const v = all.filter((x) => x.countries.includes(c.iso2)),
@@ -254,14 +286,9 @@ function renderMap() {
           injection: mean(s.a.map((x) => x.injection)),
         }[metric];
       const [x, y] = project(c.longitude, c.latitude);
-      const count = collecting
-        ? sum(
-            coverage.filter((x) => x.countries.includes(c.iso2)),
-            (x) => x.candidates,
-          )
-        : s.n;
+      const count = counts.get(c.iso2);
       const unit = collecting ? "candidate videos" : "analyzed videos";
-      const r = count ? Math.min(24, 5 + Math.sqrt(count) * 2) : 4;
+      const r = radius(count);
       const fill =
         collecting && count
           ? "#80b5b1"
