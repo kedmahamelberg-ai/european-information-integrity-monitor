@@ -165,7 +165,9 @@ def validate_label(value, document):
         evidence(role["evidence"], True)
         key = (role["entity"].casefold(), role["role"])
         if key in seen or not role["entity"].strip() or not role["rationale"].strip():
-            raise ValueError("Duplicate or empty entity role")
+            raise ValueError(
+                "Return only ONE entry for each entity + role pair, with nonempty entity and rationale. Sovereign governance is not military readiness evidence."
+            )
         seen.add(key)
     stance = value["stance"]
     expressed = stance["status"] in {"expressed", "mixed"}
@@ -201,6 +203,25 @@ def validate_label(value, document):
             evidence(x["evidence"], True)
             if not x["evidence"]["source_id"].startswith("transcript"):
                 raise ValueError("Execution requires transcript evidence")
+    return value
+
+
+def comment_schema():
+    return obj({"comments": schema()["properties"]["comments"]})
+
+
+def validate_comments(value, document):
+    validate_shape(value, comment_schema())
+    actual = [c["comment_id"] for c in value["comments"]]
+    expected = [c["comment_id"] for c in document["comments"]]
+    if len(set(actual)) != len(actual) or set(actual) != set(expected):
+        raise ValueError(
+            "Return EXACTLY these comment IDs, once each: " + json.dumps(expected)
+        )
+    expressed = document["stance"]["status"] in {"expressed", "mixed"}
+    for c in value["comments"]:
+        if (c["alignment"] == "no_video_stance") == expressed:
+            raise ValueError("Alignment must respect the supplied video stance status")
     return value
 
 
@@ -320,10 +341,35 @@ def reclassify(store, batch, classifier=None):
             )
             if ident in done:
                 continue
+            video_document = dict(document, comments=[])
             result = classifier.request(
-                json.dumps(document, ensure_ascii=False), prompt, schema(), "hybrid"
+                json.dumps(video_document, ensure_ascii=False),
+                prompt,
+                schema(),
+                "hybrid",
             )
-            label = validate_label(result["parsed"], document)
+            label = validate_label(result["parsed"], video_document)
+            all_comments = []
+            comment_models = []
+            for offset in range(0, len(document["comments"]), 5):
+                comment_input = {
+                    "stance": label["stance"],
+                    "comments": document["comments"][offset : offset + 5],
+                }
+                comment_result = classifier.request(
+                    json.dumps(comment_input, ensure_ascii=False),
+                    (ROOT / "prompts/hybrid-comments-1.0.txt").read_text(),
+                    comment_schema(),
+                    "hybrid_comments",
+                )
+                all_comments.extend(
+                    validate_comments(comment_result["parsed"], comment_input)[
+                        "comments"
+                    ]
+                )
+                comment_models.append(comment_result["model_version"])
+            label["comments"] = all_comments
+            label = validate_label(label, document)
             payload = {
                 "hybrid_version": VERSION,
                 "video_id": vid,
@@ -336,6 +382,8 @@ def reclassify(store, batch, classifier=None):
                 "model_version": result["model_version"],
                 "classified_at": result["classification_timestamp"],
                 "human_validated": False,
+                "comment_models": sorted(set(comment_models)),
+                "pipeline_method": "video_then_comment_batches_v1",
             }
             store.write(batch, [record("pipeline_runs", batch, ident, payload, vid)])
             done.add(ident)

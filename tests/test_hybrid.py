@@ -320,3 +320,76 @@ class HumanReviewTests(unittest.TestCase):
         self.assertIsNone(out["videos"][0]["label"])
         self.assertNotIn("This attack is awful", json.dumps(out))
         self.assertEqual(out["collection"]["classified_comments"], 1)
+
+
+class StagedCommentTests(unittest.TestCase):
+    def test_comments_batched_independently_and_coverage_preserved(self):
+        s = HybridTests().make_transcript_store()
+        s.batch({"id": "2026-W40"}, "test")
+        records = []
+        for n in range(7):
+            cid = "c" + str(n)
+            records += [
+                record(
+                    "comments",
+                    "2026-W40",
+                    cid,
+                    {
+                        "comment_id": cid,
+                        "video_id": "v",
+                        "text_original": "That attack is awful",
+                    },
+                    "v",
+                ),
+                record(
+                    "pipeline_runs",
+                    "2026-W40",
+                    "translation:" + cid,
+                    {
+                        "comment_translation_id": cid,
+                        "text_english": "That attack is awful",
+                    },
+                    "v",
+                ),
+            ]
+        s.write("2026-W40", records)
+
+        class Fake:
+            cfg = {"model": "test"}
+            sizes = []
+
+            def request(self, text, prompt, shape, kind):
+                doc = json.loads(text)
+                if kind == "hybrid":
+                    self.sizes.append(("video", len(doc["comments"])))
+                    x = label()
+                    x["comments"] = []
+                else:
+                    self.sizes.append(("comments", len(doc["comments"])))
+                    x = {
+                        "comments": [
+                            {**label()["comments"][0], "comment_id": c["comment_id"]}
+                            for c in doc["comments"]
+                        ]
+                    }
+                return {
+                    "parsed": x,
+                    "model_name": "test",
+                    "model_version": "test",
+                    "classification_timestamp": "2026-10-04T00:00:00Z",
+                }
+
+        f = Fake()
+        result = reclassify(s, "2026-W40", f)
+        self.assertEqual(f.sizes, [("video", 0), ("comments", 5), ("comments", 2)])
+        self.assertEqual(result["classified_comments"], 7)
+
+    def test_missing_ids_rejected_without_losing_other_results(self):
+        from eiim.hybrid import validate_comments
+
+        doc = {
+            "stance": label()["stance"],
+            "comments": [{"comment_id": "c"}, {"comment_id": "d"}],
+        }
+        with self.assertRaises(ValueError):
+            validate_comments({"comments": label()["comments"]}, doc)

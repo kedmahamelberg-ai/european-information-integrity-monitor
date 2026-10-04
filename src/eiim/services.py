@@ -465,6 +465,10 @@ class Classifier:
                     from .hybrid import validate_label
 
                     parsed = validate_label(parsed, json.loads(text))
+                elif kind == "hybrid_comments":
+                    from .hybrid import validate_comments
+
+                    parsed = validate_comments(parsed, json.loads(text))
                 elif kind == "sfi_review":
                     from .reclassification import validate_evidence_label
 
@@ -493,7 +497,14 @@ class Classifier:
                     "model_version": raw.get("model", self.cfg["model_version"]),
                     "prompt_version": (
                         self.cfg["prompt_version"]
-                        if kind in {"sfi", "sfi_review", "cue_check", "hybrid"}
+                        if kind
+                        in {
+                            "sfi",
+                            "sfi_review",
+                            "cue_check",
+                            "hybrid",
+                            "hybrid_comments",
+                        }
                         else (
                             "source-screen-1.1"
                             if kind == "source_screen"
@@ -505,11 +516,15 @@ class Classifier:
                         )
                     ),
                     "taxonomy_version": config(
-                        "hybrid" if kind == "hybrid" else "narratives"
+                        "hybrid"
+                        if kind in {"hybrid", "hybrid_comments"}
+                        else "narratives"
                     )["version"],
                     "classifier_version": self.cfg["classifier_version"],
                     "classification_timestamp": now(),
                 }
+                if kind == "hybrid_comments":
+                    result["prompt_version"] = "hybrid-comments-1.0"
                 self.store.write(
                     self.batch, [record("pipeline_runs", self.batch, ident, result)]
                 )
