@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   workflow_call:
   workflow_run:
-    workflows: ["Sunday research collection"]
+    workflows: ["Sunday research collection", "Refresh comments under corrected minimum"]
     types: [completed]
 permissions:
   contents: read
