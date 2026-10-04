@@ -38,6 +38,8 @@ class ReviewTests(unittest.TestCase):
             return import_reviews(self.store, p)
 
     def test_confirm_and_correct_preserve_model_and_provenance(self):
+        from eiim.review_sampling import plans_for_store
+        before_plan = plans_for_store(self.store)
         before = copy.deepcopy(self.video["model_label"])
         response = self.response()
         response["review_decisions"]["othering"] = "disagree"
@@ -55,6 +57,8 @@ class ReviewTests(unittest.TestCase):
         self.assertEqual(complete[0]["model_label"], before)
         self.assertEqual(complete[0]["review_method"], "ai_assisted_confirmation")
         self.assertEqual(complete[0]["review_decisions"]["othering"], "disagree")
+        self.assertEqual(before_plan, plans_for_store(self.store))
+        self.assertIn("review_assignment", complete[0])
         self.assertNotIn(
             self.video["queue_record_id"],
             [x["queue_record_id"] for x in prepare_review_items(self.store)],

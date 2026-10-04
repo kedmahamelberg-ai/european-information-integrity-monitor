@@ -1,0 +1,8 @@
+{
+  "version": "human-audit-1",
+  "seed": "eiim-human-audit-2026-10-04",
+  "calibration_batch": "2026-W40",
+  "calibration_videos": 30,
+  "routine_fraction": 0.03,
+  "routine_minimum": 5
+}

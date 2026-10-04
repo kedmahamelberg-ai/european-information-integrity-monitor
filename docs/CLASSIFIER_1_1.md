@@ -1,4 +1,4 @@
-# Evidence-based classification revision (1.3)
+# Evidence-based classification revision (1.4.2)
 
 Status: candidate for private researcher review, not validated for public inference.
 Implementation: `prompts/sfi-1.3.3.txt`, `src/eiim/reclassification.py`.
@@ -121,3 +121,25 @@ The Observatory policy was verified from its main-branch `config/ai-models.json`
 Nano initially passed 10/12 checks. The next revision condenses the rubric, distinguishes merely naming a disliked group from social distance, and makes the OTHER narrative fields explicit. Bounded validation retries now include the rejected model response so the model can correct its actual output; token reservations include that extra dialogue.
 
 A second Nano pilot resolved the structural output error but still conflated ordinary group-reference wording with othering and an accusation with affect. Version 1.4.2 adds a focused second Nano check for each proposed nonzero othering/aversion score. These checks see the source but not the initial scores; unsupported cues become zero with a recorded explanation. Initial scores and audit response references remain available. This addresses cross-dimension leakage, not a target score distribution.
+
+## Researcher review workload
+
+The researcher selected 30 videos once for calibration in batch 2026-W40, then
+3% of each future batch's eligible frozen video pool, rounded up, with a minimum
+of 5 (or all videos if fewer than 5 exist). `config/review_sampling.json` records
+this policy. The denominator includes scored and unscored eligible videos, so
+the audit can detect mistaken screening decisions as well as scoring errors.
+
+Selection uses a fixed seeded hash ranking of batch and video IDs, independent
+of model scores. Rebuilding the page or completing reviews does not redraw the
+sample. The population hash and assignment are included in review exports and
+recomputed from retained records on import. Completing a calibration review does
+not repeat the 30-video requirement in later batches.
+
+The private page defaults to this random sample. Additional nonzero, low-confidence,
+cue-audited, or previously reviewed cases appear in an optional priority queue;
+comment clusters remain available in the full pool. These optional reviews do
+not substitute for selected random items. Report random-audit results separately
+from deliberately selected priority cases. A completed workload is not evidence
+of accuracy or automatic permission to promote a new measurement version; the
+historical publication gate remains separate from the requested routine workload.

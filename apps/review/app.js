@@ -63,6 +63,12 @@ function filtered() {
     q = $("#search").value.toLowerCase();
   return packet.items.filter(
     (x) =>
+      ($("#workload").value === "all" ||
+        ($("#workload").value === "assigned" &&
+          x.review_assignment?.selected) ||
+        ($("#workload").value === "priority" &&
+          x.priority_review &&
+          !x.review_assignment?.selected)) &&
       (kind === "all" || x.item_type === kind) &&
       (status === "all" || stateFor(x).status === status) &&
       ($("#assessment").value === "all" ||
@@ -81,24 +87,29 @@ function summary() {
   const complete = packet.items.filter(
     (x) => stateFor(x).status === "complete",
   );
-  const video = complete.filter(
-      (x) =>
-        x.item_type === "video" &&
-        ["othering", "aversion", "moralization"].every(
-          (k) =>
-            Number.isInteger(x.ai_values[k]) &&
-            Number.isInteger(stateFor(x).human_label[k]),
-        ),
-    ).length,
+  const plans = packet.review_plans || [];
+  const target = plans.reduce((n, p) => n + p.target, 0);
+  const imported = plans.reduce((n, p) => n + (p.imported_completed || 0), 0);
+  const assigned =
+    complete.filter((x) => x.review_assignment?.selected).length + imported;
+  const video = complete.filter((x) => x.item_type === "video").length,
     clusters = complete.filter((x) => x.item_type === "comment_cluster").length;
   $("#summary").innerHTML = [
-    [video + " / 100", "Videos confirmed"],
-    [clusters + " / 20", "Comment clusters confirmed"],
-    [packet.items.length - complete.length, "Items not confirmed"],
+    [assigned + " / " + target, "Random sample confirmed"],
+    [Math.max(0, target - assigned), "Assigned reviews remaining"],
+    [video + clusters + imported, "Total confirmed reviews"],
     [packet.items.length, "Available review items"],
   ]
     .map(([n, t]) => `<div><strong>${n}</strong><span>${t}</span></div>`)
     .join("");
+  $("#review-plan").textContent =
+    plans
+      .map(
+        (p) =>
+          `${p.batch}: ${p.phase === "calibration" ? "One-time calibration" : "Routine random audit"} — ${p.target} of ${p.population} eligible videos.`,
+      )
+      .join(" ") +
+    " Future batches: 3%, rounded up, minimum 5 (or the whole pool if smaller). Optional priority cases and comment clusters do not count toward the random sample. Completing this workload does not establish classifier accuracy.";
   $("#export").disabled = !complete.length;
 }
 function renderQueue() {
@@ -107,7 +118,7 @@ function renderQueue() {
   $("#queue").innerHTML = items
     .map(
       (x) =>
-        `<button data-item="${esc(x.queue_record_id)}" class="${x.queue_record_id === currentId ? "active" : ""}">${esc(x.source_observation?.title || x.item_id)}<small>${esc(human(x.item_type))} · ${esc(human(stateFor(x).status))}</small></button>`,
+        `<button data-item="${esc(x.queue_record_id)}" class="${x.queue_record_id === currentId ? "active" : ""}">${esc(x.source_observation?.title || x.item_id)}<small>${esc(human(x.item_type))} · ${esc(human(stateFor(x).status))}${x.review_assignment?.selected ? " · Random sample" : ""}</small></button>`,
     )
     .join("");
   $("#queue")
@@ -447,7 +458,7 @@ function move(delta) {
 }
 $("#previous").onclick = () => move(-1);
 $("#next").onclick = () => move(1);
-for (const id of ["kind", "status", "search", "assessment"])
+for (const id of ["kind", "status", "search", "assessment", "workload"])
   $("#" + id).oninput = () => {
     renderQueue();
     const list = filtered();
@@ -466,6 +477,7 @@ $("#export").onclick = () => {
           queue_hash: x.queue_hash,
           classifier_version: x.classifier_version,
           score_max: x.score_max || 4,
+          review_assignment: x.review_assignment,
           human_label: s.human_label,
           review_decisions: s.decisions,
           review_method: "ai_assisted_confirmation",

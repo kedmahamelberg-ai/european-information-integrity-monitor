@@ -5,6 +5,15 @@ from pathlib import Path
 from .core import ROOT, config, digest, now
 from .storage import record
 from .language_access import access_records, video_access
+from .review_sampling import plans_for_store, assignment
+
+
+class ReviewItems(list):
+    """List-compatible packet with a plan based on the whole frozen population."""
+
+    def __init__(self, items, plans):
+        super().__init__(items)
+        self.review_plans = plans
 
 
 def model_values(item):
@@ -129,6 +138,20 @@ def prepare_review_items(store, batch=None):
     }
     from .reclassification import VERSION
 
+    plans = plans_for_store(store, batch)
+    for b, plan in plans.items():
+        completed_selected = {
+            r.get("video_id") or r["payload"].get("model_label", {}).get("video_id")
+            for r in queues
+            if r["batch_id"] == b
+            and not r.get("purged_at")
+            and r["payload"].get("review_status") == "complete"
+            and r["payload"].get("classifier_version") == VERSION
+        }
+        plan["imported_completed"] = len(
+            completed_selected & set(plan["selected_video_ids"])
+        )
+
     def queue_video(r):
         q = r["payload"]
         return (
@@ -249,6 +272,21 @@ def prepare_review_items(store, batch=None):
             ],
         }
         item["ai_values"] = model_values(item)
+        plan = plans.get(r["batch_id"])
+        item["review_assignment"] = (
+            assignment(plan, vid)
+            if plan and q["item_type"] == "video"
+            else {"selected": False}
+        )
+        m = item["model_label"]
+        item["priority_review"] = q["item_type"] == "video" and bool(
+            item["previous_reviews"]
+            or m.get("dimension_audits")
+            or m.get("confidence", 1) < 0.6
+            or any(
+                (m.get(k) or 0) > 0 for k in ("othering", "aversion", "moralization")
+            )
+        )
         items.append(item)
     # Round-robin country/tier/language cells so early review is not all one stratum.
     from collections import defaultdict
@@ -271,7 +309,7 @@ def prepare_review_items(store, batch=None):
         for key in sorted(groups):
             if groups[key]:
                 ordered.append(groups[key].pop(0))
-    return ordered
+    return ReviewItems(ordered, list(plans.values()))
 
 
 def write_review_html(items, output, progress=None):
@@ -284,6 +322,7 @@ def write_review_html(items, output, progress=None):
     payload = {
         "generated_at": now(),
         "items": items,
+        "review_plans": getattr(items, "review_plans", []),
         "progress": progress or {},
         "narratives": config("narratives")["labels"],
         "countries": [

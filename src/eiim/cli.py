@@ -86,6 +86,9 @@ def import_reviews(store, path):
         if not r.get("purged_at")
     }
     access = access_records(store.read("pipeline_runs"))
+    from .review_sampling import plans_for_store, assignment
+
+    review_plans = plans_for_store(store)
     count = 0
     prepared = []
     if not isinstance(items, list):
@@ -179,6 +182,11 @@ def import_reviews(store, path):
             "review_notes": item.get("review_notes", ""),
             "review_evidence_basis": item.get("review_evidence_basis", "unspecified"),
             "review_evidence_note": item.get("review_evidence_note", ""),
+            "review_assignment": (
+                assignment(review_plans[original["batch_id"]], vid)
+                if q["item_type"] == "video" and original["batch_id"] in review_plans
+                else {"selected": False}
+            ),
         }
         ident = original["id"] + ":review:" + digest(p)
         prepared.append(
