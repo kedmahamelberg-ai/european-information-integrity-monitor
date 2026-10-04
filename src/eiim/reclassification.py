@@ -8,7 +8,7 @@ from .core import ROOT, config, digest, now, validate_classification
 from .language_access import access_records, video_access
 from .storage import record
 
-VERSION = "classifier-1.3"
+VERSION = "classifier-1.3.1"
 PROMPT = "sfi-1.3"
 DIMENSIONS = ("othering", "aversion", "moralization")
 TRANSCRIPT_CHAR_LIMIT = 48000
@@ -221,9 +221,9 @@ def validate_evidence_label(raw, document):
 def configure_candidate(classifier):
     classifier.cfg = dict(
         classifier.cfg,
+        **config("review_models"),
         classifier_version=VERSION,
         prompt_version=PROMPT,
-        max_output_tokens=3000,
     )
     return classifier
 

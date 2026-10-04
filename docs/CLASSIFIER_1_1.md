@@ -68,7 +68,7 @@ remain monitor-specific operational choices. Wider validation is still required.
 ## Reproducibility, budget and publication
 
 The original frozen sample, classifier-1.0 predictions, snapshots and human reviews
-remain immutable. Candidate labels use `classifier-1.3` / `sfi-1.3`, input hashes,
+remain immutable. Candidate labels use `classifier-1.3.1` / `sfi-1.3`, input hashes,
 model-response references and separate queue IDs. They live in retained private
 `pipeline_runs` / `human_validation` records and inherit the existing raw-data purge.
 Raw review packets and transcripts are never committed or included in Pages.
@@ -77,7 +77,7 @@ Raw review packets and transcripts are never committed or included in Pages.
 runs the candidate on all eligible frozen sampled sources, including those not yet
 successfully classified by the baseline. Runs resume from immutable cached results.
 The existing shared weekly $5 ceiling and single-writer concurrency group also
-cover these calls. No new credentials, paid project or model upgrade is needed.
+cover these calls. No new credentials or paid database project is needed.
 
 The separate GitHub workflow runs synthetic live boundary checks before revising
 the pool and runs after successful future collection workflows. These checks
@@ -104,8 +104,12 @@ neutral historical reporting, is assessable. The second stage must score each
 dimension 0–6 and cannot abstain. This prevents a lack of hostility from serving
 as the scoring stage's reason to return missing data. Inapplicable/insufficient
 inputs still remain null, with the screening decision retained separately.
-Old experimental results remain private audit records; review prefers 1.3.
+Old experimental results remain private audit records; review prefers 1.3.1.
 
 ## Scale revision requested by the researcher
 
 Classifier 1.3 uses 0–6 directly: absent, slight/tentative, mild/explicit, moderate/clear, strong, very strong, extreme/categorical. Detailed dimension-specific anchors are in `prompts/sfi-1.3.txt`. SFI remains the mean of the three dimensions (now 0–6); the descriptive all-three flag requires each dimension ≥3. Neither that cutoff nor this content adaptation is a validated survey equivalent. Old 0–4 labels and human reviews remain immutable and visibly marked; they are not multiplied or silently recoded. New labels are inferred again from source evidence. Agreement is reported separately by scale. Public frozen baseline displays remain labeled 0–4 until a separately validated revision is promoted.
+
+## Model boundary check
+
+The 0–6 pilot using GPT-4.1 Mini passed 7/12 live synthetic cases. Failures included unwarranted abstention, inferred affect from an integrity accusation, and non-verbatim quotation. It did not reclassify the pool. Classifier 1.3.1 keeps the same rubric and checks but tests pinned GPT-5.4 Mini (2026-03-17), low reasoning, through the existing Chat Completions endpoint. Candidate settings live in `config/review_models.json`; the shared $5 ceiling remains unchanged. Pricing and structured-output support were checked against [the official model page](https://developers.openai.com/api/docs/models/gpt-5.4-mini). Passing development checks is not independent human validation.

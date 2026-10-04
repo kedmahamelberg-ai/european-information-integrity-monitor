@@ -422,6 +422,8 @@ class Classifier:
                 },
             },
         }
+        if self.cfg.get("reasoning_effort"):
+            body["reasoning_effort"] = self.cfg["reasoning_effort"]
         # UTF-8 byte count + schema overhead is a conservative token upper bound.
         reserve = (len(json.dumps(body).encode()) + 100) * self.cfg[
             "input_usd_per_million"
