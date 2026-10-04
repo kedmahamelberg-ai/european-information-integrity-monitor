@@ -115,7 +115,16 @@ def import_reviews(store, path):
         if not item.get("reviewer") or not item.get("reviewed_at"):
             raise ValueError("Reviewer and review timestamp required")
         if q["item_type"] == "video":
-            sfi(*(human[k] for k in ["othering", "aversion", "moralization"]))
+            scores = [human[k] for k in ["othering", "aversion", "moralization"]]
+            if any(v is None for v in scores):
+                if not all(v is None for v in scores) or q["model_label"].get(
+                    "assessment_status"
+                ) not in {"insufficient_evidence", "out_of_scope"}:
+                    raise ValueError(
+                        "Null scores require a complete abstention on an unscored model item"
+                    )
+            else:
+                sfi(*scores)
             if not isinstance(human.get("narratives"), list) or not isinstance(
                 human.get("targets"), list
             ):
@@ -157,6 +166,8 @@ def import_reviews(store, path):
             "review_method": item.get("review_method", "manual_labels"),
             "review_decisions": item.get("review_decisions"),
             "review_notes": item.get("review_notes", ""),
+            "review_evidence_basis": item.get("review_evidence_basis", "unspecified"),
+            "review_evidence_note": item.get("review_evidence_note", ""),
         }
         ident = original["id"] + ":review:" + digest(p)
         prepared.append(
@@ -194,6 +205,11 @@ def main():
     im.add_argument("file")
     sub.add_parser("validation-report")
     sub.add_parser("purge")
+    recode = sub.add_parser("classify-review")
+    recode.add_argument("--batch")
+    recode.add_argument("--limit", type=int)
+    recode.add_argument("--retrieve-captions", action="store_true")
+    recode.add_argument("--evaluate-only", action="store_true")
     args = p.parse_args()
     if args.command == "preflight":
         print(json.dumps(preflight()))
@@ -213,7 +229,27 @@ def main():
         print(json.dumps(result))
         return
     store = Store()
-    if args.command == "purge":
+    if args.command == "classify-review":
+        from .reclassification import reclassify
+
+        batches = store.read("weekly_batches")
+        batch = args.batch or max((r["id"] for r in batches), default=None)
+        if not batch or batch not in {r["id"] for r in batches}:
+            raise ValueError("An existing retained batch is required")
+        if args.evaluate_only:
+            from .evidence_eval import run_evaluation
+
+            result = run_evaluation(store, batch)
+            if result["passed"] != result["total"]:
+                print(json.dumps(result))
+                raise SystemExit(
+                    "Synthetic regression checks need review; candidate run stopped"
+                )
+        else:
+            result = reclassify(
+                store, batch, limit=args.limit, retrieve_captions=args.retrieve_captions
+            )
+    elif args.command == "purge":
         result = store.purge(config("retention")["raw_retention_days"])
     elif args.command == "export-public":
         result = export_public(store, Path(args.output))

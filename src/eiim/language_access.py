@@ -63,10 +63,11 @@ class EnglishCaptionAccess:
         self.api = api
         self.blocked = None
 
-    def check(self, video):
+    def check(self, video, retrieve_english_audio=False):
         result = declared_access(video)
-        if result["eligible"]:
+        if result["eligible"] and not retrieve_english_audio:
             return result
+        result["transcript_checked"] = True
         if self.blocked:
             return dict(result, failure_reason=self.blocked)
         if self.api is None:
@@ -129,7 +130,10 @@ class EnglishCaptionAccess:
                     transcript_language="en",
                     transcript_english=segments,
                 )
-            return dict(result, status="no_english_captions")
+            return dict(
+                result,
+                status="english_audio" if result["eligible"] else "no_english_captions",
+            )
         except Exception as error:
             reason = type(error).__name__
             if reason in {

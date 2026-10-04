@@ -92,11 +92,7 @@
               <p id="source-link"></p>
               <p id="language-access" class="help"></p>
               <div id="transcript"></div>
-              <p class="help">
-                Video playback provides context. The AI labels were based on the
-                recorded title and description, not a transcript. Review those
-                same inputs for comparable agreement.
-              </p>
+              <p class="help" id="evidence-scope"></p>
               <details open>
                 <summary>Recorded title and description</summary>
                 <h3 id="recorded-title"></h3>
@@ -106,17 +102,20 @@
               <details>
                 <summary>Label definitions and scoring anchors</summary>
                 <p>
-                  <b>Othering:</b> portrays an identifiable group as alien,
-                  incompatible, threatening, illegitimate or outside the normal
-                  community.
+                  <b>Othering:</b> social distance, perceived fundamental
+                  difference, incomprehension or an us–them boundary. Weak
+                  distance can score 1 without hatred. Different policies or
+                  physical borders alone do not count.
                 </p>
                 <p>
                   <b>Aversion:</b> dislike, contempt, hostility, disgust, fear
                   or hatred toward that group.
                 </p>
                 <p>
-                  <b>Moralization:</b> portrays the group as corrupt, evil,
-                  dishonest, traitorous or morally illegitimate.
+                  <b>Moralization:</b> questions the target's integrity or
+                  portrays it as dishonest, heartless, corrupt, traitorous or
+                  evil. Technical incompetence and service failures alone do not
+                  count.
                 </p>
                 <p>
                   0 absent · 1 weak/implicit · 2 moderate/clear · 3
@@ -126,6 +125,11 @@
                   Distinguish reporting and quotation from endorsement. Positive
                   praise or policy criticism alone does not establish sectarian
                   framing.
+                </p>
+                <p>
+                  Score each dimension independently. Insufficient evidence is
+                  not zero. This 0–4 coding rubric is an experimental
+                  adaptation, not the literature's validated 0–6 survey measure.
                 </p>
               </details>
             </section>
@@ -139,6 +143,27 @@
               </div>
               <div id="model-context"></div>
               <div id="fields"></div>
+              <label
+                >Evidence you used<select id="review-basis">
+                  <option value="unspecified">
+                    Choose the basis of your review
+                  </option>
+                  <option value="metadata_only">
+                    Title and description only
+                  </option>
+                  <option value="metadata_and_english_transcript">
+                    Title, description and displayed English transcript
+                  </option>
+                  <option value="watched_video">
+                    Watched video / captions
+                  </option>
+                </select></label
+              >
+              <label
+                >Supporting passage or timestamp<input
+                  id="evidence-note"
+                  placeholder="Especially useful when correcting a score"
+              /></label>
               <label
                 >Review notes<textarea
                   id="notes"

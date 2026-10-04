@@ -84,7 +84,13 @@ def agreement(reviews):
     reviews = [
         r
         for r in reviews
-        if r.get("human_label") is not None and r.get("item_type") == "video"
+        if r.get("human_label") is not None
+        and r.get("item_type") == "video"
+        and all(
+            type(r[which].get(k)) is int
+            for which in ["human_label", "model_label"]
+            for k in ["othering", "aversion", "moralization"]
+        )
     ]
     if not reviews:
         return {
@@ -157,7 +163,16 @@ def validation_gate(reviews, version):
         and r.get("language_policy_version") == POLICY_VERSION
         and not r.get("is_fixture", False)
     }
-    videos = [r for r in completed.values() if r["item_type"] == "video"]
+    videos = [
+        r
+        for r in completed.values()
+        if r["item_type"] == "video"
+        and all(
+            type(r[which].get(k)) is int
+            for which in ["human_label", "model_label"]
+            for k in ["othering", "aversion", "moralization"]
+        )
+    ]
     clusters = [r for r in completed.values() if r["item_type"] == "comment_cluster"]
     cfg = config("retention")
     # Launch additionally requires coverage recorded in the validation report.

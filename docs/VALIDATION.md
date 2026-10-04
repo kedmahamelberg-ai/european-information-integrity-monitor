@@ -4,6 +4,10 @@ Status at initial release: **not performed**. Synthetic tests verify implementat
 
 ## Codebook
 
+For the revised private review classifier, use [the 1.1 codebook and literature
+audit](CLASSIFIER_1_1.md). Candidate labels add evidence quotes, transcript coverage
+and explicit abstention while preserving the frozen 1.0 baseline described below.
+
 Use the exact definitions and 0–4 anchors in `prompts/sfi-1.0.txt`. Score the title and description, not inferred video speech. Identify the target group and direction before dimensions. Quotation without endorsement and positive praise do not establish sectarian framing. Label explanatory narratives independently of framing strength. For comment clusters, assess semantic coherence, off-topic status and substantive narrative difference independently.
 
 ## Private HTML review

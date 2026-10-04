@@ -127,10 +127,43 @@ def prepare_review_items(store, batch=None):
         for r in queues
         if r["payload"].get("review_status") == "complete"
     }
+    from .reclassification import VERSION
+
+    def queue_video(r):
+        q = r["payload"]
+        return (
+            r.get("video_id")
+            or q["model_label"].get("video_id")
+            or q["item_id"].split(":")[-1]
+        )
+
+    # Prefer a candidate revision only when it actually exists for this source.
+    # Old labels and confirmed reviews remain immutable and visible as context.
+    preferred = {}
+    previous_reviews = {}
+    for r in queues:
+        q = r["payload"]
+        key = (r["batch_id"], queue_video(r))
+        if r.get("purged_at") or q.get("item_type") != "video":
+            continue
+        if q.get("review_status") == "complete":
+            previous_reviews.setdefault(key, []).append(q)
+        if (
+            q.get("classifier_version") == VERSION
+            and q.get("review_status") == "pending"
+        ):
+            old = preferred.get(key)
+            if old is None or q["model_label"].get(
+                "classification_timestamp", ""
+            ) > old["payload"]["model_label"].get("classification_timestamp", ""):
+                preferred[key] = r
     items = []
     seen = set()
     for r in queues:
         q = r["payload"]
+        newer = preferred.get((r["batch_id"], queue_video(r)))
+        if q["item_type"] == "video" and newer and newer["id"] != r["id"]:
+            continue
         if (
             r.get("purged_at")
             or q.get("review_status") != "pending"
@@ -191,6 +224,21 @@ def prepare_review_items(store, batch=None):
             "source_observation": {k: source.get(k) for k in fields},
             "english_access": eligibility,
             "source_comments": source_comments,
+            "previous_reviews": [
+                {
+                    k: p.get(k)
+                    for k in [
+                        "classifier_version",
+                        "human_label",
+                        "reviewer",
+                        "reviewed_at",
+                        "review_evidence_basis",
+                        "review_evidence_note",
+                    ]
+                }
+                for p in previous_reviews.get((r["batch_id"], vid), [])
+                if p.get("classifier_version") != q.get("classifier_version")
+            ],
         }
         item["ai_values"] = model_values(item)
         items.append(item)
@@ -268,6 +316,10 @@ def validate_assisted_review(item, queue):
         raise ValueError("Review packet no longer matches its immutable queue record")
     if item.get("review_method") != "ai_assisted_confirmation":
         raise ValueError("Review method must describe AI-assisted confirmation")
+    if queue["model_label"].get("evidence_scope") and item.get(
+        "review_evidence_basis"
+    ) not in {"metadata_only", "metadata_and_english_transcript", "watched_video"}:
+        raise ValueError("Record the evidence basis of the candidate review")
     values = model_values(queue)
     decisions = item.get("review_decisions", {})
     human_label = item["human_label"]

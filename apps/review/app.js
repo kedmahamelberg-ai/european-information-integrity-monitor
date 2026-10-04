@@ -79,7 +79,15 @@ function summary() {
   const complete = packet.items.filter(
     (x) => stateFor(x).status === "complete",
   );
-  const video = complete.filter((x) => x.item_type === "video").length,
+  const video = complete.filter(
+      (x) =>
+        x.item_type === "video" &&
+        ["othering", "aversion", "moralization"].every(
+          (k) =>
+            Number.isInteger(x.ai_values[k]) &&
+            Number.isInteger(stateFor(x).human_label[k]),
+        ),
+    ).length,
     clusters = complete.filter((x) => x.item_type === "comment_cluster").length;
   $("#summary").innerHTML = [
     [video + " / 100", "Videos confirmed"],
@@ -119,6 +127,8 @@ function selectItem(id) {
   renderItem();
 }
 function showValue(value) {
+  if (value === null)
+    return "Not scored — insufficient evidence / out of scope";
   return Array.isArray(value)
     ? value.join(", ") || "None"
     : typeof value === "boolean"
@@ -162,8 +172,11 @@ function renderItem() {
   $("#language-access").textContent =
     `Original audio language: ${access.original_language || "unknown"} (${human(access.language_basis || "unknown")}). English access: ${human(access.status || "unverified")}. Language is an observed content attribute, not proof of the intended audience.`;
   const transcript = access.transcript_english || [];
+  $("#evidence-scope").textContent = model.evidence_scope
+    ? `AI evidence: ${human(model.evidence_scope)}. Assessment: ${human(model.assessment_status)}. ${model.transcript_truncated ? "Only part of the transcript was supplied. " : ""}${model.evidence_scope === "metadata_only" ? "These labels do not assess the spoken video. " : "Captions may contain transcription/translation errors. "}Candidate classifier awaiting validation; original labels are retained.`
+    : "AI evidence: title and description only. These labels do not assess the spoken video. Record whether your judgment uses additional video evidence.";
   $("#transcript").innerHTML = transcript.length
-    ? `<details open><summary>English transcript · ${esc(human(access.caption_translation === "youtube_auto_translation" ? "YouTube auto translation" : access.caption_is_generated ? "automatic captions" : "caption track"))}</summary><p class="help">Original caption language: ${esc(access.caption_source_language)}. This transcript supports your review; the video AI scores still use the recorded title and description.</p><div class="transcript-text">${transcript.map((s) => `<p><small>${Math.floor(s.start / 60)}:${String(Math.floor(s.start % 60)).padStart(2, "0")}</small> ${esc(s.text)}</p>`).join("")}</div></details>`
+    ? `<details open><summary>English transcript · ${esc(human(access.caption_translation === "youtube_auto_translation" ? "YouTube auto translation" : access.caption_is_generated ? "automatic captions" : "caption track"))}</summary><p class="help">Original caption language: ${esc(access.caption_source_language)}. ${model.evidence_scope === "metadata_and_english_transcript" ? "The revised AI classification includes this transcript" + (model.transcript_truncated ? " (partially)" : "") : "The baseline AI classification did not use this transcript"}.</p><div class="transcript-text">${transcript.map((s) => `<p><small>${Math.floor(s.start / 60)}:${String(Math.floor(s.start % 60)).padStart(2, "0")}</small> ${esc(s.text)}</p>`).join("")}</div></details>`
     : "";
   $("#comments").innerHTML =
     item.item_type === "comment_cluster"
@@ -176,8 +189,19 @@ function renderItem() {
           .join("")
       : "";
   $("#model-context").innerHTML =
-    `<b>AI rationale</b><p>${esc(model.short_rationale || model.rationale || "Review the cluster evidence and proposed labels below.")}</p><span>Confidence: ${model.confidence == null ? "not supplied" : esc(model.confidence)} · Version: ${esc(item.classifier_version)}</span>`;
+    `<b>AI rationale</b><p>${esc(model.short_rationale || model.rationale || "Review the cluster evidence and proposed labels below.")}</p><span>Confidence: ${model.confidence == null ? "not supplied" : esc(model.confidence)} · Version: ${esc(item.classifier_version)}</span>` +
+    (model.baseline_scores
+      ? `<p class="help">Previous AI (O / A / M): ${esc([model.baseline_scores.othering, model.baseline_scores.aversion, model.baseline_scores.moralization].join(" / "))}. Kept for comparison.</p>`
+      : "") +
+    (item.previous_reviews || [])
+      .map(
+        (r) =>
+          `<p class="help">Imported previous review by ${esc(r.reviewer)} (${esc(r.classifier_version)}): O / A / M ${esc([r.human_label.othering, r.human_label.aversion, r.human_label.moralization].map(showValue).join(" / "))}. Basis: ${esc(human(r.review_evidence_basis || "unspecified"))}. This has not been overwritten.</p>`,
+      )
+      .join("");
   $("#notes").value = draft.notes || "";
+  $("#review-basis").value = draft.review_evidence_basis || "unspecified";
+  $("#evidence-note").value = draft.review_evidence_note || "";
   renderFields();
   const list = filtered(),
     idx = list.findIndex((x) => x.queue_record_id === currentId);
@@ -197,7 +221,7 @@ function renderFields() {
       if (decision === "disagree") {
         const corrected = draft.human_label[key] ?? value;
         if (["othering", "aversion", "moralization"].includes(key)) {
-          control = `<select data-correction="${key}" aria-label="Corrected ${human(key)}">${[0, 1, 2, 3, 4].map((n) => `<option value="${n}" ${Number(corrected) === n ? "selected" : ""}>${n} · ${["Absent", "Weak / implicit", "Moderate / clear", "Strong / repeated", "Extreme / categorical"][n]}</option>`).join("")}</select>`;
+          control = `<select data-correction="${key}" aria-label="Corrected ${human(key)}"><option value="" ${corrected == null ? "selected" : ""}>Choose a score</option>${[0, 1, 2, 3, 4].map((n) => `<option value="${n}" ${corrected === n ? "selected" : ""}>${n} · ${["Absent", "Weak / implicit", "Moderate / clear", "Strong", "Extreme / categorical"][n]}</option>`).join("")}</select>`;
         } else if (typeof value === "boolean") {
           control = `<select data-correction="${key}" aria-label="Corrected ${human(key)}"><option value="true" ${corrected === true ? "selected" : ""}>Yes</option><option value="false" ${corrected === false ? "selected" : ""}>No</option></select>`;
         } else if (key === "narratives") {
@@ -210,7 +234,13 @@ function renderFields() {
         }
         control = `<div class="correction"><label>Your corrected label</label>${control}</div>`;
       }
-      return `<section class="field"><div class="field-header"><b>${esc(human(key))}</b><span class="ai-value">AI: ${esc(showValue(value))}</span></div><div class="choices"><button data-field="${key}" data-decision="agree" class="${decision === "agree" ? "chosen" : ""}" aria-pressed="${decision === "agree"}">Agree</button><button data-field="${key}" data-decision="disagree" class="${decision === "disagree" ? "chosen" : ""}" aria-pressed="${decision === "disagree"}">Disagree / correct</button></div>${control}</section>`;
+      const e = item.model_label.dimension_evidence?.find(
+        (e) => e.dimension === key,
+      );
+      const evidence = e
+        ? `<div class="help">${e.quote ? `<blockquote>“${esc(e.quote)}”</blockquote><span>${esc(e.source_id)} · ${esc(e.speaker)} · ${esc(human(e.attribution))}</span>` : ""}<p>${esc(e.explanation)}</p></div>`
+        : "";
+      return `<section class="field"><div class="field-header"><b>${esc(human(key))}</b><span class="ai-value">AI: ${esc(showValue(value))}</span></div>${evidence}<div class="choices"><button data-field="${key}" data-decision="agree" class="${decision === "agree" ? "chosen" : ""}" aria-pressed="${decision === "agree"}">Agree</button><button data-field="${key}" data-decision="disagree" class="${decision === "disagree" ? "chosen" : ""}" aria-pressed="${decision === "disagree"}">Disagree / correct</button></div>${control}</section>`;
     })
     .join("");
   $("#fields")
@@ -241,7 +271,9 @@ function renderFields() {
             "aversion",
             "moralization",
           ].includes(key)
-            ? Number(el.value)
+            ? el.value === ""
+              ? null
+              : Number(el.value)
             : typeof item.ai_values[key] === "boolean"
               ? el.value === "true"
               : el.value
@@ -271,6 +303,8 @@ function autosave() {
   if (!current()) return;
   draft.status = "pending";
   draft.notes = $("#notes").value;
+  draft.review_evidence_basis = $("#review-basis").value;
+  draft.review_evidence_note = $("#evidence-note").value;
   decisions()[currentId] = structuredClone(draft);
   persist();
   summary();
@@ -286,6 +320,24 @@ function equal(a, b) {
 }
 function validate(item, state) {
   if (!state.reviewer?.trim()) throw Error("Enter your reviewer name first.");
+  if (
+    item.model_label.evidence_scope &&
+    ![
+      "metadata_only",
+      "metadata_and_english_transcript",
+      "watched_video",
+    ].includes(state.review_evidence_basis)
+  )
+    throw Error("Choose the evidence you used for this review.");
+  if (item.model_label.evidence_scope) {
+    const scores = ["othering", "aversion", "moralization"].map(
+      (k) => state.human_label[k],
+    );
+    if (scores.some((v) => v === null) && !scores.every((v) => v === null))
+      throw Error(
+        "Either retain all three unscored dimensions, or supply all three scores from the evidence you reviewed.",
+      );
+  }
   for (const [key, ai] of Object.entries(item.ai_values)) {
     const d = state.decisions[key],
       value = state.human_label[key];
@@ -297,6 +349,7 @@ function validate(item, state) {
       throw Error(`Provide a different ${human(key)} label, or choose Agree.`);
     if (
       ["othering", "aversion", "moralization"].includes(key) &&
+      !(value === null && ai === null && d === "agree") &&
       (!Number.isInteger(value) || value < 0 || value > 4)
     )
       throw Error("Scores must be whole numbers from 0 to 4.");
@@ -323,6 +376,8 @@ function validate(item, state) {
 }
 $("#reviewer").oninput = persist;
 $("#notes").oninput = autosave;
+$("#review-basis").onchange = autosave;
+$("#evidence-note").oninput = autosave;
 $("#agree-all").onclick = () => {
   draft.decisions = Object.fromEntries(
     Object.keys(current().ai_values).map((k) => [k, "agree"]),
@@ -400,6 +455,8 @@ $("#export").onclick = () => {
           reviewer: s.reviewer,
           reviewed_at: s.reviewed_at,
           review_notes: s.notes || "",
+          review_evidence_basis: s.review_evidence_basis || "unspecified",
+          review_evidence_note: s.review_evidence_note || "",
           approved_excerpts: [],
         };
       });
@@ -439,6 +496,8 @@ $("#restore").onchange = async (e) => {
         reviewer: r.reviewer,
         reviewed_at: r.reviewed_at,
         notes: r.review_notes || "",
+        review_evidence_basis: r.review_evidence_basis || "unspecified",
+        review_evidence_note: r.review_evidence_note || "",
         status: "complete",
       };
       if (!state.reviewed_at || Number.isNaN(Date.parse(state.reviewed_at)))

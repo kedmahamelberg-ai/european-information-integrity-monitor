@@ -457,6 +457,10 @@ class Classifier:
                 parsed = json.loads(choice["message"]["content"])
                 if kind == "sfi":
                     parsed = validate_classification(parsed)
+                elif kind == "sfi_review":
+                    from .reclassification import validate_evidence_label
+
+                    parsed = validate_evidence_label(parsed, json.loads(text))
                 elif kind == "translation":
                     if not all(
                         isinstance(parsed.get(k), str) and parsed[k].strip()
@@ -473,7 +477,7 @@ class Classifier:
                     "model_version": raw.get("model", self.cfg["model_version"]),
                     "prompt_version": (
                         self.cfg["prompt_version"]
-                        if kind == "sfi"
+                        if kind in {"sfi", "sfi_review"}
                         else (
                             "translation-1.0"
                             if kind == "translation"
