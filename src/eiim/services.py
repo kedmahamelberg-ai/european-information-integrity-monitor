@@ -465,6 +465,10 @@ class Classifier:
                     from .reclassification import validate_evidence_label
 
                     parsed = validate_evidence_label(parsed, json.loads(text))
+                elif kind == "cue_check":
+                    from .reclassification import validate_cue_check
+
+                    parsed = validate_cue_check(parsed, json.loads(text))
                 elif kind == "source_screen":
                     from .reclassification import validate_source_screen
 
@@ -485,7 +489,7 @@ class Classifier:
                     "model_version": raw.get("model", self.cfg["model_version"]),
                     "prompt_version": (
                         self.cfg["prompt_version"]
-                        if kind in {"sfi", "sfi_review"}
+                        if kind in {"sfi", "sfi_review", "cue_check"}
                         else (
                             "source-screen-1.1"
                             if kind == "source_screen"

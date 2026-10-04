@@ -10,7 +10,7 @@ from .storage import record
 
 from .model_policy import selected_policy
 
-VERSION = "classifier-1.4.1-" + selected_policy()["model"]
+VERSION = "classifier-1.4.2-" + selected_policy()["model"]
 PROMPT = "sfi-1.3.3"
 DIMENSIONS = ("othering", "aversion", "moralization")
 TRANSCRIPT_CHAR_LIMIT = 48000
@@ -298,6 +298,57 @@ def classify_document(classifier, document):
             + ":model:"
             + digest([text, prompt, shape, classifier.cfg]),
         )
+    # Independently check cross-dimension leakage without showing initial scores.
+    if decision["assessment_status"] == "scored":
+        initial = copy.deepcopy(result["parsed"])
+        revised = copy.deepcopy(initial)
+        audits = {}
+        for dimension in ("othering", "aversion"):
+            if initial[dimension] <= 0:
+                continue
+            audit_prompt = (ROOT / f"prompts/cue-check-{dimension}-1.0.txt").read_text()
+            audit_text = json.dumps(screen_document, ensure_ascii=False)
+            audit_result = classifier.request(
+                audit_text, audit_prompt, cue_check_schema(), "cue_check"
+            )
+            audit = audit_result["parsed"]
+            audits[dimension] = dict(
+                audit,
+                response_ref=classifier.batch
+                + ":model:"
+                + digest(
+                    [audit_text, audit_prompt, cue_check_schema(), classifier.cfg]
+                ),
+            )
+            if not audit["supported"]:
+                revised[dimension] = 0
+                e = next(
+                    e
+                    for e in revised["dimension_evidence"]
+                    if e["dimension"] == dimension
+                )
+                e.update(
+                    quote="",
+                    source_id="",
+                    explanation="Independent cue check: " + audit["explanation"],
+                )
+        revised = validate_evidence_label(revised, document)
+        revised.update(
+            dimension_audits=audits,
+            pre_audit_scores={k: initial[k] for k in DIMENSIONS},
+        )
+        if any(revised[k] != initial[k] for k in DIMENSIONS):
+            revised["pre_audit_rationale"] = initial["short_rationale"]
+            revised["short_rationale"] = "After independent cue checks: " + "; ".join(
+                e["dimension"]
+                + "="
+                + str(revised[e["dimension"]])
+                + ": "
+                + e["explanation"]
+                for e in revised["dimension_evidence"]
+            )
+
+        result = dict(result, parsed=revised)
     result["parsed"] = dict(
         result["parsed"],
         score_max=6,
@@ -305,6 +356,37 @@ def classify_document(classifier, document):
         source_screen_response_ref=screen_ref,
     )
     return result
+
+
+def cue_check_schema():
+    props = {
+        "supported": {"type": "boolean"},
+        **{k: {"type": "string"} for k in ("quote", "source_id", "explanation")},
+    }
+    return dict(
+        type="object",
+        properties=props,
+        required=list(props),
+        additionalProperties=False,
+    )
+
+
+def validate_cue_check(parsed, document):
+    if type(parsed.get("supported")) is not bool:
+        raise ValueError("Cue support must be a boolean")
+    checked = validate_source_screen(
+        dict(
+            assessment_status=(
+                "scored" if parsed["supported"] else "insufficient_evidence"
+            ),
+            explanation=parsed.get("explanation"),
+            evidence_quote=parsed.get("quote"),
+            source_id=parsed.get("source_id"),
+            confidence=1,
+        ),
+        document,
+    )
+    return dict(parsed, source_id=checked["source_id"])
 
 
 def source_screen_schema():
@@ -428,6 +510,11 @@ def reclassify(store, batch, classifier=None, limit=None, retrieve_captions=Fals
                 evidence_schema(allow_abstention=False),
                 (ROOT / "prompts/source-screen-1.1.txt").read_text(),
                 source_screen_schema(),
+                [
+                    (ROOT / f"prompts/cue-check-{d}-1.0.txt").read_text()
+                    for d in ("othering", "aversion")
+                ],
+                cue_check_schema(),
                 classifier.cfg,
             ]
         )

@@ -256,6 +256,38 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(calls, ["source_screen", "sfi_review"])
         self.assertEqual(result["parsed"]["othering"], 0)
 
+    def test_independent_cue_check_retains_pre_audit_scores(self):
+        calls = []
+
+        def request(text, prompt, shape, kind):
+            calls.append(kind)
+            if kind == "source_screen":
+                parsed = dict(
+                    assessment_status="scored",
+                    evidence_quote=self.doc["sections"][0]["text"],
+                    source_id="title",
+                    explanation="Complete opinion.",
+                    confidence=0.9,
+                )
+            elif kind == "sfi_review":
+                parsed = self.positive()
+            else:
+                parsed = dict(
+                    supported=False,
+                    quote="",
+                    source_id="",
+                    explanation="Synthetic rejection to verify independent-check plumbing.",
+                )
+            return dict(parsed=parsed)
+
+        result = classify_document(
+            SimpleNamespace(request=request, cfg={}, batch="fixture"), self.doc
+        )["parsed"]
+        self.assertEqual(calls, ["source_screen", "sfi_review", "cue_check"])
+        self.assertEqual(result["othering"], 0)
+        self.assertEqual(result["pre_audit_scores"]["othering"], 1)
+        self.assertEqual(result["sfi"], 0)
+
     def test_screen_requires_real_substantive_quote_for_scored(self):
         valid = dict(
             assessment_status="scored",
