@@ -1,0 +1,25 @@
+{
+  "version": "sampling-1.0",
+  "seed": 20261004,
+  "target_per_country": 10,
+  "tier_weights": {
+    "low": 0.4,
+    "medium": 0.4,
+    "high": 0.2
+  },
+  "audit_exclusion_fraction": 0.05,
+  "minimum_available_comments": 20,
+  "comments_per_video": 30,
+  "comment_pool_limit": 100,
+  "comment_visibility_weights": {
+    "likes": 1,
+    "replies": 1
+  },
+  "search_pages_per_query": 1,
+  "search_page_size": 50,
+  "search_queries_per_country": 1,
+  "youtube_quota_ceiling": 9000,
+  "max_videos_per_run": 510,
+  "relevance_low": 0.35,
+  "relevance_high": 0.65
+}

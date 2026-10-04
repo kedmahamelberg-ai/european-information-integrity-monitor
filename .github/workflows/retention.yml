@@ -1,0 +1,34 @@
+name: Retention and public export refresh
+on:
+  schedule:
+    - cron: "43 4 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: eiim-research
+  cancel-in-progress: false
+jobs:
+  retention:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Apply permitted retention
+        run: |
+          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_SECRET_KEY" ]; then
+            PYTHONPATH=src python -m eiim.cli purge
+          else
+            echo 'No credentials configured; no live data collected.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+  refresh:
+    needs: retention
+    uses: ./.github/workflows/site.yml
+    secrets: inherit

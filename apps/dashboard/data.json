@@ -1,0 +1,13 @@
+{
+  "mode": "empty",
+  "status": "awaiting_configuration",
+  "batches": [],
+  "videos": [],
+  "candidates": [],
+  "validation": {
+    "videos_reviewed": 0,
+    "clusters_reviewed": 0,
+    "required_videos": 100
+  },
+  "message": "No live observations have been published. Explore the explicitly labelled demonstration to inspect the interface."
+}

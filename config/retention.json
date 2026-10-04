@@ -1,0 +1,8 @@
+{
+  "raw_retention_days": 30,
+  "historical_raw_retention_authorized": false,
+  "live_collection_enabled": false,
+  "human_validation_min_videos": 100,
+  "human_validation_min_comment_clusters": 20,
+  "note": "Immutable within permitted retention. Historical retention requires a documented lawful/API-permitted basis. Default purge removes raw text, API payloads and vectors after 30 days while keeping non-identifying audit metadata; review provider policy before live collection."
+}

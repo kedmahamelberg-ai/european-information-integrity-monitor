@@ -1,0 +1,14 @@
+{
+  "classifier_version": "classifier-1.0",
+  "prompt_version": "sfi-1.0",
+  "provider": "openai",
+  "model": "gpt-4.1-mini-2025-04-14",
+  "model_version": "gpt-4.1-mini-2025-04-14",
+  "embedding_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "weekly_usd_ceiling": 5.0,
+  "input_usd_per_million": 0.4,
+  "output_usd_per_million": 1.6,
+  "max_output_tokens": 1800,
+  "max_attempts": 2,
+  "pricing_note": "Configurable estimate; verify account pricing before enabling collection. Budget reserves upper-bound UTF-8 byte count and maximum output tokens before each request."
+}

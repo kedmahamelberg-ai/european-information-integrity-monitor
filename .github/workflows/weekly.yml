@@ -1,0 +1,48 @@
+name: Sunday research collection
+on:
+  schedule:
+    - cron: "17 5 * * 0"
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: eiim-research
+  cancel-in-progress: false
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      EIIM_ENABLE_LIVE: ${{ vars.EIIM_ENABLE_LIVE }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check configuration
+        id: readiness
+        run: |
+          PYTHONPATH=src python -m eiim.cli preflight > /tmp/eiim-preflight.json
+          python -c 'import json,os; x=json.load(open("/tmp/eiim-preflight.json")); open(os.environ["GITHUB_OUTPUT"],"a").write("ready="+str(x["ready"]).lower()+"\n"); print(x)'
+      - name: Install local inference dependencies
+        if: steps.readiness.outputs.ready == 'true'
+        run: pip install '.[live]'
+      - name: Collect completed Amsterdam week
+        run: PYTHONPATH=src python -m eiim.cli run --report run-report.json
+      - name: Publish non-sensitive run report
+        if: always()
+        run: |
+          if [ -f run-report.json ]; then
+            echo '## Monitor collection report' >> "$GITHUB_STEP_SUMMARY"
+            cat run-report.json >> "$GITHUB_STEP_SUMMARY"
+          fi
+  refresh:
+    needs: collect
+    uses: ./.github/workflows/site.yml
+    secrets: inherit

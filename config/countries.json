@@ -1,0 +1,1153 @@
+{
+  "version": "geography-1.0",
+  "scope": "Broad European geographic universe including transcontinental states, Cyprus and Kosovo (status neutral). No dependent territories as separate countries. XK/XKX are user-assigned codes, not official ISO assignments.",
+  "generic_terms": [
+    "Europe",
+    "European",
+    "EU",
+    "European Union"
+  ],
+  "countries": [
+    {
+      "iso2": "AL",
+      "iso3": "ALB",
+      "country_name": "Albania",
+      "common_english_name": "Albania",
+      "local_names": [
+        "Shqipëria"
+      ],
+      "variants": [],
+      "english_demonym": "Albanian",
+      "local_demonyms": [
+        "shqiptar"
+      ],
+      "adjectival_forms": [
+        "Albanian",
+        "shqiptar"
+      ],
+      "latitude": 41.15,
+      "longitude": 20.17,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "AD",
+      "iso3": "AND",
+      "country_name": "Andorra",
+      "common_english_name": "Andorra",
+      "local_names": [
+        "Andorra"
+      ],
+      "variants": [],
+      "english_demonym": "Andorran",
+      "local_demonyms": [
+        "andorrà"
+      ],
+      "adjectival_forms": [
+        "Andorran",
+        "andorrà"
+      ],
+      "latitude": 42.55,
+      "longitude": 1.6,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "AM",
+      "iso3": "ARM",
+      "country_name": "Armenia",
+      "common_english_name": "Armenia",
+      "local_names": [
+        "Հայաստան"
+      ],
+      "variants": [],
+      "english_demonym": "Armenian",
+      "local_demonyms": [
+        "հայկական"
+      ],
+      "adjectival_forms": [
+        "Armenian",
+        "հայկական"
+      ],
+      "latitude": 40.1,
+      "longitude": 45.0,
+      "scope_note": "Transcontinental/broad European scope"
+    },
+    {
+      "iso2": "AT",
+      "iso3": "AUT",
+      "country_name": "Austria",
+      "common_english_name": "Austria",
+      "local_names": [
+        "Österreich"
+      ],
+      "variants": [],
+      "english_demonym": "Austrian",
+      "local_demonyms": [
+        "österreichisch"
+      ],
+      "adjectival_forms": [
+        "Austrian",
+        "österreichisch"
+      ],
+      "latitude": 47.5,
+      "longitude": 14.5,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "AZ",
+      "iso3": "AZE",
+      "country_name": "Azerbaijan",
+      "common_english_name": "Azerbaijan",
+      "local_names": [
+        "Azərbaycan"
+      ],
+      "variants": [],
+      "english_demonym": "Azerbaijani",
+      "local_demonyms": [
+        "azərbaycanlı"
+      ],
+      "adjectival_forms": [
+        "Azerbaijani",
+        "azərbaycanlı"
+      ],
+      "latitude": 40.4,
+      "longitude": 47.7,
+      "scope_note": "Transcontinental/broad European scope"
+    },
+    {
+      "iso2": "BY",
+      "iso3": "BLR",
+      "country_name": "Belarus",
+      "common_english_name": "Belarus",
+      "local_names": [
+        "Беларусь"
+      ],
+      "variants": [],
+      "english_demonym": "Belarusian",
+      "local_demonyms": [
+        "беларускі"
+      ],
+      "adjectival_forms": [
+        "Belarusian",
+        "беларускі"
+      ],
+      "latitude": 53.7,
+      "longitude": 28.0,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "BE",
+      "iso3": "BEL",
+      "country_name": "Belgium",
+      "common_english_name": "Belgium",
+      "local_names": [
+        "België",
+        "Belgique",
+        "Belgien"
+      ],
+      "variants": [],
+      "english_demonym": "Belgian",
+      "local_demonyms": [
+        "belge",
+        "Belgisch"
+      ],
+      "adjectival_forms": [
+        "Belgian",
+        "belge",
+        "Belgisch"
+      ],
+      "latitude": 50.7,
+      "longitude": 4.6,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "BA",
+      "iso3": "BIH",
+      "country_name": "Bosnia and Herzegovina",
+      "common_english_name": "Bosnia and Herzegovina",
+      "local_names": [
+        "Bosna i Hercegovina"
+      ],
+      "variants": [
+        "Bosnia",
+        "Herzegovina"
+      ],
+      "english_demonym": "Bosnian",
+      "local_demonyms": [
+        "bosanski"
+      ],
+      "adjectival_forms": [
+        "Bosnian",
+        "bosanski"
+      ],
+      "latitude": 44.2,
+      "longitude": 17.7,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "BG",
+      "iso3": "BGR",
+      "country_name": "Bulgaria",
+      "common_english_name": "Bulgaria",
+      "local_names": [
+        "България"
+      ],
+      "variants": [],
+      "english_demonym": "Bulgarian",
+      "local_demonyms": [
+        "български"
+      ],
+      "adjectival_forms": [
+        "Bulgarian",
+        "български"
+      ],
+      "latitude": 42.7,
+      "longitude": 25.4,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "HR",
+      "iso3": "HRV",
+      "country_name": "Croatia",
+      "common_english_name": "Croatia",
+      "local_names": [
+        "Hrvatska"
+      ],
+      "variants": [],
+      "english_demonym": "Croatian",
+      "local_demonyms": [
+        "hrvatski"
+      ],
+      "adjectival_forms": [
+        "Croatian",
+        "hrvatski"
+      ],
+      "latitude": 45.1,
+      "longitude": 15.2,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "CY",
+      "iso3": "CYP",
+      "country_name": "Cyprus",
+      "common_english_name": "Cyprus",
+      "local_names": [
+        "Κύπρος",
+        "Kıbrıs"
+      ],
+      "variants": [],
+      "english_demonym": "Cypriot",
+      "local_demonyms": [
+        "κυπριακός",
+        "Kıbrıslı"
+      ],
+      "adjectival_forms": [
+        "Cypriot",
+        "κυπριακός",
+        "Kıbrıslı"
+      ],
+      "latitude": 35.0,
+      "longitude": 33.0,
+      "scope_note": "Transcontinental/broad European scope"
+    },
+    {
+      "iso2": "CZ",
+      "iso3": "CZE",
+      "country_name": "Czechia",
+      "common_english_name": "Czechia",
+      "local_names": [
+        "Česko",
+        "Česká republika"
+      ],
+      "variants": [
+        "Czech Republic"
+      ],
+      "english_demonym": "Czech",
+      "local_demonyms": [
+        "český"
+      ],
+      "adjectival_forms": [
+        "Czech",
+        "český"
+      ],
+      "latitude": 49.8,
+      "longitude": 15.5,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "DK",
+      "iso3": "DNK",
+      "country_name": "Denmark",
+      "common_english_name": "Denmark",
+      "local_names": [
+        "Danmark"
+      ],
+      "variants": [],
+      "english_demonym": "Danish",
+      "local_demonyms": [
+        "dansk"
+      ],
+      "adjectival_forms": [
+        "Danish",
+        "dansk"
+      ],
+      "latitude": 56.1,
+      "longitude": 9.5,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "EE",
+      "iso3": "EST",
+      "country_name": "Estonia",
+      "common_english_name": "Estonia",
+      "local_names": [
+        "Eesti"
+      ],
+      "variants": [],
+      "english_demonym": "Estonian",
+      "local_demonyms": [
+        "eesti"
+      ],
+      "adjectival_forms": [
+        "Estonian",
+        "eesti"
+      ],
+      "latitude": 58.7,
+      "longitude": 25.2,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "FI",
+      "iso3": "FIN",
+      "country_name": "Finland",
+      "common_english_name": "Finland",
+      "local_names": [
+        "Suomi",
+        "Finland"
+      ],
+      "variants": [],
+      "english_demonym": "Finnish",
+      "local_demonyms": [
+        "suomalainen",
+        "finsk"
+      ],
+      "adjectival_forms": [
+        "Finnish",
+        "suomalainen",
+        "finsk"
+      ],
+      "latitude": 64.5,
+      "longitude": 26.0,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "FR",
+      "iso3": "FRA",
+      "country_name": "France",
+      "common_english_name": "France",
+      "local_names": [
+        "France"
+      ],
+      "variants": [],
+      "english_demonym": "French",
+      "local_demonyms": [
+        "français",
+        "française"
+      ],
+      "adjectival_forms": [
+        "French",
+        "français",
+        "française"
+      ],
+      "latitude": 46.6,
+      "longitude": 2.2,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "GE",
+      "iso3": "GEO",
+      "country_name": "Georgia",
+      "common_english_name": "Georgia",
+      "local_names": [
+        "საქართველო"
+      ],
+      "variants": [
+        "Republic of Georgia"
+      ],
+      "english_demonym": "Georgian",
+      "local_demonyms": [
+        "ქართული"
+      ],
+      "adjectival_forms": [
+        "Georgian",
+        "ქართული"
+      ],
+      "latitude": 42.1,
+      "longitude": 43.4,
+      "scope_note": "Transcontinental/broad European scope"
+    },
+    {
+      "iso2": "DE",
+      "iso3": "DEU",
+      "country_name": "Germany",
+      "common_english_name": "Germany",
+      "local_names": [
+        "Deutschland"
+      ],
+      "variants": [],
+      "english_demonym": "German",
+      "local_demonyms": [
+        "deutsch"
+      ],
+      "adjectival_forms": [
+        "German",
+        "deutsch"
+      ],
+      "latitude": 51.2,
+      "longitude": 10.4,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "GR",
+      "iso3": "GRC",
+      "country_name": "Greece",
+      "common_english_name": "Greece",
+      "local_names": [
+        "Ελλάδα",
+        "Ελλάς"
+      ],
+      "variants": [],
+      "english_demonym": "Greek",
+      "local_demonyms": [
+        "ελληνικός"
+      ],
+      "adjectival_forms": [
+        "Greek",
+        "ελληνικός"
+      ],
+      "latitude": 39.0,
+      "longitude": 22.0,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "HU",
+      "iso3": "HUN",
+      "country_name": "Hungary",
+      "common_english_name": "Hungary",
+      "local_names": [
+        "Magyarország"
+      ],
+      "variants": [],
+      "english_demonym": "Hungarian",
+      "local_demonyms": [
+        "magyar"
+      ],
+      "adjectival_forms": [
+        "Hungarian",
+        "magyar"
+      ],
+      "latitude": 47.2,
+      "longitude": 19.5,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "IS",
+      "iso3": "ISL",
+      "country_name": "Iceland",
+      "common_english_name": "Iceland",
+      "local_names": [
+        "Ísland"
+      ],
+      "variants": [],
+      "english_demonym": "Icelandic",
+      "local_demonyms": [
+        "íslenskur"
+      ],
+      "adjectival_forms": [
+        "Icelandic",
+        "íslenskur"
+      ],
+      "latitude": 64.9,
+      "longitude": -18.5,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "IE",
+      "iso3": "IRL",
+      "country_name": "Ireland",
+      "common_english_name": "Ireland",
+      "local_names": [
+        "Éire"
+      ],
+      "variants": [],
+      "english_demonym": "Irish",
+      "local_demonyms": [
+        "Éireannach"
+      ],
+      "adjectival_forms": [
+        "Irish",
+        "Éireannach"
+      ],
+      "latitude": 53.4,
+      "longitude": -8.0,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "IT",
+      "iso3": "ITA",
+      "country_name": "Italy",
+      "common_english_name": "Italy",
+      "local_names": [
+        "Italia"
+      ],
+      "variants": [],
+      "english_demonym": "Italian",
+      "local_demonyms": [
+        "italiano",
+        "italiana"
+      ],
+      "adjectival_forms": [
+        "Italian",
+        "italiano",
+        "italiana"
+      ],
+      "latitude": 42.8,
+      "longitude": 12.5,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "KZ",
+      "iso3": "KAZ",
+      "country_name": "Kazakhstan",
+      "common_english_name": "Kazakhstan",
+      "local_names": [
+        "Қазақстан",
+        "Казахстан"
+      ],
+      "variants": [],
+      "english_demonym": "Kazakh",
+      "local_demonyms": [
+        "қазақ",
+        "казахстанский"
+      ],
+      "adjectival_forms": [
+        "Kazakh",
+        "қазақ",
+        "казахстанский"
+      ],
+      "latitude": 48.0,
+      "longitude": 67.0,
+      "scope_note": "Transcontinental/broad European scope"
+    },
+    {
+      "iso2": "XK",
+      "iso3": "XKX",
+      "country_name": "Kosovo",
+      "common_english_name": "Kosovo",
+      "local_names": [
+        "Kosovë",
+        "Косово"
+      ],
+      "variants": [],
+      "english_demonym": "Kosovan",
+      "local_demonyms": [
+        "kosovar"
+      ],
+      "adjectival_forms": [
+        "Kosovan",
+        "kosovar"
+      ],
+      "latitude": 42.6,
+      "longitude": 20.9,
+      "scope_note": "Disputed status; included without sovereignty determination"
+    },
+    {
+      "iso2": "LV",
+      "iso3": "LVA",
+      "country_name": "Latvia",
+      "common_english_name": "Latvia",
+      "local_names": [
+        "Latvija"
+      ],
+      "variants": [],
+      "english_demonym": "Latvian",
+      "local_demonyms": [
+        "latviešu"
+      ],
+      "adjectival_forms": [
+        "Latvian",
+        "latviešu"
+      ],
+      "latitude": 56.9,
+      "longitude": 24.6,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "LI",
+      "iso3": "LIE",
+      "country_name": "Liechtenstein",
+      "common_english_name": "Liechtenstein",
+      "local_names": [
+        "Liechtenstein"
+      ],
+      "variants": [],
+      "english_demonym": "Liechtensteiner",
+      "local_demonyms": [
+        "liechtensteinisch"
+      ],
+      "adjectival_forms": [
+        "Liechtensteiner",
+        "liechtensteinisch"
+      ],
+      "latitude": 47.17,
+      "longitude": 9.55,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "LT",
+      "iso3": "LTU",
+      "country_name": "Lithuania",
+      "common_english_name": "Lithuania",
+      "local_names": [
+        "Lietuva"
+      ],
+      "variants": [],
+      "english_demonym": "Lithuanian",
+      "local_demonyms": [
+        "lietuvių"
+      ],
+      "adjectival_forms": [
+        "Lithuanian",
+        "lietuvių"
+      ],
+      "latitude": 55.2,
+      "longitude": 23.9,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "LU",
+      "iso3": "LUX",
+      "country_name": "Luxembourg",
+      "common_english_name": "Luxembourg",
+      "local_names": [
+        "Lëtzebuerg",
+        "Luxemburg"
+      ],
+      "variants": [],
+      "english_demonym": "Luxembourgish",
+      "local_demonyms": [
+        "luxembourgeois"
+      ],
+      "adjectival_forms": [
+        "Luxembourgish",
+        "luxembourgeois"
+      ],
+      "latitude": 49.8,
+      "longitude": 6.1,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "MT",
+      "iso3": "MLT",
+      "country_name": "Malta",
+      "common_english_name": "Malta",
+      "local_names": [
+        "Malta"
+      ],
+      "variants": [],
+      "english_demonym": "Maltese",
+      "local_demonyms": [
+        "Malti"
+      ],
+      "adjectival_forms": [
+        "Maltese",
+        "Malti"
+      ],
+      "latitude": 35.9,
+      "longitude": 14.4,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "MD",
+      "iso3": "MDA",
+      "country_name": "Moldova",
+      "common_english_name": "Moldova",
+      "local_names": [
+        "Moldova",
+        "Молдова"
+      ],
+      "variants": [
+        "Republic of Moldova"
+      ],
+      "english_demonym": "Moldovan",
+      "local_demonyms": [
+        "moldovenesc"
+      ],
+      "adjectival_forms": [
+        "Moldovan",
+        "moldovenesc"
+      ],
+      "latitude": 47.0,
+      "longitude": 28.4,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "MC",
+      "iso3": "MCO",
+      "country_name": "Monaco",
+      "common_english_name": "Monaco",
+      "local_names": [
+        "Monaco"
+      ],
+      "variants": [],
+      "english_demonym": "Monégasque",
+      "local_demonyms": [
+        "monégasque"
+      ],
+      "adjectival_forms": [
+        "Monégasque",
+        "monégasque"
+      ],
+      "latitude": 43.74,
+      "longitude": 7.42,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "ME",
+      "iso3": "MNE",
+      "country_name": "Montenegro",
+      "common_english_name": "Montenegro",
+      "local_names": [
+        "Crna Gora",
+        "Црна Гора"
+      ],
+      "variants": [],
+      "english_demonym": "Montenegrin",
+      "local_demonyms": [
+        "crnogorski"
+      ],
+      "adjectival_forms": [
+        "Montenegrin",
+        "crnogorski"
+      ],
+      "latitude": 42.7,
+      "longitude": 19.3,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "NL",
+      "iso3": "NLD",
+      "country_name": "Netherlands",
+      "common_english_name": "Netherlands",
+      "local_names": [
+        "Nederland"
+      ],
+      "variants": [
+        "Holland"
+      ],
+      "english_demonym": "Dutch",
+      "local_demonyms": [
+        "Nederlands"
+      ],
+      "adjectival_forms": [
+        "Dutch",
+        "Nederlands"
+      ],
+      "latitude": 52.2,
+      "longitude": 5.3,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "MK",
+      "iso3": "MKD",
+      "country_name": "North Macedonia",
+      "common_english_name": "North Macedonia",
+      "local_names": [
+        "Северна Македонија"
+      ],
+      "variants": [
+        "Macedonia"
+      ],
+      "english_demonym": "Macedonian",
+      "local_demonyms": [
+        "македонски"
+      ],
+      "adjectival_forms": [
+        "Macedonian",
+        "македонски"
+      ],
+      "latitude": 41.6,
+      "longitude": 21.7,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "NO",
+      "iso3": "NOR",
+      "country_name": "Norway",
+      "common_english_name": "Norway",
+      "local_names": [
+        "Norge",
+        "Noreg"
+      ],
+      "variants": [],
+      "english_demonym": "Norwegian",
+      "local_demonyms": [
+        "norsk"
+      ],
+      "adjectival_forms": [
+        "Norwegian",
+        "norsk"
+      ],
+      "latitude": 64.5,
+      "longitude": 12.0,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "PL",
+      "iso3": "POL",
+      "country_name": "Poland",
+      "common_english_name": "Poland",
+      "local_names": [
+        "Polska"
+      ],
+      "variants": [],
+      "english_demonym": "Polish",
+      "local_demonyms": [
+        "polski"
+      ],
+      "adjectival_forms": [
+        "Polish",
+        "polski"
+      ],
+      "latitude": 52.0,
+      "longitude": 19.1,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "PT",
+      "iso3": "PRT",
+      "country_name": "Portugal",
+      "common_english_name": "Portugal",
+      "local_names": [
+        "Portugal"
+      ],
+      "variants": [],
+      "english_demonym": "Portuguese",
+      "local_demonyms": [
+        "português",
+        "portuguesa"
+      ],
+      "adjectival_forms": [
+        "Portuguese",
+        "português",
+        "portuguesa"
+      ],
+      "latitude": 39.6,
+      "longitude": -8.0,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "RO",
+      "iso3": "ROU",
+      "country_name": "Romania",
+      "common_english_name": "Romania",
+      "local_names": [
+        "România"
+      ],
+      "variants": [],
+      "english_demonym": "Romanian",
+      "local_demonyms": [
+        "românesc"
+      ],
+      "adjectival_forms": [
+        "Romanian",
+        "românesc"
+      ],
+      "latitude": 45.9,
+      "longitude": 25.0,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "RU",
+      "iso3": "RUS",
+      "country_name": "Russia",
+      "common_english_name": "Russia",
+      "local_names": [
+        "Россия",
+        "Российская Федерация"
+      ],
+      "variants": [
+        "Russian Federation"
+      ],
+      "english_demonym": "Russian",
+      "local_demonyms": [
+        "русский",
+        "российский"
+      ],
+      "adjectival_forms": [
+        "Russian",
+        "русский",
+        "российский"
+      ],
+      "latitude": 58.0,
+      "longitude": 40.0,
+      "scope_note": "Transcontinental/broad European scope"
+    },
+    {
+      "iso2": "SM",
+      "iso3": "SMR",
+      "country_name": "San Marino",
+      "common_english_name": "San Marino",
+      "local_names": [
+        "San Marino"
+      ],
+      "variants": [],
+      "english_demonym": "Sammarinese",
+      "local_demonyms": [
+        "sammarinese"
+      ],
+      "adjectival_forms": [
+        "Sammarinese",
+        "sammarinese"
+      ],
+      "latitude": 43.94,
+      "longitude": 12.46,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "RS",
+      "iso3": "SRB",
+      "country_name": "Serbia",
+      "common_english_name": "Serbia",
+      "local_names": [
+        "Srbija",
+        "Србија"
+      ],
+      "variants": [],
+      "english_demonym": "Serbian",
+      "local_demonyms": [
+        "srpski",
+        "српски"
+      ],
+      "adjectival_forms": [
+        "Serbian",
+        "srpski",
+        "српски"
+      ],
+      "latitude": 44.0,
+      "longitude": 20.8,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "SK",
+      "iso3": "SVK",
+      "country_name": "Slovakia",
+      "common_english_name": "Slovakia",
+      "local_names": [
+        "Slovensko"
+      ],
+      "variants": [],
+      "english_demonym": "Slovak",
+      "local_demonyms": [
+        "slovenský"
+      ],
+      "adjectival_forms": [
+        "Slovak",
+        "slovenský"
+      ],
+      "latitude": 48.7,
+      "longitude": 19.7,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "SI",
+      "iso3": "SVN",
+      "country_name": "Slovenia",
+      "common_english_name": "Slovenia",
+      "local_names": [
+        "Slovenija"
+      ],
+      "variants": [],
+      "english_demonym": "Slovenian",
+      "local_demonyms": [
+        "slovenski"
+      ],
+      "adjectival_forms": [
+        "Slovenian",
+        "slovenski"
+      ],
+      "latitude": 46.1,
+      "longitude": 14.8,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "ES",
+      "iso3": "ESP",
+      "country_name": "Spain",
+      "common_english_name": "Spain",
+      "local_names": [
+        "España"
+      ],
+      "variants": [],
+      "english_demonym": "Spanish",
+      "local_demonyms": [
+        "español",
+        "española"
+      ],
+      "adjectival_forms": [
+        "Spanish",
+        "español",
+        "española"
+      ],
+      "latitude": 40.3,
+      "longitude": -3.7,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "SE",
+      "iso3": "SWE",
+      "country_name": "Sweden",
+      "common_english_name": "Sweden",
+      "local_names": [
+        "Sverige"
+      ],
+      "variants": [],
+      "english_demonym": "Swedish",
+      "local_demonyms": [
+        "svensk"
+      ],
+      "adjectival_forms": [
+        "Swedish",
+        "svensk"
+      ],
+      "latitude": 62.0,
+      "longitude": 16.0,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "CH",
+      "iso3": "CHE",
+      "country_name": "Switzerland",
+      "common_english_name": "Switzerland",
+      "local_names": [
+        "Schweiz",
+        "Suisse",
+        "Svizzera",
+        "Svizra"
+      ],
+      "variants": [],
+      "english_demonym": "Swiss",
+      "local_demonyms": [
+        "schweizerisch",
+        "suisse"
+      ],
+      "adjectival_forms": [
+        "Swiss",
+        "schweizerisch",
+        "suisse"
+      ],
+      "latitude": 46.8,
+      "longitude": 8.2,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "TR",
+      "iso3": "TUR",
+      "country_name": "Türkiye",
+      "common_english_name": "Türkiye",
+      "local_names": [
+        "Türkiye"
+      ],
+      "variants": [
+        "Turkey",
+        "Turkiye"
+      ],
+      "english_demonym": "Turkish",
+      "local_demonyms": [
+        "Türk"
+      ],
+      "adjectival_forms": [
+        "Turkish",
+        "Türk"
+      ],
+      "latitude": 39.0,
+      "longitude": 35.0,
+      "scope_note": "Transcontinental/broad European scope"
+    },
+    {
+      "iso2": "UA",
+      "iso3": "UKR",
+      "country_name": "Ukraine",
+      "common_english_name": "Ukraine",
+      "local_names": [
+        "Україна"
+      ],
+      "variants": [],
+      "english_demonym": "Ukrainian",
+      "local_demonyms": [
+        "український"
+      ],
+      "adjectival_forms": [
+        "Ukrainian",
+        "український"
+      ],
+      "latitude": 49.0,
+      "longitude": 31.0,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "GB",
+      "iso3": "GBR",
+      "country_name": "United Kingdom",
+      "common_english_name": "United Kingdom",
+      "local_names": [
+        "United Kingdom"
+      ],
+      "variants": [
+        "UK",
+        "Britain",
+        "Great Britain",
+        "England",
+        "Scotland",
+        "Wales",
+        "Northern Ireland",
+        "English",
+        "Scottish",
+        "Welsh"
+      ],
+      "english_demonym": "British",
+      "local_demonyms": [
+        "British"
+      ],
+      "adjectival_forms": [
+        "British",
+        "British"
+      ],
+      "latitude": 54.5,
+      "longitude": -2.5,
+      "scope_note": "European sovereign state"
+    },
+    {
+      "iso2": "VA",
+      "iso3": "VAT",
+      "country_name": "Vatican City",
+      "common_english_name": "Vatican City",
+      "local_names": [
+        "Città del Vaticano"
+      ],
+      "variants": [
+        "Holy See"
+      ],
+      "english_demonym": "Vatican",
+      "local_demonyms": [
+        "vaticano"
+      ],
+      "adjectival_forms": [
+        "Vatican",
+        "vaticano"
+      ],
+      "latitude": 41.9,
+      "longitude": 12.45,
+      "scope_note": "European sovereign state"
+    }
+  ]
+}

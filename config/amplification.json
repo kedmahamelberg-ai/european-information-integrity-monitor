@@ -1,0 +1,16 @@
+{
+  "version": "amplification-1.0",
+  "weights": {
+    "duplicate_similarity": 0.25,
+    "temporal_burstiness": 0.2,
+    "cross_video_recurrence": 0.2,
+    "topic_divergence": 0.2,
+    "narrative_concentration": 0.15
+  },
+  "high_threshold": 0.7,
+  "near_duplicate_similarity": 0.92,
+  "coherent_similarity": 0.78,
+  "off_topic_similarity": 0.35,
+  "cluster_min_size": 3,
+  "burst_window_minutes": 10
+}

@@ -1,0 +1,18 @@
+{
+  "version": "institutionalization-1.0",
+  "weights": {
+    "age_years": 0.25,
+    "subscribers": 0.35,
+    "uploads": 0.2,
+    "publishing_frequency": 0.1,
+    "external_domain": 0.1
+  },
+  "log_caps": {
+    "age_years": 15,
+    "subscribers": 1000000,
+    "uploads": 10000,
+    "publishing_frequency": 7,
+    "external_domain": 1
+  },
+  "tiers": "Empirical tertiles within the complete discovered channel frame. Missing fields excluded from denominator; no unverifiable badge inferred. Organization identity/specialization stored but not automatically inferred as quality."
+}

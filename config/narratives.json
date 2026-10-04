@@ -1,0 +1,24 @@
+{
+  "version": "narratives-1.0",
+  "labels": [
+    "democracy_vs_authoritarianism",
+    "national_sovereignty",
+    "migration_invasion",
+    "corruption",
+    "foreign_interference",
+    "economic_grievance",
+    "religious_cultural_conflict",
+    "security_terrorism",
+    "elite_betrayal",
+    "ethnic_conflict",
+    "eu_nato_control",
+    "anti_western",
+    "anti_russian",
+    "anti_american",
+    "other",
+    "none_unclear"
+  ],
+  "emerging_min_weeks": 3,
+  "emerging_volume_threshold": 15,
+  "emerging_similarity_threshold": 0.8
+}

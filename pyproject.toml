@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "european-information-integrity-monitor"
+version = "0.1.0"
+description = "Reproducible computational information-forensics research infrastructure"
+requires-python = ">=3.11"
+dependencies = []
+[project.optional-dependencies]
+live = ["sentence-transformers==3.4.1", "scikit-learn==1.6.1", "numpy==2.2.3", "langdetect==1.0.9"]
+[tool.setuptools.packages.find]
+where = ["src"]
+[project.scripts]
+eiim = "eiim.cli:main"

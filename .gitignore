@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+private/
+review-*.json
+run-report.json
+build/
+dist/
+.DS_Store
