@@ -461,6 +461,10 @@ class Classifier:
                 parsed = json.loads(choice["message"]["content"])
                 if kind == "sfi":
                     parsed = validate_classification(parsed)
+                elif kind == "hybrid":
+                    from .hybrid import validate_label
+
+                    parsed = validate_label(parsed, json.loads(text))
                 elif kind == "sfi_review":
                     from .reclassification import validate_evidence_label
 
@@ -489,7 +493,7 @@ class Classifier:
                     "model_version": raw.get("model", self.cfg["model_version"]),
                     "prompt_version": (
                         self.cfg["prompt_version"]
-                        if kind in {"sfi", "sfi_review", "cue_check"}
+                        if kind in {"sfi", "sfi_review", "cue_check", "hybrid"}
                         else (
                             "source-screen-1.1"
                             if kind == "source_screen"
@@ -500,7 +504,9 @@ class Classifier:
                             )
                         )
                     ),
-                    "taxonomy_version": config("narratives")["version"],
+                    "taxonomy_version": config(
+                        "hybrid" if kind == "hybrid" else "narratives"
+                    )["version"],
                     "classifier_version": self.cfg["classifier_version"],
                     "classification_timestamp": now(),
                 }

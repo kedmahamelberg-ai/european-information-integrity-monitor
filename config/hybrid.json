@@ -1,0 +1,78 @@
+{
+  "version": "hybrid-framing-1.0",
+  "relevance": [
+    "related",
+    "not_related",
+    "unclear"
+  ],
+  "context": [
+    "current",
+    "historical",
+    "hypothetical",
+    "mixed",
+    "unclear",
+    "not_applicable"
+  ],
+  "domains": [
+    "military_conflict",
+    "defence_readiness",
+    "cyber",
+    "sabotage_infrastructure",
+    "information_operations",
+    "economic_coercion",
+    "political_interference",
+    "other_security"
+  ],
+  "roles": [
+    "readiness",
+    "projecting_power",
+    "under_pressure"
+  ],
+  "stance_status": [
+    "expressed",
+    "mixed",
+    "no_stance",
+    "unclear"
+  ],
+  "alignment": [
+    "supports",
+    "opposes",
+    "mixed",
+    "no_position",
+    "unrelated",
+    "unclear",
+    "no_video_stance"
+  ],
+  "sentiment": [
+    "positive",
+    "negative",
+    "mixed",
+    "neutral",
+    "unclear"
+  ],
+  "evidence_status": [
+    "reported",
+    "alleged",
+    "hypothetical",
+    "unclear"
+  ],
+  "execution": [
+    "comparative",
+    "endorsement",
+    "entertainment",
+    "imagery_visual",
+    "mnemonic_devices"
+  ],
+  "execution_status": [
+    "present",
+    "not_observed_in_transcript",
+    "not_observable",
+    "not_applicable"
+  ],
+  "require_english_transcript": true,
+  "role_labels": {
+    "readiness": "Defence readiness",
+    "projecting_power": "Force projection & coercion",
+    "under_pressure": "Target of hostile action"
+  }
+}

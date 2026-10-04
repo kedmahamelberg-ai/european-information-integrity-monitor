@@ -1,4 +1,4 @@
-name: Evidence-based classification review
+name: Transcript-based conflict classification
 on:
   workflow_dispatch:
     inputs:
@@ -6,9 +6,6 @@ on:
         description: Retained batch ID (blank selects latest)
         required: false
         type: string
-  workflow_run:
-    workflows: ["Sunday research collection"]
-    types: [completed]
 permissions:
   contents: read
 concurrency:
@@ -16,7 +13,6 @@ concurrency:
   cancel-in-progress: false
 jobs:
   classify:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
@@ -33,18 +29,11 @@ jobs:
         run: PYTHONPATH=src python -m unittest discover -s tests -q
       - name: Install public caption reader
         run: pip install youtube-transcript-api==1.2.4
-      - name: Check live model against synthetic boundary cases
+      - name: Reclassify retained sources with English transcripts
         run: |
           if [ -n "$REVIEW_BATCH" ]; then
-            PYTHONPATH=src python -m eiim.cli classify-review --evaluate-only --batch "$REVIEW_BATCH"
+            PYTHONPATH=src python -m eiim.hybrid --retrieve-captions --batch "$REVIEW_BATCH" > /tmp/hybrid-report.json
           else
-            PYTHONPATH=src python -m eiim.cli classify-review --evaluate-only
+            PYTHONPATH=src python -m eiim.hybrid --retrieve-captions > /tmp/hybrid-report.json
           fi
-      - name: Reclassify retained eligible sources within the existing weekly budget
-        run: |
-          if [ -n "$REVIEW_BATCH" ]; then
-            PYTHONPATH=src python -m eiim.cli classify-review --retrieve-captions --batch "$REVIEW_BATCH" > /tmp/reclassification-report.json
-          else
-            PYTHONPATH=src python -m eiim.cli classify-review --retrieve-captions > /tmp/reclassification-report.json
-          fi
-          cat /tmp/reclassification-report.json >> "$GITHUB_STEP_SUMMARY"
+          tail -40 /tmp/hybrid-report.json >> "$GITHUB_STEP_SUMMARY"
