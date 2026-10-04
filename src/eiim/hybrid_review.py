@@ -8,9 +8,9 @@ from .review_sampling import sample_plan, assignment
 from .storage import record
 from .engagement import engagement
 
-VIDEO_FIELDS = ["relevance", "context", "domains", "roles", "stance"]
+VIDEO_FIELDS = ["relevance", "context", "domains", "roles"]
 EXECUTION = config("hybrid")["execution"]
-COMMENT_FIELDS = ["alignment", "sentiment", "sentiment_target"]
+COMMENT_FIELDS = ["alignment", "stance_target", "sentiment", "sentiment_target"]
 
 
 def video_values(label):
@@ -44,6 +44,14 @@ def packet(store, batch):
                 "label": p["label"],
                 "model_values": video_values(p["label"]),
                 "model": p["model_version"],
+                "prior_reviews": [
+                    r["payload"]
+                    for r in store.read("human_validation", batch)
+                    if not r.get("purged_at")
+                    and r.get("video_id") == vid
+                    and r["payload"].get("item_type") == "hybrid_video"
+                    and r["payload"].get("version") != VERSION
+                ],
                 "review_assignment": assignment(plan, vid),
                 "engagement": engagement(source),
                 "comments": [
@@ -138,13 +146,16 @@ def validate_review(item, row):
             human["alignment"] not in cfg["alignment"]
             or human["sentiment"] not in cfg["sentiment"]
             or not isinstance(human["sentiment_target"], str)
+            or not isinstance(human["stance_target"], str)
         ):
             raise ValueError("Invalid comment labels")
         if (
-            label["stance"]["status"] in {"no_stance", "unclear"}
-            and human["alignment"] != "no_video_stance"
+            human["alignment"] in {"supports", "opposes", "mixed"}
+            and not human["stance_target"].strip()
         ):
-            raise ValueError("No video stance available for comparison")
+            raise ValueError(
+                "Specify the video content the comment supports or opposes"
+            )
     else:
         if (
             human["relevance"] not in cfg["relevance"]
@@ -176,14 +187,6 @@ def validate_review(item, row):
                 or not str(role.get("entity", "")).strip()
             ):
                 raise ValueError("Invalid entity role")
-        st = human["stance"]
-        if not isinstance(st, dict) or st.get("status") not in cfg["stance_status"]:
-            raise ValueError("Invalid stance")
-        if st["status"] in {"expressed", "mixed"} and (
-            not st.get("proposition", "").strip()
-            or not st.get("attribution", "").strip()
-        ):
-            raise ValueError("Stance requires proposition and attribution")
         for k in EXECUTION:
             value = human["execution:" + k]
             if value not in cfg["execution_status"] + ["absent_after_watching"]:

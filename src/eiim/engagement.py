@@ -5,7 +5,8 @@ from datetime import datetime
 
 def engagement(source):
     raw = source.get("raw_api_response", {})
-    stats = raw.get("statistics", {})
+    snapshot = source.get("engagement_snapshot") or {}
+    stats = snapshot.get("statistics", raw.get("statistics", {}))
 
     def count(key):
         value = stats.get(key)
@@ -20,7 +21,7 @@ def engagement(source):
     views, likes, comments = (
         count(k) for k in ["viewCount", "likeCount", "commentCount"]
     )
-    captured = source.get("retrieved_at")
+    captured = snapshot.get("captured_at") or source.get("retrieved_at")
     published = source.get("published_at")
     age = None
     if captured and published:
@@ -51,5 +52,9 @@ def engagement(source):
             comments / views * 1000 if views and comments is not None else None
         ),
         "duration": raw.get("contentDetails", {}).get("duration"),
-        "provenance": "original_youtube_videos_statistics_snapshot",
+        "provenance": (
+            "refreshed_youtube_videos_statistics_snapshot"
+            if snapshot
+            else "original_youtube_videos_statistics_snapshot"
+        ),
     }

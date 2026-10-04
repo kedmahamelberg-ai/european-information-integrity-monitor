@@ -136,6 +136,7 @@ function render() {
     endorsement: "Expert / testimonial",
     entertainment: "Entertainment / storytelling",
     imagery_visual: "Imagery / visual",
+    verbal_imagery: "Verbal imagery · study extension",
     mnemonic_devices: "Mnemonic devices",
   };
   $("#execution").innerHTML =

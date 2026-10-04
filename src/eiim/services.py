@@ -123,8 +123,13 @@ class YouTube:
             r["id"]: r["payload"] for r in store.read("search_requests", batch)
         }
 
-    def get(self, resource, **params):
-        ident = self.batch + ":yt:" + digest([resource, params])
+    def get(self, resource, cache_scope=None, **params):
+        cache_key = (
+            [resource, params]
+            if cache_scope is None
+            else [resource, params, cache_scope]
+        )
+        ident = self.batch + ":yt:" + digest(cache_key)
         cached = self.cache.get(ident)
         if cached:
             return cached["response"]
@@ -524,7 +529,9 @@ class Classifier:
                     "classification_timestamp": now(),
                 }
                 if kind == "hybrid_comments":
-                    result["prompt_version"] = "hybrid-comments-1.0"
+                    from .hybrid import COMMENT_VERSION
+
+                    result["prompt_version"] = COMMENT_VERSION
                 self.store.write(
                     self.batch, [record("pipeline_runs", self.batch, ident, result)]
                 )

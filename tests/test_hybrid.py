@@ -43,10 +43,8 @@ def label():
                 "rationale": "Example identified speaker.",
             }
         ],
-        "stance": {
-            "status": "expressed",
-            "proposition": "The attack is awful.",
-            "attribution": "Narrator",
+        "content_reference": {
+            "summary": "The narrator calls for defence preparation and condemns an attack.",
             "evidence": {"quote": "This attack is awful.", "source_id": "transcript:0"},
         },
         "confidence": 0.8,
@@ -54,6 +52,7 @@ def label():
             {
                 "comment_id": "c",
                 "alignment": "supports",
+                "stance_target": "The narrator’s condemnation of the attack",
                 "sentiment": "negative",
                 "sentiment_target": "attack",
                 "rationale": "Condemns the same attack.",
@@ -89,12 +88,48 @@ class HybridTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_label(x, document())
 
-    def test_no_stance_cannot_have_agreement(self):
+    def test_neutral_video_allows_comment_stance(self):
+        from eiim.hybrid import validate_comments
+        from eiim.hybrid_review import video_values
+
+        x, doc = label(), document()
+        doc["sections"][0]["text"] = "The deployment began today."
+        x.update(
+            domains=[], roles=[], relevance="not_related", context="not_applicable"
+        )
+        x["evidence"] = {"quote": "", "source_id": ""}
+        x["content_reference"] = {
+            "summary": "A deployment began today.",
+            "evidence": {
+                "quote": "The deployment began today.",
+                "source_id": "transcript:0",
+            },
+        }
+        for e in x["execution"]:
+            e["status"] = "not_applicable"
+        x["comments"][0].update(
+            alignment="opposes",
+            stance_target="The deployment",
+            rationale="Rejects the deployment as reckless.",
+        )
+        doc["comments"][0]["text_english"] = "That deployment is reckless."
+        validate_label(x, doc)
+        validate_comments(
+            {"comments": x["comments"]},
+            dict(doc, content_reference=x["content_reference"]),
+        )
+        self.assertNotIn("stance", schema()["properties"])
+        self.assertNotIn("stance", video_values(x))
+
+    def test_stance_requires_target_and_rejects_retired_gate(self):
         x = label()
-        x["stance"]["status"] = "no_stance"
+        x["comments"][0]["stance_target"] = ""
         with self.assertRaises(ValueError):
             validate_label(x, document())
         x["comments"][0]["alignment"] = "no_video_stance"
+        with self.assertRaises(ValueError):
+            validate_label(x, document())
+        x["comments"][0]["alignment"] = "unclear"
         validate_label(x, document())
 
     def test_every_comment_exactly_once(self):
@@ -225,6 +260,36 @@ class EngagementTests(unittest.TestCase):
                 }
             )["likes_per_1000_views"]
         )
+
+    def test_counter_refresh_preserves_source_and_uses_actual_snapshot(self):
+        from eiim.hybrid import refresh_engagement
+        from eiim.engagement import engagement
+
+        s = HybridTests().make_transcript_store()
+        old = copy.deepcopy(s.read("candidate_videos"))
+
+        class API:
+            def get(self, resource, **kw):
+                assert (
+                    resource == "videos"
+                    and kw["id"] == "v"
+                    and kw["part"] == "statistics"
+                )
+                return {
+                    "items": [
+                        {
+                            "id": "v",
+                            "statistics": {"viewCount": "123", "likeCount": "4"},
+                        }
+                    ]
+                }
+
+        refresh_engagement(s, "2026-W40", API())
+        source = retained_inputs(s, "2026-W40")[0]["v"][0]
+        self.assertEqual(engagement(source)["views"], 123)
+        self.assertIsNone(engagement(source)["total_comments"])
+        self.assertEqual(s.read("candidate_videos"), old)
+        self.assertFalse(s.read("comments"))
 
     def test_timestamp_and_age(self):
         from eiim.engagement import engagement
@@ -366,6 +431,8 @@ class StagedCommentTests(unittest.TestCase):
                     x["comments"] = []
                 else:
                     self.sizes.append(("comments", len(doc["comments"])))
+                    assert "stance" not in doc
+                    assert doc["sections"] and doc["content_reference"]["summary"]
                     x = {
                         "comments": [
                             {**label()["comments"][0], "comment_id": c["comment_id"]}
@@ -388,7 +455,7 @@ class StagedCommentTests(unittest.TestCase):
         from eiim.hybrid import validate_comments
 
         doc = {
-            "stance": label()["stance"],
+            "content_reference": label()["content_reference"],
             "comments": [{"comment_id": "c"}, {"comment_id": "d"}],
         }
         with self.assertRaises(ValueError):

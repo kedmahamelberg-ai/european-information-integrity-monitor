@@ -1,10 +1,6 @@
 {
-  "version": "hybrid-framing-1.0.1",
-  "relevance": [
-    "related",
-    "not_related",
-    "unclear"
-  ],
+  "version": "hybrid-framing-1.1",
+  "relevance": ["related", "not_related", "unclear"],
   "context": [
     "current",
     "historical",
@@ -26,45 +22,24 @@
     "military_capability",
     "national_security"
   ],
-  "roles": [
-    "readiness",
-    "projecting_power",
-    "under_pressure"
-  ],
-  "stance_status": [
-    "expressed",
-    "mixed",
-    "no_stance",
-    "unclear"
-  ],
+  "roles": ["readiness", "projecting_power", "under_pressure"],
   "alignment": [
     "supports",
     "opposes",
     "mixed",
     "no_position",
     "unrelated",
-    "unclear",
-    "no_video_stance"
-  ],
-  "sentiment": [
-    "positive",
-    "negative",
-    "mixed",
-    "neutral",
     "unclear"
   ],
-  "evidence_status": [
-    "reported",
-    "alleged",
-    "hypothetical",
-    "unclear"
-  ],
+  "sentiment": ["positive", "negative", "mixed", "neutral", "unclear"],
+  "evidence_status": ["reported", "alleged", "hypothetical", "unclear"],
   "execution": [
     "comparative",
     "endorsement",
     "entertainment",
     "imagery_visual",
-    "mnemonic_devices"
+    "mnemonic_devices",
+    "verbal_imagery"
   ],
   "execution_status": [
     "present",

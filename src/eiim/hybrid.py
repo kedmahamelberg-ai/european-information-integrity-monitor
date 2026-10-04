@@ -16,7 +16,8 @@ from .review_sampling import plans_for_store, assignment
 from .services import Classifier, Ledger, BudgetExhausted, ClassificationUnavailable
 from .storage import Store, record
 
-VERSION = "hybrid-framing-1.0.1"
+VERSION = "hybrid-framing-1.1"
+COMMENT_VERSION = "hybrid-comments-1.1"
 
 
 def obj(properties):
@@ -52,6 +53,7 @@ def schema():
         {
             "comment_id": string,
             "alignment": enum("alignment"),
+            "stance_target": string,
             "sentiment": enum("sentiment"),
             "sentiment_target": string,
             "rationale": string,
@@ -66,14 +68,7 @@ def schema():
             "evidence": evidence,
             "rationale": string,
             "roles": {"type": "array", "items": role},
-            "stance": obj(
-                {
-                    "status": enum("stance_status"),
-                    "proposition": string,
-                    "attribution": string,
-                    "evidence": evidence,
-                }
-            ),
+            "content_reference": obj({"summary": string, "evidence": evidence}),
             "confidence": {"type": "number", "minimum": 0, "maximum": 1},
             "comments": {"type": "array", "items": comment},
             "execution": {
@@ -169,27 +164,20 @@ def validate_label(value, document):
                 "Return only ONE entry for each entity + role pair, with nonempty entity and rationale. Sovereign governance is not military readiness evidence."
             )
         seen.add(key)
-    stance = value["stance"]
-    expressed = stance["status"] in {"expressed", "mixed"}
-    evidence(stance["evidence"], expressed)
-    if expressed and (
-        not stance["proposition"].strip() or not stance["attribution"].strip()
-    ):
-        raise ValueError("Expressed stance needs proposition and attribution")
+    reference = value["content_reference"]
+    if not reference["summary"].strip():
+        raise ValueError("A neutral video content summary is required")
+    evidence(reference["evidence"], True)
     ids = [c["comment_id"] for c in value["comments"]]
     expected = [c["comment_id"] for c in document["comments"]]
     if len(ids) != len(set(ids)) or set(ids) != set(expected):
         raise ValueError("Return each supplied comment ID exactly once")
-    for c in value["comments"]:
-        if (c["alignment"] == "no_video_stance") == expressed:
-            raise ValueError("Comment alignment must respect video stance availability")
-        if not c["rationale"].strip():
-            raise ValueError("Comment rationale required")
+    validate_comment_targets(value["comments"])
     ex = value["execution"]
-    if len(ex) != 5 or {x["category"] for x in ex} != set(
-        config("hybrid")["execution"]
-    ):
-        raise ValueError("Exactly five execution categories required")
+    if len(ex) != len(config("hybrid")["execution"]) or {
+        x["category"] for x in ex
+    } != set(config("hybrid")["execution"]):
+        raise ValueError("Return each configured execution category exactly once")
     for x in ex:
         if (x["status"] == "not_applicable") == (value["relevance"] == "related"):
             raise ValueError("Execution applies only to related videos")
@@ -210,6 +198,19 @@ def comment_schema():
     return obj({"comments": schema()["properties"]["comments"]})
 
 
+def validate_comment_targets(comments):
+    for c in comments:
+        if not c["rationale"].strip():
+            raise ValueError("Comment rationale required")
+        if (
+            c["alignment"] in {"supports", "opposes", "mixed"}
+            and not c["stance_target"].strip()
+        ):
+            raise ValueError(
+                "Comment stance requires an explicit target in the video content"
+            )
+
+
 def validate_comments(value, document):
     validate_shape(value, comment_schema())
     actual = [c["comment_id"] for c in value["comments"]]
@@ -218,10 +219,7 @@ def validate_comments(value, document):
         raise ValueError(
             "Return EXACTLY these comment IDs, once each: " + json.dumps(expected)
         )
-    expressed = document["stance"]["status"] in {"expressed", "mixed"}
-    for c in value["comments"]:
-        if (c["alignment"] == "no_video_stance") == expressed:
-            raise ValueError("Alignment must respect the supplied video stance status")
+    validate_comment_targets(value["comments"])
     return value
 
 
@@ -243,6 +241,13 @@ def retained_inputs(store, batch):
         ):
             continue
         source = {**row["payload"], **candidates[vid], "video_id": vid}
+        snapshots = [
+            r["payload"] for r in runs if r["payload"].get("engagement_video_id") == vid
+        ]
+        if snapshots:
+            source["engagement_snapshot"] = max(
+                snapshots, key=lambda p: p["captured_at"]
+            )
         language = video_access(source, batch, access)
         if language["eligible"] and any(
             s.get("text", "").strip() for s in language.get("transcript_english", [])
@@ -353,12 +358,14 @@ def reclassify(store, batch, classifier=None):
             comment_models = []
             for offset in range(0, len(document["comments"]), 5):
                 comment_input = {
-                    "stance": label["stance"],
+                    "content_reference": label["content_reference"],
+                    "sections": document["sections"],
+                    "transcript_truncated": document["transcript_truncated"],
                     "comments": document["comments"][offset : offset + 5],
                 }
                 comment_result = classifier.request(
                     json.dumps(comment_input, ensure_ascii=False),
-                    (ROOT / "prompts/hybrid-comments-1.0.txt").read_text(),
+                    (ROOT / "prompts" / (COMMENT_VERSION + ".txt")).read_text(),
                     comment_schema(),
                     "hybrid_comments",
                 )
@@ -516,11 +523,52 @@ def retrieve_retained_captions(store, batch):
     return {"new_saved_transcripts": retrieved, "blocked": reader.blocked}
 
 
+def refresh_engagement(store, batch, youtube=None):
+    """Refresh counters only for existing transcript-eligible videos."""
+    from .services import YouTube
+
+    ids = sorted(retained_inputs(store, batch)[0])
+    youtube = youtube or YouTube(store, batch, Ledger(store, batch))
+    captured = now()
+    refreshed = 0
+    for offset in range(0, len(ids), 50):
+        response = youtube.get(
+            "videos",
+            part="statistics",
+            id=",".join(ids[offset : offset + 50]),
+            cache_scope="engagement:" + captured,
+        )
+        for item in response.get("items", []):
+            vid = item["id"]
+            if vid not in ids or not isinstance(item.get("statistics"), dict):
+                continue
+            payload = {
+                "engagement_video_id": vid,
+                "captured_at": captured,
+                "statistics": item["statistics"],
+            }
+            store.write(
+                batch,
+                [
+                    record(
+                        "pipeline_runs",
+                        batch,
+                        batch + ":engagement:" + digest(payload),
+                        payload,
+                        vid,
+                    )
+                ],
+            )
+            refreshed += 1
+    return {"refreshed_engagement_videos": refreshed, "new_source_collection": False}
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch")
     parser.add_argument("--collect", action="store_true")
     parser.add_argument("--retrieve-captions", action="store_true")
+    parser.add_argument("--refresh-engagement", action="store_true")
     args = parser.parse_args()
     store = Store()
     if args.collect:
@@ -529,6 +577,8 @@ def main():
         batch = args.batch or sorted(r["id"] for r in store.read("weekly_batches"))[-1]
         if args.retrieve_captions:
             print(json.dumps(retrieve_retained_captions(store, batch)), flush=True)
+        if args.refresh_engagement:
+            print(json.dumps(refresh_engagement(store, batch)), flush=True)
         report = reclassify(store, batch)
     print(json.dumps(report, indent=2))
     if report["status"] != "complete":
