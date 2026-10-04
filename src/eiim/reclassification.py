@@ -8,8 +8,8 @@ from .core import ROOT, config, digest, now, validate_classification
 from .language_access import access_records, video_access
 from .storage import record
 
-VERSION = "classifier-1.2"
-PROMPT = "sfi-1.2"
+VERSION = "classifier-1.3"
+PROMPT = "sfi-1.3"
 DIMENSIONS = ("othering", "aversion", "moralization")
 TRANSCRIPT_CHAR_LIMIT = 48000
 
@@ -56,7 +56,7 @@ def evidence_schema(allow_abstention=True):
     shape = schema()
     props = shape["properties"]
     for k in DIMENSIONS:
-        props[k] = {"type": ["integer", "null"], "minimum": 0, "maximum": 4}
+        props[k] = {"type": ["integer", "null"], "minimum": 0, "maximum": 6}
     props.update(
         assessment_status={
             "type": "string",
@@ -152,7 +152,7 @@ def validate_evidence_label(raw, document):
         for target in check.get("targets", []):
             if target.get("direction") == "unclear":
                 target["direction"] = "negative"
-    validated = validate_classification(check)
+    validated = validate_classification(check, score_max=6)
     evidence = x.get("dimension_evidence", [])
     if len(evidence) != 3 or {e.get("dimension") for e in evidence} != set(DIMENSIONS):
         raise ValueError("Supply exactly one evidence entry per dimension")
@@ -210,6 +210,7 @@ def validate_evidence_label(raw, document):
                 raise ValueError("Positive-only target is not a sectarian cue")
     return dict(
         x,
+        score_max=6,
         sfi=validated["sfi"] if status == "scored" else None,
         strong_sectarian_frame=(
             validated["strong_sectarian_frame"] if status == "scored" else None
@@ -296,7 +297,10 @@ def classify_document(classifier, document):
             + digest([text, prompt, shape, classifier.cfg]),
         )
     result["parsed"] = dict(
-        result["parsed"], source_screen=decision, source_screen_response_ref=screen_ref
+        result["parsed"],
+        score_max=6,
+        source_screen=decision,
+        source_screen_response_ref=screen_ref,
     )
     return result
 
@@ -469,6 +473,7 @@ def reclassify(store, batch, classifier=None, limit=None, retrieve_captions=Fals
                 ],
                 "original_audio_language": eligibility["original_language"],
                 "validation_status": "candidate_awaiting_human_validation",
+                "baseline_score_max": 4,
                 "baseline_record_id": originals.get(vid, {}).get("id"),
                 "baseline_scores": {
                     k: originals.get(vid, {}).get("payload", {}).get(k)
@@ -499,6 +504,7 @@ def reclassify(store, batch, classifier=None, limit=None, retrieve_captions=Fals
                 document["scope"],
             ],
             "classifier_version": VERSION,
+            "score_max": 6,
         }
         store.write(
             batch, [record("human_validation", batch, ident + ":review", queue, vid)]

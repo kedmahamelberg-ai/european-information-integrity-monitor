@@ -124,7 +124,7 @@ def import_reviews(store, path):
                         "Null scores require a complete abstention on an unscored model item"
                     )
             else:
-                sfi(*scores)
+                sfi(*scores, score_max=q["model_label"].get("score_max", 4))
             if not isinstance(human.get("narratives"), list) or not isinstance(
                 human.get("targets"), list
             ):
@@ -157,7 +157,12 @@ def import_reviews(store, path):
             "original_audio_language": eligibility["original_language"],
             "english_access_status": eligibility["status"],
             "approved_excerpts": excerpts,
-            "human_label": human,
+            "human_label": (
+                dict(human, score_max=q["model_label"].get("score_max", 4))
+                if q["item_type"] == "video"
+                else human
+            ),
+            "score_max": q["model_label"].get("score_max", 4),
             "adjudicated_label": item.get("adjudicated_label"),
             "review_status": "complete",
             "reviewer": item["reviewer"],

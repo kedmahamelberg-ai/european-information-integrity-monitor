@@ -1,7 +1,7 @@
-# Evidence-based classification revision (1.2)
+# Evidence-based classification revision (1.3)
 
 Status: candidate for private researcher review, not validated for public inference.
-Implementation: `prompts/sfi-1.2.txt`, `src/eiim/reclassification.py`.
+Implementation: `prompts/sfi-1.3.txt`, `src/eiim/reclassification.py`.
 
 ## Why change the baseline?
 
@@ -23,18 +23,18 @@ are imported unchanged, with the clarification stored as provenance.
 
 ## Literature and operational decisions
 
-| Source reviewed | Relevant finding | Coding consequence |
-|---|---|---|
-| Finkel et al. (2020), *Political sectarianism in America*, Science 370, 533–536, [doi:10.1126/science.abe1715](https://doi.org/10.1126/science.abe1715) | Othering, aversion and moralization describe distinct ingredients of partisan animosity. | Code each dimension independently; do not require all three to be nonzero. |
-| Finkel, Landry, Druckman, Van Bavel & Hoyle, *Partisan Antipathy and the Erosion of Democratic Norms*, supplied manuscript and 2024 IPR working-paper version, pp. 5–7 and Supplemental Appendix B | Items include social distance/inability to understand opponents, negative feelings, and lack of integrity, alongside extreme hatred/evil. The nine-item self-report measure uses 0–6 response scales and concerns opposing party supporters. Its factor analysis supported a common factor, not three validated independent subscales. | Admit weak social distance, mild dislike and qualified integrity accusations. Do not require hatred or evil. Explicitly describe our 0–4 text rubric and extension to governments/institutions as an unvalidated adaptation. |
-| Corstange & York, *Sectarian Framing in the Syrian Civil War*, supplied 27 February 2017 manuscript, abstract/introduction and conflict-framing sections | Sectarian, democracy and foreign-interference narratives compete; effects depend on audience/faction and competing frames. | Keep narrative categories separate from O/A/M. A political conflict topic does not itself establish hostile group framing. No inference about audience response. |
-| Van Bavel et al. (2024), *Social Media and Morality*, Annual Review of Psychology 75, 311–340, [doi:10.1146/annurev-psych-022123-110258](https://doi.org/10.1146/annurev-psych-022123-110258), especially pp. 314–319 | Moral expression is context-sensitive; online expression, inferred emotion and actual experience are different. Moral language can support prosocial action as well as intergroup conflict. | Code observable expression, not mental state. Preserve speaker attribution, negation and quoted reporting. Moral words and emotionally loaded topics alone do not establish negative out-group moralization. |
-| Carter & Caton (2025; online 2022), *Primed for Violence: Intrareligious Conflict and the State in Sectarian Societies*, Studies in Conflict & Terrorism 48(1), 1–20, [doi:10.1080/1057610X.2022.2083933](https://doi.org/10.1080/1057610X.2022.2083933), abstract and conceptual discussion | State involvement and intrareligious group boundaries matter in the studied conflict settings. | Identify actual group/state targets and context. Do not transfer population-level conflict findings into a violence diagnosis for a video. |
+| Source reviewed                                                                                                                                                                                                                                                                              | Relevant finding                                                                                                                                                                                                                                                                                                                       | Coding consequence                                                                                                                                                                                                           |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Finkel et al. (2020), _Political sectarianism in America_, Science 370, 533–536, [doi:10.1126/science.abe1715](https://doi.org/10.1126/science.abe1715)                                                                                                                                      | Othering, aversion and moralization describe distinct ingredients of partisan animosity.                                                                                                                                                                                                                                               | Code each dimension independently; do not require all three to be nonzero.                                                                                                                                                   |
+| Finkel, Landry, Druckman, Van Bavel & Hoyle, _Partisan Antipathy and the Erosion of Democratic Norms_, supplied manuscript and 2024 IPR working-paper version, pp. 5–7 and Supplemental Appendix B                                                                                           | Items include social distance/inability to understand opponents, negative feelings, and lack of integrity, alongside extreme hatred/evil. The nine-item self-report measure uses 0–6 response scales and concerns opposing party supporters. Its factor analysis supported a common factor, not three validated independent subscales. | Admit weak social distance, mild dislike and qualified integrity accusations. Do not require hatred or evil. Explicitly describe our 0–6 text rubric and extension to governments/institutions as an unvalidated adaptation. |
+| Corstange & York, _Sectarian Framing in the Syrian Civil War_, supplied 27 February 2017 manuscript, abstract/introduction and conflict-framing sections                                                                                                                                     | Sectarian, democracy and foreign-interference narratives compete; effects depend on audience/faction and competing frames.                                                                                                                                                                                                             | Keep narrative categories separate from O/A/M. A political conflict topic does not itself establish hostile group framing. No inference about audience response.                                                             |
+| Van Bavel et al. (2024), _Social Media and Morality_, Annual Review of Psychology 75, 311–340, [doi:10.1146/annurev-psych-022123-110258](https://doi.org/10.1146/annurev-psych-022123-110258), especially pp. 314–319                                                                        | Moral expression is context-sensitive; online expression, inferred emotion and actual experience are different. Moral language can support prosocial action as well as intergroup conflict.                                                                                                                                            | Code observable expression, not mental state. Preserve speaker attribution, negation and quoted reporting. Moral words and emotionally loaded topics alone do not establish negative out-group moralization.                 |
+| Carter & Caton (2025; online 2022), _Primed for Violence: Intrareligious Conflict and the State in Sectarian Societies_, Studies in Conflict & Terrorism 48(1), 1–20, [doi:10.1080/1057610X.2022.2083933](https://doi.org/10.1080/1057610X.2022.2083933), abstract and conceptual discussion | State involvement and intrareligious group boundaries matter in the studied conflict settings.                                                                                                                                                                                                                                         | Identify actual group/state targets and context. Do not transfer population-level conflict findings into a violence diagnosis for a video.                                                                                   |
 
 The two supplied Science PDFs are copies of the same article, not independent
 evidence. The two antipathy manuscripts are versions of the same project. No
 supplied study validates this multilingual video classifier, the arithmetic mean
-of its dimensions, or the all-three-at-least-2 threshold. Both numerical summaries
+of its dimensions, or the all-three-at-least-3 threshold. Both numerical summaries
 remain monitor-specific operational choices. Wider validation is still required.
 
 ## Revised measurement contract
@@ -68,7 +68,7 @@ remain monitor-specific operational choices. Wider validation is still required.
 ## Reproducibility, budget and publication
 
 The original frozen sample, classifier-1.0 predictions, snapshots and human reviews
-remain immutable. Candidate labels use `classifier-1.2` / `sfi-1.2`, input hashes,
+remain immutable. Candidate labels use `classifier-1.3` / `sfi-1.3`, input hashes,
 model-response references and separate queue IDs. They live in retained private
 `pipeline_runs` / `human_validation` records and inherit the existing raw-data purge.
 Raw review packets and transcripts are never committed or included in Pages.
@@ -97,11 +97,15 @@ Do not tune for a desired proportion of nonzero classifications.
 
 The first 1.1 candidate passed ten short synthetic checks after refinement but
 spot checks found over-abstention on longer neutral descriptions. It was stopped
-before completing the pool and has not been promoted. Version 1.2 separates
+before completing the pool and has not been promoted. Version 1.3 separates
 source adequacy/relevance (`source-screen-1.0`) from framing scores. The first
 stage sees no O/A/M rubric; a substantive public-affairs statement, including
 neutral historical reporting, is assessable. The second stage must score each
-dimension 0–4 and cannot abstain. This prevents a lack of hostility from serving
+dimension 0–6 and cannot abstain. This prevents a lack of hostility from serving
 as the scoring stage's reason to return missing data. Inapplicable/insufficient
 inputs still remain null, with the screening decision retained separately.
-Old experimental results remain private audit records; review prefers 1.2.
+Old experimental results remain private audit records; review prefers 1.3.
+
+## Scale revision requested by the researcher
+
+Classifier 1.3 uses 0–6 directly: absent, slight/tentative, mild/explicit, moderate/clear, strong, very strong, extreme/categorical. Detailed dimension-specific anchors are in `prompts/sfi-1.3.txt`. SFI remains the mean of the three dimensions (now 0–6); the descriptive all-three flag requires each dimension ≥3. Neither that cutoff nor this content adaptation is a validated survey equivalent. Old 0–4 labels and human reviews remain immutable and visibly marked; they are not multiplied or silently recoded. New labels are inferred again from source evidence. Agreement is reported separately by scale. Public frozen baseline displays remain labeled 0–4 until a separately validated revision is promoted.

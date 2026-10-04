@@ -73,6 +73,53 @@ class EvidenceTests(unittest.TestCase):
         )
         return r
 
+    def test_six_point_scale_rejects_out_of_range_and_preserves_legacy(self):
+        from eiim.core import sfi
+
+        r = self.positive()
+        r["othering"] = 6
+        result = validate_evidence_label(r, self.doc)
+        self.assertEqual(result["sfi"], 2)
+        self.assertEqual(result["score_max"], 6)
+        self.assertTrue(sfi(3, 3, 3, score_max=6)[1])
+        self.assertFalse(sfi(2, 3, 3, score_max=6)[1])
+        with self.assertRaises(ValueError):
+            sfi(6, 0, 0)
+        r["othering"] = 7
+        with self.assertRaises(ValueError):
+            validate_evidence_label(r, self.doc)
+
+    def test_agreement_never_pools_different_scales(self):
+        rows = []
+        for maximum in (4, 6):
+            label = dict(
+                othering=maximum,
+                aversion=0,
+                moralization=0,
+                narratives=[],
+                targets=[],
+                score_max=maximum,
+            )
+            rows.append(dict(item_type="video", model_label=label, human_label=label))
+        report = agreement(rows)
+        self.assertFalse(report["pooled"])
+        self.assertEqual(
+            len(
+                report["by_scale"]["6"]["dimension_diagnostics"]["othering"][
+                    "confusion_rows_human_columns_model"
+                ]
+            ),
+            7,
+        )
+        self.assertEqual(
+            len(
+                report["by_scale"]["4"]["dimension_diagnostics"]["othering"][
+                    "confusion_rows_human_columns_model"
+                ]
+            ),
+            5,
+        )
+
     def test_social_distance_does_not_require_aversion(self):
         r = validate_evidence_label(self.positive(), self.doc)
         self.assertEqual(r["othering"], 1)
@@ -269,6 +316,7 @@ class CandidateIntegrationTests(unittest.TestCase):
         ]
         self.assertEqual(len(items), first["total"])
         self.assertTrue(all(i["classifier_version"] == VERSION for i in items))
+        self.assertTrue(all(i["score_max"] == 6 for i in items))
 
     def test_import_abstention_preserves_it_and_does_not_satisfy_launch_gate(self):
         reclassify(self.store, self.batch, self.classifier())

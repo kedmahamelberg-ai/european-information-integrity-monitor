@@ -191,14 +191,14 @@ function renderItem() {
           .join("")
       : "";
   $("#model-context").innerHTML =
-    `<b>AI rationale</b><p>${esc(model.short_rationale || model.rationale || "Review the cluster evidence and proposed labels below.")}</p><span>Confidence: ${model.confidence == null ? "not supplied" : esc(model.confidence)} · Version: ${esc(item.classifier_version)}</span>` +
+    `<b>AI rationale</b><p>${esc(model.short_rationale || model.rationale || "Review the cluster evidence and proposed labels below.")}</p><span>Confidence: ${model.confidence == null ? "not supplied" : esc(model.confidence)} · Version: ${esc(item.classifier_version)} · Scale: 0–${item.score_max || model.score_max || 4}</span>` +
     (model.baseline_scores
-      ? `<p class="help">Previous AI (O / A / M): ${esc([model.baseline_scores.othering, model.baseline_scores.aversion, model.baseline_scores.moralization].join(" / "))}. Kept for comparison.</p>`
+      ? `<p class="help">Previous AI (0–${model.baseline_score_max || 4}; O / A / M): ${esc([model.baseline_scores.othering, model.baseline_scores.aversion, model.baseline_scores.moralization].join(" / "))}. Kept for comparison.</p>`
       : "") +
     (item.previous_reviews || [])
       .map(
         (r) =>
-          `<p class="help">Imported previous review by ${esc(r.reviewer)} (${esc(r.classifier_version)}): O / A / M ${esc([r.human_label.othering, r.human_label.aversion, r.human_label.moralization].map(showValue).join(" / "))}. Basis: ${esc(human(r.review_evidence_basis || "unspecified"))}. This has not been overwritten.</p>`,
+          `<p class="help">Imported previous review by ${esc(r.reviewer)} (${esc(r.classifier_version)}; 0–${r.score_max || r.human_label.score_max || 4}): O / A / M ${esc([r.human_label.othering, r.human_label.aversion, r.human_label.moralization].map(showValue).join(" / "))}. Basis: ${esc(human(r.review_evidence_basis || "unspecified"))}. This has not been overwritten.</p>`,
       )
       .join("");
   $("#notes").value = draft.notes || "";
@@ -223,7 +223,15 @@ function renderFields() {
       if (decision === "disagree") {
         const corrected = draft.human_label[key] ?? value;
         if (["othering", "aversion", "moralization"].includes(key)) {
-          control = `<select data-correction="${key}" aria-label="Corrected ${human(key)}"><option value="" ${corrected == null ? "selected" : ""}>Choose a score</option>${[0, 1, 2, 3, 4].map((n) => `<option value="${n}" ${corrected === n ? "selected" : ""}>${n} · ${["Absent", "Weak / implicit", "Moderate / clear", "Strong", "Extreme / categorical"][n]}</option>`).join("")}</select>`;
+          control = `<select data-correction="${key}" aria-label="Corrected ${human(key)}"><option value="" ${corrected == null ? "selected" : ""}>Choose a score</option>${Array.from(
+            { length: (current().score_max || 4) + 1 },
+            (_, n) => n,
+          )
+            .map(
+              (n) =>
+                `<option value="${n}" ${corrected === n ? "selected" : ""}>${n} · ${(current().score_max === 6 ? ["Absent", "Slight / tentative", "Mild / explicit", "Moderate / clear", "Strong", "Very strong", "Extreme / categorical"] : ["Absent", "Weak / implicit", "Moderate / clear", "Strong", "Extreme / categorical"])[n]}</option>`,
+            )
+            .join("")}</select>`;
         } else if (typeof value === "boolean") {
           control = `<select data-correction="${key}" aria-label="Corrected ${human(key)}"><option value="true" ${corrected === true ? "selected" : ""}>Yes</option><option value="false" ${corrected === false ? "selected" : ""}>No</option></select>`;
         } else if (key === "narratives") {
@@ -352,9 +360,11 @@ function validate(item, state) {
     if (
       ["othering", "aversion", "moralization"].includes(key) &&
       !(value === null && ai === null && d === "agree") &&
-      (!Number.isInteger(value) || value < 0 || value > 4)
+      (!Number.isInteger(value) || value < 0 || value > (item.score_max || 4))
     )
-      throw Error("Scores must be whole numbers from 0 to 4.");
+      throw Error(
+        `Scores must be whole numbers from 0 to ${item.score_max || 4}.`,
+      );
     if (typeof ai === "boolean" && typeof value !== "boolean")
       throw Error("Choose Yes or No.");
     if (

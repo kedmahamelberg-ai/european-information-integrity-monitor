@@ -6,9 +6,9 @@ Status at initial release: **not performed**. Synthetic tests verify implementat
 
 For the revised private review classifier, use [the revised codebook and literature
 audit](CLASSIFIER_1_1.md). Candidate labels add evidence quotes, transcript coverage
-and explicit abstention while preserving the frozen 1.0 baseline described below.
+and explicit abstention on the new 0–6 scale (`sfi-1.3`), while preserving the frozen 1.0 baseline described below.
 
-Use the exact definitions and 0–4 anchors in `prompts/sfi-1.0.txt`. Score the title and description, not inferred video speech. Identify the target group and direction before dimensions. Quotation without endorsement and positive praise do not establish sectarian framing. Label explanatory narratives independently of framing strength. For comment clusters, assess semantic coherence, off-topic status and substantive narrative difference independently.
+For frozen classifier 1.0 only, use the exact definitions and 0–4 anchors in `prompts/sfi-1.0.txt`. Score the title and description, not inferred video speech. Identify the target group and direction before dimensions. Quotation without endorsement and positive praise do not establish sectarian framing. Label explanatory narratives independently of framing strength. For comment clusters, assess semantic coherence, off-topic status and substantive narrative difference independently.
 
 ## Private HTML review
 
@@ -43,7 +43,7 @@ For a video, `human_label` must include integer `othering`, `aversion`, `moraliz
 
 Before first publication: review at least 100 unique videos, across countries, languages, tiers, high/low/borderline framing, narratives and uncertain cases; and at least 20 comment clusters. The automatic gate checks counts plus minimum country/language/tier coverage. Researchers must inspect the additional QA strata in the queue; a count gate is not substantive validation. Two independent coders and adjudication are recommended for a defensible validation study, but no inter-rater reliability is claimed from one coder.
 
-The report includes exact agreement per O/A/M dimension, exact agreement on the all-three ≥2 conjunction, and Jaccard overlap for narratives and target labels. It also reports per-dimension 5×5 score confusion matrices, mean absolute error, nonzero precision/recall, unscored pairs and evidence-basis counts. Undefined precision/recall is null, never perfect performance. Comparisons with different or unspecified evidence are descriptive only. These metrics are not chance-corrected reliability. Low agreement is a result to report and address; never invent performance or silently replace model outputs.
+The report includes exact agreement per O/A/M dimension, exact agreement on the all-three ≥3 conjunction on 0–6 (≥2 for historical 0–4), and Jaccard overlap for narratives and target labels. It also reports per-dimension 7×7 score confusion matrices (5×5 for historical 0–4), reported separately by scale, mean absolute error, nonzero precision/recall, unscored pairs and evidence-basis counts. Undefined precision/recall is null, never perfect performance. Comparisons with different or unspecified evidence are descriptive only. These metrics are not chance-corrected reliability. Low agreement is a result to report and address; never invent performance or silently replace model outputs.
 
 ## Emerging narratives
 

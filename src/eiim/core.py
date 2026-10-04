@@ -75,13 +75,15 @@ def country_matches(title, description, cfg=None):
     return matched, generic
 
 
-def sfi(o, a, m):
-    if any(type(v) is not int or not 0 <= v <= 4 for v in (o, a, m)):
-        raise ValueError("Dimensions must be integer 0–4")
-    return (o + a + m) / 3, all(v >= 2 for v in (o, a, m))
+def sfi(o, a, m, score_max=4):
+    if score_max not in (4, 6):
+        raise ValueError("Unsupported score scale")
+    if any(type(v) is not int or not 0 <= v <= score_max for v in (o, a, m)):
+        raise ValueError(f"Dimensions must be integer 0–{score_max}")
+    return (o + a + m) / 3, all(v >= score_max / 2 for v in (o, a, m))
 
 
-def validate_classification(raw):
+def validate_classification(raw, score_max=4):
     x = json.loads(raw) if isinstance(raw, str) else raw
     required = {
         "othering",
@@ -100,7 +102,7 @@ def validate_classification(raw):
     }
     if not isinstance(x, dict) or not required <= x.keys():
         raise ValueError("Missing structured classification fields")
-    score, strong = sfi(x["othering"], x["aversion"], x["moralization"])
+    score, strong = sfi(x["othering"], x["aversion"], x["moralization"], score_max)
     for key in ["confidence", "narrative_confidence"]:
         if (
             type(x[key]) not in (int, float)

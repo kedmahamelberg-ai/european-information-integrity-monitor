@@ -230,11 +230,13 @@ def prepare_review_items(store, batch=None):
             "source_observation": {k: source.get(k) for k in fields},
             "english_access": eligibility,
             "source_comments": source_comments,
+            "score_max": q["model_label"].get("score_max", 4),
             "previous_reviews": [
                 {
                     k: p.get(k)
                     for k in [
                         "classifier_version",
+                        "score_max",
                         "human_label",
                         "reviewer",
                         "reviewed_at",

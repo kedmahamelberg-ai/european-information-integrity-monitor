@@ -81,6 +81,31 @@ def emerging(items, vectors, cfg=None):
 
 
 def agreement(reviews):
+    scales = {
+        r.get("model_label", {}).get("score_max", 4)
+        for r in reviews
+        if r.get("item_type") == "video" and r.get("human_label") is not None
+    }
+    if len(scales) > 1:
+        return {
+            "n": sum(
+                r.get("item_type") == "video" and r.get("human_label") is not None
+                for r in reviews
+            ),
+            "pooled": False,
+            "by_scale": {
+                str(scale): agreement(
+                    [
+                        r
+                        for r in reviews
+                        if r.get("model_label", {}).get("score_max", 4) == scale
+                    ]
+                )
+                for scale in sorted(scales)
+            },
+            "method": "Separate reports by scale; no pooled raw-score agreement.",
+        }
+    score_max = next(iter(scales), 4)
     total_video_reviews = sum(
         r.get("item_type") == "video" and r.get("human_label") is not None
         for r in reviews
@@ -116,7 +141,7 @@ def agreement(reviews):
         / len(reviews)
         for k in ["othering", "aversion", "moralization"]
     }
-    strong = lambda x: all(x[k] >= 2 for k in dims)
+    strong = lambda x: all(x[k] >= score_max / 2 for k in dims)
     target = lambda x: [
         t["target_name"] if isinstance(t, dict) else t for t in x.get("targets", [])
     ]
@@ -127,8 +152,8 @@ def agreement(reviews):
         predicted = sum(m > 0 for h, m in pairs)
         actual = sum(h > 0 for h, m in pairs)
         matrix = [
-            [sum(h == i and m == j for h, m in pairs) for j in range(5)]
-            for i in range(5)
+            [sum(h == i and m == j for h, m in pairs) for j in range(score_max + 1)]
+            for i in range(score_max + 1)
         ]
         diagnostics[k] = {
             "n": len(pairs),
@@ -159,6 +184,7 @@ def agreement(reviews):
         "n": len(reviews),
         "unscored_pairs": total_video_reviews - len(reviews),
         "dimension_diagnostics": diagnostics,
+        "score_max": score_max,
         "evidence_basis_counts": dict(basis_counts),
         "dimension_agreement": dims,
         "strong_agreement": sum(

@@ -39,7 +39,7 @@ CASES = [
         "social_distance",
         "Supporters of the governing party seem to inhabit a world I cannot understand.",
         "scored",
-        [(1, 3), (0, 0), (0, 0)],
+        [(2, 4), (0, 0), (0, 0)],
     ),
     (
         "mild_dislike",
@@ -51,7 +51,7 @@ CASES = [
         "integrity",
         "The ministers deliberately deceive the public to enrich themselves.",
         "scored",
-        [(0, 0), (0, 1), (2, 3)],
+        [(0, 0), (0, 1), (3, 4)],
     ),
     (
         "negative_control_reporting",
@@ -69,7 +69,7 @@ CASES = [
         "severe_combination",
         "Opposition supporters are subhuman vermin, evil to the core. I hate every one of them.",
         "scored",
-        [(3, 4), (3, 4), (3, 4)],
+        [(6, 6), (5, 6), (5, 6)],
     ),
     ("sparse_title", "The new parliament", "insufficient_evidence", [None] * 3),
     (
