@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <title>Private review · European Information Integrity Monitor</title>
+    <style>
+      /* REVIEW_STYLE */
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <b class="brand">ei</b
+        ><span>EUROPEAN INFORMATION<br />INTEGRITY MONITOR</span>
+      </div>
+      <strong>Private researcher review</strong
+      ><span class="pill">Local workspace</span>
+    </header>
+    <main>
+      <section class="intro">
+        <div>
+          <p class="eyebrow">HUMAN VALIDATION</p>
+          <h1>Your judgment, recorded separately.</h1>
+          <p>
+            Watch the source, inspect the AI labels, then agree or correct each
+            classification.
+          </p>
+        </div>
+        <label
+          >Your reviewer name<input
+            id="reviewer"
+            placeholder="Enter your name"
+            autocomplete="name"
+        /></label>
+      </section>
+      <section class="summary" id="summary" aria-live="polite"></section>
+      <section class="toolbar">
+        <label
+          >Review queue<select id="kind">
+            <option value="all">All items</option>
+            <option value="video">Video labels</option>
+            <option value="comment_cluster">Comment clusters</option>
+            <option value="exclusion">Relevance audit</option>
+          </select></label
+        ><label
+          >Show<select id="status">
+            <option value="all">All statuses</option>
+            <option value="pending">Needs review</option>
+            <option value="complete">Confirmed</option>
+            <option value="deferred">Deferred</option>
+          </select></label
+        ><label class="search"
+          >Find an item<input
+            id="search"
+            placeholder="Title, country, channel or video ID" /></label
+        ><button id="export" class="primary">Download confirmed reviews</button
+        ><label class="file"
+          >Restore saved reviews<input
+            id="restore"
+            type="file"
+            accept="application/json,.json"
+        /></label>
+      </section>
+      <p id="notice" role="status"></p>
+      <section id="empty" hidden></section>
+      <div class="workspace" id="workspace">
+        <aside>
+          <p class="eyebrow">REVIEW QUEUE</p>
+          <div id="queue"></div>
+        </aside>
+        <article>
+          <section class="item-heading">
+            <div>
+              <span id="item-meta" class="eyebrow"></span>
+              <h2 id="title"></h2>
+              <p id="source-meta"></p>
+            </div>
+            <div class="nav">
+              <button id="previous">← Previous</button
+              ><button id="next">Next →</button>
+            </div>
+          </section>
+          <div class="review-grid">
+            <section class="source">
+              <div id="player"></div>
+              <p id="source-link"></p>
+              <p class="help">
+                Video playback provides context. The AI labels were based on the
+                recorded title and description, not a transcript. Review those
+                same inputs for comparable agreement.
+              </p>
+              <details open>
+                <summary>Recorded title and description</summary>
+                <h3 id="recorded-title"></h3>
+                <p id="description" class="preserve"></p>
+              </details>
+              <div id="comments"></div>
+              <details>
+                <summary>Label definitions and scoring anchors</summary>
+                <p>
+                  <b>Othering:</b> portrays an identifiable group as alien,
+                  incompatible, threatening, illegitimate or outside the normal
+                  community.
+                </p>
+                <p>
+                  <b>Aversion:</b> dislike, contempt, hostility, disgust, fear
+                  or hatred toward that group.
+                </p>
+                <p>
+                  <b>Moralization:</b> portrays the group as corrupt, evil,
+                  dishonest, traitorous or morally illegitimate.
+                </p>
+                <p>
+                  0 absent · 1 weak/implicit · 2 moderate/clear · 3
+                  strong/repeated · 4 extreme/dehumanizing or categorical.
+                </p>
+                <p>
+                  Distinguish reporting and quotation from endorsement. Positive
+                  praise or policy criticism alone does not establish sectarian
+                  framing.
+                </p>
+              </details>
+            </section>
+            <section class="labels">
+              <div class="labels-heading">
+                <div>
+                  <p class="eyebrow">AI → YOUR ASSESSMENT</p>
+                  <h3>Confirm each label</h3>
+                </div>
+                <button id="agree-all">Agree with all labels</button>
+              </div>
+              <div id="model-context"></div>
+              <div id="fields"></div>
+              <label
+                >Review notes<textarea
+                  id="notes"
+                  rows="3"
+                  placeholder="Explain disagreements or uncertainty (optional)"
+                ></textarea>
+              </label>
+              <p class="help">
+                This is an AI-assisted confirmation review. It is recorded as
+                such; it is not an independent blind reliability study.
+              </p>
+              <div class="actions">
+                <button id="defer">Defer this item</button
+                ><button id="confirm" class="primary">Confirm & next</button>
+              </div>
+              <p id="save-state" role="status"></p>
+            </section>
+          </div>
+        </article>
+      </div>
+      <footer>
+        Decisions stay in this browser until you download them. Download a
+        backup before clearing browser data. Only your confirmed reviews enter
+        the validation import; this page does not publish findings or contain
+        API keys.
+      </footer>
+    </main>
+    <script id="review-payload" type="application/json">
+      __REVIEW_PAYLOAD__
+    </script>
+    <script>
+      /* REVIEW_SCRIPT */
+    </script>
+  </body>
+</html>

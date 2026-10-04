@@ -6,6 +6,22 @@ Status at initial release: **not performed**. Synthetic tests verify implementat
 
 Use the exact definitions and 0–4 anchors in `prompts/sfi-1.0.txt`. Score the title and description, not inferred video speech. Identify the target group and direction before dimensions. Quotation without endorsement and positive praise do not establish sectarian framing. Label explanatory narratives independently of framing strength. For comment clusters, assess semantic coherence, off-topic status and substantive narrative difference independently.
 
+## Private HTML review
+
+`python -m eiim.cli review-html --batch 2026-W40 --output private/review/index.html`
+
+This generates a self-contained private HTML packet with embedded YouTube videos, retained title/description, AI labels and rationale, per-field Agree / Disagree controls, corrected values, notes, and an explicit Confirm button. The generator can expose source classifications as soon as they are saved, before all comment analytics finish. It offers the available sampled classifications in country/tier/language round-robin order. Finish all QA strata and the required coverage before publication.
+
+Serve only on loopback for video playback and stable browser storage:
+
+`python -m http.server 8770 --bind 127.0.0.1 --directory private/review`
+
+Open `http://127.0.0.1:8770/`. Enter your reviewer name, inspect each source, choose Agree or Disagree for every label, correct disagreements, then Confirm & next. Defer uncertain cases. Download confirmed reviews before closing or clearing browser data. Restore saved reviews from that JSON when needed. A regenerated packet is detected every 30 seconds without overwriting browser decisions.
+
+Import the downloaded JSON with `python -m eiim.cli review-import PATH`. AI-assisted confirmation is recorded explicitly, along with field decisions and notes; it is not an independent blind reliability study. Every field requires a decision, disagreement requires a changed label, and a queue fingerprint prevents importing against changed source labels. The original AI classifications remain unchanged. Import validation finishes before any records are written.
+
+Private packets and raw review data are ignored by Git and never copied into GitHub Pages. The HTML contains no API credentials and does not write directly to Supabase. Browser saves are local; downloading is the durable transfer step. YouTube's [embedded player requirements](https://developers.google.com/youtube/iframe_api_reference) require referrer identification, so a loopback HTTP page works more reliably than opening a `file:` URL. A direct YouTube link is always provided if embedding is blocked by the uploader.
+
 ## Review flow
 
 ```bash

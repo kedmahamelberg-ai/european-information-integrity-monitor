@@ -79,9 +79,12 @@ def import_reviews(store, path):
     items = json.loads(path.read_text())
     known = {r["id"]: r for r in store.read("human_validation")}
     count = 0
+    prepared = []
+    if not isinstance(items, list):
+        raise ValueError("Review file must contain an array")
     for item in items:
         original = known.get(item.get("queue_record_id"))
-        if not original:
+        if not original or original.get("purged_at"):
             raise ValueError("Unknown review queue record")
         q = original["payload"]
         human = item.get("human_label")
@@ -104,6 +107,10 @@ def import_reviews(store, path):
         elif q["item_type"] == "exclusion":
             if type(human.get("news_relevance")) is not bool:
                 raise ValueError("Exclusion review requires news_relevance")
+        if "review_decisions" in item:
+            from .review import validate_assisted_review
+
+            validate_assisted_review(item, q)
         excerpts = item.get("approved_excerpts", [])
         if (
             not isinstance(excerpts, list)
@@ -122,21 +129,23 @@ def import_reviews(store, path):
             "reviewer": item["reviewer"],
             "reviewed_at": item["reviewed_at"],
             "source_queue_record_id": original["id"],
+            "review_method": item.get("review_method", "manual_labels"),
+            "review_decisions": item.get("review_decisions"),
+            "review_notes": item.get("review_notes", ""),
         }
         ident = original["id"] + ":review:" + digest(p)
-        store.write(
-            original["batch_id"],
-            [
-                record(
-                    "human_validation",
-                    original["batch_id"],
-                    ident,
-                    p,
-                    original.get("video_id"),
-                )
-            ],
+        prepared.append(
+            record(
+                "human_validation",
+                original["batch_id"],
+                ident,
+                p,
+                original.get("video_id"),
+            )
         )
         count += 1
+    for batch in sorted({r["record"]["batch_id"] for r in prepared}):
+        store.write(batch, [r for r in prepared if r["record"]["batch_id"] == batch])
     return {"imported_reviews": count}
 
 
@@ -153,6 +162,9 @@ def main():
     review = sub.add_parser("review-export")
     review.add_argument("--batch")
     review.add_argument("--output", default="private/review-queue.json")
+    html = sub.add_parser("review-html")
+    html.add_argument("--batch")
+    html.add_argument("--output", default="private/review/index.html")
     im = sub.add_parser("review-import")
     im.add_argument("file")
     sub.add_parser("validation-report")
@@ -180,6 +192,12 @@ def main():
         result = store.purge(config("retention")["raw_retention_days"])
     elif args.command == "export-public":
         result = export_public(store, Path(args.output))
+    elif args.command == "review-html":
+        from .review import prepare_review_items, write_review_html
+
+        result = write_review_html(
+            prepare_review_items(store, args.batch), Path(args.output), store.progress()
+        )
     elif args.command == "review-export":
         records = store.read("human_validation", args.batch)
         finished = {

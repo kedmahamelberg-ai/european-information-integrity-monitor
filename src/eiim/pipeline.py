@@ -133,6 +133,8 @@ class Pipeline:
                 self.discovery()
             if "sampling_complete" not in done:
                 self.sampling()
+            if "classification_complete" not in done:
+                self.classify_videos()
             if "comments_complete" not in done:
                 self.comments()
             if "classification_complete" not in done:
@@ -431,14 +433,10 @@ class Pipeline:
             self.store.write(self.id, rows)
         self.store.write(self.id, [], "comments_complete")
 
-    def classification(self):
+    def classify_videos(self):
+        """Make source labels available for review before comment processing finishes."""
         candidates = self.cached("candidate_videos", "video_id")
         classified = self.cached("video_classifications", "video_id")
-        cc = self.cached("comment_classifications", "comment_id")
-        emb = self.cached("comment_embeddings_metadata", "comment_id")
-        comments = defaultdict(list)
-        for c in self.values("comments"):
-            comments[c["video_id"]].append(c)
         for s in self.values("sampled_videos"):
             if not s["selected_for_sample"]:
                 continue
@@ -515,6 +513,18 @@ class Pipeline:
                         )
                     )
                 self.store.write(self.id, rs)
+
+    def classification(self):
+        cc = self.cached("comment_classifications", "comment_id")
+        emb = self.cached("comment_embeddings_metadata", "comment_id")
+        comments = defaultdict(list)
+        for c in self.values("comments"):
+            comments[c["video_id"]].append(c)
+        self.classify_videos()
+        for s in self.values("sampled_videos"):
+            if not s["selected_for_sample"]:
+                continue
+            vid = s["video_id"]
             cs = sorted(comments[vid], key=lambda c: c["comment_id"])
             if not cs:
                 continue
