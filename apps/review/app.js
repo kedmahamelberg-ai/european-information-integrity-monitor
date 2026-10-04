@@ -174,9 +174,12 @@ function renderItem() {
   $("#language-access").textContent =
     `Original audio language: ${access.original_language || "unknown"} (${human(access.language_basis || "unknown")}). English access: ${human(access.status || "unverified")}. Language is an observed content attribute, not proof of the intended audience.`;
   const transcript = access.transcript_english || [];
-  $("#evidence-scope").textContent = model.evidence_scope
-    ? `AI evidence: ${human(model.evidence_scope)}. Assessment: ${human(model.assessment_status)}. ${model.transcript_truncated ? "Only part of the transcript was supplied. " : ""}${model.evidence_scope === "metadata_only" ? "These labels do not assess the spoken video. " : "Captions may contain transcription/translation errors. "}Candidate classifier awaiting validation; original labels are retained.`
-    : "AI evidence: title and description only. These labels do not assess the spoken video. Record whether your judgment uses additional video evidence.";
+  $("#evidence-scope").textContent =
+    item.item_type === "comment_cluster"
+      ? "AI evidence: the English comments in this cluster, compared with the source title and description. Originals and translation languages are preserved below."
+      : model.evidence_scope
+        ? `AI evidence: ${human(model.evidence_scope)}. Assessment: ${human(model.assessment_status)}. ${model.transcript_truncated ? "Only part of the transcript was supplied. " : ""}${model.evidence_scope === "metadata_only" ? "These labels do not assess the spoken video. " : "Captions may contain transcription/translation errors. "}Candidate classifier awaiting validation; original labels are retained.`
+        : "AI evidence: title and description only. These labels do not assess the spoken video. Record whether your judgment uses additional video evidence.";
   $("#transcript").innerHTML = transcript.length
     ? `<details open><summary>English transcript · ${esc(human(access.caption_translation === "youtube_auto_translation" ? "YouTube auto translation" : access.caption_is_generated ? "automatic captions" : "caption track"))}</summary><p class="help">Original caption language: ${esc(access.caption_source_language)}. ${model.evidence_scope === "metadata_and_english_transcript" ? "The revised AI classification includes this transcript" + (model.transcript_truncated ? " (partially)" : "") : "The baseline AI classification did not use this transcript"}.</p><div class="transcript-text">${transcript.map((s) => `<p><small>${Math.floor(s.start / 60)}:${String(Math.floor(s.start % 60)).padStart(2, "0")}</small> ${esc(s.text)}</p>`).join("")}</div></details>`
     : "";
@@ -191,7 +194,7 @@ function renderItem() {
           .join("")
       : "";
   $("#model-context").innerHTML =
-    `<b>AI rationale</b><p>${esc(model.short_rationale || model.rationale || "Review the cluster evidence and proposed labels below.")}</p><span>Confidence: ${model.confidence == null ? "not supplied" : esc(model.confidence)} · Version: ${esc(item.classifier_version)} · Scale: 0–${item.score_max || model.score_max || 4}</span>` +
+    `<b>AI rationale</b><p>${esc(model.short_rationale || model.rationale || "Review the cluster evidence and proposed labels below.")}</p><span>Confidence: ${model.confidence == null ? "not supplied" : esc(model.confidence)} · Version: ${esc(item.classifier_version)}${item.item_type === "video" ? ` · Scale: 0–${item.score_max || model.score_max || 4}` : ""}</span>` +
     (model.baseline_scores
       ? `<p class="help">Previous AI (0–${model.baseline_score_max || 4}; O / A / M): ${esc([model.baseline_scores.othering, model.baseline_scores.aversion, model.baseline_scores.moralization].join(" / "))}. Kept for comparison.</p>`
       : "") +
