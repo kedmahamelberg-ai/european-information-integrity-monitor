@@ -4,6 +4,9 @@ on:
     branches: [main]
   workflow_dispatch:
   workflow_call:
+  workflow_run:
+    workflows: ["Sunday research collection"]
+    types: [completed]
 permissions:
   contents: read
   pages: write

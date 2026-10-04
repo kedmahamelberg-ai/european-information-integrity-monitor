@@ -57,14 +57,14 @@ function pathGeometry(g) {
     )
     .join("");
 }
-function filters(v, geo = true) {
+function filters(v, geo = true, batches = data.batches) {
   const tier = $("#tier").value;
   if (tier !== "all" && v.tier !== tier) return false;
   if (geo && selected.size && !v.countries.some((c) => selected.has(c)))
     return false;
   const p = $("#period").value;
   if (p === "custom") {
-    const b = data.batches.find((x) => x.id === v.batch);
+    const b = batches.find((x) => x.id === v.batch);
     return (
       b &&
       (!$("#from").value || b.window_end.slice(0, 10) >= $("#from").value) &&
@@ -73,7 +73,7 @@ function filters(v, geo = true) {
     );
   }
   const ids = new Set(
-    [...data.batches]
+    [...batches]
       .sort((a, b) => b.window_start.localeCompare(a.window_start))
       .slice(0, Number(p))
       .map((b) => b.id),
@@ -99,6 +99,24 @@ function stats(v) {
     high: a.filter((x) => x.aai >= 0.7).length,
     injection: a.filter((x) => x.injection > 0).length,
   };
+}
+function collectionOnly() {
+  return !demo && !data.videos.length && !!data.collection?.batches?.length;
+}
+function coverageRows(geo = true) {
+  return (data.collection?.coverage || []).filter((x) =>
+    filters(x, geo, data.collection.batches),
+  );
+}
+function renderCollection() {
+  const panel = $("#collection-status"),
+    progress = data.collection;
+  panel.hidden = demo || !progress?.batches?.length;
+  if (panel.hidden) return;
+  const b = progress.batches.at(-1);
+  panel.innerHTML = `<strong>Real collection · ${esc(b.id)} · ${esc(human(b.status))}</strong>
+    <p>${b.candidates.toLocaleString()} candidates discovered · ${b.relevance_checked.toLocaleString()} relevance checks completed · ${b.classified.toLocaleString()} videos classified.</p>
+    <p class="small">Snapshot exported ${esc(new Date(progress.as_of).toLocaleString())}. Counts update on deployment and after collection completes. Research scores require human validation of 100 videos and 20 comment clusters. <a href="https://github.com/kedmahamelberg-ai/european-information-integrity-monitor/actions/workflows/weekly.yml" target="_blank" rel="noopener">View collection run ↗</a></p>`;
 }
 function render() {
   const v = rows(),
@@ -143,6 +161,45 @@ function render() {
         `<div class="stat"><label>${x[0]}</label><strong>${x[1]}</strong><small>${x[2]}</small></div>`,
     )
     .join("");
+  renderCollection();
+  const collecting = collectionOnly();
+  $("#metric").disabled = collecting;
+  if (collecting) $("#metric").value = "coverage";
+  else if ($("#metric").value === "coverage") $("#metric").value = "sfi";
+  if (collecting) {
+    const b = data.collection.batches.at(-1);
+    $("#data-status").textContent =
+      "Real collection data · Candidate coverage is available. Research scores are awaiting analysis and human validation.";
+    $("#edition-label").textContent =
+      `${b.window_start.slice(0, 10)} – ${b.window_end.slice(0, 10)}`;
+    $("#stats").innerHTML = [
+      [
+        "Candidates discovered",
+        sum(coverageRows(), (x) => x.candidates),
+        "Current date, country and tier filters",
+      ],
+      [
+        "Relevance checks",
+        b.relevance_checked,
+        `Latest batch ${b.id} · all candidates`,
+      ],
+      ["Videos sampled", b.sampled, `Latest batch ${b.id} · all countries`],
+      [
+        "Videos classified",
+        b.classified,
+        "Automated processing · not yet validated",
+      ],
+    ]
+      .map(
+        ([label, value, note]) =>
+          `<div class="stat"><label>${label}</label><strong>${value.toLocaleString()}</strong><small>${note}</small></div>`,
+      )
+      .join("");
+  }
+  $(".map-key").hidden = collecting;
+  $(".map-note").textContent = collecting
+    ? "Marker size: discovered candidates mentioning each country. One video can concern several countries. Neutral color indicates coverage, not a research score."
+    : "Marker size: analyzed videos. A country marks content about that country, not the behaviour of its population or government.";
   renderMap();
   renderCountry();
   renderNarratives(v);
@@ -173,6 +230,11 @@ function renderMap() {
         selected.has(x.dataset.iso) || focus === x.dataset.iso,
       ),
     );
+  const collecting = collectionOnly();
+  if (collecting)
+    $("#map-subtitle").textContent =
+      "Discovery coverage · candidate videos · analysis pending";
+  const coverage = collecting ? coverageRows(false) : [];
   const all = rows(false);
   $("#markers").innerHTML = countries
     .map((c) => {
@@ -192,12 +254,21 @@ function renderMap() {
           injection: mean(s.a.map((x) => x.injection)),
         }[metric];
       const [x, y] = project(c.longitude, c.latitude);
-      const r = s.n ? Math.min(24, 5 + Math.sqrt(s.n) * 2) : 4;
+      const count = collecting
+        ? sum(
+            coverage.filter((x) => x.countries.includes(c.iso2)),
+            (x) => x.candidates,
+          )
+        : s.n;
+      const unit = collecting ? "candidate videos" : "analyzed videos";
+      const r = count ? Math.min(24, 5 + Math.sqrt(count) * 2) : 4;
       const fill =
-        val == null
-          ? "#fafcfd"
-          : `hsl(${175 + val * 20} ${40 + val * 20}% ${78 - val * 58}%)`;
-      return `<g class="map-marker" tabindex="0" role="button" aria-label="${esc(c.country_name)}, ${s.n} analyzed videos" data-country="${c.iso2}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><title>${esc(c.country_name)} · ${s.n} analyzed videos · ${s.n ? "mean SFI " + fmt(s.sfi) : "no observations"}</title>${s.high ? `<circle r="${r + 5}" fill="none" stroke="#cd8c39" stroke-width="2"/>` : ""}<circle r="${r}" fill="${fill}" stroke="${focus === c.iso2 ? "#142b43" : "#92aab7"}" stroke-width="${focus === c.iso2 ? 3 : 1}"/>${["FR", "GB", "DE", "ES", "IT", "PL", "UA", "RU", "TR", "SE", "NO", "FI", "IS", "KZ"].includes(c.iso2) ? `<text y="${r + 17}" text-anchor="middle">${esc(c.country_name)}</text>` : ""}</g>`;
+        collecting && count
+          ? "#80b5b1"
+          : val == null
+            ? "#fafcfd"
+            : `hsl(${175 + val * 20} ${40 + val * 20}% ${78 - val * 58}%)`;
+      return `<g class="map-marker" tabindex="0" role="button" aria-label="${esc(c.country_name)}, ${count} ${unit}" data-country="${c.iso2}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><title>${esc(c.country_name)} · ${count} ${unit} · ${collecting ? "analysis pending" : s.n ? "mean SFI " + fmt(s.sfi) : "no observations"}</title>${s.high ? `<circle r="${r + 5}" fill="none" stroke="#cd8c39" stroke-width="2"/>` : ""}<circle r="${r}" fill="${fill}" stroke="${focus === c.iso2 ? "#142b43" : "#92aab7"}" stroke-width="${focus === c.iso2 ? 3 : 1}"/>${["FR", "GB", "DE", "ES", "IT", "PL", "UA", "RU", "TR", "SE", "NO", "FI", "IS", "KZ"].includes(c.iso2) ? `<text y="${r + 17}" text-anchor="middle">${esc(c.country_name)}</text>` : ""}</g>`;
     })
     .join("");
   document.querySelectorAll("[data-country]").forEach((el) => {
@@ -237,6 +308,16 @@ function trend(v, key) {
   return `<svg class="trend" viewBox="0 0 275 55" role="img" aria-label="${esc(key.toUpperCase())} weekly trend">${points.length > 1 ? `<polyline fill="none" stroke="${key === "sfi" ? "#007f79" : "#ba842f"}" stroke-width="2" points="${points.map((p) => p.slice(0, 2).join(",")).join(" ")}"/>` : ""}${points.map((p) => `<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="#007f79"><title>${esc(p[2])}</title></circle>`).join("")}</svg>`;
 }
 function renderCountry() {
+  if (collectionOnly()) {
+    const country = countries.find((c) => c.iso2 === focus);
+    const count = sum(
+      coverageRows().filter((x) => !focus || x.countries.includes(focus)),
+      (x) => x.candidates,
+    );
+    $("#country-panel").innerHTML =
+      `<p class="eyebrow">REAL DISCOVERY DATA</p><h2>${esc(country?.country_name || "All selected countries")}</h2><h3>${count.toLocaleString()} candidate videos</h3><p>Discovered in the current observation window and filters. Candidates are still being screened for news relevance and sampling.</p><p>Framing, narratives and amplification scores are unavailable until analysis and human validation are complete. An unavailable score does not mean zero.</p><a href="#methodology">Read the measurement protocol</a>`;
+    return;
+  }
   const c = countries.find((c) => c.iso2 === focus),
     v = rows().filter((x) => !focus || x.countries.includes(focus)),
     s = stats(v),

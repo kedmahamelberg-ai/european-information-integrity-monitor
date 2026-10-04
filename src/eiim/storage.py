@@ -46,6 +46,9 @@ class Store:
             "eiim_write", {"p_batch": batch, "p_stage": stage, "p_rows": rows}
         )
 
+    def progress(self):
+        return self.rpc("eiim_progress", {})
+
     def purge(self, days=30):
         return self.rpc("eiim_purge", {"p_days": days})
 
@@ -65,6 +68,9 @@ def record(table, batch, id, payload, video_id=None):
 
 class MemoryStore:
     """Explicit test double. Production CLI never selects this adapter."""
+
+    def progress(self):
+        return {"batches": [], "coverage": []}
 
     def __init__(self):
         self.tables = {}

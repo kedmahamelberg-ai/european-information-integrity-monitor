@@ -4,7 +4,7 @@
 
 - GitHub: `kedmahamelberg-ai/european-information-integrity-monitor`
 - Dedicated Supabase project: `european-information-integrity-monitor`, reference `jnzibjjejmfochertwco`, Frankfurt (`eu-central-1`). Creation quote: $0/month.
-- Research schema: `eiim`; no browser/anonymous access. Four narrowly scoped `public.eiim_*` RPCs grant execution only to `service_role`. The pre-existing Observatory project is separate.
+- Research schema: `eiim`; no browser/anonymous access. Five narrowly scoped `public.eiim_*` RPCs grant execution only to `service_role`. The pre-existing Observatory project is separate.
 - Public hosting: GitHub Pages via `.github/workflows/site.yml`.
 
 The frontend requires no Supabase key. It consumes a de-identified export embedded in the Pages deployment.
@@ -36,7 +36,7 @@ Only the recorded batch configuration can resume an existing batch. To correct c
 
 ## Database portability and security
 
-Apply `sql/001_eiim_schema.sql` and subsequent migrations in order in a fresh Supabase project. Tables are separated by research entity, with relational batch/video identifiers, indexed foreign keys, typed generated measurement columns and versioned JSON payloads. JSON stores evolving observation details without duplicating large source texts. Embeddings are stored as private vector arrays with model metadata; comparisons run locally. pgvector is unnecessary at this beta's bounded scale and can be added later without changing IDs.
+Apply `sql/001_eiim_schema.sql` and subsequent `sql/` migrations in order, followed by `supabase/migrations/` in timestamp order in a fresh Supabase project. Tables are separated by research entity, with relational batch/video identifiers, indexed foreign keys, typed generated measurement columns and versioned JSON payloads. JSON stores evolving observation details without duplicating large source texts. Embeddings are stored as private vector arrays with model metadata; comparisons run locally. pgvector is unnecessary at this beta's bounded scale and can be added later without changing IDs.
 
 The bulk writer validates and inserts each table as a set in one atomic stage transaction. Its bounded 45-second timeout accommodates JSON conversion for full discovery requests on the free database; ordinary reads keep their default timeout. `tests/sql/bulk_stage_writes.sql` exercises idempotency, conflict rollback, and permissions with 6,000 rows, then rolls back all test data.
 
@@ -49,3 +49,5 @@ Never run two live local collectors simultaneously. GitHub collection and retent
 Discovery requests and successful model responses are cached in Supabase. Sample membership is immutable after sampling. Individual video comment/classification checkpoints precede stage completion. Rerun the same week after a transient failure; no need to delete records. Malformed outputs are recorded as errors and not accepted as absent framing. Permanent source removal may make a partial batch impossible to complete; record a correction/retraction rather than publishing a misleading subset.
 
 Raw source-bearing tables expire after 30 days by default. After expiry, batch headers and tombstones remain, but full historical reprocessing is no longer possible. Do not advertise permanent raw archival storage without an authorized retention basis. Failed retention or publication jobs need prompt attention because public copies must also be updated.
+
+Collection progress is exported as aggregate counts through the service-only `eiim_progress` RPC. Before validated findings are available, the map shows candidate coverage with neutral markers. Counts are dated deployment snapshots, not a continuously updating feed. No candidate titles, source identifiers or scores are exposed through this status export.

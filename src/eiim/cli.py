@@ -40,6 +40,7 @@ def export_public(store, path):
     if not gate["passed"]:
         snapshots = []
     out = {
+        "collection": store.progress(),
         "mode": "live" if snapshots else "empty",
         "status": "published" if snapshots else "awaiting_validation",
         "batches": [],

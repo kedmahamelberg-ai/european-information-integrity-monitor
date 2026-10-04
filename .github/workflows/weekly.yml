@@ -42,7 +42,3 @@ jobs:
             echo '## Monitor collection report' >> "$GITHUB_STEP_SUMMARY"
             cat run-report.json >> "$GITHUB_STEP_SUMMARY"
           fi
-  refresh:
-    needs: collect
-    uses: ./.github/workflows/site.yml
-    secrets: inherit

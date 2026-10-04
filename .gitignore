@@ -11,3 +11,5 @@ run-report.json
 build/
 dist/
 .DS_Store
+
+supabase/.temp/

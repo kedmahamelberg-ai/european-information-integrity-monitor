@@ -55,6 +55,12 @@
             ><small>Observation clock · Europe/Amsterdam</small>
           </div>
         </div>
+        <section
+          id="collection-status"
+          class="collection-status"
+          hidden
+          aria-live="polite"
+        ></section>
         <div class="controls">
           <label
             >Observation window<select id="period">
@@ -77,6 +83,7 @@
             </select></label
           ><label
             >Map measure<select id="metric">
+              <option value="coverage" hidden>Discovery coverage</option>
               <option value="sfi">Sectarian framing</option>
               <option value="strong">Strong sectarian prevalence</option>
               <option value="narratives">Narrative activity</option>

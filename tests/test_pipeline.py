@@ -130,10 +130,17 @@ class IntegrationTests(unittest.TestCase):
         self.assertEqual(store.tables, before)
         with tempfile.TemporaryDirectory() as td:
             p = Path(td) / "data.json"
+            store.progress = lambda: {
+                "batches": [{"id": result["batch"], "candidates": 9}],
+                "coverage": [],
+            }
             export_public(store, p)
             out = json.loads(p.read_text())
             self.assertEqual(out["videos"], [])
             self.assertEqual(out["mode"], "empty")
+            self.assertEqual(out["collection"]["batches"][0]["candidates"], 9)
+            self.assertEqual(out["candidates"], [])
+            self.assertNotIn("source_observation", p.read_text())
 
     def test_failure_restart_after_sampling_preserves_draw(self):
         store = MemoryStore()
