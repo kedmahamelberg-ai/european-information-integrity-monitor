@@ -426,13 +426,13 @@ class Classifier:
             body["temperature"] = self.cfg["temperature"]
         if self.cfg.get("reasoning_effort"):
             body["reasoning_effort"] = self.cfg["reasoning_effort"]
-        # UTF-8 byte count + schema overhead is a conservative token upper bound.
-        reserve = (len(json.dumps(body).encode()) + 100) * self.cfg[
-            "input_usd_per_million"
-        ] / 1e6 + self.cfg["max_output_tokens"] * self.cfg[
-            "output_usd_per_million"
-        ] / 1e6
         for attempt in range(self.cfg["max_attempts"]):
+            # Recompute after feedback; repeated source/output tokens also cost money.
+            reserve = (len(json.dumps(body).encode()) + 100) * self.cfg[
+                "input_usd_per_million"
+            ] / 1e6 + self.cfg["max_output_tokens"] * self.cfg[
+                "output_usd_per_million"
+            ] / 1e6
             raw = None
             reservation = self.ledger.reserve(
                 "llm_reserved_usd",
@@ -509,6 +509,16 @@ class Classifier:
                 if isinstance(error, BudgetExhausted):
                     raise
                 if isinstance(error, ValueError):
+                    previous = (
+                        (raw or {})
+                        .get("choices", [{}])[0]
+                        .get("message", {})
+                        .get("content")
+                    )
+                    if previous:
+                        body["messages"].append(
+                            {"role": "assistant", "content": previous}
+                        )
                     body["messages"].append(
                         {
                             "role": "system",

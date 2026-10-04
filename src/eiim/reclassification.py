@@ -10,8 +10,8 @@ from .storage import record
 
 from .model_policy import selected_policy
 
-VERSION = "classifier-1.4-" + selected_policy()["model"]
-PROMPT = "sfi-1.3.2"
+VERSION = "classifier-1.4.1-" + selected_policy()["model"]
+PROMPT = "sfi-1.3.3"
 DIMENSIONS = ("othering", "aversion", "moralization")
 TRANSCRIPT_CHAR_LIMIT = 48000
 
