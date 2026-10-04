@@ -1,6 +1,6 @@
 -- Avoid per-record query planning for large discovery stages.
 create or replace function public.eiim_write(p_batch text,p_stage text,p_rows jsonb)
-returns jsonb language plpgsql security definer set search_path = '' as $$
+returns jsonb language plpgsql security definer set search_path = '' set statement_timeout = '45s' as $$
 declare tbl text; records jsonb; conflict boolean; n integer:=0; b eiim.weekly_batches;
 begin
  select * into b from eiim.weekly_batches where id=p_batch for update;
@@ -44,3 +44,5 @@ begin
  end if;
  return jsonb_build_object('accepted',n,'stage',p_stage);
 end $$;
+
+notify pgrst, 'reload schema';

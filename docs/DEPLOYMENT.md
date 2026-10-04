@@ -38,6 +38,8 @@ Only the recorded batch configuration can resume an existing batch. To correct c
 
 Apply `sql/001_eiim_schema.sql` and subsequent migrations in order in a fresh Supabase project. Tables are separated by research entity, with relational batch/video identifiers, indexed foreign keys, typed generated measurement columns and versioned JSON payloads. JSON stores evolving observation details without duplicating large source texts. Embeddings are stored as private vector arrays with model metadata; comparisons run locally. pgvector is unnecessary at this beta's bounded scale and can be added later without changing IDs.
 
+The bulk writer validates and inserts each table as a set in one atomic stage transaction. Its bounded 45-second timeout accommodates JSON conversion for full discovery requests on the free database; ordinary reads keep their default timeout. `tests/sql/bulk_stage_writes.sql` exercises idempotency, conflict rollback, and permissions with 6,000 rows, then rolls back all test data.
+
 Service-only security-definer wrappers have fixed empty search paths, explicit schema references, a table allowlist and revoked public execution. The schema does not need to be added to Supabase's exposed schemas. RLS is enabled without public policies by design (deny-all); Supabase's informational “RLS enabled, no policy” notice is expected.
 
 Never run two live local collectors simultaneously. GitHub collection and retention share a concurrency group. Database stage transactions lock the weekly batch, but external paid calls use a single-run ledger and should not run concurrently from independent machines.
