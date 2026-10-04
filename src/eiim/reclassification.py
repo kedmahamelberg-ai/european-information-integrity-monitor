@@ -9,7 +9,7 @@ from .language_access import access_records, video_access
 from .storage import record
 
 VERSION = "classifier-1.1"
-PROMPT = "sfi-1.1"
+PROMPT = "sfi-1.1.1"
 DIMENSIONS = ("othering", "aversion", "moralization")
 TRANSCRIPT_CHAR_LIMIT = 48000
 
@@ -72,6 +72,8 @@ def evidence_schema():
         },
         dimension_evidence={
             "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
             "items": {
                 "type": "object",
                 "properties": {

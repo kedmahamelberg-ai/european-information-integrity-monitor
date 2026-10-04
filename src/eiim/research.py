@@ -81,6 +81,10 @@ def emerging(items, vectors, cfg=None):
 
 
 def agreement(reviews):
+    total_video_reviews = sum(
+        r.get("item_type") == "video" and r.get("human_label") is not None
+        for r in reviews
+    )
     reviews = [
         r
         for r in reviews
@@ -99,6 +103,8 @@ def agreement(reviews):
             "strong_agreement": None,
             "narrative_agreement": None,
             "target_agreement": None,
+            "unscored_pairs": total_video_reviews,
+            "dimension_diagnostics": {},
         }
 
     def overlap(a, b):
@@ -114,8 +120,46 @@ def agreement(reviews):
     target = lambda x: [
         t["target_name"] if isinstance(t, dict) else t for t in x.get("targets", [])
     ]
+    diagnostics = {}
+    for k in dims:
+        pairs = [(r["human_label"][k], r["model_label"][k]) for r in reviews]
+        tp = sum(h > 0 and m > 0 for h, m in pairs)
+        predicted = sum(m > 0 for h, m in pairs)
+        actual = sum(h > 0 for h, m in pairs)
+        matrix = [
+            [sum(h == i and m == j for h, m in pairs) for j in range(5)]
+            for i in range(5)
+        ]
+        diagnostics[k] = {
+            "n": len(pairs),
+            "mean_absolute_error": sum(abs(h - m) for h, m in pairs) / len(pairs),
+            "confusion_rows_human_columns_model": matrix,
+            "nonzero_precision": tp / predicted if predicted else None,
+            "nonzero_recall": tp / actual if actual else None,
+            "human_nonzero": actual,
+            "model_nonzero": predicted,
+        }
+    basis_counts = Counter()
+    for r in reviews:
+        model_basis = r["model_label"].get("evidence_scope", "metadata_only")
+        human_basis = r.get("review_evidence_basis", "unspecified")
+        basis_counts[
+            (
+                "unspecified"
+                if human_basis == "unspecified"
+                else (
+                    "matched"
+                    if human_basis == model_basis
+                    and not r["model_label"].get("transcript_truncated")
+                    else "different_or_partial"
+                )
+            )
+        ] += 1
     return {
         "n": len(reviews),
+        "unscored_pairs": total_video_reviews - len(reviews),
+        "dimension_diagnostics": diagnostics,
+        "evidence_basis_counts": dict(basis_counts),
         "dimension_agreement": dims,
         "strong_agreement": sum(
             strong(r["model_label"]) == strong(r["human_label"]) for r in reviews
@@ -130,7 +174,7 @@ def agreement(reviews):
             overlap(target(r["model_label"]), target(r["human_label"])) for r in reviews
         )
         / len(reviews),
-        "method": "exact dimension agreement; exact strong-frame agreement; Jaccard narrative/target agreement. Not chance-corrected reliability.",
+        "method": "Descriptive paired-label comparison, including unmatched/unspecified evidence bases. Exact dimension/strong-frame agreement; score confusion and MAE; nonzero precision/recall; Jaccard narrative/target overlap. Null pairs excluded. Not chance-corrected reliability or independent validation.",
     }
 
 

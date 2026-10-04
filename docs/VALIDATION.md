@@ -43,7 +43,7 @@ For a video, `human_label` must include integer `othering`, `aversion`, `moraliz
 
 Before first publication: review at least 100 unique videos, across countries, languages, tiers, high/low/borderline framing, narratives and uncertain cases; and at least 20 comment clusters. The automatic gate checks counts plus minimum country/language/tier coverage. Researchers must inspect the additional QA strata in the queue; a count gate is not substantive validation. Two independent coders and adjudication are recommended for a defensible validation study, but no inter-rater reliability is claimed from one coder.
 
-The report includes exact agreement per O/A/M dimension, exact agreement on the all-three ≥2 conjunction, and Jaccard overlap for narratives and target labels. It reports the actual denominator. These metrics are not chance-corrected reliability. Low agreement is a result to report and address; never invent performance or silently replace model outputs.
+The report includes exact agreement per O/A/M dimension, exact agreement on the all-three ≥2 conjunction, and Jaccard overlap for narratives and target labels. It also reports per-dimension 5×5 score confusion matrices, mean absolute error, nonzero precision/recall, unscored pairs and evidence-basis counts. Undefined precision/recall is null, never perfect performance. Comparisons with different or unspecified evidence are descriptive only. These metrics are not chance-corrected reliability. Low agreement is a result to report and address; never invent performance or silently replace model outputs.
 
 ## Emerging narratives
 

@@ -1,7 +1,7 @@
 # Evidence-based classification revision
 
 Status: candidate for private researcher review, not validated for public inference.
-Implementation: `prompts/sfi-1.1.txt`, `src/eiim/reclassification.py`.
+Implementation: `prompts/sfi-1.1.1.txt`, `src/eiim/reclassification.py`.
 
 ## Why change the baseline?
 
@@ -65,7 +65,7 @@ remain monitor-specific operational choices. Wider validation is still required.
 ## Reproducibility, budget and publication
 
 The original frozen sample, classifier-1.0 predictions, snapshots and human reviews
-remain immutable. Candidate labels use `classifier-1.1` / `sfi-1.1`, input hashes,
+remain immutable. Candidate labels use `classifier-1.1` / `sfi-1.1.1`, input hashes,
 model-response references and separate queue IDs. They live in retained private
 `pipeline_runs` / `human_validation` records and inherit the existing raw-data purge.
 Raw review packets and transcripts are never committed or included in Pages.

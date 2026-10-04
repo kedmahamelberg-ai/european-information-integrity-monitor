@@ -145,6 +145,30 @@ class EvidenceTests(unittest.TestCase):
         self.assertTrue(doc["transcript_truncated"])
         self.assertEqual(doc["transcript_segments_included"], 1)
 
+    def test_zero_heavy_agreement_does_not_hide_zero_recall(self):
+        neutral = dict(
+            othering=0, aversion=0, moralization=0, narratives=[], targets=[]
+        )
+        rows = [
+            dict(item_type="video", model_label=neutral, human_label=neutral)
+            for _ in range(9)
+        ]
+        rows.append(
+            dict(
+                item_type="video",
+                model_label=neutral,
+                human_label=dict(neutral, othering=1),
+                review_evidence_basis="watched_video",
+            )
+        )
+        report = agreement(rows)
+        self.assertEqual(report["dimension_agreement"]["othering"], 0.9)
+        self.assertEqual(
+            report["dimension_diagnostics"]["othering"]["nonzero_recall"], 0
+        )
+        self.assertIsNone(report["dimension_diagnostics"]["aversion"]["nonzero_recall"])
+        self.assertEqual(report["evidence_basis_counts"]["different_or_partial"], 1)
+
 
 class CandidateIntegrationTests(unittest.TestCase):
     def setUp(self):
