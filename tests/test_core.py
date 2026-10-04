@@ -229,6 +229,29 @@ class StorageTests(unittest.TestCase):
         with self.assertRaises(BudgetExhausted):
             Ledger(self.s, "test").reserve("llm_reserved_usd", 0.3, 1)
 
+    def test_reservations_settle_once_and_survive_restart(self):
+        ledger = Ledger(self.s, "test")
+        reservation = ledger.reserve("llm_reserved_usd", 0.8, 1)
+        cfg = {"input_usd_per_million": 1, "output_usd_per_million": 1}
+        usage = {"prompt_tokens": 100000, "completion_tokens": 0}
+        ledger.settle(reservation, usage, cfg)
+        ledger.settle(reservation, usage, cfg)
+        restarted = Ledger(self.s, "test")
+        restarted.settle(reservation, usage, cfg)
+        restarted.reserve("llm_reserved_usd", 0.8, 1)
+        with self.assertRaises(BudgetExhausted):
+            Ledger(self.s, "test").reserve("llm_reserved_usd", 0.11, 1)
+        self.assertEqual(
+            sum(e["amount"] for e in restarted.events() if e["kind"] == "llm_calls"), 2
+        )
+
+    def test_unknown_usage_keeps_reservation(self):
+        ledger = Ledger(self.s, "test")
+        r = ledger.reserve("llm_reserved_usd", 0.8, 1)
+        ledger.settle(r, {}, {})
+        with self.assertRaises(BudgetExhausted):
+            ledger.reserve("llm_reserved_usd", 0.3, 1)
+
 
 class ResearchTests(unittest.TestCase):
     def test_emerging_consecutive_weeks(self):

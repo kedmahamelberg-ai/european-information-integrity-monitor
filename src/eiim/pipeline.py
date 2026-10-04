@@ -661,6 +661,11 @@ class Pipeline:
             )
         rows = self.records("cross_video_clusters", recurrence, "id")
         public = []
+        comment_pools = {
+            x["comment_video_id"]: x
+            for x in self.values("pipeline_runs")
+            if "comment_video_id" in x
+        }
         cluster_reviews = []
         for vid, label in labels.items():
             v = vs[vid]
@@ -742,14 +747,7 @@ class Pipeline:
                             "classifier_version": self.models["classifier_version"],
                         }
                     )
-            pool = next(
-                (
-                    x
-                    for x in self.values("pipeline_runs")
-                    if x.get("comment_video_id") == vid
-                ),
-                {},
-            )
+            pool = comment_pools.get(vid, {})
             p = {
                 "id": self.id + ":" + vid,
                 "video_id": vid,

@@ -20,32 +20,91 @@ class Ledger:
         self.batch = batch
 
     def events(self):
-        return [
-            r["payload"]
-            for r in self.store.read("cost_events")
-            if r["batch_id"].split("--")[0] == self.batch.split("--")[0]
-        ]
+        # Collection is single-writer (GitHub concurrency group). Reload on restart.
+        if not hasattr(self, "_events"):
+            self._events = [
+                r["payload"]
+                for r in self.store.read("cost_events")
+                if r["batch_id"].split("--")[0] == self.batch.split("--")[0]
+            ]
+        return self._events
 
-    def reserve(self, kind, amount, limit, details=None):
-        spent = sum(e["amount"] for e in self.events() if e["kind"] == kind)
-        if spent + amount > limit:
-            raise BudgetExhausted(f"{kind} ceiling reached; remaining work pending")
-        event = {"kind": kind, "amount": amount, "at": now(), **(details or {})}
-        self.store.write(
-            self.batch, [record("cost_events", self.batch, str(uuid.uuid4()), event)]
-        )
-
-    def log(self, kind, amount, details=None):
+    def _persist(self, events):
+        self.events()
         self.store.write(
             self.batch,
             [
-                record(
-                    "cost_events",
-                    self.batch,
+                record("cost_events", self.batch, ident, event)
+                for ident, event in events
+            ],
+        )
+        self._events.extend(event for _, event in events)
+
+    def reserve(self, kind, amount, limit, details=None):
+        import math
+
+        if not math.isfinite(amount) or amount < 0:
+            raise ValueError("Invalid reservation")
+        kinds = {kind}
+        if kind == "llm_reserved_usd":
+            kinds.add("llm_reservation_adjustment_usd")
+        spent = sum(e["amount"] for e in self.events() if e["kind"] in kinds)
+        if spent + amount > limit:
+            raise BudgetExhausted(f"{kind} ceiling reached; remaining work pending")
+        ident = str(uuid.uuid4())
+        event = {"kind": kind, "amount": amount, "at": now(), **(details or {})}
+        events = [(ident, event)]
+        if kind == "llm_reserved_usd":
+            events.append(
+                (ident + ":call", {"kind": "llm_calls", "amount": 1, "at": event["at"]})
+            )
+        self._persist(events)
+        return {"id": ident, "amount": amount}
+
+    def settle(self, reservation, usage, cfg):
+        # Release only confirmed unused headroom. Failed/unknown calls keep their
+        # full reservation, including legacy reservations made before settlement.
+        if any(
+            type(usage.get(k)) is not int or usage[k] < 0
+            for k in ("prompt_tokens", "completion_tokens")
+        ):
+            return
+        actual = (
+            usage["prompt_tokens"] * cfg["input_usd_per_million"]
+            + usage["completion_tokens"] * cfg["output_usd_per_million"]
+        ) / 1e6
+        ident = reservation["id"] + ":settled"
+        if any(e.get("settlement_id") == ident for e in self.events()):
+            return
+        values = [
+            ("llm_input_tokens", usage["prompt_tokens"]),
+            ("llm_output_tokens", usage["completion_tokens"]),
+            ("llm_estimated_usd", actual),
+            ("llm_reservation_adjustment_usd", actual - reservation["amount"]),
+        ]
+        self._persist(
+            [
+                (
+                    ident + ":" + kind,
+                    {
+                        "kind": kind,
+                        "amount": amount,
+                        "settlement_id": ident,
+                        "reservation_id": reservation["id"],
+                    },
+                )
+                for kind, amount in values
+            ]
+        )
+
+    def log(self, kind, amount, details=None):
+        self._persist(
+            [
+                (
                     str(uuid.uuid4()),
                     {"kind": kind, "amount": amount, "at": now(), **(details or {})},
                 )
-            ],
+            ]
         )
 
 
@@ -367,13 +426,12 @@ class Classifier:
         ] / 1e6
         for attempt in range(self.cfg["max_attempts"]):
             raw = None
-            self.ledger.reserve(
+            reservation = self.ledger.reserve(
                 "llm_reserved_usd",
                 reserve,
                 self.cfg["weekly_usd_ceiling"],
                 {"kind_of_call": kind},
             )
-            self.ledger.log("llm_calls", 1)
             try:
                 req = urllib.request.Request(
                     "https://api.openai.com/v1/chat/completions",
@@ -386,18 +444,7 @@ class Classifier:
                 with urllib.request.urlopen(req, timeout=90) as response:
                     raw = json.load(response)
                 usage = raw.get("usage", {})
-                self.ledger.log("llm_input_tokens", usage.get("prompt_tokens", 0))
-                self.ledger.log("llm_output_tokens", usage.get("completion_tokens", 0))
-                self.ledger.log(
-                    "llm_estimated_usd",
-                    (
-                        usage.get("prompt_tokens", 0)
-                        * self.cfg["input_usd_per_million"]
-                        + usage.get("completion_tokens", 0)
-                        * self.cfg["output_usd_per_million"]
-                    )
-                    / 1e6,
-                )
+                self.ledger.settle(reservation, usage, self.cfg)
                 choice = raw["choices"][0]
                 if choice.get("finish_reason") != "stop" or choice["message"].get(
                     "refusal"
