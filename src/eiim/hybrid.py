@@ -167,7 +167,13 @@ def validate_label(value, document):
     reference = value["content_reference"]
     if not reference["summary"].strip():
         raise ValueError("A neutral video content summary is required")
-    evidence(reference["evidence"], True)
+    try:
+        evidence(reference["evidence"], True)
+    except ValueError as error:
+        raise ValueError(
+            "content_reference.evidence needs a short verbatim transcript quote even for not_related videos. "
+            + str(error)
+        ) from error
     ids = [c["comment_id"] for c in value["comments"]]
     expected = [c["comment_id"] for c in document["comments"]]
     if len(ids) != len(set(ids)) or set(ids) != set(expected):
