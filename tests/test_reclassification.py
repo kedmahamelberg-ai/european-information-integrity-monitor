@@ -12,6 +12,8 @@ from eiim.reclassification import (
     evidence_input,
     validate_evidence_label,
     reclassify,
+    classify_document,
+    validate_source_screen,
 )
 from eiim.review import prepare_review_items, model_values
 from eiim.cli import import_reviews
@@ -80,7 +82,6 @@ class EvidenceTests(unittest.TestCase):
     def test_ungrounded_or_reported_positive_rejected(self):
         for changes in [
             {"quote": "Invented words"},
-            {"source_id": "missing"},
             {"target": "another target"},
             {"attribution": "reported_only"},
             {"attribution": "rejected"},
@@ -90,6 +91,18 @@ class EvidenceTests(unittest.TestCase):
             r["dimension_evidence"][0].update(changes)
             with self.subTest(changes=changes), self.assertRaises(ValueError):
                 validate_evidence_label(r, self.doc)
+
+    def test_caption_locator_can_be_repaired_only_for_unchanged_exact_quote(self):
+        r = self.positive()
+        r["dimension_evidence"][0]["source_id"] = "invented-range"
+        fixed = validate_evidence_label(r, self.doc)
+        self.assertEqual(fixed["dimension_evidence"][0]["source_id"], "title")
+        self.assertEqual(
+            fixed["dimension_evidence"][0]["model_source_id"], "invented-range"
+        )
+        self.assertEqual(
+            fixed["dimension_evidence"][0]["quote"], r["dimension_evidence"][0]["quote"]
+        )
 
     def test_aversion_requires_negative_evidence_target_not_other_target(self):
         r = self.positive()
@@ -169,6 +182,48 @@ class EvidenceTests(unittest.TestCase):
         self.assertIsNone(report["dimension_diagnostics"]["aversion"]["nonzero_recall"])
         self.assertEqual(report["evidence_basis_counts"]["different_or_partial"], 1)
 
+    def test_substantive_neutral_gate_routes_to_integer_only_scoring(self):
+        calls = []
+
+        def request(text, prompt, shape, kind):
+            calls.append(kind)
+            if kind == "source_screen":
+                parsed = dict(
+                    assessment_status="scored",
+                    evidence_quote="I feel distant from the opposition.",
+                    source_id="title",
+                    explanation="Substantive public-affairs statement.",
+                    confidence=0.9,
+                )
+            else:
+                self.assertEqual(
+                    shape["properties"]["assessment_status"]["enum"], ["scored"]
+                )
+                self.assertEqual(shape["properties"]["othering"]["type"], "integer")
+                parsed = response()
+            return dict(parsed=parsed)
+
+        result = classify_document(
+            SimpleNamespace(request=request, cfg={}, batch="fixture"), self.doc
+        )
+        self.assertEqual(calls, ["source_screen", "sfi_review"])
+        self.assertEqual(result["parsed"]["othering"], 0)
+
+    def test_screen_requires_real_substantive_quote_for_scored(self):
+        valid = dict(
+            assessment_status="scored",
+            evidence_quote=self.doc["sections"][0]["text"],
+            source_id="title",
+            explanation="A proposition is present.",
+            confidence=0.8,
+        )
+        self.assertEqual(
+            validate_source_screen(valid, self.doc)["assessment_status"], "scored"
+        )
+        for quote in ["", "Fabricated passage"]:
+            with self.assertRaises(ValueError):
+                validate_source_screen(dict(valid, evidence_quote=quote), self.doc)
+
 
 class CandidateIntegrationTests(unittest.TestCase):
     def setUp(self):
@@ -179,8 +234,13 @@ class CandidateIntegrationTests(unittest.TestCase):
 
     def classifier(self):
         def request(text, prompt, shape, kind):
-            parsed = validate_evidence_label(
-                response("insufficient_evidence", (None, None, None)), json.loads(text)
+            self.assertEqual(kind, "source_screen")
+            parsed = dict(
+                assessment_status="insufficient_evidence",
+                explanation="Synthetic source-screen abstention.",
+                evidence_quote="",
+                source_id="",
+                confidence=0.6,
             )
             return dict(
                 parsed=parsed,
@@ -193,7 +253,7 @@ class CandidateIntegrationTests(unittest.TestCase):
                 classification_timestamp="2026-10-04T18:00:00Z",
             )
 
-        return SimpleNamespace(cfg=config("models"), request=request)
+        return SimpleNamespace(cfg=config("models"), request=request, batch=self.batch)
 
     def test_recode_preserves_baseline_and_restart_and_replaces_queue_display(self):
         baseline = copy.deepcopy(self.store.read("video_classifications"))

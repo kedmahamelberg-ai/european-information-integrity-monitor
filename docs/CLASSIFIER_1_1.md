@@ -1,7 +1,7 @@
-# Evidence-based classification revision
+# Evidence-based classification revision (1.2)
 
 Status: candidate for private researcher review, not validated for public inference.
-Implementation: `prompts/sfi-1.1.1.txt`, `src/eiim/reclassification.py`.
+Implementation: `prompts/sfi-1.2.txt`, `src/eiim/reclassification.py`.
 
 ## Why change the baseline?
 
@@ -51,6 +51,9 @@ remain monitor-specific operational choices. Wider validation is still required.
    attribution and explanation. Software checks the quote exists in that section
    and the evidence target has compatible direction. It cannot establish whether
    a model's interpretation is substantively correct; the researcher does that.
+   A mistaken caption-line locator can be repaired only when the unchanged exact
+   quote occurs elsewhere in the supplied sections. The original locator is
+   retained for audit; paraphrased or invented quotes remain invalid.
 4. Othering can express distance without negative affect. Aversion and moralization
    require negative/mixed treatment of their own evidence target. Ordinary policy
    criticism is not automatically a positive score, but implicit contempt or moral
@@ -65,7 +68,7 @@ remain monitor-specific operational choices. Wider validation is still required.
 ## Reproducibility, budget and publication
 
 The original frozen sample, classifier-1.0 predictions, snapshots and human reviews
-remain immutable. Candidate labels use `classifier-1.1` / `sfi-1.1.1`, input hashes,
+remain immutable. Candidate labels use `classifier-1.2` / `sfi-1.2`, input hashes,
 model-response references and separate queue IDs. They live in retained private
 `pipeline_runs` / `human_validation` records and inherit the existing raw-data purge.
 Raw review packets and transcripts are never committed or included in Pages.
@@ -89,3 +92,16 @@ reporting/negation controls, languages and metadata/transcript coverage. Report
 per-dimension score confusion matrices, MAE, nonzero precision/recall, and abstention
 coverage with denominators. Report different-evidence human corrections separately.
 Do not tune for a desired proportion of nonzero classifications.
+
+## Live pilot correction
+
+The first 1.1 candidate passed ten short synthetic checks after refinement but
+spot checks found over-abstention on longer neutral descriptions. It was stopped
+before completing the pool and has not been promoted. Version 1.2 separates
+source adequacy/relevance (`source-screen-1.0`) from framing scores. The first
+stage sees no O/A/M rubric; a substantive public-affairs statement, including
+neutral historical reporting, is assessable. The second stage must score each
+dimension 0–4 and cannot abstain. This prevents a lack of hostility from serving
+as the scoring stage's reason to return missing data. Inapplicable/insufficient
+inputs still remain null, with the screening decision retained separately.
+Old experimental results remain private audit records; review prefers 1.2.

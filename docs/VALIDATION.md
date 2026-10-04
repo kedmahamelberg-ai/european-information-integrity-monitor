@@ -4,7 +4,7 @@ Status at initial release: **not performed**. Synthetic tests verify implementat
 
 ## Codebook
 
-For the revised private review classifier, use [the 1.1 codebook and literature
+For the revised private review classifier, use [the revised codebook and literature
 audit](CLASSIFIER_1_1.md). Candidate labels add evidence quotes, transcript coverage
 and explicit abstention while preserving the frozen 1.0 baseline described below.
 

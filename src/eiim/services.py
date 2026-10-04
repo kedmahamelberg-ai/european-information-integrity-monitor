@@ -461,6 +461,10 @@ class Classifier:
                     from .reclassification import validate_evidence_label
 
                     parsed = validate_evidence_label(parsed, json.loads(text))
+                elif kind == "source_screen":
+                    from .reclassification import validate_source_screen
+
+                    parsed = validate_source_screen(parsed, json.loads(text))
                 elif kind == "translation":
                     if not all(
                         isinstance(parsed.get(k), str) and parsed[k].strip()
@@ -479,9 +483,13 @@ class Classifier:
                         self.cfg["prompt_version"]
                         if kind in {"sfi", "sfi_review"}
                         else (
-                            "translation-1.0"
-                            if kind == "translation"
-                            else "relevance-1.0"
+                            "source-screen-1.0"
+                            if kind == "source_screen"
+                            else (
+                                "translation-1.0"
+                                if kind == "translation"
+                                else "relevance-1.0"
+                            )
                         )
                     ),
                     "taxonomy_version": config("narratives")["version"],

@@ -162,6 +162,12 @@ def prepare_review_items(store, batch=None):
     for r in queues:
         q = r["payload"]
         newer = preferred.get((r["batch_id"], queue_video(r)))
+        if (
+            q["model_label"].get("validation_status")
+            == "candidate_awaiting_human_validation"
+            and q.get("classifier_version") != VERSION
+        ):
+            continue
         if q["item_type"] == "video" and newer and newer["id"] != r["id"]:
             continue
         if (

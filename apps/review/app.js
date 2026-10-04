@@ -65,6 +65,8 @@ function filtered() {
     (x) =>
       (kind === "all" || x.item_type === kind) &&
       (status === "all" || stateFor(x).status === status) &&
+      ($("#assessment").value === "all" ||
+        x.model_label.assessment_status === $("#assessment").value) &&
       JSON.stringify([
         x.source_observation?.title,
         x.source_observation?.channel,
@@ -432,7 +434,7 @@ function move(delta) {
 }
 $("#previous").onclick = () => move(-1);
 $("#next").onclick = () => move(1);
-for (const id of ["kind", "status", "search"])
+for (const id of ["kind", "status", "search", "assessment"])
   $("#" + id).oninput = () => {
     renderQueue();
     const list = filtered();

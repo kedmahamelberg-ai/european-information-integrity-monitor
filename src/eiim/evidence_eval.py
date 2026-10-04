@@ -12,6 +12,18 @@ from .reclassification import (
 
 CASES = [
     (
+        "extended_neutral_history",
+        "During the war, the coalition negotiated military cooperation with its neighbour. The parliament reviewed the arrangement and approved funding. This account follows the sequence of diplomatic decisions, military service and constitutional debates using historical records. The soldiers came from several religious communities and served in the same national army.",
+        "scored",
+        [(0, 0)] * 3,
+    ),
+    (
+        "museum_tour",
+        "Today we tour the sculpture gallery, looking at marble statues, mosaics, the shape of each room and the decorative ceilings. The video explains ticket prices, opening hours and where to find the best photographs. Subscribe for more art museum tours.",
+        "out_of_scope",
+        [None] * 3,
+    ),
+    (
         "service_failure",
         "The municipal office has not issued permits for six weeks. Residents need a clear timetable.",
         "scored",

@@ -8,8 +8,8 @@ from .core import ROOT, config, digest, now, validate_classification
 from .language_access import access_records, video_access
 from .storage import record
 
-VERSION = "classifier-1.1"
-PROMPT = "sfi-1.1.1"
+VERSION = "classifier-1.2"
+PROMPT = "sfi-1.2"
 DIMENSIONS = ("othering", "aversion", "moralization")
 TRANSCRIPT_CHAR_LIMIT = 48000
 
@@ -50,7 +50,7 @@ def evidence_input(video, access):
     }
 
 
-def evidence_schema():
+def evidence_schema(allow_abstention=True):
     from .services import schema
 
     shape = schema()
@@ -114,6 +114,11 @@ def evidence_schema():
         },
     )
     shape["required"] = list(props)
+    if not allow_abstention:
+        props["assessment_status"]["enum"] = ["scored"]
+        props["public_affairs_relevance"]["enum"] = ["in_scope"]
+        for k in DIMENSIONS:
+            props[k]["type"] = "integer"
     return shape
 
 
@@ -169,6 +174,13 @@ def validate_evidence_label(raw, document):
         if not e["explanation"].strip():
             raise ValueError("Every dimension needs an explanation")
         quote = e["quote"]
+        if quote and quote not in sections.get(e["source_id"], ""):
+            # Caption sentences often span several line IDs. Repair the locator
+            # only when the exact unchanged quote exists in supplied evidence.
+            matches = [key for key, text in sections.items() if quote in text]
+            if matches:
+                e["model_source_id"] = e["source_id"]
+                e["source_id"] = "transcript" if "transcript" in matches else matches[0]
         if quote and (
             len(quote) > 400 or quote not in sections.get(e["source_id"], "")
         ):
@@ -216,12 +228,125 @@ def configure_candidate(classifier):
 
 
 def classify_document(classifier, document):
-    return classifier.request(
-        json.dumps(document, ensure_ascii=False),
-        (ROOT / f"prompts/{PROMPT}.txt").read_text(),
-        evidence_schema(),
-        "sfi_review",
+    screen_document = dict(
+        document,
+        sections=[
+            s for s in document["sections"] if not s["id"].startswith("transcript:")
+        ],
     )
+    screen_prompt = (ROOT / "prompts/source-screen-1.0.txt").read_text()
+    screen_shape = source_screen_schema()
+    screen_text = json.dumps(screen_document, ensure_ascii=False)
+    screened = classifier.request(
+        screen_text, screen_prompt, screen_shape, "source_screen"
+    )
+    decision = screened["parsed"]
+    screen_ref = (
+        classifier.batch
+        + ":model:"
+        + digest([screen_text, screen_prompt, screen_shape, classifier.cfg])
+    )
+    if decision["assessment_status"] != "scored":
+        parsed = {
+            **{k: None for k in DIMENSIONS},
+            "sfi": None,
+            "strong_sectarian_frame": None,
+            "assessment_status": decision["assessment_status"],
+            "public_affairs_relevance": (
+                "out_of_scope"
+                if decision["assessment_status"] == "out_of_scope"
+                else "unclear"
+            ),
+            "publisher_stance": "unclear",
+            "targets": [],
+            "countries": [],
+            "direction": "unclear",
+            "primary_narrative": "none_unclear",
+            "secondary_narratives": [],
+            "other_narrative_label": None,
+            "other_narrative_explanation": None,
+            "confidence": decision["confidence"],
+            "narrative_confidence": 0,
+            "short_rationale": decision["explanation"],
+            "dimension_evidence": [
+                dict(
+                    dimension=k,
+                    quote="",
+                    source_id="",
+                    target="",
+                    speaker="",
+                    attribution="none",
+                    explanation=decision["explanation"],
+                )
+                for k in DIMENSIONS
+            ],
+        }
+        result = dict(
+            screened, parsed=parsed, prompt_version=PROMPT, raw_response_ref=screen_ref
+        )
+    else:
+        prompt = (ROOT / f"prompts/{PROMPT}.txt").read_text()
+        shape = evidence_schema(allow_abstention=False)
+        text = json.dumps(document, ensure_ascii=False)
+        result = classifier.request(text, prompt, shape, "sfi_review")
+        result = dict(
+            result,
+            raw_response_ref=classifier.batch
+            + ":model:"
+            + digest([text, prompt, shape, classifier.cfg]),
+        )
+    result["parsed"] = dict(
+        result["parsed"], source_screen=decision, source_screen_response_ref=screen_ref
+    )
+    return result
+
+
+def source_screen_schema():
+    properties = {
+        "assessment_status": {
+            "type": "string",
+            "enum": ["scored", "insufficient_evidence", "out_of_scope"],
+        },
+        "explanation": {"type": "string"},
+        "evidence_quote": {"type": "string"},
+        "source_id": {"type": "string"},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    }
+    return {
+        "type": "object",
+        "properties": properties,
+        "required": list(properties),
+        "additionalProperties": False,
+    }
+
+
+def validate_source_screen(parsed, document):
+    if (
+        parsed.get("assessment_status")
+        not in {"scored", "insufficient_evidence", "out_of_scope"}
+        or not isinstance(parsed.get("explanation"), str)
+        or not parsed["explanation"].strip()
+    ):
+        raise ValueError("Invalid source-screen decision")
+    quote = parsed.get("evidence_quote")
+    if not isinstance(quote, str) or len(quote) > 400:
+        raise ValueError("Source-screen quote must be a short exact passage")
+    sections = {s["id"]: s["text"] for s in document["sections"]}
+    if quote and quote not in sections.get(parsed.get("source_id"), ""):
+        matches = [k for k, text in sections.items() if quote in text]
+        if not matches:
+            raise ValueError(
+                "Source-screen quote must exactly match supplied text; no paraphrases or ellipses"
+            )
+        parsed = dict(parsed, model_source_id=parsed["source_id"], source_id=matches[0])
+    if parsed["assessment_status"] == "scored" and not quote:
+        raise ValueError("An assessable source needs a quoted substantive proposition")
+    if (
+        type(parsed.get("confidence")) not in (int, float)
+        or not 0 <= parsed["confidence"] <= 1
+    ):
+        raise ValueError("Invalid source-screen confidence")
+    return parsed
 
 
 def reclassify(store, batch, classifier=None, limit=None, retrieve_captions=False):
@@ -294,7 +419,9 @@ def reclassify(store, batch, classifier=None, limit=None, retrieve_captions=Fals
             [
                 document,
                 (ROOT / f"prompts/{PROMPT}.txt").read_text(),
-                evidence_schema(),
+                evidence_schema(allow_abstention=False),
+                (ROOT / "prompts/source-screen-1.0.txt").read_text(),
+                source_screen_schema(),
                 classifier.cfg,
             ]
         )
@@ -347,16 +474,7 @@ def reclassify(store, batch, classifier=None, limit=None, retrieve_captions=Fals
                     k: originals.get(vid, {}).get("payload", {}).get(k)
                     for k in DIMENSIONS
                 },
-                "raw_response_ref": batch
-                + ":model:"
-                + digest(
-                    [
-                        json.dumps(document, ensure_ascii=False),
-                        (ROOT / f"prompts/{PROMPT}.txt").read_text(),
-                        evidence_schema(),
-                        classifier.cfg,
-                    ]
-                ),
+                "raw_response_ref": result.get("raw_response_ref"),
             }
             store.write(batch, [record("pipeline_runs", batch, ident, label, vid)])
         sample = sampled[vid]
