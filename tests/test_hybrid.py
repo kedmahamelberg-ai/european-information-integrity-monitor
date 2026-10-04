@@ -426,6 +426,9 @@ class StagedCommentTests(unittest.TestCase):
             def request(self, text, prompt, shape, kind):
                 doc = json.loads(text)
                 if kind == "hybrid":
+                    assert (
+                        "CONTENT REFERENCE." in prompt and "verbal_imagery:" in prompt
+                    )
                     self.sizes.append(("video", len(doc["comments"])))
                     x = label()
                     x["comments"] = []

@@ -296,7 +296,7 @@ def reclassify(store, batch, classifier=None):
         "classifier_version": VERSION + "-" + selected_policy()["model"],
         "prompt_version": VERSION,
     }
-    prompt = (ROOT / "prompts/hybrid-framing-1.0.1.txt").read_text()
+    prompt = (ROOT / "prompts" / (VERSION + ".txt")).read_text()
     done = {r["id"] for r in runs}
     errors = []
     status = "complete"
