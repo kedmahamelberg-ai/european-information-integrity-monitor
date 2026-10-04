@@ -37,7 +37,7 @@ Production credentials stay in GitHub secrets and server-side service-role RPC c
 
 Initial calibration requests 30 eligible videos (or the full pool if smaller); later batches use 3%, rounded up, minimum 5. Selection is independent of model outcomes. The new transcript gate creates a new eligible population; legacy review assignments are not repurposed. Comment reviews are optional and separate. A corrected video proposition requires fresh comment classification; old comment judgments remain tied to the proposition originally shown.
 
-The public exporter allows source metadata, engagement counters and individually reviewed video labels. It withholds unreviewed substantive AI labels and raw discussion. Calibration completion is not proof of reliability; no validated-model accuracy claim is made.
+The public exporter allows source metadata, engagement counters and individually reviewed video labels. Remaining AI labels stay private until the complete random review assignment is finished and the batch is fully classified, then appear explicitly as AI-coded/sample-audited. Raw discussion remains private. Calibration completion is not proof of reliability; no validated-model accuracy claim is made.
 
 ## Research foundations
 

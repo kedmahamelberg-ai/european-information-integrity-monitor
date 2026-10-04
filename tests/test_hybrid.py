@@ -393,3 +393,67 @@ class StagedCommentTests(unittest.TestCase):
         }
         with self.assertRaises(ValueError):
             validate_comments({"comments": label()["comments"]}, doc)
+
+
+class PublicationAuditTests(unittest.TestCase):
+    def test_random_audit_unlocks_ai_labels_without_claiming_individual_review(self):
+        from eiim.hybrid import VERSION
+        from eiim.hybrid_review import video_values
+        from eiim.hybrid_public import export_public
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+
+        s = HybridTests().make_transcript_store()
+        s.batch({"id": "2026-W40"}, "test")
+        rows = []
+        for vid in ["v", "other"]:
+            if vid != "v":
+                for t in ["candidate_videos", "sampled_videos", "pipeline_runs"]:
+                    for r in list(s.read(t, "2026-W40")):
+                        p = copy.deepcopy(r["payload"])
+                        p["video_id"] = vid
+                        if "english_access_video_id" in p:
+                            p["english_access_video_id"] = vid
+                        rows.append(record(t, "2026-W40", r["id"] + ":other", p, vid))
+            p = {
+                "hybrid_version": VERSION,
+                "video_id": vid,
+                "label": label(),
+                "classified_at": "2026-10-04T00:00:00Z",
+                "model_version": "test",
+                "transcript_truncated": False,
+            }
+            rows.append(record("pipeline_runs", "2026-W40", "label:" + vid, p, vid))
+        s.write("2026-W40", rows)
+        q = next(r for r in s.read("pipeline_runs") if r["id"] == "label:v")
+        h = {
+            "version": VERSION,
+            "hybrid_version": VERSION,
+            "queue_record_id": q["id"],
+            "queue_hash": q["payload_hash"],
+            "reviewer": "Test",
+            "reviewed_at": "2026-10-04T00:00:00Z",
+            "basis": "english_transcript",
+            "item_type": "hybrid_video",
+            "human_label": video_values(label()),
+            "decisions": {k: "agree" for k in video_values(label())},
+            "review_status": "complete",
+        }
+        s.write(
+            "2026-W40", [record("human_validation", "2026-W40", "review:v", h, "v")]
+        )
+        with (
+            TemporaryDirectory() as d,
+            patch(
+                "eiim.hybrid_public.sample_plan",
+                return_value={"target": 1, "selected_video_ids": ["v"]},
+            ),
+        ):
+            p = Path(d) / "data.json"
+            export_public(s, p)
+            out = json.loads(p.read_text())
+        self.assertTrue(out["batches"][0]["audit_complete"])
+        other = next(x for x in out["videos"] if x["id"] == "other")
+        self.assertEqual(other["classification_status"], "ai_coded_sample_audited")
+        self.assertIsNotNone(other["label"])
+        self.assertEqual(out["collection"]["reviewed_videos"], 1)

@@ -3,7 +3,8 @@
 import json
 from .core import config, now
 from .hybrid import VERSION, retained_inputs, labels, latest_labels
-from .hybrid_review import validate_review
+from .hybrid_review import validate_review, video_values
+from .review_sampling import sample_plan
 from .engagement import engagement
 
 
@@ -60,11 +61,21 @@ def export_public(store, path):
             for r in all_labels.values()
             if r["batch_id"] == batch and r["video_id"] in videos
         }
+        plan = sample_plan(batch, videos)
+        reviewed_ids = {vid for vid, row in rows.items() if row["id"] in reviews}
+        audit_complete = (
+            bool(plan["target"])
+            and set(plan["selected_video_ids"]).issubset(reviewed_ids)
+            and len(rows) == len(videos)
+        )
         output["batches"].append(
             {
                 "id": batch,
                 "window_start": b["payload"].get("window_start"),
                 "window_end": b["payload"].get("window_end"),
+                "audit_target": plan["target"],
+                "audit_completed": len(set(plan["selected_video_ids"]) & reviewed_ids),
+                "audit_complete": audit_complete,
             }
         )
         c = output["collection"]
@@ -78,7 +89,15 @@ def export_public(store, path):
         for vid, (source, access) in videos.items():
             row = rows.get(vid)
             review = reviews.get(row["id"]) if row else None
-            human = review["human_label"] if review else None
+            human = (
+                review["human_label"]
+                if review
+                else (
+                    video_values(row["payload"]["label"])
+                    if audit_complete and row
+                    else None
+                )
+            )
             c["reviewed_videos"] += bool(review)
             # Human attribution/rationale/quotes and comment text never leave the private packet.
             public_label = (
@@ -117,9 +136,13 @@ def export_public(store, path):
                         "human_reviewed"
                         if review
                         else (
-                            "ai_coded_pending_review"
-                            if row
-                            else "awaiting_classification"
+                            "ai_coded_sample_audited"
+                            if audit_complete and row
+                            else (
+                                "ai_coded_pending_review"
+                                if row
+                                else "awaiting_classification"
+                            )
                         )
                     ),
                     "label": public_label,

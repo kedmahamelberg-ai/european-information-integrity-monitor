@@ -117,9 +117,11 @@ function field(i, k, v, c) {
     decision = s.decisions[k],
     value = s.values[k] ?? v;
   let explanation = "";
+  if (k === "roles") explanation = i.label.roles.map(r => `${r.rationale} Evidence: “${r.evidence.quote}”`).join(" · ");
+  if (k === "stance") explanation = i.label.stance.evidence.quote ? `Evidence: “${i.label.stance.evidence.quote}”` : "No quoted stance evidence.";
   if (k.startsWith("execution:")) {
     const e = i.label.execution.find((e) => e.category === k.split(":")[1]);
-    explanation = e?.rationale || "";
+    explanation = (e?.rationale || "") + (e?.evidence.quote ? ` Evidence: “${e.evidence.quote}”` : "");
   }
   return `<section class="field" data-field="${esc(k)}" data-comment="${esc(c?.comment_id || "")}"><h4>${esc(names[k] || names[k.split(":")[1]])}</h4><div class="model">AI: ${esc(describe(k, v))}</div>${explanation ? `<p class="meta">${esc(explanation)}</p>` : ""}<div class="buttons"><button data-decision="agree" aria-pressed="${decision === "agree"}">Agree</button><button data-decision="disagree" aria-pressed="${decision === "disagree"}">Disagree / correct</button></div><div class="editor" ${decision === "disagree" ? "" : "hidden"}>${editor(k, value)}</div></section>`;
 }

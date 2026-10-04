@@ -83,19 +83,20 @@ function bar(name, n, d) {
 function render() {
   const v = rows(),
     c = data.collection,
-    reviewed = v.filter((x) => x.label),
-    related = reviewed.filter((x) => x.label.relevance === "related"),
+    published = v.filter((x) => x.label),
+    reviewed = v.filter((x) => x.classification_status === "human_reviewed"),
+    related = published.filter((x) => x.label.relevance === "related"),
     country = $("#country").value;
   $("#edition").textContent =
     data.batches.map((b) => b.id).join(" · ") || "Awaiting retained data";
   $("#data-status").textContent =
-    `${c.classified_videos || 0} videos AI-coded · ${c.reviewed_videos || 0} human-reviewed. ${c.awaiting_transcript || 0} sampled videos excluded until English transcripts are available. Provisional AI labels remain in the private review queue.`;
+    `${c.classified_videos || 0} videos AI-coded · ${c.reviewed_videos || 0} human-reviewed. ${c.awaiting_transcript || 0} sampled videos excluded until English transcripts are available. AI labels await completion of the random human audit before publication; published AI labels remain provisional.`;
   $("#stats").innerHTML = [
     [v.length, "Transcript-eligible videos", "Filtered evidence pool"],
     [
       reviewed.length,
       "Human-reviewed videos",
-      `${related.length} confirmed security-related`,
+      `${related.length} published security-related`,
     ],
     [
       sum(v, "views").value,
@@ -125,7 +126,7 @@ function render() {
             z.role === r && (country === "all" || z.entity_code === country),
         ),
       ).length;
-      return `<div class="role"><span class="icon" aria-hidden="true">${icons[r]}</span><div>${esc(data.role_labels?.[r] || human(r))}<small>Reviewed portrayal · ${related.length} related videos</small></div><span class="count">${count}</span></div>`;
+      return `<div class="role"><span class="icon" aria-hidden="true">${icons[r]}</span><div>${esc(data.role_labels?.[r] || human(r))}<small>Published portrayal · ${related.length} related videos</small></div><span class="count">${count}</span></div>`;
     })
     .join("");
   $("#quality").innerHTML =
