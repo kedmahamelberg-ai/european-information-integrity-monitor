@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 from .core import config, ROOT, now, digest, sfi
 from .storage import Store, record
-from .research import validation_gate, agreement
+from .research import validation_gate, agreement, latest_reviews
 
 
 def preflight():
@@ -65,7 +65,7 @@ def export_public(store, path):
     # This output is a deployment artifact, never a commit of live raw data.
     approved = {
         r["item_id"]: r.get("approved_excerpts", [])
-        for r in reviews
+        for r in latest_reviews(reviews)
         if r.get("review_status") == "complete"
     }
     for video in out["videos"]:

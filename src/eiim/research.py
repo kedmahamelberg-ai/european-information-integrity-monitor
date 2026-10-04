@@ -1,7 +1,7 @@
 """Research review queues, emergence and agreement; model labels stay immutable."""
 
 from collections import defaultdict, Counter
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import random
 from .core import config, digest, coherent_clusters
 
@@ -127,11 +127,29 @@ def agreement(reviews):
     }
 
 
+def latest_reviews(reviews):
+    """A later human correction takes precedence regardless of database row order."""
+
+    def order(r):
+        try:
+            at = datetime.fromisoformat(r.get("reviewed_at", "").replace("Z", "+00:00"))
+            at = at if at.tzinfo else at.replace(tzinfo=timezone.utc)
+            return (at.timestamp(), digest(r))
+        except (ValueError, TypeError, AttributeError):
+            return (float("-inf"), digest(r))
+
+    completed = {}
+    for r in sorted(reviews, key=order):
+        if r.get("review_status") == "complete" and r.get("human_label") is not None:
+            completed[(r["item_type"], r["item_id"], r.get("classifier_version"))] = r
+    return list(completed.values())
+
+
 def validation_gate(reviews, version):
     # One completed human/adjudicated review per unique item, same measurement version.
     completed = {
         r["item_type"] + ":" + r["item_id"]: r
-        for r in reviews
+        for r in latest_reviews(reviews)
         if r.get("review_status") == "complete"
         and r.get("human_label") is not None
         and r.get("classifier_version") == version

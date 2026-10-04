@@ -6,6 +6,7 @@ from pathlib import Path
 from eiim.core import digest
 from eiim.cli import import_reviews
 from eiim.review import prepare_review_items, write_review_html
+from eiim.research import validation_gate
 from eiim.storage import MemoryStore
 import test_pipeline
 
@@ -71,6 +72,22 @@ class ReviewTests(unittest.TestCase):
                 for r in self.store.read("human_validation")
             )
         )
+
+    def test_later_correction_wins_independent_of_row_order(self):
+        first = self.response()
+        self.do_import([first])
+        corrected = copy.deepcopy(first)
+        corrected["reviewed_at"] = "2026-10-04T13:00:00+00:00"
+        corrected["review_decisions"]["othering"] = "disagree"
+        corrected["human_label"]["othering"] = (
+            corrected["human_label"]["othering"] + 1
+        ) % 5
+        self.do_import([corrected])
+        reviews = [r["payload"] for r in self.store.read("human_validation")]
+        for ordered in [reviews, list(reversed(reviews))]:
+            report = validation_gate(ordered, self.video["classifier_version"])
+            self.assertEqual(report["videos_reviewed"], 1)
+            self.assertEqual(report["agreement"]["dimension_agreement"]["othering"], 0)
 
     def test_disagreement_requires_correction_and_hash_is_checked(self):
         response = self.response()
