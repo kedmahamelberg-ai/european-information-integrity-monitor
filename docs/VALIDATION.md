@@ -8,6 +8,8 @@ Use the exact definitions and 0–4 anchors in `prompts/sfi-1.0.txt`. Score the 
 
 ## Private HTML review
 
+The [English-access policy](LANGUAGE_ACCESS.md) filters the active pool. Non-English videos require retrieved English captions/transcripts, including successful YouTube auto-translation. Comment labels and human cluster review use separate English text while preserving originals. The page identifies original audio language and transcript/translation provenance; language alone is not proof of intended audience.
+
 `python -m eiim.cli review-html --batch 2026-W40 --output private/review/index.html`
 
 This generates a self-contained private HTML packet with embedded YouTube videos, retained title/description, AI labels and rationale, per-field Agree / Disagree controls, corrected values, notes, and an explicit Confirm button. The generator can expose source classifications as soon as they are saved, before all comment analytics finish. It offers the available sampled classifications in country/tier/language round-robin order. Finish all QA strata and the required coverage before publication.

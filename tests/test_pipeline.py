@@ -24,6 +24,7 @@ class FixtureYouTube:
                         "channelTitle": "Synthetic channel",
                         "publishedAt": "2026-09-30T12:00:00Z",
                         "categoryId": "25",
+                        "defaultAudioLanguage": "en",
                     },
                     "statistics": {"commentCount": "20"},
                 }

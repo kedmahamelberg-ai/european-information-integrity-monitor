@@ -76,8 +76,16 @@ def export_public(store, path):
 
 
 def import_reviews(store, path):
+    from .language_access import access_records, video_access, POLICY_VERSION
+
     items = json.loads(path.read_text())
     known = {r["id"]: r for r in store.read("human_validation")}
+    candidates = {
+        (r["batch_id"], r["video_id"]): r["payload"]
+        for r in store.read("candidate_videos")
+        if not r.get("purged_at")
+    }
+    access = access_records(store.read("pipeline_runs"))
     count = 0
     prepared = []
     if not isinstance(items, list):
@@ -87,6 +95,20 @@ def import_reviews(store, path):
         if not original or original.get("purged_at"):
             raise ValueError("Unknown review queue record")
         q = original["payload"]
+        vid = (
+            original.get("video_id")
+            or q["model_label"].get("video_id")
+            or q["item_id"].split(":")[-1]
+        )
+        eligibility = video_access(
+            candidates.get((original["batch_id"], vid), {"video_id": vid}),
+            original["batch_id"],
+            access,
+        )
+        if not eligibility["eligible"]:
+            raise ValueError(
+                "Review source has no verified English access under the current pool policy"
+            )
         human = item.get("human_label")
         if not isinstance(human, dict):
             raise ValueError("Human label is required")
@@ -122,6 +144,9 @@ def import_reviews(store, path):
             )
         p = {
             **q,
+            "language_policy_version": POLICY_VERSION,
+            "original_audio_language": eligibility["original_language"],
+            "english_access_status": eligibility["status"],
             "approved_excerpts": excerpts,
             "human_label": human,
             "adjudicated_label": item.get("adjudicated_label"),

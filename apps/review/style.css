@@ -415,3 +415,15 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+.transcript-text {
+  max-height: 340px;
+  overflow-y: auto;
+  padding: 0 10px;
+}
+.transcript-text p {
+  margin: 8px 0;
+}
+.transcript-text small {
+  color: #557279;
+  margin-right: 8px;
+}

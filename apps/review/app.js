@@ -153,10 +153,17 @@ function renderItem() {
   const id = source.video_id;
   const valid = /^[A-Za-z0-9_-]{11}$/.test(id || "");
   $("#player").innerHTML = valid
-    ? `<iframe title="YouTube video for human review" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`
+    ? `<iframe title="YouTube video for human review" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?cc_lang_pref=en&cc_load_policy=1" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`
     : '<p class="help">No playable source ID is available for this item.</p>';
   $("#source-link").innerHTML = valid
     ? `<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=${encodeURIComponent(id)}">Open video on YouTube ↗</a><span class="help"> · Use this if the uploader blocks embedding.</span>`
+    : "";
+  const access = item.english_access || {};
+  $("#language-access").textContent =
+    `Original audio language: ${access.original_language || "unknown"} (${human(access.language_basis || "unknown")}). English access: ${human(access.status || "unverified")}. Language is an observed content attribute, not proof of the intended audience.`;
+  const transcript = access.transcript_english || [];
+  $("#transcript").innerHTML = transcript.length
+    ? `<details open><summary>English transcript · ${esc(human(access.caption_translation === "youtube_auto_translation" ? "YouTube auto translation" : access.caption_is_generated ? "automatic captions" : "caption track"))}</summary><p class="help">Original caption language: ${esc(access.caption_source_language)}. This transcript supports your review; the video AI scores still use the recorded title and description.</p><div class="transcript-text">${transcript.map((s) => `<p><small>${Math.floor(s.start / 60)}:${String(Math.floor(s.start % 60)).padStart(2, "0")}</small> ${esc(s.text)}</p>`).join("")}</div></details>`
     : "";
   $("#comments").innerHTML =
     item.item_type === "comment_cluster"
@@ -164,7 +171,7 @@ function renderItem() {
         item.source_comments
           .map(
             (c) =>
-              `<blockquote>${esc(c.text)}<small>${esc(c.published_at || "")}</small></blockquote>`,
+              `<blockquote><b>English · ${esc(human(c.translation_status || "translation unavailable"))}</b><p>${esc(c.text_english || "Not available — do not label this comment yet.")}</p><details><summary>Original · ${esc(c.original_language || "und")}</summary><p>${esc(c.text)}</p></details><small>${esc(c.published_at || "")}</small></blockquote>`,
           )
           .join("")
       : "";

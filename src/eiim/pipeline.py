@@ -5,7 +5,20 @@ from datetime import datetime, timezone
 import json, uuid
 from .core import *
 from .storage import record
-from .services import BudgetExhausted, Ledger, YouTube, LocalModel, Classifier
+from .services import (
+    BudgetExhausted,
+    ClassificationUnavailable,
+    Ledger,
+    YouTube,
+    LocalModel,
+    Classifier,
+)
+from .language_access import (
+    EnglishCaptionAccess,
+    access_records,
+    video_access,
+    translated_comment,
+)
 from .research import qa_sample, emerging, validation_gate
 
 
@@ -133,6 +146,7 @@ class Pipeline:
                 self.discovery()
             if "sampling_complete" not in done:
                 self.sampling()
+            self.prepare_english_access()
             if "classification_complete" not in done:
                 self.classify_videos()
             if "comments_complete" not in done:
@@ -185,6 +199,41 @@ class Pipeline:
             totals[e["kind"]] += e["amount"]
         return dict(totals)
 
+    def prepare_english_access(self):
+        candidates = self.cached("candidate_videos", "video_id")
+        self.access = access_records(self.store.read("pipeline_runs", self.id))
+        provider = EnglishCaptionAccess()
+        for s in self.values("sampled_videos"):
+            vid = s["video_id"]
+            if not s["selected_for_sample"] or (self.id, vid) in self.access:
+                continue
+            p = provider.check(candidates[vid])
+            self.store.write(
+                self.id,
+                [
+                    record(
+                        "pipeline_runs",
+                        self.id,
+                        self.id + ":english-access:" + vid + ":" + digest(p),
+                        p,
+                        vid,
+                    )
+                ],
+            )
+            self.access[(self.id, vid)] = p
+
+    def active_samples(self):
+        candidates = self.cached("candidate_videos", "video_id")
+        access = getattr(self, "access", None)
+        if access is None:
+            access = access_records(self.store.read("pipeline_runs", self.id))
+        return [
+            s
+            for s in self.values("sampled_videos")
+            if s["selected_for_sample"]
+            and video_access(candidates[s["video_id"]], self.id, access)["eligible"]
+        ]
+
     def discovery(self):
         ids = self.yt.discover(self.window)
         videos = self.yt.resources("videos", ids, "snippet,statistics,contentDetails")
@@ -226,6 +275,7 @@ class Pipeline:
                         v.get("statistics", {}).get("commentCount", 0)
                     ),
                     "category_id": sn.get("categoryId"),
+                    "original_audio_language": sn.get("defaultAudioLanguage", "und"),
                     "raw_api_response": v,
                     "retrieved_at": self.window["collection_timestamp"],
                 }
@@ -391,8 +441,11 @@ class Pipeline:
             for x in self.values("pipeline_runs")
             if "comment_video_id" in x
         }
-        for s in self.values("sampled_videos"):
+        classified = self.cached("video_classifications", "video_id")
+        for s in self.active_samples():
             if not s["selected_for_sample"] or s["video_id"] in metadata:
+                continue
+            if s["video_id"] not in classified:
                 continue
             v = candidates[s["video_id"]]
             pool, status = (
@@ -406,6 +459,8 @@ class Pipeline:
             rows = []
             for c in retained:
                 c = {**c, **self.local.language(c["text_original"])}
+                c["original_language"] = c["language"]
+                c["original_language_confidence"] = c["confidence"]
                 rows.append(
                     record(
                         "comments",
@@ -437,14 +492,34 @@ class Pipeline:
         """Make source labels available for review before comment processing finishes."""
         candidates = self.cached("candidate_videos", "video_id")
         classified = self.cached("video_classifications", "video_id")
-        for s in self.values("sampled_videos"):
+        for s in self.active_samples():
             if not s["selected_for_sample"]:
                 continue
             vid = s["video_id"]
             v = candidates[vid]
             text = v["title"] + "\n" + v["description"]
             if vid not in classified:
-                result = self.classifier.classify(text)
+                try:
+                    result = self.classifier.classify(text)
+                except ClassificationUnavailable:
+                    p = {
+                        "classification_pending_video_id": vid,
+                        "status": "classification_unavailable",
+                        "checked_at": now(),
+                    }
+                    self.store.write(
+                        self.id,
+                        [
+                            record(
+                                "pipeline_runs",
+                                self.id,
+                                self.id + ":pending-label:" + vid + ":" + digest(p),
+                                p,
+                                vid,
+                            )
+                        ],
+                    )
+                    continue
                 meta = {
                     k: result[k]
                     for k in [
@@ -521,13 +596,34 @@ class Pipeline:
         for c in self.values("comments"):
             comments[c["video_id"]].append(c)
         self.classify_videos()
-        for s in self.values("sampled_videos"):
+        translations = {
+            p["comment_translation_id"]: p
+            for p in self.values("pipeline_runs")
+            if "comment_translation_id" in p
+        }
+        for s in self.active_samples():
             if not s["selected_for_sample"]:
                 continue
             vid = s["video_id"]
             cs = sorted(comments[vid], key=lambda c: c["comment_id"])
             if not cs:
                 continue
+            for c in cs:
+                if c["comment_id"] not in translations:
+                    p = translated_comment(c, self.classifier)
+                    self.store.write(
+                        self.id,
+                        [
+                            record(
+                                "pipeline_runs",
+                                self.id,
+                                self.id + ":translation-en:" + c["comment_id"],
+                                p,
+                                vid,
+                            )
+                        ],
+                    )
+                    translations[c["comment_id"]] = p
             missing = [c for c in cs if c["comment_id"] not in emb]
             if missing:
                 vs = self.local.embed([c["text_original"] for c in missing])
@@ -559,8 +655,17 @@ class Pipeline:
                 representative = cs[g[0]]
                 label = cc.get(representative["comment_id"])
                 if label is None:
-                    result = self.classifier.classify(representative["text_original"])
+                    result = self.classifier.classify(
+                        translations[representative["comment_id"]]["text_english"]
+                    )
                     label = {
+                        "label_language": "en",
+                        "original_language": representative.get(
+                            "original_language", representative.get("language", "und")
+                        ),
+                        "translation_status": translations[
+                            representative["comment_id"]
+                        ]["translation_status"],
                         **result["parsed"],
                         **{
                             k: result[k]
@@ -581,6 +686,15 @@ class Pipeline:
                     p = {
                         **label,
                         "comment_id": c["comment_id"],
+                        "original_language": c.get(
+                            "original_language", c.get("language", "und")
+                        ),
+                        "translation_status": translations[c["comment_id"]][
+                            "translation_status"
+                        ],
+                        "label_source_original_language": representative.get(
+                            "original_language", representative.get("language", "und")
+                        ),
                         "video_id": vid,
                         "representative_comment_id": representative["comment_id"],
                         "propagation_method": (
@@ -603,11 +717,13 @@ class Pipeline:
     def analytics(self):
         vs = self.cached("candidate_videos", "video_id")
         labels = self.cached("video_classifications", "video_id")
+        active = {s["video_id"] for s in self.active_samples()}
+        labels = {vid: label for vid, label in labels.items() if vid in active}
         samples = self.cached("sampled_videos", "video_id")
         cl = self.cached("comment_classifications", "comment_id")
         emb = self.cached("comment_embeddings_metadata", "comment_id")
         comments = defaultdict(list)
-        all_comments = self.values("comments")
+        all_comments = [c for c in self.values("comments") if c["video_id"] in labels]
         for c in all_comments:
             comments[c["video_id"]].append(c)
         recgroups = defaultdict(list)
@@ -769,6 +885,15 @@ class Pipeline:
                 "countries": label["countries"],
                 "tier": s["tier"],
                 "language": s["language"],
+                "original_audio_language": video_access(v, self.id, self.access)[
+                    "original_language"
+                ],
+                "english_access_status": video_access(v, self.id, self.access)[
+                    "status"
+                ],
+                "language_policy_version": video_access(v, self.id, self.access)[
+                    "policy_version"
+                ],
                 "sfi": label["sfi"],
                 "othering": label["othering"],
                 "aversion": label["aversion"],

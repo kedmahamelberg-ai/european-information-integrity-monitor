@@ -4,6 +4,7 @@ from collections import defaultdict, Counter
 from datetime import datetime, timedelta, timezone
 import random
 from .core import config, digest, coherent_clusters
+from .language_access import POLICY_VERSION, primary_language
 
 
 def qa_sample(videos, seed, per_group=3):
@@ -153,6 +154,7 @@ def validation_gate(reviews, version):
         if r.get("review_status") == "complete"
         and r.get("human_label") is not None
         and r.get("classifier_version") == version
+        and r.get("language_policy_version") == POLICY_VERSION
         and not r.get("is_fixture", False)
     }
     videos = [r for r in completed.values() if r["item_type"] == "video"]
@@ -160,7 +162,9 @@ def validation_gate(reviews, version):
     cfg = config("retention")
     # Launch additionally requires coverage recorded in the validation report.
     countries = {c for r in videos for c in r["model_label"].get("countries", [])}
-    languages = {r["model_label"].get("language", "und") for r in videos} - {"und"}
+    languages = {primary_language(r.get("original_audio_language")) for r in videos} - {
+        "und"
+    }
     tiers = {r["model_label"].get("tier") for r in videos}
     coverage = (
         len(countries) >= 3

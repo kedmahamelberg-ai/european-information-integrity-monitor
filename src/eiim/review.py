@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from .core import ROOT, config, digest, now
 from .storage import record
+from .language_access import access_records, video_access
 
 
 def model_values(item):
@@ -31,6 +32,18 @@ def model_values(item):
 def prepare_review_items(store, batch=None):
     """Offer every classified sampled video, even before comment analytics finish."""
     queues = store.read("human_validation", batch)
+    candidates = {
+        (r["batch_id"], r["video_id"]): r["payload"]
+        for r in store.read("candidate_videos", batch)
+        if not r.get("purged_at")
+    }
+    sidecars = store.read("pipeline_runs", batch)
+    access = access_records(sidecars)
+    translations = {
+        (r["batch_id"], r["payload"]["comment_translation_id"]): r["payload"]
+        for r in sidecars
+        if not r.get("purged_at") and "comment_translation_id" in r["payload"]
+    }
     known = {
         (
             q["batch_id"],
@@ -49,6 +62,11 @@ def prepare_review_items(store, batch=None):
     }
     additions = []
     for r in store.read("video_classifications", batch):
+        source = candidates.get(
+            (r["batch_id"], r["video_id"]), {"video_id": r["video_id"]}
+        )
+        if not video_access(source, r["batch_id"], access)["eligible"]:
+            continue
         if r.get("purged_at") or (r["batch_id"], "video", r["video_id"]) in known:
             continue
         s = samples.get((r["batch_id"], r["video_id"]))
@@ -131,6 +149,32 @@ def prepare_review_items(store, batch=None):
             continue
         seen.add(identity)
         source = candidates.get((r["batch_id"], vid), {})
+        eligibility = video_access(dict(source, video_id=vid), r["batch_id"], access)
+        if not eligibility["eligible"]:
+            continue
+        source_comments = []
+        for cid in q["model_label"].get("comment_ids", []):
+            c = comments.get(r["batch_id"] + ":" + cid)
+            translated = translations.get((r["batch_id"], cid))
+            if c and translated and translated.get("text_english"):
+                source_comments.append(
+                    {
+                        "text": c.get("text_original", ""),
+                        "text_english": translated["text_english"],
+                        "original_language": c.get(
+                            "original_language", c.get("language", "und")
+                        ),
+                        "translation_status": translated["translation_status"],
+                        "translation_detected_language": translated.get(
+                            "translation_detected_language"
+                        ),
+                        "published_at": c.get("published_at"),
+                    }
+                )
+        if q["item_type"] == "comment_cluster" and len(source_comments) != len(
+            q["model_label"].get("comment_ids", [])
+        ):
+            continue
         fields = [
             "video_id",
             "title",
@@ -145,14 +189,8 @@ def prepare_review_items(store, batch=None):
             "batch": r["batch_id"],
             **q,
             "source_observation": {k: source.get(k) for k in fields},
-            "source_comments": [
-                {
-                    "text": comments[key].get("text_original", ""),
-                    "published_at": comments[key].get("published_at"),
-                }
-                for cid in q["model_label"].get("comment_ids", [])
-                if (key := r["batch_id"] + ":" + cid) in comments
-            ],
+            "english_access": eligibility,
+            "source_comments": source_comments,
         }
         item["ai_values"] = model_values(item)
         items.append(item)
