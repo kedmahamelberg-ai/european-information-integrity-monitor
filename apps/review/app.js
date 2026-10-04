@@ -461,6 +461,8 @@ $("#export").onclick = () => {
         return {
           queue_record_id: x.queue_record_id,
           queue_hash: x.queue_hash,
+          classifier_version: x.classifier_version,
+          score_max: x.score_max || 4,
           human_label: s.human_label,
           review_decisions: s.decisions,
           review_method: "ai_assisted_confirmation",

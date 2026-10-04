@@ -8,8 +8,10 @@ from .core import ROOT, config, digest, now, validate_classification
 from .language_access import access_records, video_access
 from .storage import record
 
-VERSION = "classifier-1.3.1"
-PROMPT = "sfi-1.3"
+from .model_policy import selected_policy
+
+VERSION = "classifier-1.4-" + selected_policy()["model"]
+PROMPT = "sfi-1.3.2"
 DIMENSIONS = ("othering", "aversion", "moralization")
 TRANSCRIPT_CHAR_LIMIT = 48000
 
@@ -221,7 +223,7 @@ def validate_evidence_label(raw, document):
 def configure_candidate(classifier):
     classifier.cfg = dict(
         classifier.cfg,
-        **config("review_models"),
+        **selected_policy(),
         classifier_version=VERSION,
         prompt_version=PROMPT,
     )
@@ -235,7 +237,7 @@ def classify_document(classifier, document):
             s for s in document["sections"] if not s["id"].startswith("transcript:")
         ],
     )
-    screen_prompt = (ROOT / "prompts/source-screen-1.0.txt").read_text()
+    screen_prompt = (ROOT / "prompts/source-screen-1.1.txt").read_text()
     screen_shape = source_screen_schema()
     screen_text = json.dumps(screen_document, ensure_ascii=False)
     screened = classifier.request(
@@ -424,7 +426,7 @@ def reclassify(store, batch, classifier=None, limit=None, retrieve_captions=Fals
                 document,
                 (ROOT / f"prompts/{PROMPT}.txt").read_text(),
                 evidence_schema(allow_abstention=False),
-                (ROOT / "prompts/source-screen-1.0.txt").read_text(),
+                (ROOT / "prompts/source-screen-1.1.txt").read_text(),
                 source_screen_schema(),
                 classifier.cfg,
             ]

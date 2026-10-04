@@ -109,6 +109,12 @@ def import_reviews(store, path):
             raise ValueError(
                 "Review source has no verified English access under the current pool policy"
             )
+        if item.get("score_max", q["model_label"].get("score_max", 4)) != q[
+            "model_label"
+        ].get("score_max", 4):
+            raise ValueError(
+                "Review score scale does not match the immutable model queue"
+            )
         human = item.get("human_label")
         if not isinstance(human, dict):
             raise ValueError("Human label is required")

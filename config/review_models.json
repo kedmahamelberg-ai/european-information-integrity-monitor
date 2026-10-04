@@ -1,9 +1,18 @@
 {
-  "model": "gpt-5.4-mini-2026-03-17",
-  "model_version": "gpt-5.4-mini-2026-03-17",
-  "reasoning_effort": "low",
-  "input_usd_per_million": 0.75,
-  "output_usd_per_million": 4.5,
-  "max_output_tokens": 5000,
-  "pricing_note": "Official GPT-5.4 Mini model page checked 2026-10-04. Shared weekly ceiling inherited unchanged."
+  "version": "observatory-aligned-1",
+  "switch_at": "2026-12-10T00:00:00Z",
+  "before": {
+    "model": "gpt-5-nano",
+    "reasoning_effort": "low",
+    "input_usd_per_million": 0.05,
+    "output_usd_per_million": 0.4
+  },
+  "after": {
+    "model": "gpt-5.6-luna",
+    "reasoning_effort": "low",
+    "input_usd_per_million": 0.25,
+    "output_usd_per_million": 1.2
+  },
+  "max_output_tokens": 8192,
+  "pricing_note": "Nano standard rates; Luna input estimate includes 1.25x cache-write premium. Official model pages checked 2026-10-04. Shared weekly $5 ceiling remains unchanged."
 }

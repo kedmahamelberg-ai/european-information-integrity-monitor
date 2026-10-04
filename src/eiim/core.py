@@ -11,7 +11,14 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def config(name):
-    return json.loads((ROOT / "config" / f"{name}.json").read_text())
+    value = json.loads((ROOT / "config" / f"{name}.json").read_text())
+    if name == "models":
+        from .model_policy import selected_policy
+
+        policy = selected_policy()
+        value.update(policy)
+        value["classifier_version"] += "-" + policy["model"]
+    return value
 
 
 def digest(value):

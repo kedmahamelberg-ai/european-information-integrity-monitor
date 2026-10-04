@@ -422,6 +422,8 @@ class Classifier:
                 },
             },
         }
+        if "temperature" in self.cfg:
+            body["temperature"] = self.cfg["temperature"]
         if self.cfg.get("reasoning_effort"):
             body["reasoning_effort"] = self.cfg["reasoning_effort"]
         # UTF-8 byte count + schema overhead is a conservative token upper bound.
@@ -485,7 +487,7 @@ class Classifier:
                         self.cfg["prompt_version"]
                         if kind in {"sfi", "sfi_review"}
                         else (
-                            "source-screen-1.0"
+                            "source-screen-1.1"
                             if kind == "source_screen"
                             else (
                                 "translation-1.0"

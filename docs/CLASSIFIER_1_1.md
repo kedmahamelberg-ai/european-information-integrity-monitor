@@ -1,7 +1,7 @@
 # Evidence-based classification revision (1.3)
 
 Status: candidate for private researcher review, not validated for public inference.
-Implementation: `prompts/sfi-1.3.txt`, `src/eiim/reclassification.py`.
+Implementation: `prompts/sfi-1.3.2.txt`, `src/eiim/reclassification.py`.
 
 ## Why change the baseline?
 
@@ -68,7 +68,7 @@ remain monitor-specific operational choices. Wider validation is still required.
 ## Reproducibility, budget and publication
 
 The original frozen sample, classifier-1.0 predictions, snapshots and human reviews
-remain immutable. Candidate labels use `classifier-1.3.1` / `sfi-1.3`, input hashes,
+remain immutable. Candidate labels use `classifier-1.4-gpt-5-nano` / `sfi-1.3.2`, input hashes,
 model-response references and separate queue IDs. They live in retained private
 `pipeline_runs` / `human_validation` records and inherit the existing raw-data purge.
 Raw review packets and transcripts are never committed or included in Pages.
@@ -104,7 +104,7 @@ neutral historical reporting, is assessable. The second stage must score each
 dimension 0–6 and cannot abstain. This prevents a lack of hostility from serving
 as the scoring stage's reason to return missing data. Inapplicable/insufficient
 inputs still remain null, with the screening decision retained separately.
-Old experimental results remain private audit records; review prefers 1.3.1.
+Old experimental results remain private audit records; review prefers the current model-policy candidate.
 
 ## Scale revision requested by the researcher
 
@@ -113,3 +113,7 @@ Classifier 1.3 uses 0–6 directly: absent, slight/tentative, mild/explicit, mod
 ## Model boundary check
 
 The 0–6 pilot using GPT-4.1 Mini passed 7/12 live synthetic cases. Failures included unwarranted abstention, inferred affect from an integrity accusation, and non-verbatim quotation. It did not reclassify the pool. Classifier 1.3.1 keeps the same rubric and checks but tests pinned GPT-5.4 Mini (2026-03-17), low reasoning, through the existing Chat Completions endpoint. Candidate settings live in `config/review_models.json`; the shared $5 ceiling remains unchanged. Pricing and structured-output support were checked against [the official model page](https://developers.openai.com/api/docs/models/gpt-5.4-mini). Passing development checks is not independent human validation.
+
+The researcher subsequently specified the Observatory's exact policy. The production candidate is **classifier-1.4-gpt-5-nano**, using `sfi-1.3.2` and the tightened source screen. All subsequent LLM work uses GPT-5 Nano with low reasoning until **2026-12-10T00:00:00Z**, then GPT-5.6 Luna with low reasoning automatically. The policy is resolved by the existing workflows at process start, so no separate scheduler or manual intervention is needed. Model-specific cache keys and classifier-version suffixes prevent mixing labels across the transition. Frozen old labels remain unchanged. The shared $5 weekly cap still applies; there is no fallback to GPT-5.4.
+
+The Observatory policy was verified from its main-branch `config/ai-models.json`. The official [deprecation schedule](https://developers.openai.com/api/docs/deprecations) lists Nano shutdown on 11 December 2026. [Nano pricing](https://developers.openai.com/api/docs/models/gpt-5-nano) is $0.05/$0.40 per million input/output tokens; [Luna](https://developers.openai.com/api/docs/models/gpt-5.6-luna) is $0.20/$1.20, with a possible 1.25× cache-write input charge conservatively covered in the ledger. A new model must still pass the synthetic checks before candidate review reclassification.

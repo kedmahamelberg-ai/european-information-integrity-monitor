@@ -318,6 +318,41 @@ class CandidateIntegrationTests(unittest.TestCase):
         self.assertTrue(all(i["classifier_version"] == VERSION for i in items))
         self.assertTrue(all(i["score_max"] == 6 for i in items))
 
+    def test_human_six_point_correction_import_and_wrong_scale_rejection(self):
+        reclassify(self.store, self.batch, self.classifier())
+        item = next(
+            i
+            for i in prepare_review_items(self.store, self.batch)
+            if i["item_type"] == "video"
+        )
+        human = dict(item["ai_values"], othering=6, aversion=5, moralization=4)
+        review = dict(
+            queue_record_id=item["queue_record_id"],
+            queue_hash=item["queue_hash"],
+            human_label=human,
+            reviewer="Fixture",
+            reviewed_at="2026-10-04T20:00:00Z",
+            score_max=6,
+        )
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "review.json"
+            path.write_text(json.dumps([review]))
+            self.assertEqual(import_reviews(self.store, path)["imported_reviews"], 1)
+            for changed in (
+                dict(review, score_max=4),
+                dict(review, human_label=dict(human, othering=7)),
+            ):
+                path.write_text(json.dumps([changed]))
+                with self.assertRaises(ValueError):
+                    import_reviews(self.store, path)
+        saved = next(
+            r["payload"]
+            for r in self.store.read("human_validation")
+            if r["payload"].get("review_status") == "complete"
+        )
+        self.assertEqual(saved["human_label"]["othering"], 6)
+        self.assertEqual(saved["human_label"]["score_max"], 6)
+
     def test_import_abstention_preserves_it_and_does_not_satisfy_launch_gate(self):
         reclassify(self.store, self.batch, self.classifier())
         item = next(
