@@ -605,7 +605,10 @@ async function init() {
   try {
     [countries, world, live] = await Promise.all(
       ["countries.json", "assets/world.json", "data.json"].map((p) =>
-        fetch(p).then((r) => {
+        fetch(
+          `${p}?v=${encodeURIComponent(document.documentElement.dataset.build || "local")}`,
+          { cache: "no-store" },
+        ).then((r) => {
           if (!r.ok) throw Error("Data unavailable");
           return r.json();
         }),

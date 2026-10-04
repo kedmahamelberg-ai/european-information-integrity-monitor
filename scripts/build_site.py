@@ -1,6 +1,6 @@
 """Copy only public assets; research source and secrets never enter Pages output."""
 
-import json, shutil, sys
+import hashlib, json, shutil, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,4 +19,16 @@ if "--live" in sys.argv:
     from eiim.storage import Store
 
     print(export_public(Store(), out / "data.json"))
+# Bind code, styles and the data snapshot to one deployment revision.
+revision = hashlib.sha256(
+    b"".join((out / name).read_bytes() for name in ["app.js", "style.css", "data.json"])
+).hexdigest()[:16]
+page = out / "index.html"
+html = page.read_text().replace(
+    '<html lang="en">', f'<html lang="en" data-build="{revision}">'
+)
+html = html.replace('src="app.js"', f'src="app.js?v={revision}"').replace(
+    'href="style.css"', f'href="style.css?v={revision}"'
+)
+page.write_text(html)
 print("Public website built in build/")
