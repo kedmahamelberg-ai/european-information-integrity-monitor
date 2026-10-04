@@ -1,0 +1,233 @@
+"""Private review packets and strict imports for the transcript-based taxonomy."""
+
+import json
+from pathlib import Path
+from .core import ROOT, config, digest, now
+from .hybrid import VERSION, retained_inputs, labels, latest_labels
+from .review_sampling import sample_plan, assignment
+from .storage import record
+from .engagement import engagement
+
+VIDEO_FIELDS = ["relevance", "context", "domains", "roles", "stance"]
+EXECUTION = config("hybrid")["execution"]
+COMMENT_FIELDS = ["alignment", "sentiment", "sentiment_target"]
+
+
+def video_values(label):
+    return {
+        **{k: label[k] for k in VIDEO_FIELDS},
+        **{"execution:" + e["category"]: e["status"] for e in label["execution"]},
+    }
+
+
+def packet(store, batch):
+    videos, comments, translations, _ = retained_inputs(store, batch)
+    plan = sample_plan(batch, videos)
+    items = []
+    for row in latest_labels(labels(store, batch)):
+        vid, p = row["video_id"], row["payload"]
+        if vid not in videos:
+            continue
+        source, access = videos[vid]
+        items.append(
+            {
+                "id": row["id"],
+                "hash": row.get("payload_hash", digest(p)),
+                "batch": batch,
+                "video_id": vid,
+                "title": source["title"],
+                "channel": source.get("channel", ""),
+                "source_language": access["original_language"],
+                "caption_status": access.get("status"),
+                "transcript": access["transcript_english"],
+                "transcript_truncated": p["transcript_truncated"],
+                "label": p["label"],
+                "model_values": video_values(p["label"]),
+                "model": p["model_version"],
+                "review_assignment": assignment(plan, vid),
+                "engagement": engagement(source),
+                "comments": [
+                    {
+                        **c,
+                        "translation": translations.get(c["comment_id"], {}),
+                        "ai": next(
+                            (
+                                x
+                                for x in p["label"]["comments"]
+                                if x["comment_id"] == c["comment_id"]
+                            ),
+                            None,
+                        ),
+                    }
+                    for c in comments
+                    if c["video_id"] == vid
+                ],
+            }
+        )
+    return {
+        "version": VERSION,
+        "batch": batch,
+        "plan": plan,
+        "items": items,
+        "taxonomy": config("hybrid"),
+        "generated_at": now(),
+    }
+
+
+def write_html(data, path):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    base = ROOT / "apps/hybrid-review"
+    html = (
+        (base / "template.html")
+        .read_text()
+        .replace("/* STYLE */", (base / "style.css").read_text())
+        .replace("/* SCRIPT */", (base / "app.js").read_text())
+    )
+    html = html.replace(
+        "/* DATA */", json.dumps(data, ensure_ascii=False).replace("<", "\\u003c")
+    )
+    path.write_text(html)
+    (path.parent / "hybrid-review-data.json").write_text(
+        json.dumps(data, ensure_ascii=False)
+    )
+    return {
+        "videos": len(data["items"]),
+        "comments": sum(len(i["comments"]) for i in data["items"]),
+        "path": str(path),
+    }
+
+
+def validate_review(item, row):
+    if item.get("version") != VERSION or item.get("queue_hash") != row.get(
+        "payload_hash", digest(row["payload"])
+    ):
+        raise ValueError("Review version/hash does not match immutable source")
+    if (
+        not isinstance(item.get("reviewer"), str)
+        or not item["reviewer"].strip()
+        or not item.get("reviewed_at")
+    ):
+        raise ValueError("Reviewer and review timestamp required")
+    if item.get("basis") not in {"english_transcript", "watched_video"}:
+        raise ValueError("Evidence basis required")
+    label = row["payload"]["label"]
+    if item.get("item_type") == "hybrid_video":
+        expected = video_values(label)
+    elif item.get("item_type") == "hybrid_comment":
+        c = next(
+            (c for c in label["comments"] if c["comment_id"] == item.get("comment_id")),
+            None,
+        )
+        if c is None:
+            raise ValueError("Unknown comment")
+        expected = {k: c[k] for k in COMMENT_FIELDS}
+    else:
+        raise ValueError("Unknown hybrid review type")
+    human, decisions = item.get("human_label", {}), item.get("decisions", {})
+    if set(human) != set(expected) or set(decisions) != set(expected):
+        raise ValueError("Every classification needs an explicit decision")
+    for k in expected:
+        if decisions[k] not in {"agree", "disagree"}:
+            raise ValueError("Unconfirmed classification")
+        if decisions[k] == "agree" and human[k] != expected[k]:
+            raise ValueError("Agreement must preserve model label")
+    cfg = config("hybrid")
+    if item["item_type"] == "hybrid_comment":
+        if (
+            human["alignment"] not in cfg["alignment"]
+            or human["sentiment"] not in cfg["sentiment"]
+            or not isinstance(human["sentiment_target"], str)
+        ):
+            raise ValueError("Invalid comment labels")
+        if (
+            label["stance"]["status"] in {"no_stance", "unclear"}
+            and human["alignment"] != "no_video_stance"
+        ):
+            raise ValueError("No video stance available for comparison")
+    else:
+        if (
+            human["relevance"] not in cfg["relevance"]
+            or human["context"] not in cfg["context"]
+        ):
+            raise ValueError("Invalid video labels")
+        if not isinstance(human["domains"], list) or any(
+            x not in cfg["domains"] for x in human["domains"]
+        ):
+            raise ValueError("Invalid security domain")
+        if human["relevance"] != "related" and (human["domains"] or human["roles"]):
+            raise ValueError(
+                "Unrelated/unclear videos cannot have security roles/domains"
+            )
+        if human["relevance"] == "related" and (
+            not human["domains"] or human["context"] == "not_applicable"
+        ):
+            raise ValueError("Related videos require a domain and context")
+        if human["relevance"] == "not_related" and human["context"] != "not_applicable":
+            raise ValueError("Unrelated context must be not_applicable")
+        if not isinstance(human["roles"], list):
+            raise ValueError("Roles must be an array")
+        codes = {c["iso2"] for c in config("countries")["countries"]} | {"EU", "OTHER"}
+        for role in human["roles"]:
+            if (
+                not isinstance(role, dict)
+                or role.get("role") not in cfg["roles"]
+                or role.get("entity_code") not in codes
+                or not str(role.get("entity", "")).strip()
+            ):
+                raise ValueError("Invalid entity role")
+        st = human["stance"]
+        if not isinstance(st, dict) or st.get("status") not in cfg["stance_status"]:
+            raise ValueError("Invalid stance")
+        if st["status"] in {"expressed", "mixed"} and (
+            not st.get("proposition", "").strip()
+            or not st.get("attribution", "").strip()
+        ):
+            raise ValueError("Stance requires proposition and attribution")
+        for k in EXECUTION:
+            value = human["execution:" + k]
+            if value not in cfg["execution_status"] + ["absent_after_watching"]:
+                raise ValueError("Invalid execution label")
+            if (value == "not_applicable") == (human["relevance"] == "related"):
+                raise ValueError("Execution applies only to security-related videos")
+            if (
+                value == "absent_after_watching"
+                or (k == "imagery_visual" and value == "present")
+            ) and item["basis"] != "watched_video":
+                raise ValueError("Audiovisual judgment requires watching the video")
+    return item
+
+
+def import_reviews(store, items):
+    known = {r["id"]: r for r in labels(store)}
+    prepared = []
+    for item in items:
+        row = known.get(item.get("queue_record_id"))
+        if row is None:
+            raise ValueError("Unknown or expired classification")
+        validate_review(item, row)
+        # Enforce the current evidence gate even if an old packet is imported.
+        if row["video_id"] not in retained_inputs(store, row["batch_id"])[0]:
+            raise ValueError("No retained English transcript")
+        p = dict(
+            item,
+            review_status="complete",
+            hybrid_version=VERSION,
+            source_video_id=row["video_id"],
+        )
+        prepared.append(
+            (
+                row["batch_id"],
+                record(
+                    "human_validation",
+                    row["batch_id"],
+                    "hybrid-review:" + digest(p),
+                    p,
+                    row["video_id"],
+                ),
+            )
+        )
+    # Validate every item before writing any item.
+    for batch in sorted({b for b, _ in prepared}):
+        store.write(batch, [r for b, r in prepared if b == batch])
+    return {"imported": len(prepared)}

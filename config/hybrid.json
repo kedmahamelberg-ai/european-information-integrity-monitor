@@ -1,5 +1,5 @@
 {
-  "version": "hybrid-framing-1.0",
+  "version": "hybrid-framing-1.0.1",
   "relevance": [
     "related",
     "not_related",
@@ -21,7 +21,10 @@
     "information_operations",
     "economic_coercion",
     "political_interference",
-    "other_security"
+    "other_security",
+    "sovereignty",
+    "military_capability",
+    "national_security"
   ],
   "roles": [
     "readiness",

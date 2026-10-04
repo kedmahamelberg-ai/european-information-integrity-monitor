@@ -118,7 +118,7 @@ class HybridTests(unittest.TestCase):
             e["status"] = "not_applicable"
         validate_label(x, document())
 
-    def test_english_audio_without_transcript_excluded(self):
+    def make_transcript_store(self):
         s = MemoryStore()
         batch = "2026-W40"
         s.write(
@@ -167,8 +167,11 @@ class HybridTests(unittest.TestCase):
         self.assertIn("v", retained_inputs(s, batch)[0])
         return s
 
+    def test_english_audio_requires_transcript(self):
+        self.make_transcript_store()
+
     def test_restart_does_not_reclassify_or_collect(self):
-        s = self.test_english_audio_without_transcript_excluded()
+        s = self.make_transcript_store()
         s.batch({"id": "2026-W40"}, "test")
 
         class Fake:
@@ -195,3 +198,125 @@ class HybridTests(unittest.TestCase):
         self.assertEqual(fake.calls, 1)
         self.assertEqual(a["classified_videos"], 1)
         self.assertFalse(b["new_source_collection"])
+
+
+class EngagementTests(unittest.TestCase):
+    def test_missing_is_not_zero(self):
+        from eiim.engagement import engagement
+
+        m = engagement(
+            {
+                "raw_api_response": {
+                    "statistics": {"viewCount": "100", "commentCount": "0"}
+                }
+            }
+        )
+        self.assertIsNone(m["likes"])
+        self.assertIsNone(m["shares"])
+        self.assertEqual(m["total_comments"], 0)
+        self.assertEqual(m["comments_per_1000_views"], 0)
+        self.assertIsNone(m["likes_per_1000_views"])
+        self.assertIsNone(
+            engagement(
+                {
+                    "raw_api_response": {
+                        "statistics": {"viewCount": "0", "likeCount": "4"}
+                    }
+                }
+            )["likes_per_1000_views"]
+        )
+
+    def test_timestamp_and_age(self):
+        from eiim.engagement import engagement
+
+        m = engagement(
+            {
+                "published_at": "2026-10-01T00:00:00Z",
+                "retrieved_at": "2026-10-02T00:00:00Z",
+                "raw_api_response": {
+                    "statistics": {"viewCount": "200", "likeCount": "10"}
+                },
+            }
+        )
+        self.assertEqual(m["age_hours_at_capture"], 24)
+        self.assertEqual(m["likes_per_1000_views"], 50)
+
+
+class HumanReviewTests(unittest.TestCase):
+    def review(self):
+        from eiim.hybrid import VERSION
+        from eiim.hybrid_review import video_values
+        from eiim.core import digest
+
+        p = {"label": label()}
+        row = {"payload": p, "payload_hash": digest(p)}
+        values = video_values(p["label"])
+        item = {
+            "version": VERSION,
+            "queue_hash": row["payload_hash"],
+            "reviewer": "Tester",
+            "reviewed_at": "2026-10-04T00:00:00Z",
+            "basis": "english_transcript",
+            "item_type": "hybrid_video",
+            "human_label": values,
+            "decisions": {k: "agree" for k in values},
+        }
+        return item, row
+
+    def test_all_fields_explicit_and_hash_bound(self):
+        from eiim.hybrid_review import validate_review
+
+        item, row = self.review()
+        validate_review(item, row)
+        item["decisions"].pop("relevance")
+        with self.assertRaises(ValueError):
+            validate_review(item, row)
+        item, row = self.review()
+        item["queue_hash"] = "stale"
+        with self.assertRaises(ValueError):
+            validate_review(item, row)
+
+    def test_visual_judgment_requires_watching(self):
+        from eiim.hybrid_review import validate_review
+
+        item, row = self.review()
+        item["human_label"]["execution:imagery_visual"] = "present"
+        item["decisions"]["execution:imagery_visual"] = "disagree"
+        with self.assertRaises(ValueError):
+            validate_review(item, row)
+        item["basis"] = "watched_video"
+        validate_review(item, row)
+
+    def test_forged_agreement_rejected(self):
+        from eiim.hybrid_review import validate_review
+
+        item, row = self.review()
+        item["human_label"]["context"] = "historical"
+        with self.assertRaises(ValueError):
+            validate_review(item, row)
+
+    def test_public_allowlist_excludes_raw_comments_and_ai_labels(self):
+        from eiim.hybrid_public import export_public
+        from eiim.hybrid import VERSION
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+        from eiim.core import digest
+
+        s = HybridTests().make_transcript_store()
+        s.batch({"id": "2026-W40"}, "test")
+        p = {
+            "hybrid_version": VERSION,
+            "video_id": "v",
+            "label": label(),
+            "classified_at": "2026-10-04T00:00:00Z",
+            "model_version": "test",
+            "transcript_truncated": False,
+        }
+        s.write("2026-W40", [record("pipeline_runs", "2026-W40", "hybrid", p, "v")])
+        with TemporaryDirectory() as d:
+            path = Path(d) / "data.json"
+            export_public(s, path)
+            out = json.loads(path.read_text())
+        self.assertIsNone(out["videos"][0]["label"])
+        self.assertNotIn("This attack is awful", json.dumps(out))
+        self.assertEqual(out["collection"]["classified_comments"], 1)

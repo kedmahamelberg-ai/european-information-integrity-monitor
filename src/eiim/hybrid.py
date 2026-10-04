@@ -2,6 +2,8 @@
 
 import argparse
 import json
+import re
+import copy
 from collections import Counter
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -14,7 +16,7 @@ from .review_sampling import plans_for_store, assignment
 from .services import Classifier, Ledger, BudgetExhausted, ClassificationUnavailable
 from .storage import Store, record
 
-VERSION = "hybrid-framing-1.0"
+VERSION = "hybrid-framing-1.0.1"
 
 
 def obj(properties):
@@ -115,6 +117,7 @@ def validate_shape(value, shape):
 
 
 def validate_label(value, document):
+    value = copy.deepcopy(value)
     validate_shape(value, schema())
     sections = {s["id"]: s["text"] for s in document["sections"]}
 
@@ -122,9 +125,33 @@ def validate_label(value, document):
         if required and not e["quote"].strip():
             raise ValueError("An exact evidence quotation is required")
         if e["quote"] and e["quote"] not in sections.get(e["source_id"], ""):
-            raise ValueError("Quotation not found in its source section")
+            # Caption lines often omit punctuation or split a sentence. Resolve
+            # formatting-only differences to the actual source substring; never
+            # accept paraphrases, reordered words, or omitted negations.
+            words = re.findall(r"\w+", e["quote"].casefold())
+            found = False
+            for key in dict.fromkeys([e["source_id"], "transcript"]):
+                source = sections.get(key, "")
+                spans = list(re.finditer(r"\w+", source))
+                tokens = [m.group().casefold() for m in spans]
+                for i in range(len(tokens) - len(words) + 1):
+                    if len(words) >= 3 and tokens[i : i + len(words)] == words:
+                        e.update(
+                            quote=source[
+                                spans[i].start() : spans[i + len(words) - 1].end()
+                            ],
+                            source_id=key,
+                        )
+                        found = True
+                        break
+                if found:
+                    break
+            if not found:
+                raise ValueError(
+                    "Quotation not found. Copy a SHORT verbatim substring from transcript; do not paraphrase or add/remove words."
+                )
 
-    evidence(value["evidence"], value["relevance"] != "unclear")
+    evidence(value["evidence"], value["relevance"] == "related")
     if value["relevance"] != "related" and (value["domains"] or value["roles"]):
         raise ValueError("Only related videos can have security domains/roles")
     if value["relevance"] == "related" and (
@@ -243,7 +270,7 @@ def reclassify(store, batch, classifier=None):
         "classifier_version": VERSION + "-" + selected_policy()["model"],
         "prompt_version": VERSION,
     }
-    prompt = (ROOT / "prompts/hybrid-framing-1.0.txt").read_text()
+    prompt = (ROOT / "prompts/hybrid-framing-1.0.1.txt").read_text()
     done = {r["id"] for r in runs}
     errors = []
     status = "complete"
@@ -272,6 +299,9 @@ def reclassify(store, batch, classifier=None):
                     )
                     translations[cid] = translated
             document = evidence_input(source, language)
+            document["entity_codes"] = {
+                c["country_name"]: c["iso2"] for c in config("countries")["countries"]
+            }
             document["comments"] = [
                 {
                     "comment_id": c["comment_id"],
@@ -378,9 +408,16 @@ def collect_week(store):
     if "sampling_complete" not in done:
         pipe.sampling()
     pipe.prepare_english_access()
+    retrieve_retained_captions(store, pipe.id)
+    # Only transcript-eligible sources enter the new comment pool.
+    eligible = set(retained_inputs(store, pipe.id)[0])
+    pipe.active_samples = lambda: [
+        s
+        for s in pipe.values("sampled_videos")
+        if s.get("selected_for_sample") and s["video_id"] in eligible
+    ]
     if "comments_complete" not in done:
         pipe.comments()
-    retrieve_retained_captions(store, pipe.id)
     return reclassify(store, pipe.id, pipe.classifier)
 
 

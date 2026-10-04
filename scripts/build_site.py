@@ -15,7 +15,7 @@ for p in source.rglob("*"):
 (out / ".nojekyll").write_text("")
 if "--live" in sys.argv:
     sys.path.insert(0, str(ROOT / "src"))
-    from eiim.cli import export_public
+    from eiim.hybrid_public import export_public
     from eiim.storage import Store
 
     print(export_public(Store(), out / "data.json"))

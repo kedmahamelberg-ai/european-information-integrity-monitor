@@ -79,6 +79,14 @@ def import_reviews(store, path):
     from .language_access import access_records, video_access, POLICY_VERSION
 
     items = json.loads(path.read_text())
+    if (
+        isinstance(items, list)
+        and items
+        and all(x.get("item_type", "").startswith("hybrid_") for x in items)
+    ):
+        from .hybrid_review import import_reviews as import_hybrid_reviews
+
+        return import_hybrid_reviews(store, items)
     known = {r["id"]: r for r in store.read("human_validation")}
     candidates = {
         (r["batch_id"], r["video_id"]): r["payload"]
@@ -277,13 +285,14 @@ def main():
     elif args.command == "purge":
         result = store.purge(config("retention")["raw_retention_days"])
     elif args.command == "export-public":
-        result = export_public(store, Path(args.output))
-    elif args.command == "review-html":
-        from .review import prepare_review_items, write_review_html
+        from .hybrid_public import export_public as export_hybrid_public
 
-        result = write_review_html(
-            prepare_review_items(store, args.batch), Path(args.output), store.progress()
-        )
+        result = export_hybrid_public(store, Path(args.output))
+    elif args.command == "review-html":
+        from .hybrid_review import packet, write_html
+
+        batch = args.batch or sorted(r["id"] for r in store.read("weekly_batches"))[-1]
+        result = write_html(packet(store, batch), Path(args.output))
     elif args.command == "review-export":
         records = store.read("human_validation", args.batch)
         finished = {

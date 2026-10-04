@@ -547,6 +547,11 @@ class Classifier:
                             {
                                 "kind": kind,
                                 "error_type": type(error).__name__,
+                                "validation_error": (
+                                    str(error)
+                                    if isinstance(error, ValueError)
+                                    else None
+                                ),
                                 "attempt": attempt + 1,
                                 "raw_model_response": locals().get("raw"),
                                 "at": now(),

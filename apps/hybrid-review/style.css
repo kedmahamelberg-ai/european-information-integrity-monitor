@@ -1,0 +1,293 @@
+:root {
+  color-scheme: dark;
+  --bg: #0a0e12;
+  --panel: #111920;
+  --edge: #2b3841;
+  --text: #e7edef;
+  --muted: #a7b8c0;
+  --cyan: #68d7d1;
+  --amber: #e7b76a;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font:
+    15px/1.6 system-ui,
+    sans-serif;
+}
+header {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 22px 4vw;
+  border-bottom: 1px solid var(--edge);
+}
+header b {
+  letter-spacing: 0.13em;
+}
+header span {
+  font-size: 11px;
+  color: var(--muted);
+}
+header a {
+  margin-left: auto;
+}
+a {
+  color: var(--cyan);
+}
+main {
+  max-width: 1500px;
+  margin: auto;
+  padding: 32px 4vw;
+}
+.eyebrow {
+  color: var(--amber);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+}
+h1 {
+  font-size: clamp(30px, 4vw, 50px);
+  line-height: 1.12;
+  margin: 12px 0 18px;
+  font-weight: 550;
+}
+h1 span {
+  color: var(--cyan);
+}
+.intro > p:last-child {
+  max-width: 780px;
+  color: var(--muted);
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: end;
+  margin-top: 28px;
+}
+label {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+input,
+select,
+textarea,
+button {
+  font: inherit;
+  color: var(--text);
+  background: #15222b;
+  border: 1px solid #455863;
+  border-radius: 5px;
+  padding: 9px 12px;
+}
+input,
+select,
+textarea {
+  display: block;
+  max-width: 100%;
+  width: 100%;
+}
+button {
+  cursor: pointer;
+}
+button:hover,
+button[aria-pressed="true"] {
+  border-color: var(--cyan);
+  background: #193936;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
+}
+.toolbar button {
+  background: var(--cyan);
+  color: #082422;
+}
+.notice,
+.pill {
+  border: 1px solid var(--edge);
+  border-radius: 5px;
+  padding: 10px 14px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.workspace {
+  display: grid;
+  grid-template-columns: 270px minmax(0, 1fr);
+  gap: 24px;
+  margin-top: 28px;
+}
+aside {
+  max-height: 85vh;
+  overflow: auto;
+}
+aside button {
+  display: block;
+  text-align: left;
+  width: 100%;
+  margin-bottom: 8px;
+  background: var(--panel);
+}
+aside small {
+  display: block;
+  color: var(--muted);
+}
+article {
+  min-width: 0;
+}
+.card,
+.field,
+.comment,
+.codebook {
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 15px;
+}
+h2 {
+  line-height: 1.3;
+  margin: 0 0 10px;
+}
+h3 {
+  font-size: 18px;
+  margin: 26px 0 12px;
+}
+.meta,
+small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.video {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border: 0;
+  border-radius: 6px;
+}
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin: 15px 0;
+}
+.metrics b {
+  display: block;
+  font-size: 22px;
+  color: var(--cyan);
+}
+.field h4 {
+  margin: 0 0 8px;
+}
+.model {
+  color: var(--amber);
+  white-space: pre-wrap;
+}
+.buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.editor {
+  margin-top: 15px;
+  display: grid;
+  gap: 10px;
+}
+.editor[hidden] {
+  display: none;
+}
+.role-editor {
+  display: grid;
+  grid-template-columns: 1.4fr 80px 1.6fr auto;
+  gap: 8px;
+}
+.domain-editor {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.domain-editor label {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+.domain-editor input {
+  width: auto;
+}
+.transcript {
+  max-height: 320px;
+  overflow: auto;
+  color: var(--muted);
+}
+.transcript p {
+  margin: 9px 0;
+}
+blockquote {
+  border-left: 2px solid var(--amber);
+  padding-left: 14px;
+  margin: 12px 0;
+  color: var(--muted);
+}
+.confirmed {
+  color: var(--cyan);
+}
+.confirm {
+  background: var(--cyan);
+  color: #082422;
+  font-weight: 650;
+}
+.comment .field {
+  padding: 12px;
+}
+.comment p {
+  overflow-wrap: anywhere;
+}
+#message {
+  color: var(--amber);
+  position: sticky;
+  bottom: 8px;
+  background: var(--bg);
+  padding: 10px;
+}
+.empty {
+  padding: 30px;
+  color: var(--muted);
+}
+@media (max-width: 800px) {
+  header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  header a {
+    margin-left: 0;
+  }
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+  aside {
+    max-height: 240px;
+  }
+  .role-editor {
+    grid-template-columns: 1fr 70px;
+  }
+  .toolbar > label {
+    width: 100%;
+  }
+  .metrics {
+    gap: 14px;
+  }
+  main {
+    padding: 20px;
+  }
+  .domain-editor {
+    grid-template-columns: 1fr;
+  }
+}

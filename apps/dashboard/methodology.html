@@ -1,236 +1,204 @@
-<p class="eyebrow">METHODS & TRANSPARENCY · VERSION 1.0</p>
-<h1>What the monitor measures</h1>
+<p class="eyebrow">MEASUREMENT & LIMITS / HYBRID-FRAMING-1.0.1</p>
+<h1>Framing, not attribution.</h1>
 <p>
-  The European Information Integrity Monitor studies how sampled YouTube
-  public-affairs titles and descriptions frame groups, how highly visible
-  retrieved comments relate to that content, and whether comment patterns
-  exhibit amplification anomalies.
+  The monitor studies how existing YouTube videos discuss war, security threats
+  and coercion; how they portray countries; and how visible comments respond.
+  The previous sectarianism taxonomy has been retired from the active workflow.
+  Its records and prior human judgments remain separate and unchanged.
 </p>
-<div class="callout">
-  <strong>Research beta. No live findings yet.</strong><br />The demonstration
-  is entirely synthetic. Automated measurement is not the validated Political
-  Sectarianism Scale. At least 100 stratified video cases and 20 comment
-  clusters must receive human review before the launch gate permits publication
-  of live analytical results.
-</div>
-<h2>01 · Sectarian framing</h2>
+<h2>01 · Evidence and sampling</h2>
 <p>
-  Finkel and colleagues identify othering, aversion and moralization as
-  components of political sectarianism. Their validated psychological measure
-  uses self-report responses. Our
-  <strong>Sectarian Framing Index (SFI)</strong> adapts these concepts to text
-  and requires independent validation across languages and contexts.
+  Only frozen sampled videos with successfully retrieved English transcripts or
+  subtitles enter the classification pool. English audio alone is insufficient.
+  Successfully retrieved YouTube auto-translated captions count, with their
+  provenance retained. The original audio language is preserved; language is not
+  proof of audience location. Missing captions mean exclusion from this
+  analytical pool, not a negative topic label. Caption availability introduces
+  selection bias.
 </p>
+<p>
+  Videos are sampled within the existing country × channel-tier frame before
+  labels are known. The minimum available comment pool is <b>2</b>. Up to 100
+  top-level comments are retrieved and up to 30 retained by the existing
+  visibility ranking. Counts may include replies in YouTube’s total while our
+  retained sample contains top-level comments. This sample is not representative
+  of every viewer or comment.
+</p>
+<p>
+  The AI reads saved captions and metadata, not video frames. Long transcripts
+  may exceed the 48,000-character input cap; truncation is recorded. Original
+  comments are retained privately alongside saved English translations. Raw
+  discussions and transcripts are not included in this website export.
+</p>
+<h2>02 · War and hybrid-threat relevance</h2>
+<p>
+  Each video receives related, not related, or unclear. Related covers armed
+  conflict, military readiness and coercive security activity such as cyber
+  operations, sabotage, information operations, economic coercion and political
+  interference. Ordinary political criticism, natural-disaster protection,
+  tourism and economic hardship alone do not qualify. Current, historical,
+  hypothetical and mixed contexts are separated.
+</p>
+<p>
+  Topic inclusion does not establish propaganda: neutral reporting, historical explanation and persuasive advocacy can all concern sovereignty or defence. Discussing a cyberattack or allegation does not establish a coordinated hybrid
+  operation or identify its perpetrator. The scope draws on
+  <a
+    href="https://www.nato.int/en/what-we-do/deterrence-and-defence/countering-hybrid-threats"
+    >NATO’s overview of hybrid threats</a
+  >
+  and the
+  <a href="https://www.hybridcoe.fi/hybrid-threats/"
+    >European Centre of Excellence for Countering Hybrid Threats</a
+  >.
+</p>
+<h2>03 · Portrayed military and security roles</h2>
 <table>
   <thead>
     <tr>
-      <th>Dimension</th>
-      <th>Operational definition</th>
+      <th>Label</th>
+      <th>What is portrayed</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>Othering</td>
+      <td>🛡️ Defence readiness</td>
       <td>
-        A target group is portrayed as alien, incompatible, threatening or
-        outside the legitimate community.
+        Training, preparation, deterrence, defence or resilience against hostile
+        action.
       </td>
     </tr>
     <tr>
-      <td>Aversion</td>
+      <td>⚔️ Force projection & coercion</td>
       <td>
-        Contempt, hostility, disgust, fear or hatred directed toward a target
-        group.
+        Displaying military power, making threats, coercing or conducting an
+        attack.
       </td>
     </tr>
     <tr>
-      <td>Moralization</td>
+      <td>🎯 Target of hostile action</td>
+      <td>Being attacked, hacked, sabotaged, threatened or coerced.</td>
+    </tr>
+  </tbody>
+</table>
+<p>
+  Roles are entity-specific and multi-label. An actor can be targeted and
+  respond with force in the same video. Preparation is not automatically
+  aggression. Role statements require source quotations and attribution in the
+  private evidence record. Historical entities are not silently equated with
+  current states.
+</p>
+<h2>04 · Execution: how the message is delivered</h2>
+<p>
+  We adapt the five executional categories in Dall’Olio and Vakratsas,
+  <i>The Impact of Advertising Creative Strategy on Advertising Elasticity</i>
+  (2022 online publication; Journal of Marketing 87(1), Table 5).
+  <a href="https://doi.org/10.1177/00222429221074960">Read the paper ↗</a>
+</p>
+<table>
+  <thead>
+    <tr>
+      <th>Category</th>
+      <th>Security-content adaptation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Comparative</td>
       <td>
-        A target group is portrayed as corrupt, dishonest, evil, traitorous or
-        morally illegitimate.
+        Explicit comparisons of actors/capabilities, or superiority claims.
+      </td>
+    </tr>
+    <tr>
+      <td>Endorsement</td>
+      <td>
+        Expert, official or eyewitness testimony used to lend credibility.
+      </td>
+    </tr>
+    <tr>
+      <td>Entertainment</td>
+      <td>
+        Humor, dramatization or a constructed story, beyond routine event
+        reporting.
+      </td>
+    </tr>
+    <tr>
+      <td>Imagery/visual</td>
+      <td>
+        Striking imagery, charts, montage or visual effects; requires watching.
+      </td>
+    </tr>
+    <tr>
+      <td>Mnemonic devices</td>
+      <td>
+        Distinctive slogans, repeated names, memorable characters or audio cues.
       </td>
     </tr>
   </tbody>
 </table>
 <p>
-  Each dimension is scored 0–4: absent, weak, moderate, strong or extreme. SFI =
-  (Othering + Aversion + Moralization) / 3. A strong sectarian frame requires
-  all three dimensions ≥ 2. Dimension prevalence means a score &gt; 0;
-  continuous scores remain primary. Positive praise does not count. Quoted
-  hostility without endorsement, policy disagreement, and criticism without
-  group delegitimation must be distinguished.
-</p>
-<h2>02 · Discovery and sampling</h2>
-<p>
-  Discovery is video-centred. A versioned multilingual dictionary searches
-  country names, demonyms and variants in titles or descriptions. Generic
-  Europe/EU terms are supplementary, not required. The broad geographic universe
-  includes transcontinental countries, Cyprus and Kosovo; Kosovo is included
-  without a sovereignty determination, using user-assigned XK/XKX codes. Georgia
-  and other ambiguous terms require context. Dictionary coverage is incomplete
-  and must be audited.
+  Multiple categories can occur together. They apply only to
+  war/security-related videos. AI transcript coding distinguishes present, not
+  observed in transcript, and not observable. Visual features are not inferred
+  from speech. A human can record absence from the full video only after
+  watching it. Denominators exclude not-observable cases.
 </p>
 <p>
-  The complete retrieved candidate frame is preserved before SFI or narrative
-  outcomes are known. Search is quota-bounded and not a census of YouTube. Each
-  query, returned page, truncation and retrieval time is logged. News relevance
-  uses deterministic checks, multilingual local embeddings and an LLM only for
-  uncertain cases. Five percent of rejected cases are randomly retained for
-  exclusion auditing.
+  The source study analyzed 2,251 consumer-product advertising creatives with
+  trained human coders. This adaptation has not been validated for conflict
+  videos. Its advertising-effect findings cannot be transferred to war
+  communication. We do not calculate an effectiveness, propaganda or danger
+  score.
+</p>
+<h2>05 · Comments: stance is separate from sentiment</h2>
+<p>
+  Agreement is assessed against an explicit, attributed video proposition:
+  supports, opposes, mixed, no position, unrelated, unclear, or no video stance.
+  A neutral report may offer no stance to agree with. Sentiment is positive,
+  negative, mixed, neutral or unclear, with its target recorded independently.
+  “That attack is awful” can be negative sentiment while supporting a video’s
+  condemnation. This separation follows established
+  <a href="https://aclanthology.org/S16-1003/">stance-detection research</a>.
+</p>
+<h2>06 · Engagement snapshots</h2>
+<p>
+  Views, likes and total comments come from the original timestamped
+  <a href="https://developers.google.com/youtube/v3/docs/videos#statistics"
+    >YouTube video statistics</a
+  >. Missing values remain unavailable, never zero. Shares are not part of
+  public video statistics;
+  <a href="https://developers.google.com/youtube/analytics/data_model"
+    >owner-authorized Analytics access</a
+  >
+  would be needed. We report likes and comments per 1,000 views where both
+  counts exist, and the video’s age at capture. Views are not unique viewers,
+  and platform counting rules differ between video formats.
 </p>
 <p>
-  Channels receive a configurable institutionalization score from observable
-  age, subscribers, upload counts, publishing frequency and linked-domain
-  signals. Tiers are empirical tertiles within the discovered frame. Missing
-  fields remain missing; verified status is not inferred. Institutionalization
-  is not trustworthiness.
+  Engagement can be associated with execution style, but these observational
+  data cannot establish causation. Comparisons should account for channel size,
+  video age, duration/format, topic, language and posting time. A single
+  snapshot cannot measure engagement growth.
+</p>
+<h2>07 · Human review and publication</h2>
+<p>
+  Initial calibration requests 30 eligible videos, or the whole eligible pool
+  when smaller. Later batches use 3% rounded up, minimum 5, capped at the
+  available pool. The random selection is independent of AI labels. Execution
+  labels are reviewed only for relevant videos; comments have optional
+  individual reviews. Calibration completion alone does not prove reliability. A
+  second independent human coder would be needed to estimate human inter-coder
+  agreement.
 </p>
 <p>
-  Sampling uses country × tier strata, with initial 40% low, 40% medium and 20%
-  high benchmark allocations. Multi-country candidates receive one
-  deterministic, outcome-independent sampling-country assignment, while all
-  geographic mentions remain available for analysis. Videos are sampled
-  uniformly without replacement within each stratum. Empty or small strata cause
-  explicit shortfalls rather than hidden replacement. Inclusion probabilities,
-  seed and frame membership are retained. Country summaries are unweighted
-  descriptions of this sample; they are not population prevalence estimates.
-</p>
-<h2>03 · One reproducible research clock</h2>
-<p>
-  Collection runs Sundays after the completed Sunday–Saturday interval in
-  <strong>Europe/Amsterdam</strong>. The implementation uses a half-open [Sunday
-  00:00, next Sunday 00:00) interval and stores the inclusive Saturday end for
-  display. Timezone-aware boundaries accommodate 167-, 168- and 169-hour weeks.
-  Collection-Sunday videos are excluded. The batch ID identifies the ISO week
-  containing the closing Saturday. Corrections create new classification
-  versions.
-</p>
-<h2>04 · Visible comments, not the whole audience</h2>
-<p>
-  Content inclusion has no comment threshold. The nested comment sample starts
-  at 2 available top-level comments. The beta retrieves up to 100 top-level comments
-  ordered by YouTube relevance, then retains up to 30 using normalized likes
-  plus replies. These are the most visible comments
-  <em>within the retrieved pool</em>; the API cannot guarantee the global top 30
-  without exhaustive retrieval. Replies contribute to visibility but are not
-  themselves sampled in this beta. Pool size, pagination limits and retrieval
-  time are retained.
-</p>
-<h2>05 · Narratives and displacement</h2>
-<p>
-  Classification is multi-label, using a versioned taxonomy. OTHER requires a
-  label and explanation. Local multilingual embeddings and coherent clusters
-  identify candidate emerging narratives after three consecutive observed weeks
-  or a configurable volume threshold. A researcher decides whether to promote a
-  label; no automatic taxonomy changes occur.
+  The public site shows source metadata and engagement, while substantive labels
+  remain private until that specific video is reviewed. It does not extrapolate
+  confirmed labels to unreviewed cases. Review exports preserve explicit
+  agree/correct decisions, evidence basis, model version and source hash. No
+  human judgment is pre-confirmed by the AI.
 </p>
 <p>
-  Narrative injection is the share of analyzed visible comments belonging to
-  coherent off-topic clusters with a substantively different classified
-  narrative from the source. Random unrelated comments do not qualify. Topic
-  similarity, off-topic score, narrative alignment, cluster coherence and
-  denominator remain separately accessible. Similarity thresholds are
-  experimental and require calibration.
+  Model policy follows the Observatory: gpt-5-nano, then gpt-5.6-luna from 10
+  December 2026 UTC. The shared estimated model-spend ceiling remains $5 per
+  week. Classification checkpoints are immutable and restartable. Raw data
+  follow the existing 30-day retention policy.
 </p>
-<h2>06 · Amplification signals</h2>
-<p>
-  The experimental <strong>Amplification Anomaly Index (AAI)</strong> combines
-  five components on 0–1 scales: duplicate similarity (25%), visible-comment
-  temporal concentration (20%), cross-video recurrence (20%), topic divergence
-  (20%) and narrative concentration (15%). All weights and thresholds are
-  configurable and the components are inspectable. Time concentration is
-  measured only within retained comments. AAI ≥ 0.70 is the initial high-signal
-  threshold, not a validated decision boundary.
-</p>
-<p>
-  SFI and AAI are separate. Neither measures truthfulness. These observations
-  cannot establish bots, an influence operation, intent, foreign involvement or
-  coordinated action. No overall threat score is produced.
-</p>
-<h2>07 · Model use, cost and validation</h2>
-<p>
-  Rules, language detection, local embeddings, deduplication and clustering
-  precede paid classification. Repeated comments share representative
-  classifications with explicit propagation provenance. Structured responses are
-  range-checked and malformed outputs become errors, never zero scores. Each
-  label preserves model, prompt, taxonomy and classifier versions and raw
-  response separately. A budget reservation precedes every paid request;
-  exhausted work remains pending.
-</p>
-<p>
-  Human QA is stratified across high, low and borderline SFI, confidence, OTHER
-  narratives, high/normal AAI and injection cases, plus random ordinary cases.
-  Human and adjudicated labels never overwrite model labels. The review tool
-  reports dimension agreement, strong-frame agreement, narrative overlap and
-  target overlap from actual reviews. No reliability estimate is claimed until
-  reviews exist.
-</p>
-<h2>08 · Storage and limitations</h2>
-<p>
-  Raw observations, samples, classifications and run accounting use an isolated
-  Supabase schema. Public output contains only explicitly exported,
-  de-identified research data. Weekly snapshots are immutable during their
-  permitted retention period. Research reproducibility does not override API
-  retention or deletion requirements: default raw-data retention is 30 days, and
-  longer archival retention requires a documented permitted basis. Source
-  deletions and raw-data purges are recorded as tombstones.
-</p>
-<p>
-  Key limitations include search ranking and quota truncation, multilingual
-  coverage, title/description-only source measurement, channel metadata
-  missingness, oversampling, highly engaged comment selection, model errors, and
-  observational confounding. Countries identify the subject of content, not the
-  source, nationality, population attitudes or government behaviour.
-  Cross-country counts are not directly comparable without examining sampling
-  and language coverage.
-</p>
-<h2>Sources and methodological inputs</h2>
-<ul>
-  <li>
-    Finkel et al. (2020).
-    <a href="https://doi.org/10.1126/science.abe1715"
-      >Political sectarianism in America</a
-    >, Science 370, 533–536.
-  </li>
-  <li>
-    Finkel, Landry, Druckman, Van Bavel & Hoyle.
-    <em>Partisan Antipathy and the Erosion of Democratic Norms</em>. Supplied
-    manuscript/supplement and 2024 working-paper version; inputs to construct
-    interpretation, not validation of this text classifier.
-  </li>
-  <li>
-    Corstange & York. <em>Sectarian Framing in the Syrian Civil War</em>.
-    Supplied 2017 manuscript; competing narrative framing.
-  </li>
-  <li>
-    Van Bavel et al. (2024).
-    <a href="https://doi.org/10.1146/annurev-psych-022123-110258"
-      >Social Media and Morality</a
-    >. Attention, engagement and moral content.
-  </li>
-  <li>
-    Carter & Caton (2025; online 2022).
-    <a href="https://doi.org/10.1080/1057610X.2022.2083933"
-      >Primed for Violence</a
-    >. Context-dependent sectarian conflict; no causal generalization to this
-    monitor.
-  </li>
-  <li>
-    Prior political-sectarianism notebook: conceptual input only. Positive
-    moralization, binary scoring, unlimited retries and zero-on-error parsing
-    were not retained.
-  </li>
-  <li>
-    <a href="https://developers.google.com/youtube/v3/docs/commentThreads/list"
-      >YouTube comment collection API</a
-    >
-    and
-    <a href="https://developers.google.com/youtube/terms/developer-policies"
-      >developer policies</a
-    >.
-  </li>
-  <li>
-    Natural Earth: public-domain country geometry. World Monitor: map-first
-    design reference only; no application code copied.
-  </li>
-</ul>

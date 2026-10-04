@@ -1,13 +1,13 @@
 {
+  "version": "hybrid-framing-1.0.1",
+  "as_of": null,
   "mode": "empty",
-  "status": "awaiting_configuration",
-  "batches": [],
   "videos": [],
-  "candidates": [],
-  "validation": {
-    "videos_reviewed": 0,
-    "clusters_reviewed": 0,
-    "required_videos": 100
-  },
-  "message": "No live observations have been published. Explore the explicitly labelled demonstration to inspect the interface."
+  "batches": [],
+  "collection": {},
+  "role_labels": {
+    "readiness": "Defence readiness",
+    "projecting_power": "Force projection & coercion",
+    "under_pressure": "Target of hostile action"
+  }
 }

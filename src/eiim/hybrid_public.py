@@ -1,0 +1,138 @@
+"""Explicit public allowlist: counters and reviewed labels, never raw discussions."""
+
+import json
+from .core import config, now
+from .hybrid import VERSION, retained_inputs, labels, latest_labels
+from .hybrid_review import validate_review
+from .engagement import engagement
+
+
+def export_public(store, path):
+    output = {
+        "version": VERSION,
+        "as_of": now(),
+        "mode": "live",
+        "videos": [],
+        "batches": [],
+        "status": "human_review_pending",
+        "collection": {
+            "sampled_videos": 0,
+            "transcript_eligible": 0,
+            "classified_videos": 0,
+            "reviewed_videos": 0,
+            "retained_comments": 0,
+            "classified_comments": 0,
+        },
+        "role_labels": config("hybrid")["role_labels"],
+    }
+    all_labels = {r["id"]: r for r in latest_labels(labels(store))}
+    reviews = {}
+    for row in sorted(
+        store.read("human_validation"),
+        key=lambda r: r["payload"].get("reviewed_at", ""),
+    ):
+        p = row["payload"]
+        original = all_labels.get(p.get("queue_record_id"))
+        if (
+            row.get("purged_at")
+            or p.get("review_status") != "complete"
+            or original is None
+            or p.get("item_type") != "hybrid_video"
+        ):
+            continue
+        try:
+            validate_review(p, original)
+        except (ValueError, KeyError, TypeError):
+            continue
+        reviews[p["queue_record_id"]] = p
+    for b in store.read("weekly_batches"):
+        batch = b["id"]
+        videos, comments, _, _ = retained_inputs(store, batch)
+        sampled = {
+            r["video_id"]
+            for r in store.read("sampled_videos", batch)
+            if not r.get("purged_at") and r["payload"].get("selected_for_sample")
+        }
+        if not sampled:
+            continue
+        rows = {
+            r["video_id"]: r
+            for r in all_labels.values()
+            if r["batch_id"] == batch and r["video_id"] in videos
+        }
+        output["batches"].append(
+            {
+                "id": batch,
+                "window_start": b["payload"].get("window_start"),
+                "window_end": b["payload"].get("window_end"),
+            }
+        )
+        c = output["collection"]
+        c["sampled_videos"] += len(sampled)
+        c["transcript_eligible"] += len(videos)
+        c["classified_videos"] += len(rows)
+        c["retained_comments"] += len(comments)
+        c["classified_comments"] += sum(
+            len(r["payload"]["label"]["comments"]) for r in rows.values()
+        )
+        for vid, (source, access) in videos.items():
+            row = rows.get(vid)
+            review = reviews.get(row["id"]) if row else None
+            human = review["human_label"] if review else None
+            c["reviewed_videos"] += bool(review)
+            # Human attribution/rationale/quotes and comment text never leave the private packet.
+            public_label = (
+                None
+                if human is None
+                else {
+                    "relevance": human["relevance"],
+                    "context": human["context"],
+                    "domains": human["domains"],
+                    "roles": [
+                        {k: r[k] for k in ["entity", "entity_code", "role"]}
+                        for r in human["roles"]
+                    ],
+                    "execution": {
+                        k: human["execution:" + k]
+                        for k in config("hybrid")["execution"]
+                    },
+                }
+            )
+            output["videos"].append(
+                {
+                    "id": vid,
+                    "batch": batch,
+                    "title": source.get("title", ""),
+                    "channel": source.get("channel", ""),
+                    "countries": source.get("countries", []),
+                    "tier": source.get("tier"),
+                    "original_language": access["original_language"],
+                    "caption_status": access.get("status"),
+                    "engagement": engagement(source),
+                    "retained_comments": sum(x["video_id"] == vid for x in comments),
+                    "classified_comments": (
+                        len(row["payload"]["label"]["comments"]) if row else 0
+                    ),
+                    "classification_status": (
+                        "human_reviewed"
+                        if review
+                        else (
+                            "ai_coded_pending_review"
+                            if row
+                            else "awaiting_classification"
+                        )
+                    ),
+                    "label": public_label,
+                    "model": row["payload"]["model_version"] if row else None,
+                    "transcript_truncated": (
+                        row["payload"]["transcript_truncated"] if row else None
+                    ),
+                }
+            )
+    output["collection"]["awaiting_transcript"] = (
+        output["collection"]["sampled_videos"]
+        - output["collection"]["transcript_eligible"]
+    )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(output, ensure_ascii=False, indent=2) + "\n")
+    return output["collection"]

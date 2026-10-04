@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta
       name="description"
-      content="Research infrastructure for sectarian framing, narrative divergence and suspicious amplification in European YouTube public-affairs content."
+      content="Transcript-based research on how war and hybrid threats are portrayed in European YouTube content, communication style and audience responses."
     />
-    <title>European Information Integrity Monitor</title>
+    <title>European Information Integrity Monitor · Conflict & security</title>
     <link rel="icon" href="assets/favicon.svg" />
     <link rel="stylesheet" href="style.css" />
     <script src="app.js" defer></script>
@@ -16,188 +16,161 @@
     <a class="skip" href="#main">Skip to monitor</a>
     <header>
       <a class="brand" href="#monitor"
-        ><span class="mark">e<span>i</span></span
-        ><span
-          >EUROPEAN INFORMATION<br /><strong>INTEGRITY MONITOR</strong></span
-        ></a
+        ><b>ei<span>im</span></b
+        ><span>EUROPEAN INFORMATION<br />INTEGRITY MONITOR</span></a
       >
       <nav aria-label="Main navigation">
-        <a href="#monitor" class="active">Monitor</a
-        ><a href="#evidence">Evidence</a><a href="#methodology">Methodology</a
+        <a href="#monitor">Monitor</a><a href="#evidence">Evidence</a
+        ><a href="#methodology">Methodology</a
         ><a
           href="https://github.com/kedmahamelberg-ai/european-information-integrity-monitor"
           >Repository ↗</a
         >
       </nav>
-      <span
-        class="beta"
-        tabindex="0"
-        title="The monitor is under methodological development. Automated classifications are probabilistic indicators, not verified claims about intent or attribution."
-        >Research beta</span
-      >
+      <span class="beta">RESEARCH BETA</span>
     </header>
-    <div class="modebar">
-      <span id="data-status">Loading data status…</span
-      ><button id="demo-toggle">Explore demonstration</button>
-    </div>
     <main id="main">
       <section id="monitor">
-        <div class="page-heading">
+        <div class="hero">
           <div>
-            <p class="eyebrow">YOUTUBE · WEEKLY OBSERVATIONS</p>
-            <h1>Europe’s information environment</h1>
-            <p>
-              Source framing, visible discussion, and patterns of amplification.
+            <p class="eyebrow">CONFLICT & HYBRID THREATS / EUROPE</p>
+            <h1>How security<br />is <em>framed.</em></h1>
+            <p class="lead">
+              What is being discussed. How countries are portrayed.<br />How the
+              message is delivered—and received.
             </p>
           </div>
           <div class="edition">
-            <span id="edition-label">No published batch</span
-            ><small>Observation clock · Europe/Amsterdam</small>
+            <span class="dot"></span> TRANSCRIPT-BASED RESEARCH<br /><strong
+              id="edition"
+              >Loading observation window</strong
+            >
+            <p>Videos and visible comments<br />Weekly · Europe/Amsterdam</p>
           </div>
         </div>
-        <section
-          id="collection-status"
-          class="collection-status"
-          hidden
-          aria-live="polite"
-        ></section>
+        <div class="status" id="data-status" role="status">
+          Loading retained observations…
+        </div>
+        <div class="stats" id="stats"></div>
         <div class="controls">
           <label
-            >Observation window<select id="period">
-              <option value="1">Last week</option>
-              <option value="4">4 weeks</option>
-              <option value="12">12 weeks</option>
-              <option value="custom">Custom date range</option>
+            >Observation batch<select id="batch">
+              <option value="all">All retained batches</option>
             </select></label
-          >
-          <div id="custom-dates" hidden>
-            <label>From<input id="from" type="date" /></label
-            ><label>Through<input id="through" type="date" /></label>
-          </div>
-          <label
-            >Channel institutionalization<select id="tier">
-              <option value="all">All tiers</option>
-              <option value="low">Low institutionalization</option>
-              <option value="medium">Medium institutionalization</option>
-              <option value="high">High benchmark</option>
+          ><label
+            >Content about<select id="country">
+              <option value="all">All Europe</option>
+            </select></label
+          ><label
+            >Time discussed<select id="context">
+              <option value="all">All contexts + pending review</option>
+              <option value="current">Current</option>
+              <option value="historical">Historical</option>
+              <option value="hypothetical">Hypothetical</option>
+              <option value="mixed">Mixed</option>
             </select></label
           ><label
             >Map measure<select id="metric">
-              <option value="coverage" hidden>Discovery coverage</option>
-              <option value="sfi">Sectarian framing</option>
-              <option value="strong">Strong sectarian prevalence</option>
-              <option value="narratives">Narrative activity</option>
-              <option value="aai">Suspicious amplification</option>
-              <option value="injection">Narrative injection</option>
+              <option value="coverage">Transcript coverage</option>
+              <option value="related">
+                Reviewed security / sovereignty topics
+              </option>
+              <option value="readiness">Defence readiness</option>
+              <option value="projecting_power">
+                Force projection & coercion
+              </option>
+              <option value="under_pressure">Target of hostile action</option>
             </select></label
           >
-          <details class="country-picker">
-            <summary id="country-label">All Europe</summary>
-            <div>
-              <label
-                >Find a country<input
-                  id="country-search"
-                  type="search"
-                  placeholder="Country name" /></label
-              ><button id="clear-countries">Clear selection</button>
-              <div id="countries-list"></div>
-            </div>
-          </details>
         </div>
-        <div class="stats" id="stats"></div>
         <div class="workspace">
           <section class="map-panel">
             <div class="panel-heading">
               <div>
+                <p class="eyebrow">GEOGRAPHIC COVERAGE</p>
                 <h2>Content concerning Europe</h2>
-                <span id="map-subtitle">Sectarian Framing Index · 0–4</span>
               </div>
-              <button id="reset-map">All Europe</button>
+              <button id="reset">Reset view</button>
             </div>
-            <div class="map-wrap">
-              <svg
-                id="map"
-                viewBox="0 0 960 650"
-                role="group"
-                aria-label="Interactive Europe map. Select a country marker or use the country selector."
-              >
-                <defs>
-                  <clipPath id="mapclip">
-                    <rect width="960" height="650" />
-                  </clipPath>
-                </defs>
-                <g clip-path="url(#mapclip)" id="geography"></g>
-                <g id="markers"></g>
-              </svg>
-              <div class="map-key">
-                <span class="scale"></span><span>Lower</span><span>Higher</span
-                ><span class="ring"></span><span>High experimental AAI</span>
-              </div>
-              <p class="map-note">
-                Marker size: analyzed videos. A country marks content about that
-                country, not the behaviour of its population or government.
-              </p>
-            </div>
-            <div class="map-footer">
-              <span
-                >51 geographic entries · including transcontinental states and
-                Kosovo*</span
-              ><span>Natural Earth · public domain</span>
-            </div>
+            <svg
+              id="map"
+              viewBox="0 0 960 650"
+              role="group"
+              aria-label="Europe map; select a country marker to filter the evidence"
+            >
+              <defs>
+                <clipPath id="mapclip">
+                  <rect width="960" height="650" />
+                </clipPath>
+              </defs>
+              <g clip-path="url(#mapclip)" id="geography"></g>
+              <g id="markers"></g>
+            </svg>
+            <div class="map-key" id="map-key"></div>
+            <p class="map-note">
+              Marker area scales with the number of eligible videos. Country
+              location means content about that country, not where the audience
+              lives. Role views count only that entity’s reviewed role.
+            </p>
           </section>
-          <aside
-            class="country-panel"
-            id="country-panel"
-            aria-live="polite"
-          ></aside>
+          <aside class="country-panel">
+            <p class="eyebrow">PORTRAYED SECURITY POSTURE</p>
+            <h2 id="focus-title">Across the retained sample</h2>
+            <div id="roles"></div>
+            <p class="small">
+              An entity may hold several roles in one video. These describe
+              reported framing, including allegations; they do not establish who
+              initiated an operation.
+            </p>
+            <hr />
+            <p class="eyebrow">EVIDENCE STANDARD</p>
+            <div id="quality"></div>
+          </aside>
         </div>
         <div class="below-map">
-          <section>
-            <div class="panel-heading">
-              <h2>Narratives in the sample</h2>
-              <span>Multi-label · video denominator</span>
-            </div>
-            <div id="narratives"></div>
-          </section>
-          <section>
-            <div class="panel-heading">
-              <h2>Research status</h2>
-              <span>Validation before interpretation</span>
-            </div>
-            <div id="validation"></div>
+          <section class="panel">
+            <p class="eyebrow">HOW THE MESSAGE IS DELIVERED</p>
+            <h2>Execution style</h2>
+            <div id="execution"></div>
             <p class="small">
-              Comment analysis focuses on the most visible retrieved comments,
-              ranked by likes and replies. It does not represent the full
-              audience.
+              Adapted from advertising research. Multi-label, only for reviewed
+              security-related videos. Visual and audio features need
+              audiovisual review.
+            </p>
+          </section>
+          <section class="panel">
+            <p class="eyebrow">REACH & RESPONSE</p>
+            <h2>Observed engagement</h2>
+            <div id="engagement"></div>
+            <p class="small">
+              Original collection snapshots. Views are not unique people. Counts
+              are not measures of agreement, persuasion or effectiveness.
             </p>
           </section>
         </div>
       </section>
       <section id="evidence" class="route" hidden>
         <p class="eyebrow">OBSERVATION-LEVEL TRANSPARENCY</p>
-        <h1>Inspect the evidence</h1>
-        <p>
-          Each case retains its batch, sampling stratum, denominators, and
-          classification versions.
+        <h1>Follow the evidence.</h1>
+        <p class="lead">
+          Every included source has a saved English transcript or subtitle
+          track. AI suggestions are reviewed privately before their substantive
+          labels appear here.
         </p>
-        <label class="evidence-search"
-          >Search titles or channels<input
-            id="evidence-search"
+        <label class="search"
+          >Find a title or channel<input
+            id="search"
             type="search"
-            placeholder="Find a video case"
+            placeholder="Search retained videos"
         /></label>
         <div id="evidence-table"></div>
       </section>
       <section id="methodology" class="route methodology" hidden></section>
       <footer>
-        European Information Integrity Monitor
-        <span>Computational social science · Information integrity</span
-        ><a href="#methodology">Measurement, not attribution</a>
+        EUROPEAN INFORMATION INTEGRITY MONITOR
+        <span>Research on framing · Not threat attribution</span
+        ><a href="#methodology">Read the methods ↗</a>
       </footer>
     </main>
-    <dialog id="video-dialog">
-      <button class="close" aria-label="Close video details">×</button>
-      <div id="video-detail"></div>
-    </dialog>
   </body>
 </html>
