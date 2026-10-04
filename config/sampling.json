@@ -1,5 +1,5 @@
 {
-  "version": "sampling-1.0",
+  "version": "sampling-1.1",
   "seed": 20261004,
   "target_per_country": 10,
   "tier_weights": {
@@ -8,7 +8,7 @@
     "high": 0.2
   },
   "audit_exclusion_fraction": 0.05,
-  "minimum_available_comments": 20,
+  "minimum_available_comments": 2,
   "comments_per_video": 30,
   "comment_pool_limit": 100,
   "comment_visibility_weights": {

@@ -1,0 +1,36 @@
+name: Refresh comments under corrected minimum
+on:
+  workflow_dispatch:
+    inputs:
+      batch:
+        description: Existing retained batch ID
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: eiim-research
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      REVIEW_BATCH: ${{ inputs.batch }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test threshold and restart behavior
+        run: PYTHONPATH=src python -m unittest discover -s tests -q
+      - name: Install local inference dependencies
+        run: pip install '.[live]'
+      - name: Refresh retained comments within existing budget
+        run: |
+          PYTHONPATH=src python -m eiim.cli refresh-comments --batch "$REVIEW_BATCH" > /tmp/comment-refresh.json
+          cat /tmp/comment-refresh.json >> "$GITHUB_STEP_SUMMARY"

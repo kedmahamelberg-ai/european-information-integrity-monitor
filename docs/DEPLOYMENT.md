@@ -51,3 +51,7 @@ Discovery requests and successful model responses are cached in Supabase. Sample
 Raw source-bearing tables expire after 30 days by default. After expiry, batch headers and tombstones remain, but full historical reprocessing is no longer possible. Do not advertise permanent raw archival storage without an authorized retention basis. Failed retention or publication jobs need prompt attention because public copies must also be updated.
 
 Collection progress is exported as aggregate counts through the service-only `eiim_progress` RPC. Before validated findings are available, the map shows candidate coverage with neutral markers. Counts are dated deployment snapshots, not a continuously updating feed. No candidate titles, source identifiers or scores are exposed through this status export.
+
+## Correcting the comment minimum
+
+The minimum is 2 accessible top-level comments (sampling-1.1). To revisit retained videos excluded by the old threshold, run `python -m eiim.cli refresh-comments --batch 2026-W40` or dispatch the dedicated comment-refresh workflow. This appends threshold-specific collection records, preserves existing retained comments and frozen snapshots, translates new comments into English, and adds private cluster review queues. Existing English-access rules, 30-comment cap and shared weekly budget remain enforced. It does not redraw the video sample or publish corrected analytical snapshots.

@@ -434,20 +434,30 @@ class Pipeline:
             "sampling_complete",
         )
 
-    def comments(self):
+    def comments(self, refresh_policy=False, mark_complete=True):
         candidates = self.cached("candidate_videos", "video_id")
-        metadata = {
-            x["comment_video_id"]: x
-            for x in self.values("pipeline_runs")
-            if "comment_video_id" in x
-        }
-        classified = self.cached("video_classifications", "video_id")
+        metadata = {}
+        for x in self.values("pipeline_runs"):
+            if "comment_video_id" in x:
+                old = metadata.get(x["comment_video_id"])
+                if old is None or x.get("minimum_available_comments", 20) < old.get(
+                    "minimum_available_comments", 20
+                ):
+                    metadata[x["comment_video_id"]] = x
+        minimum = self.cfg["minimum_available_comments"]
         for s in self.active_samples():
-            if not s["selected_for_sample"] or s["video_id"] in metadata:
+            if not s["selected_for_sample"]:
                 continue
-            if s["video_id"] not in classified:
+            previous = metadata.get(s["video_id"])
+            if previous and (
+                not refresh_policy
+                or previous.get("retained_count", 0) > 0
+                or previous.get("minimum_available_comments", 20) <= minimum
+            ):
                 continue
             v = candidates[s["video_id"]]
+            if previous and v["comment_count"] < minimum:
+                continue
             pool, status = (
                 self.yt.comments(v["video_id"])
                 if v["comment_count"] >= self.cfg["minimum_available_comments"]
@@ -474,19 +484,26 @@ class Pipeline:
                 record(
                     "pipeline_runs",
                     self.id,
-                    self.id + ":comment-pool:" + v["video_id"],
+                    self.id
+                    + ":comment-pool:"
+                    + v["video_id"]
+                    + (f":min-{minimum}" if refresh_policy else ""),
                     {
                         "comment_video_id": v["video_id"],
                         "pool_size": len(pool),
                         "retained_count": len(retained),
                         "eligible": eligible,
                         "status": status,
+                        "minimum_available_comments": minimum,
+                        "sampling_version": self.cfg["version"],
+                        "retrieved_at": now(),
                     },
                     v["video_id"],
                 )
             )
             self.store.write(self.id, rows)
-        self.store.write(self.id, [], "comments_complete")
+        if mark_complete:
+            self.store.write(self.id, [], "comments_complete")
 
     def classify_videos(self):
         """Make source labels available for review before comment processing finishes."""
@@ -589,13 +606,14 @@ class Pipeline:
                     )
                 self.store.write(self.id, rs)
 
-    def classification(self):
+    def classification(self, classify_sources=True, mark_complete=True):
         cc = self.cached("comment_classifications", "comment_id")
         emb = self.cached("comment_embeddings_metadata", "comment_id")
         comments = defaultdict(list)
         for c in self.values("comments"):
             comments[c["video_id"]].append(c)
-        self.classify_videos()
+        if classify_sources:
+            self.classify_videos()
         translations = {
             p["comment_translation_id"]: p
             for p in self.values("pipeline_runs")
@@ -712,7 +730,8 @@ class Pipeline:
                         )
                     )
                 self.store.write(self.id, rs)
-        self.store.write(self.id, [], "classification_complete")
+        if mark_complete:
+            self.store.write(self.id, [], "classification_complete")
 
     def analytics(self):
         vs = self.cached("candidate_videos", "video_id")

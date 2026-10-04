@@ -224,6 +224,8 @@ def main():
     im.add_argument("file")
     sub.add_parser("validation-report")
     sub.add_parser("purge")
+    refresh = sub.add_parser("refresh-comments")
+    refresh.add_argument("--batch", required=True)
     recode = sub.add_parser("classify-review")
     recode.add_argument("--batch")
     recode.add_argument("--limit", type=int)
@@ -248,7 +250,11 @@ def main():
         print(json.dumps(result))
         return
     store = Store()
-    if args.command == "classify-review":
+    if args.command == "refresh-comments":
+        from .comment_refresh import refresh_comments
+
+        result = refresh_comments(store, args.batch)
+    elif args.command == "classify-review":
         from .reclassification import reclassify
 
         batches = store.read("weekly_batches")

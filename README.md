@@ -23,7 +23,7 @@ Candidates pass a news/public-affairs cascade. Channel institutionalization uses
 
 Collection runs Sundays at **05:17 UTC (06:17 CET / 07:17 CEST)**. The program computes the last completed Sunday 00:00 through Saturday 23:59:59 in Europe/Amsterdam, including DST. It never includes collection-Sunday uploads. Batch identifiers use the ISO week containing the closing Saturday.
 
-The content sample has no comment-count threshold. The nested comment sample initially requires 20 available comments, retrieves up to 100 top-level comments by API relevance, and retains up to 30 ranked by normalized likes plus replies. This is a visibility sample **within the retrieved pool**, not the global top 30 or a representative audience sample.
+The content sample has no comment-count threshold. The nested comment sample requires at least 2 available top-level comments, retrieves up to 100 by API relevance, and retains up to 30 ranked by normalized likes plus replies. This is a visibility sample **within the retrieved pool**, not the global top 30 or a representative audience sample.
 
 ## Architecture
 
