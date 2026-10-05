@@ -71,3 +71,12 @@ class FeedbackTests(unittest.TestCase):
         self.assertEqual(result["audio_analysis"], "not_performed")
         self.assertNotIn("mnemonic_devices", result)
         self.assertEqual(media_evidence({}, {})["music_caption_cues"], [])
+
+    def test_comment_ids_are_constrained_at_generation(self):
+        from eiim.hybrid import comment_schema
+
+        shape = comment_schema(["first", "second"])["properties"]["comments"]
+        self.assertEqual(
+            shape["items"]["properties"]["comment_id"]["enum"], ["first", "second"]
+        )
+        self.assertEqual((shape["minItems"], shape["maxItems"]), (2, 2))

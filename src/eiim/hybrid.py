@@ -256,8 +256,15 @@ def repair_evidence_options(document, parsed):
     return list(selected.values())[:16]
 
 
-def comment_schema():
-    return obj({"comments": schema()["properties"]["comments"]})
+def comment_schema(ids=None):
+    shape = obj({"comments": schema()["properties"]["comments"]})
+    if ids is not None:
+        shape["properties"]["comments"]["items"]["properties"]["comment_id"] = {
+            "type": "string",
+            "enum": list(ids),
+        }
+        shape["properties"]["comments"].update(minItems=len(ids), maxItems=len(ids))
+    return shape
 
 
 def validate_comment_targets(comments):
@@ -449,7 +456,9 @@ def reclassify(store, batch, classifier=None):
                 comment_result = classifier.request(
                     json.dumps(comment_input, ensure_ascii=False),
                     (ROOT / "prompts" / (COMMENT_VERSION + ".txt")).read_text(),
-                    comment_schema(),
+                    comment_schema(
+                        [c["comment_id"] for c in comment_input["comments"]]
+                    ),
                     "hybrid_comments",
                 )
                 all_comments.extend(
