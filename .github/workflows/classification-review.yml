@@ -22,6 +22,8 @@ jobs:
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+      SUPADATA_API_KEY: ${{ secrets.SUPADATA_API_KEY }}
+      EIIM_CAPTION_MONTHLY_REQUEST_LIMIT: ${{ vars.EIIM_CAPTION_MONTHLY_REQUEST_LIMIT || '100' }}
       EIIM_ENABLE_LIVE: ${{ vars.EIIM_ENABLE_LIVE }}
       REVIEW_BATCH: ${{ inputs.batch }}
     steps:

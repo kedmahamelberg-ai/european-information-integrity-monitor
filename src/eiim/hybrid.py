@@ -363,8 +363,6 @@ def reclassify(store, batch, classifier=None):
     ) - timedelta(days=30):
         raise ValueError("Retained batch has expired")
     videos, comments, translations, runs = retained_inputs(store, batch)
-    if not videos:
-        raise ValueError("No retained eligible source evidence")
     classifier = classifier or Classifier(store, batch, Ledger(store, batch))
     classifier.cfg = {
         **classifier.cfg,
@@ -530,10 +528,18 @@ def reclassify(store, batch, classifier=None):
         except (ClassificationUnavailable, ValueError) as error:
             errors.append({"video_id": vid, "error_type": type(error).__name__})
     current = latest_labels(labels(store, batch))
+    coverage = caption_coverage(store, batch)
+    classification_status = status if not errors else "partial"
+    overall_status = classification_status
+    if classification_status == "complete" and coverage["awaiting_transcripts"]:
+        overall_status = "awaiting_transcripts"
     report = {
         "hybrid_report": VERSION,
         "batch": batch,
-        "status": status if not errors else "partial",
+        "status": overall_status,
+        "classification_status": classification_status,
+        "coverage": coverage,
+        "human_review_required_for_classification": False,
         "eligible_videos": len(videos),
         "classified_videos": len(current),
         "retained_comments": len(comments),
@@ -602,6 +608,23 @@ def collect_week(store):
     return reclassify(store, pipe.id, pipe.classifier)
 
 
+def caption_coverage(store, batch):
+    """Report the entire sample separately from the transcript-eligible subset."""
+    from .language_access import caption_state
+
+    sampled = {r["video_id"] for r in store.read("sampled_videos", batch)
+               if not r.get("purged_at") and r["payload"].get("selected_for_sample")}
+    sources = {r["video_id"]: r["payload"] for r in store.read("candidate_videos", batch)
+               if not r.get("purged_at")}
+    accesses = access_records(store.read("pipeline_runs", batch))
+    counts = Counter(caption_state(video_access(dict(sources.get(vid, {}), video_id=vid), batch, accesses))
+                     for vid in sampled)
+    return {"sampled_videos": len(sampled), "saved_transcripts": counts["saved"],
+            "awaiting_transcripts": len(sampled) - counts["saved"],
+            "retrieval_blocked": counts["blocked"], "english_unavailable": counts["unavailable"],
+            "unverified": counts["unverified"]}
+
+
 def retrieve_retained_captions(store, batch):
     """Attempt public English captions for frozen sources only; never discover videos."""
     from .language_access import EnglishCaptionAccess
@@ -612,8 +635,12 @@ def retrieve_retained_captions(store, batch):
         for r in store.read("sampled_videos", batch)
         if not r.get("purged_at") and r["payload"].get("selected_for_sample")
     }
+    from .caption_provider import SupadataCaptions
+
     reader = EnglishCaptionAccess()
+    fallback = SupadataCaptions.from_environment(store, batch)
     retrieved = 0
+    attempted = 0
     for row in sorted(store.read("candidate_videos", batch), key=lambda r: r["id"]):
         if row.get("purged_at") or row["video_id"] not in sampled:
             continue
@@ -622,6 +649,12 @@ def retrieve_retained_captions(store, batch):
         if any(s.get("text", "").strip() for s in old.get("transcript_english", [])):
             continue
         result = reader.check(source, retrieve_english_audio=True)
+        attempted += 1
+        if not result.get("transcript_english") and fallback:
+            recovered = fallback.check(source)
+            if recovered is not None:
+                recovered["direct_failure_reason"] = result.get("failure_reason")
+                result = recovered
         # Keep previously known original-language metadata if a track lookup fails.
         if (
             result.get("original_language") == "und"
@@ -644,9 +677,12 @@ def retrieve_retained_captions(store, batch):
             ],
         )
         retrieved += bool(result.get("transcript_english"))
-        if reader.blocked:
+        if reader.blocked and (not fallback or fallback.stopped):
             break
-    return {"new_saved_transcripts": retrieved, "blocked": reader.blocked}
+    return {"new_saved_transcripts": retrieved, "attempted_videos": attempted,
+            "direct_reader_blocked": reader.blocked,
+            "fallback": fallback.report() if fallback else {"configured": False},
+            "coverage": caption_coverage(store, batch)}
 
 
 def refresh_engagement(store, batch, youtube=None):

@@ -561,6 +561,13 @@ class PublicationAuditTests(unittest.TestCase):
             }
             rows.append(record("pipeline_runs", "2026-W40", "label:" + vid, p, vid))
         s.write("2026-W40", rows)
+        with TemporaryDirectory() as before_review:
+            pending_path = Path(before_review) / "data.json"
+            export_public(s, pending_path)
+            provisional = json.loads(pending_path.read_text())
+            self.assertEqual(provisional["collection"]["reviewed_videos"], 0)
+            self.assertTrue(all(v["label"] for v in provisional["videos"]))
+            self.assertFalse(provisional["human_review_required_for_classification"])
         q = next(r for r in s.read("pipeline_runs") if r["id"] == "label:v")
         h = {
             "version": VERSION,

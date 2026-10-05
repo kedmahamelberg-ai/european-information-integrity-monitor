@@ -6,7 +6,7 @@ from .hybrid import VERSION, retained_inputs, labels, latest_labels
 from .hybrid_review import validate_review, video_values
 from .review_sampling import sample_plan
 from .engagement import engagement
-from .language_access import access_records, video_access
+from .language_access import access_records, video_access, caption_state
 from .calibration import current_reviews
 from collections import Counter
 
@@ -76,7 +76,7 @@ def export_public(store, path):
             source = dict(sampled_row["payload"], **candidates.get(vid, {}))
             source["video_id"] = vid
             access = video_access(source, batch, accesses)
-            reason = ("saved" if vid in videos else "blocked" if access.get("failure_reason") in ["IpBlocked", "RequestBlocked"] else "unavailable" if access.get("status") == "no_english_captions" or access.get("failure_reason") == "TranscriptsDisabled" else "unverified")
+            reason = caption_state(access)
             caption_health[reason] += 1
             output["inventory"].append({"id": vid, "batch": batch, "title": source.get("title", ""), "channel": source.get("channel", ""), "countries": source.get("countries", []), "original_language": access.get("original_language", "und"), "caption_state": reason, "engagement": engagement(source)})
         rows = {
@@ -188,6 +188,12 @@ def export_public(store, path):
         if output["batches"] and all(b["audit_complete"] for b in output["batches"])
         else "human_review_pending"
     )
+    output["classification_status"] = (
+        "awaiting_transcripts" if output["collection"]["awaiting_transcript"] else
+        "awaiting_classification" if output["collection"]["classified_videos"] < output["collection"]["transcript_eligible"] else
+        "complete"
+    )
+    output["human_review_required_for_classification"] = False
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(output, ensure_ascii=False, indent=2) + "\n")
     return output["collection"]

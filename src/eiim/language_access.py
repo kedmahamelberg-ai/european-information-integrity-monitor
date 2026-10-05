@@ -56,6 +56,16 @@ def video_access(video, batch, records):
     return records.get((batch, video.get("video_id")), declared_access(video))
 
 
+def caption_state(access):
+    if access.get("eligible") and any(s.get("text", "").strip() for s in access.get("transcript_english", [])):
+        return "saved"
+    if access.get("failure_reason") in {"IpBlocked", "RequestBlocked"}:
+        return "blocked"
+    if access.get("status") == "no_english_captions" or access.get("failure_reason") == "TranscriptsDisabled":
+        return "unavailable"
+    return "unverified"
+
+
 class EnglishCaptionAccess:
     """Public tracks only. No cookies, proxy bypass, or invented availability."""
 
