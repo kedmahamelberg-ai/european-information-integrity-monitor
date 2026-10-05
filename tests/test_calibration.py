@@ -33,8 +33,10 @@ class CalibrationTests(unittest.TestCase):
         old = record("pipeline_runs", "b", "old", p, "v")
         values = video_values(x)
         values["execution:entertainment"] = "present"
+        values["reference:speaker_sentiment"] = "positive"
         decisions = {k: "agree" for k in values}
         decisions["execution:entertainment"] = "disagree"
+        decisions["reference:speaker_sentiment"] = "disagree"
         review = {
             "version": "hybrid-framing-1.3",
             "hybrid_version": "hybrid-framing-1.3",
@@ -103,6 +105,9 @@ class CalibrationTests(unittest.TestCase):
                 ex["videos"][0]["human_label"]["execution:entertainment"], "present"
             )
             self.assertEqual(ex["videos"][0]["reviewer"], "Human")
+            self.assertEqual(
+                ex["videos"][0]["reference"]["speaker_sentiment"], "positive"
+            )
             self.assertNotIn("execution:imagery_visual", ex["videos"][0]["human_label"])
             self.assertEqual(
                 calibration_examples(s, exclude_video_id="v"),

@@ -114,8 +114,9 @@ def calibration_examples(store, exclude_video_id=None):
     known = {r["id"]: r for r in labels(store)}
     examples = {"videos": [], "comments": []}
     cache = {}
+    validated = current_reviews(store)
     reviews = sorted(
-        current_reviews(store).values(),
+        validated.values(),
         key=lambda p: sum(v == "disagree" for v in p["decisions"].values()),
         reverse=True,
     )
@@ -139,6 +140,12 @@ def calibration_examples(store, exclude_video_id=None):
             "reference": row["payload"]["label"]["content_reference"],
             "basis": p["basis"],
         }
+        video_review = validated.get((row["id"], None))
+        if video_review:
+            example["reference"] = {
+                k: video_review["human_label"]["reference:" + k]
+                for k in ["speaker", "summary", "target", "speaker_sentiment"]
+            }
         if cid:
             translated = translations.get(cid, {}).get("text_english")
             if not translated:

@@ -100,7 +100,7 @@ function render() {
   $("#edition").textContent =
     data.batches.map((b) => b.id).join(" · ") || "Awaiting retained data";
   $("#data-status").textContent =
-    `${c.classified_videos || 0} videos AI-coded · ${c.reviewed_videos || 0} human-reviewed. ${c.awaiting_transcript || 0} sampled videos excluded until English transcripts are available. AI labels await completion of the random human audit before publication; published AI labels remain provisional.`;
+    `${c.classified_videos || 0} videos AI-coded · ${c.reviewed_videos || 0} human-reviewed. ${c.awaiting_transcript || 0} sampled videos excluded until English transcripts are available. ${data.status === "human_review_complete" ? "The assigned human audit is complete; reviewed labels are published. This calibration does not establish model accuracy." : "AI labels await completion of the random human audit before publication; published AI labels remain provisional."}`;
   $("#stats").innerHTML = [
     [v.length, "Transcript-eligible videos", "Filtered evidence pool"],
     [
