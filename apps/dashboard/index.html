@@ -1,172 +1,24 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta
-      name="description"
-      content="Transcript-based research on how war and hybrid threats are portrayed in European YouTube content, communication style and audience responses."
-    />
-    <title>European Information Integrity Monitor · Conflict & security</title>
-    <link rel="icon" href="assets/favicon.svg" />
-    <link rel="stylesheet" href="style.css" />
-    <script src="app.js" defer></script>
-  </head>
-  <body>
-    <a class="skip" href="#main">Skip to monitor</a>
-    <header>
-      <a class="brand" href="#monitor"
-        ><b>ei<span>im</span></b
-        ><span>EUROPEAN INFORMATION<br />INTEGRITY MONITOR</span></a
-      >
-      <nav aria-label="Main navigation">
-        <a href="#monitor">Monitor</a><a href="#evidence">Evidence</a
-        ><a href="#methodology">Methodology</a
-        ><a
-          href="https://github.com/kedmahamelberg-ai/european-information-integrity-monitor"
-          >Repository ↗</a
-        >
-      </nav>
-      <span class="beta">RESEARCH BETA</span>
-    </header>
-    <main id="main">
-      <section id="monitor">
-        <div class="hero">
-          <div>
-            <p class="eyebrow">CONFLICT & HYBRID THREATS / EUROPE</p>
-            <h1>How security<br />is <em>framed.</em></h1>
-            <p class="lead">
-              What is being discussed. How countries are portrayed.<br />How the
-              message is delivered—and received.
-            </p>
-          </div>
-          <div class="edition">
-            <span class="dot"></span> TRANSCRIPT-BASED RESEARCH<br /><strong
-              id="edition"
-              >Loading observation window</strong
-            >
-            <p>Videos and visible comments<br />Weekly · Europe/Amsterdam</p>
-          </div>
-        </div>
-        <div class="status" id="data-status" role="status">
-          Loading retained observations…
-        </div>
-        <div class="stats" id="stats"></div>
-        <div class="controls">
-          <label
-            >Observation batch<select id="batch">
-              <option value="all">All retained batches</option>
-            </select></label
-          ><label
-            >Content about<select id="country">
-              <option value="all">All Europe</option>
-            </select></label
-          ><label
-            >Topic<select id="topic">
-              <option value="all">All topics + pending review</option>
-            </select></label
-          ><label
-            >Map measure<select id="metric">
-              <option value="coverage">Transcript coverage</option>
-              <option value="related">
-                Published security / resource topics
-              </option>
-              <option value="readiness">Defence readiness</option>
-              <option value="projecting_power">
-                Force projection & coercion
-              </option>
-              <option value="under_pressure">Target of hostile action</option>
-            </select></label
-          >
-        </div>
-        <div class="workspace">
-          <section class="map-panel">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow">GEOGRAPHIC COVERAGE</p>
-                <h2>Content concerning Europe</h2>
-              </div>
-              <button id="reset">Reset view</button>
-            </div>
-            <svg
-              id="map"
-              viewBox="0 0 960 650"
-              role="group"
-              aria-label="Europe map; select a country marker to filter the evidence"
-            >
-              <defs>
-                <clipPath id="mapclip">
-                  <rect width="960" height="650" />
-                </clipPath>
-              </defs>
-              <g clip-path="url(#mapclip)" id="geography"></g>
-              <g id="markers"></g>
-            </svg>
-            <div class="map-key" id="map-key"></div>
-            <p class="map-note">
-              Marker area scales with the number of eligible videos. Country
-              location means content about that country, not where the audience
-              lives. Role views count only that entity’s reviewed role.
-            </p>
-          </section>
-          <aside class="country-panel">
-            <p class="eyebrow">PORTRAYED SECURITY POSTURE</p>
-            <h2 id="focus-title">Across the retained sample</h2>
-            <div id="roles"></div>
-            <p class="small">
-              An entity may hold several roles in one video. These describe
-              reported framing, including allegations; they do not establish who
-              initiated an operation.
-            </p>
-            <hr />
-            <p class="eyebrow">EVIDENCE STANDARD</p>
-            <div id="quality"></div>
-          </aside>
-        </div>
-        <div class="below-map">
-          <section class="panel">
-            <p class="eyebrow">HOW THE MESSAGE IS DELIVERED</p>
-            <h2>Execution style</h2>
-            <div id="execution"></div>
-            <p class="small">
-              Adapted from advertising research. Multi-label, only for reviewed
-              security-related videos. Visual and audio features need
-              audiovisual review.
-            </p>
-          </section>
-          <section class="panel">
-            <p class="eyebrow">REACH & RESPONSE</p>
-            <h2>Observed engagement</h2>
-            <div id="engagement"></div>
-            <p class="small">
-              Latest retained counter snapshots. Views are not unique people.
-              Counts are not measures of agreement, persuasion or effectiveness.
-            </p>
-          </section>
-        </div>
-      </section>
-      <section id="evidence" class="route" hidden>
-        <p class="eyebrow">OBSERVATION-LEVEL TRANSPARENCY</p>
-        <h1>Follow the evidence.</h1>
-        <p class="lead">
-          Every included source has a saved English transcript or subtitle
-          track. AI suggestions stay private until the batch’s random human
-          audit is complete; individual reviewed cases can appear earlier.
-        </p>
-        <label class="search"
-          >Find a title or channel<input
-            id="search"
-            type="search"
-            placeholder="Search retained videos"
-        /></label>
-        <div id="evidence-table"></div>
-      </section>
-      <section id="methodology" class="route methodology" hidden></section>
-      <footer>
-        EUROPEAN INFORMATION INTEGRITY MONITOR
-        <span>Research on framing · Not threat attribution</span
-        ><a href="#methodology">Read the methods ↗</a>
-      </footer>
-    </main>
-  </body>
-</html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="European information theatre: weekly video narratives, security framing and audience response."><title>EIIM · European Information Theatre</title><link rel="icon" href="assets/favicon.svg"><link rel="stylesheet" href="style.css"><script src="app.js" defer></script></head>
+<body><a class="skip" href="#main">Skip to monitor</a>
+<header><a class="brand" href="#monitor"><span class="brand-mark">⌖</span><b>EIIM</b><span>EUROPEAN INFORMATION<br>INTEGRITY MONITOR</span></a><nav aria-label="Main navigation"><a href="#monitor">Situation room</a><a href="#evidence">Source archive</a><a href="#methodology">Methods</a></nav><span class="edition"><i></i> WEEKLY INTELLIGENCE <b id="edition">LOADING</b></span></header>
+<main id="main"><section id="monitor">
+<div class="theatre-title"><div><span class="eyebrow">OPEN-SOURCE NARRATIVE OBSERVATORY / EUROPE</span><h1>The information theatre<span>.</span></h1></div><div class="theatre-code">DEFENCE · INFLUENCE · SOVEREIGNTY<br><span>OBSERVED FRAMING / NOT THREAT ATTRIBUTION</span></div></div>
+<div id="stats" class="stats"></div>
+<div class="controls"><label>Window<select id="batch"><option value="all">All retained weeks</option></select></label><label>Country in content<select id="country"><option value="all">European theatre</option></select></label><label>Security topic<select id="topic"><option value="all">All topics</option></select></label><button id="reset">↺ Reset filters</button><span id="snapshot"></span></div>
+<div class="command-grid">
+<aside class="panel left-rail"><div class="panel-heading"><h2>01 / Narrative signals</h2><span class="pill">CODED</span></div><div id="topics" class="panel-body"></div><div class="panel-heading"><h2>Collection pipeline</h2><span class="pill amber">STATUS</span></div><div class="panel-body" id="quality"></div><p class="panel-note">Unclassified sources remain visible in the archive. Topic and portrayal counts use classified sources only.</p></aside>
+<section class="panel map-panel"><div class="panel-heading"><h2>02 / European theatre</h2><span class="pill" id="map-focus">ALL COUNTRIES</span></div><div class="map-toolbar"><label>Map layer<select id="metric"><option value="coverage">Sampled source coverage</option><option value="related">Security-related content</option><option value="readiness">Defence readiness</option><option value="projecting_power">Force projection & coercion</option><option value="under_pressure">Target of hostile action</option></select></label><div><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="zoom-reset" aria-label="Reset map zoom">⌖</button></div></div>
+<div class="map-stage"><span class="map-stamp">EUROPE / NARRATIVE COVERAGE</span><svg id="map" viewBox="0 0 960 650" role="group" aria-label="Europe map; select a country marker to filter sources"><defs><pattern id="grid" width="60" height="50" patternUnits="userSpaceOnUse"><path d="M60 0H0V50" fill="none" stroke="#213130" stroke-width=".6"/></pattern><radialGradient id="sea"><stop stop-color="#102623"/><stop offset="1" stop-color="#070c0e"/></radialGradient></defs><rect width="960" height="650" fill="url(#sea)"/><rect width="960" height="650" fill="url(#grid)"/><g id="geography"></g><g id="markers"></g><text x="660" y="110" class="sea-label">EUROPEAN THEATRE</text><text x="180" y="485" class="sea-label">ATLANTIC OCEAN</text></svg><div class="map-coordinate">35°–72° N <span>⌖</span> 25° W–70° E</div></div><div id="map-key" class="map-key"></div><p class="panel-note">Area = source count. Colour = coded portrayal, or caption availability in coverage mode. Country mentions indicate content, not audience location.</p></section>
+<aside class="panel feed-panel"><div class="panel-heading"><h2>03 / Source feed</h2><span class="pill" id="feed-count"></span></div><div class="feed-controls"><label class="sr-only" for="feed-mode">Sources shown</label><select id="feed-mode"><option value="all">Entire weekly sample</option><option value="coded">Classified sources</option><option value="pending">Awaiting captions / AI</option></select></div><div id="source-feed"></div><a class="archive-link" href="#evidence">Open searchable source archive ↗</a></aside>
+<section class="panel"><div class="panel-heading"><h2>04 / Security portrayal</h2><span class="pill">MULTI-LABEL</span></div><div class="panel-body"><h3 id="focus-title">European theatre</h3><div id="roles"></div><p class="small">Roles describe a source’s portrayal of an entity, including allegations.</p></div></section>
+<section class="panel"><div class="panel-heading"><h2>05 / Message delivery</h2><span class="pill">4 CATEGORIES</span></div><div id="execution" class="panel-body"></div></section>
+<section class="panel"><div class="panel-heading"><h2>06 / Audience response</h2><span class="pill" id="response-count"></span></div><div id="responses" class="panel-body"></div></section>
+</div><div class="bottom-strip"><section><h2>Observed engagement</h2><div id="engagement"></div></section><div id="data-status" role="status">Loading saved observations…</div></div>
+</section>
+<section id="evidence" class="route" hidden><div class="section-title"><span class="eyebrow">SOURCE TRANSPARENCY</span><h1>Source archive<span>.</span></h1><p>All sampled sources are visible. Only sources with saved English transcripts receive AI classifications. Human corrections override the corresponding AI labels.</p></div><label class="search">Search title or channel<input id="search" type="search" placeholder="Search the weekly source inventory…"></label><div id="evidence-table"></div></section>
+<section id="methodology" class="route methodology" hidden></section>
+<footer><span>EIIM / OPEN-SOURCE RESEARCH</span><span>Weekly sample · AI labels provisional · No real-time threat assessment</span><a href="https://github.com/kedmahamelberg-ai/european-information-integrity-monitor">GitHub / automation ↗</a></footer></main>
+<dialog id="source-dialog"><div class="panel-heading"><h2>Source inspection</h2><button id="close-source" aria-label="Close source">✕</button></div><div id="source-detail"></div></dialog>
+</body></html>

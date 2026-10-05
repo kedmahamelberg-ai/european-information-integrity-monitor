@@ -1,4 +1,4 @@
-"""Explicit public allowlist: counters and reviewed labels, never raw discussions."""
+"""Explicit public allowlist: counters and attributed labels, never raw discussions."""
 
 import json
 from .core import config, now
@@ -6,6 +6,9 @@ from .hybrid import VERSION, retained_inputs, labels, latest_labels
 from .hybrid_review import validate_review, video_values
 from .review_sampling import sample_plan
 from .engagement import engagement
+from .language_access import access_records, video_access
+from .calibration import current_reviews
+from collections import Counter
 
 
 def export_public(store, path):
@@ -14,6 +17,9 @@ def export_public(store, path):
         "as_of": now(),
         "mode": "live",
         "videos": [],
+        "inventory": [],
+        "caption_health": {},
+        "learning": "Human corrections guide prompts and retained calibration examples; this is not model fine-tuning.",
         "batches": [],
         "status": "human_review_pending",
         "collection": {
@@ -23,10 +29,14 @@ def export_public(store, path):
             "reviewed_videos": 0,
             "retained_comments": 0,
             "classified_comments": 0,
+            "all_retained_comments": 0,
+            "reviewed_comments": 0,
         },
         "role_labels": config("hybrid")["role_labels"],
         "topic_labels": config("hybrid")["topic_labels"],
     }
+    validated = current_reviews(store)
+    caption_health = Counter()
     all_labels = {r["id"]: r for r in latest_labels(labels(store))}
     reviews = {}
     for row in sorted(
@@ -57,6 +67,18 @@ def export_public(store, path):
         }
         if not sampled:
             continue
+        candidates = {r["video_id"]: r["payload"] for r in store.read("candidate_videos", batch) if not r.get("purged_at")}
+        accesses = access_records(store.read("pipeline_runs", batch))
+        for sampled_row in store.read("sampled_videos", batch):
+            vid = sampled_row["video_id"]
+            if vid not in sampled or sampled_row.get("purged_at"):
+                continue
+            source = dict(sampled_row["payload"], **candidates.get(vid, {}))
+            source["video_id"] = vid
+            access = video_access(source, batch, accesses)
+            reason = ("saved" if vid in videos else "blocked" if access.get("failure_reason") in ["IpBlocked", "RequestBlocked"] else "unavailable" if access.get("status") == "no_english_captions" or access.get("failure_reason") == "TranscriptsDisabled" else "unverified")
+            caption_health[reason] += 1
+            output["inventory"].append({"id": vid, "batch": batch, "title": source.get("title", ""), "channel": source.get("channel", ""), "countries": source.get("countries", []), "original_language": access.get("original_language", "und"), "caption_state": reason, "engagement": engagement(source)})
         rows = {
             r["video_id"]: r
             for r in all_labels.values()
@@ -80,6 +102,7 @@ def export_public(store, path):
             }
         )
         c = output["collection"]
+        c["all_retained_comments"] += sum(not r.get("purged_at") for r in store.read("comments", batch))
         c["sampled_videos"] += len(sampled)
         c["transcript_eligible"] += len(videos)
         c["classified_videos"] += len(rows)
@@ -95,7 +118,7 @@ def export_public(store, path):
                 if review
                 else (
                     video_values(row["payload"]["label"])
-                    if audit_complete and row
+                    if row
                     else None
                 )
             )
@@ -117,6 +140,8 @@ def export_public(store, path):
                     },
                 }
             )
+            response = comment_summary(row, validated)
+            c["reviewed_comments"] += response["human_reviewed"]
             output["videos"].append(
                 {
                     "id": vid,
@@ -127,6 +152,7 @@ def export_public(store, path):
                     "tier": source.get("tier"),
                     "original_language": access["original_language"],
                     "caption_status": access.get("status"),
+                    "responses": response,
                     "engagement": engagement(source),
                     "retained_comments": sum(x["video_id"] == vid for x in comments),
                     "classified_comments": (
@@ -139,7 +165,7 @@ def export_public(store, path):
                             "ai_coded_sample_audited"
                             if audit_complete and row
                             else (
-                                "ai_coded_pending_review"
+                                "ai_provisional"
                                 if row
                                 else "awaiting_classification"
                             )
@@ -152,6 +178,7 @@ def export_public(store, path):
                     ),
                 }
             )
+    output["caption_health"] = dict(caption_health)
     output["collection"]["awaiting_transcript"] = (
         output["collection"]["sampled_videos"]
         - output["collection"]["transcript_eligible"]
@@ -164,3 +191,17 @@ def export_public(store, path):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(output, ensure_ascii=False, indent=2) + "\n")
     return output["collection"]
+
+
+def comment_summary(row, reviews):
+    """Counts only: never publish comment text, usernames or quoted evidence."""
+    counts = {k: Counter() for k in ["alignment", "sentiment", "response_focus"]}
+    reviewed = 0
+    comments = row["payload"]["label"].get("comments", []) if row else []
+    for ai in comments:
+        review = reviews.get((row["id"], ai["comment_id"]))
+        value = review["human_label"] if review else ai
+        reviewed += bool(review)
+        for field in counts:
+            counts[field][value.get(field, "unclear")] += 1
+    return {**{k: dict(v) for k, v in counts.items()}, "total": len(comments), "human_reviewed": reviewed, "ai_only": len(comments) - reviewed}

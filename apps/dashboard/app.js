@@ -20,17 +20,8 @@ const human = (s) =>
     v == null
       ? "Unavailable"
       : Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 });
-let data = { videos: [], batches: [], collection: {} },
-  countries = [];
-const roles = ["readiness", "projecting_power", "under_pressure"],
-  colors = {
-    coverage: "#6bd5d1",
-    related: "#d9df9a",
-    readiness: "#6bd5d1",
-    projecting_power: "#eab879",
-    under_pressure: "#e18885",
-  },
-  icons = { readiness: "🛡️", projecting_power: "⚔️", under_pressure: "🎯" };
+let data = {videos:[], inventory:[], batches:[], collection:{}}, countries=[], inventory=[], zoom=1;
+const roles=["readiness","projecting_power","under_pressure"], colors={coverage:"#b9ee74", related:"#b9ee74", readiness:"#61d7bc", projecting_power:"#efb85b", under_pressure:"#f17a69"}, icons={readiness:"🛡", projecting_power:"⚔", under_pressure:"🎯"};
 function project(lon, lat) {
   const my = (v) => Math.log(Math.tan(Math.PI / 4 + (v * Math.PI) / 360));
   return [
@@ -59,234 +50,91 @@ function geometry(g) {
     )
     .join("");
 }
-function rows(geo = true) {
-  return data.videos.filter(
-    (v) =>
-      ($("#batch").value === "all" || v.batch === $("#batch").value) &&
-      (!geo ||
-        $("#country").value === "all" ||
-        v.countries.includes($("#country").value)) &&
-      ($("#topic").value === "all" ||
-        v.label?.topics?.includes($("#topic").value)),
-  );
+
+function rows(geo=true, all=false) {
+  return (all ? inventory : data.videos).filter(v =>
+    ($("#batch").value === "all" || v.batch === $("#batch").value) &&
+    (!geo || $("#country").value === "all" || v.countries.includes($("#country").value)) &&
+    ($("#topic").value === "all" || v.label?.topics?.includes($("#topic").value)));
 }
-function sum(v, k) {
-  const known = v.map((x) => x.engagement[k]).filter((x) => x != null);
-  return {
-    value: known.length ? known.reduce((a, b) => a + b, 0) : null,
-    n: known.length,
-  };
+function sum(v,k){const ns=v.map(x=>x.engagement?.[k]).filter(x=>x!=null);return {value:ns.length?ns.reduce((a,b)=>a+b,0):null,n:ns.length};}
+function bar(name,n,d){return `<div class="bar-row"><span>${esc(name)}</span><div class="bar-track"><div class="bar-fill" style="width:${d?n/d*100:0}%"></div></div><span>${n}/${d}</span></div>`;}
+function state(v){return v.classification_status==="human_reviewed"?"Human validated":v.label?"AI · provisional":v.caption_state==="saved"?"Awaiting AI coding":v.caption_state==="blocked"?"Captions · access blocked":v.caption_state==="unavailable"?"English captions unavailable":"Captions · unverified";}
+function thumbnail(v){return `https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/mqdefault.jpg`;}
+function render(){
+ const v=rows(), all=rows(true,true), coded=v.filter(x=>x.label), related=coded.filter(x=>x.label.relevance==="related"), reviewed=coded.filter(x=>x.classification_status==="human_reviewed"), c=data.collection;
+ $("#edition").textContent=data.batches.map(b=>b.id).join(" / ") || "NO BATCH";
+ $("#snapshot").textContent=`SNAPSHOT ${new Date(data.as_of).toLocaleString()}`;
+ $("#stats").innerHTML=[
+ [all.length,"Sampled sources","Whole retained inventory"],
+ [coded.length,"Classified sources",`${reviewed.length} human validated · ${coded.length-reviewed.length} AI only`],
+ [related.length,"Security related","Transcript-evidenced framing"],
+ [v.reduce((n,x)=>n+x.classified_comments,0),"Comments coded","Main-message alignment + sentiment"],
+ [all.filter(x=>x.caption_state!=="saved").length,"Awaiting transcripts","Blocked ≠ no captions available","warning"]
+ ].map(([n,t,d,cls])=>`<div class="stat ${cls||""}"><span>${t}</span><b>${num(n)}</b><small>${d}</small></div>`).join("");
+ const country=countries.find(x=>x.iso2===$("#country").value)?.country_name || "European theatre";
+ $("#focus-title").textContent=country;$("#map-focus").textContent=country.toUpperCase();
+ const topics=Object.entries(data.topic_labels||{}).map(([k,n])=>[k,n,related.filter(x=>x.label.topics.includes(k)).length]).filter(x=>x[2]).sort((a,b)=>b[2]-a[2]);
+ $("#topics").innerHTML=topics.slice(0,7).map(([k,n,count])=>`<button class="topic-button" data-topic="${esc(k)}"><span>${esc(n)}</span><b>${count}</b></button>`).join("") || '<p class="small">No coded topics for these filters.</p>';
+ const health=data.caption_health||{}, saved=health.saved||c.transcript_eligible||0;
+ $("#quality").innerHTML=`<div class="pipeline-line"><span>Sample frozen</span><b>${c.sampled_videos||0}</b></div><div class="pipeline-line"><span>English text saved</span><b>${saved}</b></div><div class="pipeline-meter"><span style="width:${c.sampled_videos?saved/c.sampled_videos*100:0}%"></span></div><div class="pipeline-line warn"><span>Retrieval blocked</span><b>${health.blocked||0}</b></div><div class="pipeline-line warn"><span>No English access found</span><b>${health.unavailable||0}</b></div><div class="pipeline-line"><span>Access unverified</span><b>${health.unverified||0}</b></div><p class="small">GLOBAL PIPELINE · ${c.all_retained_comments||0} comments retained.<br>Weekly collection: Sunday 05:17 UTC.<br>Caption / AI retry: daily 08:41 UTC.</p>`;
+ $("#roles").innerHTML=roles.map(r=>`<div class="role" style="color:${colors[r]}"><span class="icon" aria-hidden="true">${icons[r]}</span><div>${esc(data.role_labels?.[r]||human(r))}<small>Sources portraying this role</small></div><b>${related.filter(x=>x.label.roles.some(z=>z.role===r&&($("#country").value==="all"||z.entity_code===$("#country").value))).length}</b></div>`).join("");
+ const ex={comparative:"Comparative",endorsement:"Expert / testimonial",entertainment:"Entertainment / storytelling",mnemonic_devices:"Mnemonic devices"};
+ $("#execution").innerHTML=Object.entries(ex).map(([k,n])=>{const assessed=related.filter(x=>["present","absent_after_watching"].includes(x.label.execution[k]));return bar(n,assessed.filter(x=>x.label.execution[k]==="present").length,assessed.length)}).join("")+`<p class="small">Present / assessed. Unknowns excluded; absence requires watching. ${related.length} security-related sources. Categories can overlap.</p>`;
+ renderResponses(v);
+ $("#engagement").innerHTML=`<div class="metric-grid">${[["Views","views"],["Likes","likes"],["Total comments","total_comments"]].map(([name,k])=>{const s=sum(all,k);return `<div><b>${num(s.value)}</b><small>${name} · ${s.n}/${all.length} counters</small></div>`}).join("")}</div><p class="small">Latest saved counters · shares unavailable · views are not unique people.</p>`;
+ $("#data-status").textContent=`${c.classified_videos||0} sources coded, ${c.reviewed_videos||0} human reviewed. AI classifications publish provisionally as soon as English text is saved. Human corrections guide future prompts and take precedence in the results. ${c.awaiting_transcript||0} sources still need English text. This sample does not establish country-level public opinion or a trend.`;
+ renderMap();renderFeed();renderEvidence();
 }
-function bar(name, n, d) {
-  return `<div class="bar-row"><span>${esc(name)}</span><div class="bar-track"><div class="bar-fill" style="width:${d ? (n / d) * 100 : 0}%"></div></div><span>${n}/${d}</span></div>`;
+function renderResponses(v){
+ const totals={alignment:{},sentiment:{},response_focus:{}};let n=0,h=0;
+ for(const x of v){const r=x.responses||{};n+=r.total||0;h+=r.human_reviewed||0;for(const k of Object.keys(totals))for(const [val,count]of Object.entries(r[k]||{}))totals[k][val]=(totals[k][val]||0)+count;}
+ $("#response-count").textContent=`${n} COMMENTS`;
+ const palette={supports:"#b9ee74",opposes:"#f17a69",no_position:"#647a95",unrelated:"#647a95",mixed:"#efb85b",unclear:"#788b83",not_applicable:"#647a95",positive:"#61d7bc",negative:"#f17a69",neutral:"#93a393"};
+ $("#responses").innerHTML=[['alignment','Alignment with main message'],['sentiment','Comment sentiment']].map(([k,title])=>`<div class="response-title">${title}</div><div class="response-bars">${Object.entries(totals[k]).map(([key,count])=>`<span style="width:${n?count/n*100:0}%;background:${palette[key]||'#9baa88'}" title="${esc(human(key))}: ${count}"></span>`).join('')}</div><div class="response-legend">${Object.entries(totals[k]).map(([key,count])=>`<span><span style="color:${palette[key]||'#9baa88'}">●</span> ${esc(human(key))} <b>${count}</b></span>`).join('')||'No classified comments'}</div>`).join('')+`<p class="small">${h} human-reviewed · ${n-h} AI-only. Praise of presentation is separate from agreement with the main message. Counts describe retained comments, not population opinion.</p>`;
 }
-function render() {
-  const chosenTopic = $("#topic").value;
-  $("#topic").innerHTML =
-    '<option value="all">All topics + pending review</option>' +
-    Object.entries(data.topic_labels || {})
-      .map(
-        ([code, name]) => `<option value="${esc(code)}">${esc(name)}</option>`,
-      )
-      .join("");
-  if (["all", ...Object.keys(data.topic_labels || {})].includes(chosenTopic))
-    $("#topic").value = chosenTopic;
-  const v = rows(),
-    c = data.collection,
-    published = v.filter((x) => x.label),
-    reviewed = v.filter((x) => x.classification_status === "human_reviewed"),
-    related = published.filter((x) => x.label.relevance === "related"),
-    country = $("#country").value;
-  $("#edition").textContent =
-    data.batches.map((b) => b.id).join(" · ") || "Awaiting retained data";
-  $("#data-status").textContent =
-    `${c.classified_videos || 0} videos AI-coded · ${c.reviewed_videos || 0} human-reviewed. ${c.awaiting_transcript || 0} sampled videos excluded until English transcripts are available. ${data.status === "human_review_complete" ? "The assigned human audit is complete; reviewed labels are published. This calibration does not establish model accuracy." : "AI labels await completion of the random human audit before publication; published AI labels remain provisional."}`;
-  $("#stats").innerHTML = [
-    [v.length, "Transcript-eligible videos", "Filtered evidence pool"],
-    [
-      reviewed.length,
-      "Human-reviewed videos",
-      `${related.length} published in-scope`,
-    ],
-    [
-      sum(v, "views").value,
-      "Observed views",
-      `${sum(v, "views").n}/${v.length} counters available`,
-    ],
-    [
-      v.reduce((n, x) => n + x.classified_comments, 0),
-      "AI-coded comments",
-      "Agreement and sentiment · private review",
-    ],
-  ]
-    .map(
-      ([n, t, d]) =>
-        `<div class="stat"><span>${t}</span><b>${num(n)}</b><small>${d}</small></div>`,
-    )
-    .join("");
-  $("#focus-title").textContent =
-    country === "all"
-      ? "Across the retained sample"
-      : countries.find((c) => c.iso2 === country)?.country_name || country;
-  $("#roles").innerHTML = roles
-    .map((r) => {
-      const count = related.filter((x) =>
-        x.label.roles.some(
-          (z) =>
-            z.role === r && (country === "all" || z.entity_code === country),
-        ),
-      ).length;
-      return `<div class="role"><span class="icon" aria-hidden="true">${icons[r]}</span><div>${esc(data.role_labels?.[r] || human(r))}<small>Published portrayal · ${related.length} related videos</small></div><span class="count">${count}</span></div>`;
-    })
-    .join("");
-  $("#quality").innerHTML =
-    `<p class="small">${v.length}/${v.length} included sources have saved English text. ${v.filter((x) => x.transcript_truncated).length} AI inputs were truncated; the full saved text remains available to the reviewer.</p><p class="small">${reviewed.length} sources reviewed under the new taxonomy. This is a calibration dataset; model reliability has not been established.</p>`;
-  const ex = {
-    comparative: "Comparative",
-    endorsement: "Expert / testimonial",
-    entertainment: "Entertainment / storytelling",
-    mnemonic_devices: "Mnemonic devices",
-  };
-  $("#execution").innerHTML =
-    Object.entries(ex)
-      .map(([k, n]) => {
-        const assessed = related.filter((v) =>
-          ["present", "absent_after_watching"].includes(v.label.execution[k]),
-        );
-        return bar(
-          n,
-          assessed.filter((v) => v.label.execution[k] === "present").length,
-          assessed.length,
-        );
-      })
-      .join("") +
-    '<p class="small">Present / assessed. Unknowns and transcript-only non-detections are excluded; absence requires watching.</p>';
-  $("#engagement").innerHTML = `<div class="metric-grid">${[
-    ["Views", "views"],
-    ["Likes", "likes"],
-    ["Total comments", "total_comments"],
-  ]
-    .map(([n, k]) => {
-      const s = sum(v, k);
-      return `<div><b>${num(s.value)}</b><small>${n} · ${s.n}/${v.length} available</small></div>`;
-    })
-    .join(
-      "",
-    )}</div><p class="small">Shares: unavailable through public statistics.</p><p class="small">Video totals are separate from the ${v.reduce((n, x) => n + x.retained_comments, 0)} retained comments. Comment agreement and sentiment are reviewed privately.</p>`;
-  renderMap();
-  renderEvidence();
+function renderMap(){
+ const all=rows(false,true), metric=$("#metric").value;
+ $("#markers").innerHTML=countries.map(c=>{
+ const relevant=all.filter(v=>v.countries.includes(c.iso2));
+ const matching=metric==='coverage'?relevant:metric==='related'?relevant.filter(v=>v.label?.relevance==='related'):all.filter(v=>v.label?.relevance==='related'&&v.label.roles.some(r=>r.entity_code===c.iso2&&r.role===metric));
+ const n=matching.length;if(!n)return '';
+ const ready=relevant.filter(v=>v.label).length, colour=metric==='coverage'?(ready?'#b9ee74':'#efb85b'):colors[metric];
+ const [x,y]=project(c.longitude,c.latitude),r=Math.sqrt(n)*4+5;
+ return `<g class="marker ${$("#country").value===c.iso2?'selected':''}" style="color:${colour}" transform="translate(${x},${y})" tabindex="0" role="button" data-country="${c.iso2}" aria-label="${esc(c.country_name)}: ${n} sources"><title>${esc(c.country_name)} · ${n} sources · ${ready} classified</title><circle r="${r+5}" class="orbit"/><circle r="${r}"/><circle r="3" class="core"/><text x="${r+5}" y="3">${c.iso2} ${n}</text></g>`;
+ }).join('');
+ $("#map-key").innerHTML=metric==='coverage'?'<span style="color:#b9ee74">● Country has classified sources</span><span style="color:#efb85b">● All sources await evidence / coding</span>':`<span style="color:${colors[metric]}">● ${esc($("#metric").selectedOptions[0].textContent)}</span><span>Only evidenced security-related portrayals</span>`;
 }
-function renderMap() {
-  const all = rows(false),
-    metric = $("#metric").value;
-  $("#markers").innerHTML = countries
-    .map((c) => {
-      const relevant = all.filter((v) => v.countries.includes(c.iso2)),
-        n =
-          metric === "coverage"
-            ? relevant.length
-            : metric === "related"
-              ? relevant.filter((v) => v.label?.relevance === "related").length
-              : all.filter((v) =>
-                  v.label?.roles.some(
-                    (r) => r.entity_code === c.iso2 && r.role === metric,
-                  ),
-                ).length;
-      const [x, y] = project(c.longitude, c.latitude),
-        radius = n ? Math.sqrt(n) * 7 + 3 : 2;
-      return `<circle cx="${x}" cy="${y}" r="${radius}" fill="${colors[metric]}" class="${n ? "marker" : "marker-empty"}" ${n ? 'tabindex="0" role="button"' : ""} data-country="${c.iso2}" aria-label="${esc(c.country_name)}: ${n} videos"><title>${esc(c.country_name)} · ${n} videos</title></circle>`;
-    })
-    .join("");
-  $("#map-key").innerHTML =
-    `<span style="color:${colors[metric]}">● ${esc($("#metric").selectedOptions[0].textContent)}</span><span>○ No qualifying observations</span><span>Size = video count, not threat severity</span>`;
+function renderFeed(){const mode=$("#feed-mode").value,v=rows(true,true).filter(x=>mode==='all'||(mode==='coded'?x.label:!x.label)).sort((a,b)=>Number(!!b.label)-Number(!!a.label)||(b.engagement?.views||0)-(a.engagement?.views||0));
+ $("#feed-count").textContent=v.length+' SOURCES';
+ $("#source-feed").innerHTML=v.slice(0,35).map(x=>`<button class="feed-item" data-source="${esc(x.batch+'|'+x.id)}"><img src="${thumbnail(x)}" loading="lazy" alt=""><span><span class="source-state ${x.label?'':'pending'}">${esc(state(x))}</span><b>${esc(x.title)}</b><small>${esc(x.countries.join(' / '))} · ${num(x.engagement?.views)} views</small></span></button>`).join('')||'<p class="empty">No sources match these filters.</p>';
 }
-function renderEvidence() {
-  const q = $("#search").value.toLowerCase(),
-    v = rows().filter((v) =>
-      `${v.title} ${v.channel}`.toLowerCase().includes(q),
-    );
-  $("#evidence-table").innerHTML =
-    `<p class="small">${v.length} sources · filters from the monitor apply here.</p><div class="evidence-grid">${
-      v
-        .map((x) => {
-          const m = x.engagement;
-          return `<article class="case"><span class="tag">${esc(human(x.classification_status))}</span><span class="tag">Original language: ${esc(x.original_language)}</span><h2>${esc(x.title)}</h2><p>${esc(x.channel)} · ${esc(x.batch)}</p>${x.label ? `<p>${esc(human(x.label.relevance))} · ${esc(x.label.topics.map((t) => data.topic_labels?.[t] || human(t)).join(" · "))}</p>${x.label.roles.map((r) => `<span class="tag">${icons[r.role]} ${esc(r.entity)} · ${esc(data.role_labels[r.role])}</span>`).join("")}` : "<p>Substantive labels await human review.</p>"}<div class="metric-grid"><div><b>${num(m.views)}</b><small>Views</small></div><div><b>${num(m.likes)}</b><small>Likes</small></div><div><b>${num(m.total_comments)}</b><small>Total comments</small></div></div><p>Likes / 1,000 views: ${m.likes_per_1000_views == null ? "Unavailable" : m.likes_per_1000_views.toFixed(1)} · Comments / 1,000 views: ${m.comments_per_1000_views == null ? "Unavailable" : m.comments_per_1000_views.toFixed(1)}</p><p class="small">Captured ${esc(m.captured_at || "unknown")} · ${m.age_hours_at_capture == null ? "Age unknown" : m.age_hours_at_capture.toFixed(1) + " hours since publication"} · ${x.retained_comments} comments retained · Shares unavailable.</p><a href="https://www.youtube.com/watch?v=${encodeURIComponent(x.id)}" target="_blank" rel="noopener">Watch source ↗</a></article>`;
-        })
-        .join("") ||
-      '<p class="empty">No eligible sources match these filters.</p>'
-    }</div>`;
+function renderEvidence(){const q=$("#search").value.toLowerCase(),v=rows(true,true).filter(x=>`${x.title} ${x.channel}`.toLowerCase().includes(q));
+ $("#evidence-table").innerHTML=`<p class="small">${v.length} sources · situation-room filters apply. No English text means no content classification.</p><div class="evidence-grid">${v.map(x=>`<article class="case"><img src="${thumbnail(x)}" loading="lazy" alt="Video cover"><span class="source-state ${x.label?'':'pending'}">${esc(state(x))}</span><h2>${esc(x.title)}</h2><p>${esc(x.channel)} · ${esc(x.countries.join(' / '))} · ${esc(x.batch)}</p><p>Original language: ${esc(x.original_language||'und')} · ${num(x.engagement?.views)} views</p>${x.label?`<p>${esc(human(x.label.relevance))} · ${esc(x.label.topics.map(t=>data.topic_labels?.[t]||human(t)).join(' / '))}</p>`:''}<button data-source="${esc(x.batch+'|'+x.id)}">Inspect source ↗</button></article>`).join('')}</div>`;
 }
-function route() {
-  const r = ["evidence", "methodology"].includes(location.hash.slice(1))
-    ? location.hash.slice(1)
-    : "monitor";
-  for (const id of ["monitor", "evidence", "methodology"])
-    $("#" + id).hidden = id !== r;
-  document
-    .querySelectorAll("nav a")
-    .forEach((a) =>
-      a.setAttribute("aria-current", a.hash === "#" + r ? "page" : "false"),
-    );
+function showSource(key){const v=inventory.find(x=>x.batch+'|'+x.id===key);if(!v)return;
+ $("#source-detail").innerHTML=`<span class="source-state">${esc(state(v))}</span><h2>${esc(v.title)}</h2><iframe title="${esc(v.title)}" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.id)}" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe><p class="small">${esc(v.channel)} · ${esc(v.countries.join(' / '))} · original language: ${esc(v.original_language||'und')}</p>${v.label?`<p>${esc(human(v.label.relevance))} · ${esc(v.label.topics.map(t=>data.topic_labels?.[t]||human(t)).join(' / '))}</p>${v.label.roles.map(r=>`<span class="tag">${icons[r.role]||''} ${esc(r.entity)} · ${esc(data.role_labels?.[r.role]||human(r.role))}</span>`).join('')}`:'<p class="small">Content labels require a successfully saved English transcript. This source is visible as part of the sampled inventory.</p>'}<p><a href="https://www.youtube.com/watch?v=${encodeURIComponent(v.id)}" target="_blank" rel="noopener">Open original video ↗</a></p>`;
+ $("#source-dialog").showModal();
 }
-async function init() {
-  try {
-    const rev = document.documentElement.dataset.build || Date.now();
-    const results = await Promise.all(
-      [
-        "data.json",
-        "countries.json",
-        "assets/world.json",
-        "methodology.html",
-      ].map(async (p) => {
-        const r = await fetch(`${p}?v=${rev}`);
-        if (!r.ok) throw Error("Load failed");
-        return p.endsWith(".html") ? r.text() : r.json();
-      }),
-    );
-    [data, countries] = results;
-    countries = countries.countries || countries;
-    $("#methodology").innerHTML = results[3];
-    $("#geography").innerHTML = results[2].features
-      .map((f) => `<path d="${geometry(f.geometry)}"/>`)
-      .join("");
-    $("#country").insertAdjacentHTML(
-      "beforeend",
-      countries
-        .map((c) => `<option value="${c.iso2}">${esc(c.country_name)}</option>`)
-        .join(""),
-    );
-    $("#batch").insertAdjacentHTML(
-      "beforeend",
-      data.batches
-        .map((b) => `<option value="${esc(b.id)}">${esc(b.id)}</option>`)
-        .join(""),
-    );
-    render();
-    route();
-  } catch {
-    $("#data-status").textContent =
-      "The data snapshot could not be loaded. Please refresh or check the repository’s publishing status.";
-  }
-}
-for (const id of ["batch", "country", "topic", "metric"])
-  $("#" + id).onchange = render;
-$("#search").oninput = renderEvidence;
-$("#reset").onclick = () => {
-  for (const id of ["batch", "country", "topic"]) $("#" + id).value = "all";
-  $("#metric").value = "coverage";
-  render();
-};
-$("#markers").onclick = (e) => {
-  if (e.target.dataset.country) {
-    $("#country").value = e.target.dataset.country;
-    render();
-  }
-};
-$("#markers").onkeydown = (e) => {
-  if (e.key === "Enter" || e.key === " ") {
-    e.preventDefault();
-    e.target.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-  }
-};
-window.addEventListener("hashchange", route);
-init();
+function route(){const r=['evidence','methodology'].includes(location.hash.slice(1))?location.hash.slice(1):'monitor';for(const id of ['monitor','evidence','methodology'])$('#'+id).hidden=id!==r;document.querySelectorAll('nav a').forEach(a=>a.setAttribute('aria-current',a.hash==='#'+r?'page':'false'));}
+async function init(){try{
+ const rev=document.documentElement.dataset.build||Date.now();const result=await Promise.all(['data.json','countries.json','assets/world.json','methodology.html'].map(async p=>{const r=await fetch(`${p}?v=${rev}`);if(!r.ok)throw Error('Snapshot unavailable');return p.endsWith('.html')?r.text():r.json()}));
+ [data,countries]=result;countries=countries.countries||countries;
+ const coded=new Map(data.videos.map(v=>[v.batch+'|'+v.id,v]));inventory=(data.inventory||data.videos).map(v=>({...v,...coded.get(v.batch+'|'+v.id)}));
+ $('#methodology').innerHTML=result[3];$('#geography').innerHTML=result[2].features.map(f=>`<path d="${geometry(f.geometry)}"/>`).join('');
+ $('#country').insertAdjacentHTML('beforeend',countries.map(c=>`<option value="${esc(c.iso2)}">${esc(c.country_name)}</option>`).join(''));
+ $('#batch').insertAdjacentHTML('beforeend',data.batches.map(b=>`<option value="${esc(b.id)}">${esc(b.id)}</option>`).join(''));
+ $('#topic').insertAdjacentHTML('beforeend',Object.entries(data.topic_labels||{}).map(([c,n])=>`<option value="${esc(c)}">${esc(n)}</option>`).join(''));
+ render();route();
+ }catch(e){$('#data-status').textContent='Snapshot unavailable. Please refresh or check the publishing workflow.';console.error(e);}}
+for(const id of ['batch','country','topic','metric'])$('#'+id).onchange=render;
+$('#feed-mode').onchange=renderFeed;$('#search').oninput=renderEvidence;
+$('#reset').onclick=()=>{for(const id of ['batch','country','topic'])$('#'+id).value='all';$('#metric').value='coverage';zoom=1;setZoom();render();};
+$('#topics').onclick=e=>{const b=e.target.closest('[data-topic]');if(b){$('#topic').value=b.dataset.topic;render();}};
+$('#markers').onclick=e=>{const el=e.target.closest('[data-country]');if(el){$('#country').value=el.dataset.country;render();}};
+$('#markers').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));}};
+for(const id of ['source-feed','evidence-table'])$('#'+id).onclick=e=>{const b=e.target.closest('[data-source]');if(b)showSource(b.dataset.source);};
+$('#close-source').onclick=()=>$('#source-dialog').close();$('#source-dialog').addEventListener('close',()=>$('#source-detail').innerHTML='');
+function setZoom(){const w=960/zoom,h=650/zoom;$('#map').setAttribute('viewBox',`${(960-w)/2} ${(650-h)/2} ${w} ${h}`);}
+$('#zoom-in').onclick=()=>{zoom=Math.min(3,zoom+.25);setZoom();};$('#zoom-out').onclick=()=>{zoom=Math.max(1,zoom-.25);setZoom();};$('#zoom-reset').onclick=()=>{zoom=1;setZoom();};
+window.addEventListener('hashchange',route);init();

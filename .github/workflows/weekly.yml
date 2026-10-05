@@ -25,18 +25,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Check configuration
-        id: readiness
+      - name: Verify live configuration
         run: |
+          test "$EIIM_ENABLE_LIVE" = "true" || { echo '::error::EIIM_ENABLE_LIVE must be true for scheduled collection'; exit 1; }
           PYTHONPATH=src python -m eiim.cli preflight > /tmp/eiim-preflight.json
-          python -c 'import json,os; x=json.load(open("/tmp/eiim-preflight.json")); open(os.environ["GITHUB_OUTPUT"],"a").write("ready="+str(x["ready"]).lower()+"\n"); print(x)'
-      - name: Install local inference dependencies
-        if: steps.readiness.outputs.ready == 'true'
+          python -c 'import json,sys; x=json.load(open("/tmp/eiim-preflight.json")); print(x); sys.exit(0 if x["ready"] else 1)'
+      - name: Install collection dependencies
         run: pip install '.[live]'
-      - name: Collect completed Amsterdam week
-        run: if [ "$EIIM_ENABLE_LIVE" = "true" ]; then
-            PYTHONPATH=src python -m eiim.hybrid --collect > run-report.json
-          fi
+      - name: Collect and classify completed Amsterdam week
+        run: PYTHONPATH=src python -m eiim.hybrid --collect > run-report.json
       - name: Publish non-sensitive run report
         if: always()
         run: |

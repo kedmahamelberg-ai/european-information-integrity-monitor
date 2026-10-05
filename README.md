@@ -37,7 +37,7 @@ Production credentials stay in GitHub secrets and server-side service-role RPC c
 
 Initial calibration requests 30 eligible videos (or the full pool if smaller); later batches use 3%, rounded up, minimum 5. Selection is independent of model outcomes. The new transcript gate creates a new eligible population; legacy review assignments are not repurposed. Comment reviews are optional and separate. A neutral content summary and the English transcript provide reference context; the video has no stance label. Each comment names its own stance target. Existing older classifications and reviews remain immutable under their original version.
 
-The public exporter allows source metadata, engagement counters and individually reviewed video labels. Remaining AI labels stay private until the complete random review assignment is finished and the batch is fully classified, then appear explicitly as AI-coded/sample-audited. Raw discussion remains private. Calibration completion is not proof of reliability; no validated-model accuracy claim is made.
+The public exporter publishes the full sampled source inventory and caption health. AI labels publish immediately as provisional once saved English transcripts support classification; a human review is not a publication prerequisite. Validated human labels override the corresponding AI labels. Only aggregated comment alignment, focus and sentiment are public; raw discussion remains private. Calibration completion is not proof of model reliability.
 
 ## Research foundations
 
@@ -68,3 +68,9 @@ Country/topic frequencies and message alignment measure the retained sample only
 Version 1.4 retires imagery/visual and explicitly includes factual historical narration as storytelling. `eiim.calibration.project_four_categories` creates hash-linked copies of 1.3 classifications/reviews with only the retired field removed. Original records, reviewer names, timestamps and all other judgments remain unchanged. This is schema migration, not a new human review or an AI reclassification. The private form restores authenticated, hash-validated imported decisions; it does not ask the reviewer to repeat them.
 
 Future AI calls receive at most four retained video examples and six retained comment examples from validated human reviews, excluding the video being classified. Corrections are prioritized. Raw examples stay private and follow the existing retention period. This is in-context calibration, not fine-tuning. Reviewed videos are preserved on retries. Training/calibration examples must never be counted as an independent accuracy evaluation; human judgments can also contain uncertainty or inconsistency.
+
+## Scheduled operation and coverage
+
+GitHub Actions collects the weekly sample on Sundays at 05:17 UTC. The retained-source workflow retries captions and resumes AI classification daily at 08:41 UTC without discovering new videos. Both require `EIIM_ENABLE_LIVE=true`, fail explicitly on missing required credentials and share the existing $5 per-batch model ledger. Completed/partial runs trigger a new Pages snapshot. The daily retry stops on YouTube IP blocking; no cookie or proxy bypass is used. A successful eligible-pool classification is not proof of full sample coverage: the public pipeline reports saved, blocked, unavailable and unverified captions separately.
+
+Researcher corrections are preserved as human overrides. Retained validated examples enter later AI prompts (excluding the video itself); lasting codebook rules from the corrections are in versioned prompts. This is prompt calibration, not automatic model training. Examples expire with raw-data retention; written codebook rules persist. Full-week classification remains conditional on obtaining English source text.

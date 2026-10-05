@@ -402,7 +402,7 @@ class HumanReviewTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_review(item, row)
 
-    def test_public_allowlist_excludes_raw_comments_and_ai_labels(self):
+    def test_public_allowlist_publishes_provisional_ai_without_raw_comments(self):
         from eiim.hybrid_public import export_public
         from eiim.hybrid import VERSION
         from tempfile import TemporaryDirectory
@@ -424,7 +424,10 @@ class HumanReviewTests(unittest.TestCase):
             path = Path(d) / "data.json"
             export_public(s, path)
             out = json.loads(path.read_text())
-        self.assertIsNone(out["videos"][0]["label"])
+        self.assertIsNotNone(out["videos"][0]["label"])
+        self.assertEqual(out["videos"][0]["classification_status"], "ai_provisional")
+        self.assertEqual(out["videos"][0]["responses"]["total"], 1)
+        self.assertEqual(out["videos"][0]["responses"]["human_reviewed"], 0)
         self.assertNotIn("This attack is awful", json.dumps(out))
         self.assertEqual(out["collection"]["classified_comments"], 1)
 

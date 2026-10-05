@@ -1,5 +1,7 @@
 name: Transcript-based conflict classification
 on:
+  schedule:
+    - cron: "41 8 * * *"
   workflow_dispatch:
     inputs:
       batch:
@@ -20,12 +22,19 @@ jobs:
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+      EIIM_ENABLE_LIVE: ${{ vars.EIIM_ENABLE_LIVE }}
       REVIEW_BATCH: ${{ inputs.batch }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Verify live configuration
+        run: |
+          test "$EIIM_ENABLE_LIVE" = "true" || { echo '::error::Live research is disabled'; exit 1; }
+          for name in SUPABASE_URL SUPABASE_SECRET_KEY OPENAI_API_KEY YOUTUBE_API_KEY; do
+            test -n "${!name}" || { echo "::error::Missing $name"; exit 1; }
+          done
       - name: Test evidence and review invariants
         run: PYTHONPATH=src python -m unittest discover -s tests -q
       - name: Install public caption reader
@@ -33,8 +42,13 @@ jobs:
       - name: Reclassify retained sources with English transcripts
         run: |
           if [ -n "$REVIEW_BATCH" ]; then
-            PYTHONPATH=src python -m eiim.hybrid --refresh-engagement --batch "$REVIEW_BATCH" > /tmp/hybrid-report.json
+            PYTHONPATH=src python -m eiim.hybrid --retrieve-captions --refresh-engagement --batch "$REVIEW_BATCH" > /tmp/hybrid-report.json
           else
-            PYTHONPATH=src python -m eiim.hybrid --refresh-engagement > /tmp/hybrid-report.json
+            PYTHONPATH=src python -m eiim.hybrid --retrieve-captions --refresh-engagement > /tmp/hybrid-report.json
           fi
-          tail -40 /tmp/hybrid-report.json >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish run summary even after a partial run
+        if: always()
+        run: |
+          if [ -f /tmp/hybrid-report.json ]; then
+            tail -80 /tmp/hybrid-report.json >> "$GITHUB_STEP_SUMMARY"
+          fi
