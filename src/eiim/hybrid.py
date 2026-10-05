@@ -407,6 +407,25 @@ def reclassify(store, batch, classifier=None):
                     )
                     translations[cid] = translated
             document = evidence_input(source, language)
+            # Explicit reviewer observations remain attributed source evidence,
+            # separate from AI suggestions and from complete human label reviews.
+            feedback = sorted(
+                [
+                    r
+                    for r in runs
+                    if not r.get("purged_at")
+                    and r["payload"].get("reviewer_context_video_id") == vid
+                ],
+                key=lambda r: r["payload"].get("recorded_at", ""),
+            )
+            if feedback:
+                note = feedback[-1]["payload"]
+                document["reviewer_context"] = {
+                    "reviewer": note["reviewer"],
+                    "observation": note["observation"],
+                    "basis": note["basis"],
+                }
+
             document["entity_codes"] = {
                 c["country_name"]: c["iso2"] for c in config("countries")["countries"]
             }
@@ -449,6 +468,7 @@ def reclassify(store, batch, classifier=None):
             for offset in range(0, len(document["comments"]), 5):
                 comment_input = {
                     "content_reference": label["content_reference"],
+                    "reviewer_context": document.get("reviewer_context"),
                     "sections": document["sections"],
                     "transcript_truncated": document["transcript_truncated"],
                     "comments": document["comments"][offset : offset + 5],
@@ -483,6 +503,7 @@ def reclassify(store, batch, classifier=None):
                 "human_validated": False,
                 "comment_models": sorted(set(comment_models)),
                 "pipeline_method": "video_then_comment_batches_v1",
+                "reviewer_context": document.get("reviewer_context"),
             }
             store.write(batch, [record("pipeline_runs", batch, ident, payload, vid)])
             done.add(ident)

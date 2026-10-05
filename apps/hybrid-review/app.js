@@ -232,7 +232,7 @@ function render() {
       )
       .join(
         "",
-      )}<h3>Review the video classifications and message reference</h3><p class="notice">Changing relevance may require new topics and reassessment of all five execution labels. Your draft saves automatically, including before confirmation.</p>${Object.entries(
+      )}${i.reviewer_context ? `<section class="notice"><b>Attributed reviewer evidence · ${esc(i.reviewer_context.reviewer)}</b><p>${esc(i.reviewer_context.observation)}</p><small>${esc(i.reviewer_context.basis)}. Used as context, not a new complete human review.</small></section>` : ""}<h3>Review the video classifications and message reference</h3><p class="notice">Changing relevance may require new topics and reassessment of all five execution labels. Your draft saves automatically, including before confirmation.</p>${Object.entries(
       i.model_values,
     )
       .map(([k, v]) => field(i, k, v))

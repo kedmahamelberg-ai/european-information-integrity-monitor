@@ -96,6 +96,7 @@ def packet(store, batch):
                 "transcript": access["transcript_english"],
                 "transcript_truncated": p["transcript_truncated"],
                 "label": p["label"],
+                "reviewer_context": p.get("reviewer_context"),
                 "model_values": video_values(p["label"]),
                 "model": p["model_version"],
                 "prior_reviews": [

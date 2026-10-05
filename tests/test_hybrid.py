@@ -481,6 +481,24 @@ class StagedCommentTests(unittest.TestCase):
                 ),
             ]
         s.write("2026-W40", records)
+        s.write(
+            "2026-W40",
+            [
+                record(
+                    "pipeline_runs",
+                    "2026-W40",
+                    "reviewer-context",
+                    {
+                        "reviewer_context_video_id": "v",
+                        "reviewer": "Test",
+                        "basis": "watched",
+                        "recorded_at": "2026-10-05T00:00:00Z",
+                        "observation": "The speaker is a named official.",
+                    },
+                    "v",
+                )
+            ],
+        )
 
         class Fake:
             cfg = {"model": "test"}
@@ -488,6 +506,10 @@ class StagedCommentTests(unittest.TestCase):
 
             def request(self, text, prompt, shape, kind):
                 doc = json.loads(text)
+                assert (
+                    doc["reviewer_context"]["observation"]
+                    == "The speaker is a named official."
+                )
                 if kind == "hybrid":
                     assert (
                         "CONTENT REFERENCE." in prompt and "imagery_visual:" in prompt
