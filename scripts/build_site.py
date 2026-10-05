@@ -1,6 +1,6 @@
 """Copy only public assets; research source and secrets never enter Pages output."""
 
-import hashlib, json, shutil, sys
+import hashlib, json, shutil, sys, os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,9 +19,12 @@ if "--live" in sys.argv:
     from eiim.storage import Store
 
     print(export_public(Store(), out / "data.json"))
+if "--live" in sys.argv:
+    from check_cameras import refresh
+    refresh(out / "cameras.json", os.environ.get("YOUTUBE_API_KEY"))
 # Bind code, styles and the data snapshot to one deployment revision.
 revision = hashlib.sha256(
-    b"".join((out / name).read_bytes() for name in ["app.js", "style.css", "data.json"])
+    b"".join((out / name).read_bytes() for name in ["app.js", "live.js", "style.css", "data.json", "cameras.json"])
 ).hexdigest()[:16]
 page = out / "index.html"
 html = page.read_text().replace(
@@ -30,5 +33,6 @@ html = page.read_text().replace(
 html = html.replace('src="app.js"', f'src="app.js?v={revision}"').replace(
     'href="style.css"', f'href="style.css?v={revision}"'
 )
+html = html.replace('src="live.js"', f'src="live.js?v={revision}"')
 page.write_text(html)
 print("Public website built in build/")

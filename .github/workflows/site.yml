@@ -33,9 +33,13 @@ jobs:
       - name: Test research invariants
         run: PYTHONPATH=src python -m unittest discover -s tests -v
       - name: Check dashboard JavaScript
-        run: node --check apps/dashboard/app.js
+        run: |
+          node --check apps/dashboard/app.js
+          node --check apps/dashboard/live.js
+          node --test tests/camera-rotation.test.cjs
       - name: Build public export
         env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
         run: |

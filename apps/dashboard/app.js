@@ -20,6 +20,7 @@ const human = (s) =>
     v == null
       ? "Unavailable"
       : Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 });
+let feedQueue=[], feedIndex=0, feedPaused=matchMedia("(prefers-reduced-motion: reduce)").matches;
 let data = {videos:[], inventory:[], batches:[], collection:{}}, countries=[], inventory=[], zoom=1;
 const roles=["readiness","projecting_power","under_pressure"], colors={coverage:"#b9ee74", related:"#b9ee74", readiness:"#61d7bc", projecting_power:"#efb85b", under_pressure:"#f17a69"}, icons={readiness:"🛡", projecting_power:"⚔", under_pressure:"🎯"};
 function project(lon, lat) {
@@ -72,10 +73,12 @@ function render(){
  [v.reduce((n,x)=>n+x.classified_comments,0),"Comments coded","Main-message alignment + sentiment"],
  [all.filter(x=>x.caption_state!=="saved").length,"Awaiting transcripts","Blocked ≠ no captions available","warning"]
  ].map(([n,t,d,cls])=>`<div class="stat ${cls||""}"><span>${t}</span><b>${num(n)}</b><small>${d}</small></div>`).join("");
- const country=countries.find(x=>x.iso2===$("#country").value)?.country_name || "European theatre";
+ const country=countries.find(x=>x.iso2===$("#country").value)?.country_name || "Europe";
  $("#focus-title").textContent=country;$("#map-focus").textContent=country.toUpperCase();
  const topics=Object.entries(data.topic_labels||{}).map(([k,n])=>[k,n,related.filter(x=>x.label.topics.includes(k)).length]).filter(x=>x[2]).sort((a,b)=>b[2]-a[2]);
  $("#topics").innerHTML=topics.slice(0,7).map(([k,n,count])=>`<button class="topic-button" data-topic="${esc(k)}"><span>${esc(n)}</span><b>${count}</b></button>`).join("") || '<p class="small">No coded topics for these filters.</p>';
+ const lead=topics[0];
+ $('#situation-brief').innerHTML=`<strong>WEEK AT A GLANCE</strong><span>${lead?`Most observed topic: <b>${esc(lead[1])}</b> · ${lead[2]} classified sources`:'No classified topic for this selection'}</span><span><b>${related.length}</b> security-related sources · <b>${reviewed.length}</b> human validated</span><span class="amber-text">${c.awaiting_transcript||0} sources await English text</span>`;
  const health=data.caption_health||{}, saved=health.saved||c.transcript_eligible||0;
  $("#quality").innerHTML=`<div class="pipeline-line"><span>Sample frozen</span><b>${c.sampled_videos||0}</b></div><div class="pipeline-line"><span>English text saved</span><b>${saved}</b></div><div class="pipeline-meter"><span style="width:${c.sampled_videos?saved/c.sampled_videos*100:0}%"></span></div><div class="pipeline-line warn"><span>Retrieval blocked</span><b>${health.blocked||0}</b></div><div class="pipeline-line warn"><span>No English access found</span><b>${health.unavailable||0}</b></div><div class="pipeline-line"><span>Access unverified</span><b>${health.unverified||0}</b></div><p class="small">GLOBAL PIPELINE · ${c.all_retained_comments||0} comments retained.<br>Weekly collection: Sunday 05:17 UTC.<br>Caption / AI retry: daily 08:41 UTC.</p>`;
  $("#roles").innerHTML=roles.map(r=>`<div class="role" style="color:${colors[r]}"><span class="icon" aria-hidden="true">${icons[r]}</span><div>${esc(data.role_labels?.[r]||human(r))}<small>Sources portraying this role</small></div><b>${related.filter(x=>x.label.roles.some(z=>z.role===r&&($("#country").value==="all"||z.entity_code===$("#country").value))).length}</b></div>`).join("");
@@ -105,10 +108,21 @@ function renderMap(){
  }).join('');
  $("#map-key").innerHTML=metric==='coverage'?'<span style="color:#b9ee74">● Country has classified sources</span><span style="color:#efb85b">● All sources await evidence / coding</span>':`<span style="color:${colors[metric]}">● ${esc($("#metric").selectedOptions[0].textContent)}</span><span>Only evidenced security-related portrayals</span>`;
 }
-function renderFeed(){const mode=$("#feed-mode").value,v=rows(true,true).filter(x=>mode==='all'||(mode==='coded'?x.label:!x.label)).sort((a,b)=>Number(!!b.label)-Number(!!a.label)||(b.engagement?.views||0)-(a.engagement?.views||0));
- $("#feed-count").textContent=v.length+' SOURCES';
- $("#source-feed").innerHTML=v.slice(0,35).map(x=>`<button class="feed-item" data-source="${esc(x.batch+'|'+x.id)}"><img src="${thumbnail(x)}" loading="lazy" alt=""><span><span class="source-state ${x.label?'':'pending'}">${esc(state(x))}</span><b>${esc(x.title)}</b><small>${esc(x.countries.join(' / '))} · ${num(x.engagement?.views)} views</small></span></button>`).join('')||'<p class="empty">No sources match these filters.</p>';
+function renderFeed(){const mode=$("#feed-mode").value;
+ const sorted=rows(true,true).filter(x=>mode==='all'||(mode==='coded'?x.label:!x.label)).sort((a,b)=>Number(!!b.label)-Number(!!a.label)||(b.engagement?.views||0)-(a.engagement?.views||0));
+ // Round-robin countries so the cycle does not stay on one country's sources.
+ const buckets=new Map();for(const v of sorted){const key=v.countries[0]||'other';if(!buckets.has(key))buckets.set(key,[]);buckets.get(key).push(v);}
+ feedQueue=[];while([...buckets.values()].some(x=>x.length))for(const bucket of buckets.values())if(bucket.length)feedQueue.push(bucket.shift());
+ feedIndex=0;drawFeed();
 }
+function drawFeed(){
+ $('#feed-count').textContent=feedQueue.length+' SOURCES';
+ $('#cycle-position').textContent=feedQueue.length?`${feedIndex+1} / ${feedQueue.length}`:'0';
+ $('#feed-pause').textContent=feedPaused?'Resume cycle':'Pause cycle';$('#feed-pause').setAttribute('aria-pressed',String(feedPaused));
+ const v=Array.from({length:Math.min(3,feedQueue.length)},(_,i)=>feedQueue[(feedIndex+i)%feedQueue.length]);
+ $('#source-feed').innerHTML=v.map(x=>`<button class="feed-item" data-source="${esc(x.batch+'|'+x.id)}"><img src="${thumbnail(x)}" loading="lazy" alt=""><span><span class="source-state ${x.label?'':'pending'}">${esc(state(x))}</span><b>${esc(x.title)}</b><small>${esc(x.countries.join(' / '))} · ${esc(x.batch)} · ${num(x.engagement?.views)} views</small></span></button>`).join('')||'<p class="empty">No sources match these filters.</p>';
+}
+setInterval(()=>{const feed=$('.feed-panel');if(!feedPaused&&!document.hidden&&!$('#monitor').hidden&&!$('#source-dialog').open&&!feed.matches(':hover')&&!feed.contains(document.activeElement)&&feedQueue.length>3){feedIndex=(feedIndex+1)%feedQueue.length;drawFeed();}},8000);
 function renderEvidence(){const q=$("#search").value.toLowerCase(),v=rows(true,true).filter(x=>`${x.title} ${x.channel}`.toLowerCase().includes(q));
  $("#evidence-table").innerHTML=`<p class="small">${v.length} sources · situation-room filters apply. No English text means no content classification.</p><div class="evidence-grid">${v.map(x=>`<article class="case"><img src="${thumbnail(x)}" loading="lazy" alt="Video cover"><span class="source-state ${x.label?'':'pending'}">${esc(state(x))}</span><h2>${esc(x.title)}</h2><p>${esc(x.channel)} · ${esc(x.countries.join(' / '))} · ${esc(x.batch)}</p><p>Original language: ${esc(x.original_language||'und')} · ${num(x.engagement?.views)} views</p>${x.label?`<p>${esc(human(x.label.relevance))} · ${esc(x.label.topics.map(t=>data.topic_labels?.[t]||human(t)).join(' / '))}</p>`:''}<button data-source="${esc(x.batch+'|'+x.id)}">Inspect source ↗</button></article>`).join('')}</div>`;
 }
@@ -128,6 +142,7 @@ async function init(){try{
  render();route();
  }catch(e){$('#data-status').textContent='Snapshot unavailable. Please refresh or check the publishing workflow.';console.error(e);}}
 for(const id of ['batch','country','topic','metric'])$('#'+id).onchange=render;
+$('#feed-pause').onclick=()=>{feedPaused=!feedPaused;drawFeed();};
 $('#feed-mode').onchange=renderFeed;$('#search').oninput=renderEvidence;
 $('#reset').onclick=()=>{for(const id of ['batch','country','topic'])$('#'+id).value='all';$('#metric').value='coverage';zoom=1;setZoom();render();};
 $('#topics').onclick=e=>{const b=e.target.closest('[data-topic]');if(b){$('#topic').value=b.dataset.topic;render();}};
@@ -138,3 +153,19 @@ $('#close-source').onclick=()=>$('#source-dialog').close();$('#source-dialog').a
 function setZoom(){const w=960/zoom,h=650/zoom;$('#map').setAttribute('viewBox',`${(960-w)/2} ${(650-h)/2} ${w} ${h}`);}
 $('#zoom-in').onclick=()=>{zoom=Math.min(3,zoom+.25);setZoom();};$('#zoom-out').onclick=()=>{zoom=Math.max(1,zoom-.25);setZoom();};$('#zoom-reset').onclick=()=>{zoom=1;setZoom();};
 window.addEventListener('hashchange',route);init();
+// Pick up new published batches/results without requiring an unattended screen to reload.
+setInterval(async()=>{
+  if(document.hidden||$('#source-dialog').open||$('#camera-list-dialog').open)return;
+  try{
+    const response=await fetch(`data.json?refresh=${Date.now()}`,{cache:'no-store'});
+    if(!response.ok)return;
+    const updated=await response.json();
+    if(!Array.isArray(updated.videos)||!Array.isArray(updated.batches)||updated.as_of===data.as_of)return;
+    data=updated;
+    const coded=new Map(data.videos.map(v=>[v.batch+'|'+v.id,v]));
+    inventory=(data.inventory||data.videos).map(v=>({...v,...coded.get(v.batch+'|'+v.id)}));
+    const existing=new Set([...$('#batch').options].map(o=>o.value));
+    for(const b of data.batches)if(!existing.has(b.id))$('#batch').insertAdjacentHTML('beforeend',`<option value="${esc(b.id)}">${esc(b.id)}</option>`);
+    render();
+  }catch{/* Retain the last successfully loaded snapshot during network failures. */}
+},300000);
