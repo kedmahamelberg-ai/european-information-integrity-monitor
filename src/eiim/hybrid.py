@@ -21,8 +21,8 @@ from .review_sampling import plans_for_store, assignment
 from .services import Classifier, Ledger, BudgetExhausted, ClassificationUnavailable
 from .storage import Store, record
 
-VERSION = "hybrid-framing-1.3"
-COMMENT_VERSION = "hybrid-comments-1.2"
+VERSION = "hybrid-framing-1.4"
+COMMENT_VERSION = "hybrid-comments-1.3"
 
 
 def obj(properties):
@@ -204,7 +204,7 @@ def validate_label(value, document):
                 + (
                     "not_applicable is forbidden for a related video. Return present only with an exact transcript quotation; otherwise not_observed_in_transcript or not_observable. Missing evidence is NOT not_applicable."
                     if value["relevance"] == "related"
-                    else "For not_related/unclear videos ALL five execution statuses must be not_applicable, regardless of delivery features."
+                    else "For not_related/unclear videos ALL four execution statuses must be not_applicable, regardless of delivery features."
                 )
             )
         if x["status"] == "present":
@@ -375,7 +375,14 @@ def reclassify(store, batch, classifier=None):
     done = {r["id"] for r in runs}
     errors = []
     status = "complete"
+    from .calibration import current_reviews, calibration_examples
+
+    reviewed = current_reviews(store, batch)
+    completed = {r["video_id"]: r for r in latest_labels(labels(store, batch))}
     for vid, (source, language) in sorted(videos.items()):
+        existing = completed.get(vid)
+        if existing and (existing["id"], None) in reviewed:
+            continue  # Never overwrite a completed human review during retries.
         selected = sorted(
             [c for c in comments if c["video_id"] == vid], key=lambda c: c["comment_id"]
         )
@@ -426,6 +433,9 @@ def reclassify(store, batch, classifier=None):
                     "basis": note["basis"],
                 }
 
+            document["calibration_examples"] = calibration_examples(
+                store, exclude_video_id=vid
+            )
             document["entity_codes"] = {
                 c["country_name"]: c["iso2"] for c in config("countries")["countries"]
             }
@@ -467,6 +477,9 @@ def reclassify(store, batch, classifier=None):
             comment_models = []
             for offset in range(0, len(document["comments"]), 5):
                 comment_input = {
+                    "calibration_examples": document["calibration_examples"][
+                        "comments"
+                    ],
                     "content_reference": label["content_reference"],
                     "reviewer_context": document.get("reviewer_context"),
                     "sections": document["sections"],

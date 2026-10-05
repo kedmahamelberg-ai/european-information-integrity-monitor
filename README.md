@@ -10,7 +10,7 @@ A transcript-based research monitor of conflict and hybrid-threat communication 
 - Reclassification uses the frozen source sample, saved captions and retained comments. Caption recovery does not discover new videos or comments.
 - Security/resource/sovereignty relevance is related, not related or unclear. Topics include water, energy, food security and other essential resource dependencies as well as military and hybrid threats. No temporal classification or security-domains field is used. Scarcity does not establish aggression or intent to invade.
 - Roles are entity-specific, multi-label portrayals: **Defence readiness**, **Force projection & coercion**, **Target of hostile action**. A portrayal or allegation is not verified attribution.
-- Execution adapts Dall’Olio & Vakratsas (2022), Table 5: comparative, endorsement, entertainment, imagery/visual and mnemonic devices. Apply only to security-related videos. Imagery/visual includes vivid descriptive narration; its rationale identifies evidence without adding a subcategory. Unseen footage cannot be inferred. This advertising-derived adaptation is not a validated persuasion/effectiveness scale.
+- Execution adapts Dall’Olio & Vakratsas (2022), Table 5: comparative, endorsement, entertainment/storytelling and mnemonic devices. Apply only to security-related videos. Imagery/visual is omitted by researcher choice for this video-only study. Narrated historical accounts count as storytelling. This advertising-derived adaptation is not a validated persuasion/effectiveness scale.
 - Stance applies only to comments, relative to a named claim, policy, action or narrative in the video content. Neutral videos can receive supportive/opposing comments; sentiment and its target are independent. Original comments and saved English translations stay private.
 - Public counters are timestamped views, likes and total comments, with nullable missing values, video age and per-1,000-view ratios. Public shares are unavailable. No combined “engagement” sum or causal claims.
 - Minimum available comments: **2**. Existing collection retains up to 30 from a pool of up to 100 visible top-level comments. This is not the full audience.
@@ -19,7 +19,7 @@ A transcript-based research monitor of conflict and hybrid-threat communication 
 
 `Sunday research collection` retains the existing discovery/sample design and feeds the conflict taxonomy. `Transcript-based conflict classification` reuses a specified retained batch and refreshes counters for existing eligible videos. It never discovers additional videos or retrieves additional comments. Both share the same single-writer concurrency group and $5 weekly model budget.
 
-The Observatory model policy remains `gpt-5-nano`, switching to `gpt-5.6-luna` at 2026-12-10 00:00 UTC. No expensive fallback is configured. Configuration is in `config/review_models.json`; taxonomy in `config/hybrid.json`; prompts in `prompts/hybrid-framing-1.3.txt`.
+The Observatory model policy remains `gpt-5-nano`, switching to `gpt-5.6-luna` at 2026-12-10 00:00 UTC. No expensive fallback is configured. Configuration is in `config/review_models.json`; taxonomy in `config/hybrid.json`; prompts in `prompts/hybrid-framing-1.4.txt`.
 
 ```sh
 PYTHONPATH=src python -m eiim.hybrid --batch 2026-W40 --retrieve-captions
@@ -41,7 +41,7 @@ The public exporter allows source metadata, engagement counters and individually
 
 ## Research foundations
 
-- [Dall’Olio & Vakratsas — Advertising creative strategy](https://doi.org/10.1177/00222429221074960): five execution categories, adapted descriptively to security content.
+- [Dall’Olio & Vakratsas — Advertising creative strategy](https://doi.org/10.1177/00222429221074960): four retained execution categories adapted from the original five.
 - [NATO — Countering hybrid threats](https://www.nato.int/en/what-we-do/deterrence-and-defence/countering-hybrid-threats): scope of military and non-military coercion.
 - [Hybrid CoE — Hybrid threats](https://www.hybridcoe.fi/hybrid-threats/): attribution and coordinated-activity limits.
 - [Mohammad et al. — SemEval 2016 stance detection](https://aclanthology.org/S16-1003/): stance is distinct from sentiment.
@@ -49,7 +49,7 @@ The public exporter allows source metadata, engagement counters and individually
 
 The country frame, random sampling, inclusion probabilities and original collection timestamps are preserved. Caption availability and visibility-based comment sampling limit generalization. No temporal label is collected. Historical actor names and dates stay in source evidence; aggregate portrayals must not be presented as current threat estimates. Raw observations follow the existing 30-day retention policy.
 
-The execution codebook has exactly five categories. **Imagery/visual** includes both visual presentation and vivid descriptive narration within the same category; the rationale explains the evidence with no extra subtype. This and clear implicit comparisons are explicit adaptations of the source paper. The paper’s execution categories are binary (1 present / 0 absent), not intensity scales; unavailable evidence is not a verified 0. Earlier human reviews remain under their original version, including the superseded groundwater exclusion. Country metadata use title/description, not language alone. `--refresh-engagement` refreshes only existing eligible IDs, preserving original snapshots.
+The active execution codebook has four categories. Imagery/visual is retired by researcher choice; historical narration and clear implicit comparisons are explicit adaptations of the source paper. The paper’s execution categories are binary (1 present / 0 absent), not intensity scales; unavailable evidence is not a verified 0. Earlier human reviews remain under their original version, including the superseded groundwater exclusion. Country metadata use title/description, not language alone. `--refresh-engagement` refreshes only existing eligible IDs, preserving original snapshots.
 
 ## Calibration update, 5 October 2026
 
@@ -59,6 +59,12 @@ All retained comments undergo independent language verification and English tran
 
 National laws and trade agreements are in scope, including European trade with non-European partners. Entertainment requires humor OR drama OR constructed plot; these are alternatives. An identified official presenting a substantive argument can be a knowledgeable-source execution device without certifying expertise or truth. Routine political criticism is not a hostile security attack.
 
-The YouTube API supplies thumbnail URLs, not a background-music flag. The private form displays retained thumbnails and counts explicit caption music cues, clearly marked as incomplete evidence. No cue does not prove silence. A thumbnail is packaging evidence, not evidence of a full story; music is mnemonic only when identity-linked/distinctive, not simply background accompaniment. Being a video does not make imagery automatically present.
+The YouTube API supplies thumbnail URLs, not a background-music flag. The private form displays retained thumbnails and counts explicit caption music cues, clearly marked as incomplete evidence. No cue does not prove silence. A thumbnail is packaging evidence, not evidence of a full story; music is mnemonic only when identity-linked/distinctive, not simply background accompaniment. Imagery is not an active classification field.
 
 Country/topic frequencies and message alignment measure the retained sample only. Inferring rising political capital would require a defined longitudinal measure, stable sampling, target resolution and validation. This calibration batch cannot establish Europe-wide public opinion, causal influence, or a trend. Changes informed by these reviews are development calibration, not an independent accuracy test.
+
+## Four-category release, 5 October 2026
+
+Version 1.4 retires imagery/visual and explicitly includes factual historical narration as storytelling. `eiim.calibration.project_four_categories` creates hash-linked copies of 1.3 classifications/reviews with only the retired field removed. Original records, reviewer names, timestamps and all other judgments remain unchanged. This is schema migration, not a new human review or an AI reclassification. The private form restores authenticated, hash-validated imported decisions; it does not ask the reviewer to repeat them.
+
+Future AI calls receive at most four retained video examples and six retained comment examples from validated human reviews, excluding the video being classified. Corrections are prioritized. Raw examples stay private and follow the existing retention period. This is in-context calibration, not fine-tuning. Reviewed videos are preserved on retries. Training/calibration examples must never be counted as an independent accuracy evaluation; human judgments can also contain uncertainty or inconsistency.

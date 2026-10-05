@@ -44,7 +44,6 @@ const names = {
   comparative: "Comparative",
   endorsement: "Expert / testimonial endorsement",
   entertainment: "Entertainment / storytelling",
-  imagery_visual: "Imagery / visual",
   mnemonic_devices: "Mnemonic devices",
 };
 const key = "eiim-hybrid-review-v1";
@@ -67,14 +66,16 @@ function say(s) {
 }
 function itemState(i, cid = "") {
   const k = i.id + (cid ? ":comment:" + cid : "");
-  if (!state[k] || state[k].hash !== i.hash)
-    state[k] = {
+  if (!state[k] || state[k].hash !== i.hash) {
+    const reviewed = cid ? i.comments.find(c => c.comment_id === cid)?.confirmed_review : i.confirmed_review;
+    state[k] = reviewed ? { hash: i.hash, decisions: structuredClone(reviewed.decisions), values: structuredClone(reviewed.human_label), basis: reviewed.basis, notes: reviewed.notes, reviewer: reviewed.reviewer, reviewed_at: reviewed.reviewed_at, confirmed: true } : {
       hash: i.hash,
       decisions: {},
       values: {},
       basis: "",
       confirmed: false,
     };
+  }
   return state[k];
 }
 function expected(i, c) {
@@ -212,7 +213,7 @@ function render() {
     )
       .map(
         (r) =>
-          `<details class="card"><summary>Your previous review · ${esc(r.version)}</summary><p>Preserved as calibration feedback. The new AI result still needs an explicit decision.</p>${Object.entries(
+          `<details class="card"><summary>Your previous review · ${esc(r.version)}</summary><p>Archived original review. Imported decisions in the current form are preserved when only a retired field was removed.</p>${Object.entries(
             r.human_label,
           )
             .filter(
@@ -222,6 +223,7 @@ function render() {
                   "context",
                   "domains",
                   "execution:verbal_imagery",
+                  "execution:imagery_visual",
                 ].includes(k),
             )
             .map(
@@ -232,7 +234,7 @@ function render() {
       )
       .join(
         "",
-      )}${i.reviewer_context ? `<section class="notice"><b>Attributed reviewer evidence · ${esc(i.reviewer_context.reviewer)}</b><p>${esc(i.reviewer_context.observation)}</p><small>${esc(i.reviewer_context.basis)}. Used as context, not a new complete human review.</small></section>` : ""}<h3>Review the video classifications and message reference</h3><p class="notice">Changing relevance may require new topics and reassessment of all five execution labels. Your draft saves automatically, including before confirmation.</p>${Object.entries(
+      )}${i.reviewer_context ? `<section class="notice"><b>Attributed reviewer evidence · ${esc(i.reviewer_context.reviewer)}</b><p>${esc(i.reviewer_context.observation)}</p><small>${esc(i.reviewer_context.basis)}. Used as context, not a new complete human review.</small></section>` : ""}<h3>Review the video classifications and message reference</h3>${i.confirmed_review ? `<p class="notice">Your saved review is restored below. AI labels remain visible for comparison; your selected corrections are the published values.</p>` : ""}<p class="notice">Changing relevance may require new topics and reassessment of all four execution labels. Your draft saves automatically, including before confirmation.</p>${Object.entries(
       i.model_values,
     )
       .map(([k, v]) => field(i, k, v))

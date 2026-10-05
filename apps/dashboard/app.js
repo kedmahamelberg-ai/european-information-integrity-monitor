@@ -145,7 +145,6 @@ function render() {
     comparative: "Comparative",
     endorsement: "Expert / testimonial",
     entertainment: "Entertainment / storytelling",
-    imagery_visual: "Imagery / visual",
     mnemonic_devices: "Mnemonic devices",
   };
   $("#execution").innerHTML =

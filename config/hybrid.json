@@ -1,7 +1,15 @@
 {
-  "version": "hybrid-framing-1.3",
-  "relevance": ["related", "not_related", "unclear"],
-  "roles": ["readiness", "projecting_power", "under_pressure"],
+  "version": "hybrid-framing-1.4",
+  "relevance": [
+    "related",
+    "not_related",
+    "unclear"
+  ],
+  "roles": [
+    "readiness",
+    "projecting_power",
+    "under_pressure"
+  ],
   "alignment": [
     "supports",
     "opposes",
@@ -10,13 +18,23 @@
     "unrelated",
     "unclear"
   ],
-  "sentiment": ["positive", "negative", "mixed", "neutral", "unclear"],
-  "evidence_status": ["reported", "alleged", "hypothetical", "unclear"],
+  "sentiment": [
+    "positive",
+    "negative",
+    "mixed",
+    "neutral",
+    "unclear"
+  ],
+  "evidence_status": [
+    "reported",
+    "alleged",
+    "hypothetical",
+    "unclear"
+  ],
   "execution": [
     "comparative",
     "endorsement",
     "entertainment",
-    "imagery_visual",
     "mnemonic_devices"
   ],
   "execution_status": [

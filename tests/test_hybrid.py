@@ -105,29 +105,9 @@ class HybridTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_label(x, document())
 
-    def test_combined_imagery_requires_transcript_evidence(self):
-        x = label()
-        imagery = next(e for e in x["execution"] if e["category"] == "imagery_visual")
-        imagery["status"] = "present"
-        with self.assertRaises(ValueError):
-            validate_label(x, document())
-        doc = document()
-        doc["sections"].append(
-            {
-                "id": "transcript:1",
-                "text": "A white line glows on the empty square under the lamps.",
-            }
-        )
-        imagery.update(
-            evidence={
-                "source_id": "transcript:1",
-                "quote": "A white line glows on the empty square",
-            },
-            rationale="Descriptive narration creates a mental picture.",
-        )
-        validate_label(x, doc)
-        self.assertEqual(len(x["execution"]), 5)
-        self.assertNotIn("verbal_imagery", config("hybrid")["execution"])
+    def test_active_execution_omits_imagery(self):
+        self.assertEqual(len(config("hybrid")["execution"]), 4)
+        self.assertNotIn("imagery_visual", config("hybrid")["execution"])
 
     def test_resource_topic_does_not_require_military_role(self):
         x, doc = label(), document()
@@ -407,8 +387,8 @@ class HumanReviewTests(unittest.TestCase):
         from eiim.hybrid_review import validate_review
 
         item, row = self.review()
-        item["human_label"]["execution:imagery_visual"] = "absent_after_watching"
-        item["decisions"]["execution:imagery_visual"] = "disagree"
+        item["human_label"]["execution:mnemonic_devices"] = "absent_after_watching"
+        item["decisions"]["execution:mnemonic_devices"] = "disagree"
         with self.assertRaises(ValueError):
             validate_review(item, row)
         item["basis"] = "watched_video"
@@ -511,9 +491,7 @@ class StagedCommentTests(unittest.TestCase):
                     == "The speaker is a named official."
                 )
                 if kind == "hybrid":
-                    assert (
-                        "CONTENT REFERENCE." in prompt and "imagery_visual:" in prompt
-                    )
+                    assert "CONTENT REFERENCE." in prompt and "entertainment:" in prompt
                     self.sizes.append(("video", len(doc["comments"])))
                     x = label()
                     x["comments"] = []

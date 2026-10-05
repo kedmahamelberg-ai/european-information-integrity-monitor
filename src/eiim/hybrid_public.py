@@ -156,6 +156,11 @@ def export_public(store, path):
         output["collection"]["sampled_videos"]
         - output["collection"]["transcript_eligible"]
     )
+    output["status"] = (
+        "human_review_complete"
+        if output["batches"] and all(b["audit_complete"] for b in output["batches"])
+        else "human_review_pending"
+    )
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(output, ensure_ascii=False, indent=2) + "\n")
     return output["collection"]

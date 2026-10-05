@@ -59,6 +59,9 @@ def media_evidence(source, access):
 
 def packet(store, batch):
     videos, comments, translations, _ = retained_inputs(store, batch)
+    from .calibration import current_reviews
+
+    saved_reviews = current_reviews(store, batch)
     plan = sample_plan(batch, videos)
     items = []
     for row in latest_labels(labels(store, batch)):
@@ -99,6 +102,7 @@ def packet(store, batch):
                 "reviewer_context": p.get("reviewer_context"),
                 "model_values": video_values(p["label"]),
                 "model": p["model_version"],
+                "confirmed_review": saved_reviews.get((row["id"], None)),
                 "prior_reviews": [
                     r["payload"]
                     for r in store.read("human_validation", batch)
@@ -113,6 +117,9 @@ def packet(store, batch):
                     {
                         **c,
                         "translation": translations.get(c["comment_id"], {}),
+                        "confirmed_review": saved_reviews.get(
+                            (row["id"], c["comment_id"])
+                        ),
                         "prior_reviews": [
                             r["payload"]
                             for r in store.read("human_validation", batch)
@@ -169,8 +176,11 @@ def write_html(data, path):
 
 
 def validate_review(item, row):
-    if item.get("version") != VERSION or item.get("queue_hash") != row.get(
-        "payload_hash", digest(row["payload"])
+    source_version = row["payload"].get("hybrid_version", VERSION)
+    if (
+        source_version not in {VERSION, "hybrid-framing-1.3"}
+        or item.get("version") != source_version
+        or item.get("queue_hash") != row.get("payload_hash", digest(row["payload"]))
     ):
         raise ValueError("Review version/hash does not match immutable source")
     if (
@@ -263,7 +273,7 @@ def validate_review(item, row):
                 or not str(role.get("entity", "")).strip()
             ):
                 raise ValueError("Invalid entity role")
-        for k in EXECUTION:
+        for k in [e["category"] for e in label["execution"]]:
             value = human["execution:" + k]
             if value not in cfg["execution_status"] + ["absent_after_watching"]:
                 raise ValueError("Invalid execution label")
