@@ -115,9 +115,9 @@ def validate_label(value, document):
     validate_shape(value, schema())
     sections = {s["id"]: s["text"] for s in document["sections"]}
 
-    def evidence(e, required=False):
+    def evidence(e, required=False, field="evidence"):
         if required and not e["quote"].strip():
-            raise ValueError("An exact evidence quotation is required")
+            raise ValueError(field + ": a short exact evidence quotation is required")
         if e["quote"] and e["quote"] not in sections.get(e["source_id"], ""):
             # Caption lines often omit punctuation or split a sentence. Resolve
             # formatting-only differences to the actual source substring; never
@@ -142,7 +142,8 @@ def validate_label(value, document):
                     break
             if not found:
                 raise ValueError(
-                    "Quotation not found. Copy a SHORT verbatim substring from transcript; do not paraphrase or add/remove words."
+                    field
+                    + ": quotation not found. Replace this field with a SHORT verbatim substring copied from a supplied transcript section and its correct source_id. Do not paraphrase or add/remove words."
                 )
 
     evidence(value["evidence"], value["relevance"] == "related")
@@ -154,7 +155,7 @@ def validate_label(value, document):
         raise ValueError("Return unique topics")
     seen = set()
     for role in value["roles"]:
-        evidence(role["evidence"], True)
+        evidence(role["evidence"], True, "roles[" + str(len(seen)) + "].evidence")
         key = (role["entity"].casefold(), role["role"])
         if key in seen or not role["entity"].strip() or not role["rationale"].strip():
             raise ValueError(
@@ -165,7 +166,7 @@ def validate_label(value, document):
     if not reference["summary"].strip():
         raise ValueError("A neutral video content summary is required")
     try:
-        evidence(reference["evidence"], True)
+        evidence(reference["evidence"], True, "content_reference.evidence")
     except ValueError as error:
         raise ValueError(
             "content_reference.evidence needs a short verbatim transcript quote even for not_related videos. "
@@ -183,9 +184,17 @@ def validate_label(value, document):
         raise ValueError("Return each configured execution category exactly once")
     for x in ex:
         if (x["status"] == "not_applicable") == (value["relevance"] == "related"):
-            raise ValueError("Execution applies only to related videos")
+            raise ValueError(
+                x["category"]
+                + ": "
+                + (
+                    "not_applicable is forbidden for a related video. Return present only with an exact transcript quotation; otherwise not_observed_in_transcript or not_observable. Missing evidence is NOT not_applicable."
+                    if value["relevance"] == "related"
+                    else "For not_related/unclear videos ALL five execution statuses must be not_applicable, regardless of delivery features."
+                )
+            )
         if x["status"] == "present":
-            evidence(x["evidence"], True)
+            evidence(x["evidence"], True, "execution." + x["category"] + ".evidence")
             if not x["evidence"]["source_id"].startswith("transcript"):
                 raise ValueError("Execution requires transcript evidence")
     return value
