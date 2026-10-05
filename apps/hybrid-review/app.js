@@ -11,6 +11,13 @@ const esc = (s) =>
   );
 const human = (s) =>
   ({
+    supports: "Aligned · supports the main message",
+    opposes: "Not aligned · opposes the main message",
+    no_position: "No position on the main message",
+    main_message: "Main message / claim",
+    video_target: "Person, policy or topic targeted by the video",
+    speaker: "Speaker / speaking skill only",
+    presentation: "Visuals, music, editing or channel only",
     present: "Yes · present (1)",
     absent_after_watching: "No · absent after watching (0)",
     not_observed_in_transcript:
@@ -25,10 +32,15 @@ const names = {
   relevance: "Study relevance",
   topics: "Topics",
   roles: "Military / security portrayal",
-  alignment: "Stance toward video content",
-  stance_target: "Stance target in the video",
-  sentiment: "Comment sentiment",
-  sentiment_target: "Sentiment target",
+  alignment: "2. Agreement with the main message",
+  response_focus: "1. What does this comment evaluate?",
+  "reference:speaker": "Speaker / narrator",
+  "reference:summary": "Main message (attributed proposition)",
+  "reference:target": "Target of the main message",
+  "reference:speaker_sentiment": "Speaker sentiment toward that target",
+  stance_target: "Proposition the comment agrees or disagrees with",
+  sentiment: "3. Comment sentiment",
+  sentiment_target: "Who or what receives that sentiment?",
   comparative: "Comparative",
   endorsement: "Expert / testimonial endorsement",
   entertainment: "Entertainment / storytelling",
@@ -49,6 +61,9 @@ function save() {
 }
 function say(s) {
   $("#message").textContent = s;
+  document
+    .querySelectorAll(".review-message")
+    .forEach((x) => (x.textContent = s));
 }
 function itemState(i, cid = "") {
   const k = i.id + (cid ? ":comment:" + cid : "");
@@ -65,9 +80,13 @@ function itemState(i, cid = "") {
 function expected(i, c) {
   return c
     ? Object.fromEntries(
-        ["alignment", "stance_target", "sentiment", "sentiment_target"].map(
-          (k) => [k, c.ai[k]],
-        ),
+        [
+          "response_focus",
+          "alignment",
+          "stance_target",
+          "sentiment",
+          "sentiment_target",
+        ].map((k) => [k, c.ai[k]]),
       )
     : i.model_values;
 }
@@ -108,12 +127,16 @@ function editor(k, v) {
     return `<div class="domain-editor">${P.taxonomy.topics.map((d) => `<label><input type="checkbox" value="${d}" ${v.includes(d) ? "checked" : ""}>${esc(P.taxonomy.topic_labels[d] || human(d))}</label>`).join("")}</div>`;
   if (k === "roles")
     return `<div class="roles">${v.map((r) => roleEditor(r)).join("")}</div><button type="button" data-add-role>Add entity role</button>`;
-  const cat = k.startsWith("execution:") ? "execution_status" : k;
+  const cat = k.startsWith("execution:")
+    ? "execution_status"
+    : k === "reference:speaker_sentiment"
+      ? "sentiment"
+      : k;
   let vals = P.taxonomy[cat];
   if (cat === "execution_status") vals = [...vals, "absent_after_watching"];
   if (vals)
     return `<label>Your corrected label<select data-value>${options(vals, v)}</select></label>`;
-  return `<label>Your corrected label<input data-value value="${esc(v)}"></label>`;
+  return `<label>Your corrected label<textarea data-value>${esc(v)}</textarea></label>`;
 }
 function roleEditor(
   r = { entity: "", entity_code: "OTHER", role: "readiness" },
@@ -164,6 +187,14 @@ function render() {
     return;
   }
   const s = itemState(i),
+    ref = {
+      ...i.label.content_reference,
+      ...Object.fromEntries(
+        Object.entries(s.values)
+          .filter(([k]) => k.startsWith("reference:"))
+          .map(([k, v]) => [k.split(":")[1], v]),
+      ),
+    },
     m = i.engagement,
     n = (v) => (v == null ? "Unavailable" : Number(v).toLocaleString());
   $("#case").innerHTML =
@@ -176,7 +207,7 @@ function render() {
       .map(([k, v]) => `<div><b>${n(v)}</b><small>${k}</small></div>`)
       .join(
         "",
-      )}</div><p class="meta">Counters captured: ${esc(m.captured_at || "unknown")} · ${i.comments.length} comments retained here. Shares are not publicly available.</p><p class="meta">Country is identified from title/description; spoken language alone does not establish country or audience location.</p><details><summary>Original title and description</summary><p>${esc(i.title)}</p><p>${esc(i.description)}</p></details><details><summary>Read English transcript${i.transcript_truncated ? " · AI input truncated" : ""}</summary><div class="transcript">${i.transcript.map((t) => `<p><a href="https://www.youtube.com/watch?v=${encodeURIComponent(i.video_id)}&t=${Math.floor(t.start)}s" target="_blank" rel="noopener">${Math.floor(t.start / 60)}:${String(Math.floor(t.start % 60)).padStart(2, "0")}</a> ${esc(t.text)}</p>`).join("")}</div></details><p>${esc(i.label.rationale)}</p><blockquote>${esc(i.label.evidence.quote)}</blockquote><p class="meta">Portrayal status: ${esc(human(i.label.evidence_status))}. A report or allegation is not independent verification.</p></section>${(
+      )}</div><p class="meta">Counters captured: ${esc(m.captured_at || "unknown")} · ${i.comments.length} comments retained here. Shares are not publicly available.</p><p class="meta">Country is identified from title/description; spoken language alone does not establish country or audience location.</p><details><summary>Thumbnail and sound evidence limits</summary>${i.media_evidence?.thumbnail_url && /^https:\/\//.test(i.media_evidence.thumbnail_url) ? `<img class="thumbnail" src="${esc(i.media_evidence.thumbnail_url)}" alt="Publisher thumbnail; packaging evidence only">` : "<p>No retained thumbnail URL.</p>"}<p>Caption music cues: ${i.media_evidence?.music_caption_cues?.length || 0}. No audio analysis was performed. No cue does not mean no music. Background music alone is not a mnemonic; a thumbnail alone cannot establish storytelling.</p></details><details><summary>Original title and description</summary><p>${esc(i.title)}</p><p>${esc(i.description)}</p></details><details><summary>Read English transcript${i.transcript_truncated ? " · AI input truncated" : ""}</summary><div class="transcript">${i.transcript.map((t) => `<p><a href="https://www.youtube.com/watch?v=${encodeURIComponent(i.video_id)}&t=${Math.floor(t.start)}s" target="_blank" rel="noopener">${Math.floor(t.start / 60)}:${String(Math.floor(t.start % 60)).padStart(2, "0")}</a> ${esc(t.text)}</p>`).join("")}</div></details><p>${esc(i.label.rationale)}</p><blockquote>${esc(i.label.evidence.quote)}</blockquote><p class="meta">Portrayal status: ${esc(human(i.label.evidence_status))}. A report or allegation is not independent verification.</p></section>${(
       i.prior_reviews || []
     )
       .map(
@@ -199,17 +230,35 @@ function render() {
             )
             .join("")}</details>`,
       )
-      .join("")}<h3>Review the video classifications</h3>${Object.entries(
+      .join(
+        "",
+      )}<h3>Review the video classifications and message reference</h3><p class="notice">Changing relevance may require new topics and reassessment of all five execution labels. Your draft saves automatically, including before confirmation.</p>${Object.entries(
       i.model_values,
     )
       .map(([k, v]) => field(i, k, v))
       .join(
         "",
-      )}<section class="card"><label>Evidence you used<select id="basis"><option value="">Select evidence basis</option>${options(["english_transcript", "watched_video"], s.basis)}</select></label><label>Notes<textarea id="notes">${esc(s.notes || "")}</textarea></label><p><button class="confirm" id="confirm-video">Confirm video review</button> <span class="confirmed">${s.confirmed ? "Confirmed" : ""}</span></p></section><h3>Comments · ${i.comments.length} retained</h3><p class="notice">Video content reference (AI summary, not a stance label): ${esc(i.label.content_reference.summary)}<br>Stance applies only to each comment, relative to an identified claim, policy, action or narrative in this video. Neutral reporting can receive supportive or opposing comments. Check the stated target against the transcript; sentiment is separate.</p>${i.comments
+      )}<section class="card"><label>Evidence you used<select id="basis"><option value="">Select evidence basis</option>${options(["english_transcript", "watched_video"], s.basis)}</select></label><label>Notes<textarea id="notes">${esc(s.notes || "")}</textarea></label><p><p class="review-message" role="status"></p><button class="confirm" id="confirm-video">Confirm video review</button> <span class="confirmed">${s.confirmed ? "Confirmed" : ""}</span></p></section><h3>Comments · ${i.comments.length} retained</h3><section class="notice"><b>Reference for every comment</b><p>Speaker: ${esc(ref.speaker)}<br>Main message: ${esc(ref.summary)}<br>Target: ${esc(ref.target)}<br>Speaker sentiment toward target: ${esc(human(ref.speaker_sentiment))}</p><p>First identify what the comment evaluates; then agreement with the main message; then sentiment toward its named object. Praise for speaking skill or editing alone is not message agreement. A negative comment about a criticized target can support the speaker’s negative message. This reference includes your draft corrections.</p></section>${i.comments
       .filter((c) => c.ai)
       .map(
         (c) =>
-          `<section class="comment" data-cid="${esc(c.comment_id)}"><p>${esc(c.translation.text_english || "English translation unavailable")}</p><details><summary>Original · ${esc(c.translation.translation_detected_language || c.original_language || c.language || "und")}</summary><p>${esc(c.text_original)}</p></details><p class="meta">${esc(c.ai.rationale)}</p>${["alignment", "stance_target", "sentiment", "sentiment_target"].map((k) => field(i, k, c.ai[k], c)).join("")}<button class="confirm" data-confirm-comment="${esc(c.comment_id)}">Confirm comment review</button> <span class="confirmed">${itemState(i, c.comment_id).confirmed ? "Confirmed" : ""}</span></section>`,
+          `<section class="comment" data-cid="${esc(c.comment_id)}"><div class="bilingual"><div><b>Original · ${esc(c.translation.translation_detected_language || "unverified")}</b><p>${esc(c.text_original)}</p></div><div><b>English · ${esc(human(c.translation.translation_status || "unavailable"))}</b><p>${esc(c.translation.text_english || "English translation unavailable — do not confirm")}</p></div></div>${(
+            c.prior_reviews || []
+          )
+            .map(
+              (r) =>
+                `<details><summary>Your previous comment review · ${esc(r.version)}</summary>${Object.entries(
+                  r.human_label,
+                )
+                  .map(
+                    ([k, v]) =>
+                      `<p>${esc(names[k] || k)}: ${esc(human(v))}</p>`,
+                  )
+                  .join("")}</details>`,
+            )
+            .join(
+              "",
+            )}<p class="meta">${esc(c.ai.rationale)}</p>${["response_focus", "alignment", "stance_target", "sentiment", "sentiment_target"].map((k) => field(i, k, c.ai[k], c)).join("")}<p class="review-message" role="status"></p><button class="confirm" data-confirm-comment="${esc(c.comment_id)}">Confirm comment review</button> <span class="confirmed">${itemState(i, c.comment_id).confirmed ? "Confirmed" : ""}</span></section>`,
       )
       .join("")}`;
 }
@@ -232,6 +281,7 @@ function capture(f, i) {
       ),
     );
   else v = e.querySelector("[data-value]").value;
+  if (JSON.stringify(s.values[k]) === JSON.stringify(v)) return;
   s.values[k] = v;
   s.confirmed = false;
   save();
@@ -243,10 +293,23 @@ function check(i, c) {
   if (
     !Object.keys(e).every((k) => s.decisions[k] && Object.hasOwn(s.values, k))
   )
-    return "Agree or correct every classification before confirming.";
+    return (
+      "Still needs your decision: " +
+      Object.keys(e)
+        .filter((k) => !s.decisions[k] || !Object.hasOwn(s.values, k))
+        .map((k) => names[k] || names[k.split(":")[1]])
+        .join(", ") +
+      ". Your draft is saved."
+    );
   if (!c) {
     if (!s.basis) return "Select the evidence you used.";
     const h = s.values;
+    if (
+      ["speaker", "summary", "target", "speaker_sentiment"].some(
+        (k) => !String(h["reference:" + k] || "").trim(),
+      )
+    )
+      return "Complete the speaker, main message, target and speaker sentiment reference.";
     if (h.relevance !== "related" && (h.topics.length || h.roles.length))
       return "Clear study topics and roles for an out-of-scope/unclear video.";
     if (h.relevance === "related" && !h.topics.length)
@@ -254,13 +317,22 @@ function check(i, c) {
     for (const k of P.taxonomy.execution) {
       let v = h["execution:" + k];
       if ((v === "not_applicable") === (h.relevance === "related"))
-        return "Execution labels apply only to related videos.";
+        return `${names[k]} still has an incompatible label. For a related video, use Yes, No after watching, or an uncertainty option; for an out-of-scope video use Not applicable. Your draft is saved.`;
       if (v === "absent_after_watching" && s.basis !== "watched_video")
         return "Watch the video before making an audiovisual judgment.";
     }
     if (h.roles.some((r) => !r.entity.trim() || !r.entity_code.trim()))
       return "Enter each role’s entity and country code.";
-  } else if (
+  } else if (!c.translation.text_english)
+    return "English translation is missing; do not confirm yet.";
+  else if (
+    ["speaker", "presentation", "unrelated"].includes(
+      s.values.response_focus,
+    ) &&
+    ["supports", "opposes", "mixed"].includes(s.values.alignment)
+  )
+    return "Speaker or presentation praise alone is not agreement with the main message. Choose No position, or Mixed focus if the comment also addresses the message.";
+  else if (
     ["supports", "opposes", "mixed"].includes(s.values.alignment) &&
     !s.values.stance_target.trim()
   )
@@ -277,7 +349,8 @@ $("#case").addEventListener("click", (e) => {
       c = i.comments.find((c) => c.comment_id === f.dataset.comment),
       s = itemState(i, c?.comment_id);
     s.decisions[k] = button.dataset.decision;
-    s.values[k] = structuredClone(expected(i, c)[k]);
+    if (button.dataset.decision === "agree" || !Object.hasOwn(s.values, k))
+      s.values[k] = structuredClone(expected(i, c)[k]);
     s.confirmed = false;
     save();
     f.outerHTML = field(i, k, expected(i, c)[k], c);
@@ -291,7 +364,10 @@ $("#case").addEventListener("click", (e) => {
     const c = i.comments.find(
         (c) => c.comment_id === button.dataset.confirmComment,
       ),
-      error = check(i, c);
+      error = (() => {
+        document.querySelectorAll("[data-field]").forEach((f) => capture(f, i));
+        return check(i, c);
+      })();
     if (error) {
       say(error);
       return;
@@ -306,7 +382,7 @@ $("#case").addEventListener("click", (e) => {
     render();
   }
 });
-$("#case").addEventListener("input", (e) => {
+function onEdit(e) {
   const i = P.items.find((x) => x.id === selected);
   if (e.target.id === "basis" || e.target.id === "notes") {
     const s = itemState(i);
@@ -316,7 +392,11 @@ $("#case").addEventListener("input", (e) => {
   }
   const f = e.target.closest("[data-field]");
   if (f) capture(f, i);
-});
+  if (f?.dataset.field.startsWith("reference:") && e.type === "change")
+    render();
+}
+$("#case").addEventListener("input", onEdit);
+$("#case").addEventListener("change", onEdit);
 $("#list").addEventListener("click", (e) => {
   const b = e.target.closest("[data-item]");
   if (b) {

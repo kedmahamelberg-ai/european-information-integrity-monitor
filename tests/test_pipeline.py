@@ -85,6 +85,13 @@ class FixtureLocal:
 
 
 class FixtureClassifier:
+    def translate(self, text):
+        return {
+            "parsed": {"text_english": text, "source_language": "en"},
+            "model_version": "fixture",
+            "classification_timestamp": "2026-10-04T00:00:00Z",
+        }
+
     def classify(self, text):
         x = label()
         x["primary_narrative"] = (

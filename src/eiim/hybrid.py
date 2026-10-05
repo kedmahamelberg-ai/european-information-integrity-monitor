@@ -9,15 +9,20 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 from .core import ROOT, config, digest, now
-from .language_access import access_records, video_access, translated_comment
+from .language_access import (
+    access_records,
+    video_access,
+    translated_comment,
+    TRANSLATION_VERSION,
+)
 from .model_policy import selected_policy
 from .reclassification import evidence_input
 from .review_sampling import plans_for_store, assignment
 from .services import Classifier, Ledger, BudgetExhausted, ClassificationUnavailable
 from .storage import Store, record
 
-VERSION = "hybrid-framing-1.2"
-COMMENT_VERSION = "hybrid-comments-1.1"
+VERSION = "hybrid-framing-1.3"
+COMMENT_VERSION = "hybrid-comments-1.2"
 
 
 def obj(properties):
@@ -54,6 +59,7 @@ def schema():
             "comment_id": string,
             "alignment": enum("alignment"),
             "stance_target": string,
+            "response_focus": enum("response_focus"),
             "sentiment": enum("sentiment"),
             "sentiment_target": string,
             "rationale": string,
@@ -67,7 +73,15 @@ def schema():
             "evidence": evidence,
             "rationale": string,
             "roles": {"type": "array", "items": role},
-            "content_reference": obj({"summary": string, "evidence": evidence}),
+            "content_reference": obj(
+                {
+                    "summary": string,
+                    "speaker": string,
+                    "target": string,
+                    "speaker_sentiment": enum("sentiment"),
+                    "evidence": evidence,
+                }
+            ),
             "confidence": {"type": "number", "minimum": 0, "maximum": 1},
             "comments": {"type": "array", "items": comment},
             "execution": {
@@ -164,8 +178,10 @@ def validate_label(value, document):
             )
         seen.add(key)
     reference = value["content_reference"]
-    if not reference["summary"].strip():
-        errors.append("A neutral video content summary is required")
+    if not all(reference[k].strip() for k in ["summary", "speaker", "target"]):
+        errors.append(
+            "A main message, attributed speaker (or unidentified) and target (or unspecified) are required"
+        )
     evidence(reference["evidence"], True, "content_reference.evidence")
     ids = [c["comment_id"] for c in value["comments"]]
     expected = [c["comment_id"] for c in document["comments"]]
@@ -246,6 +262,12 @@ def comment_schema():
 
 def validate_comment_targets(comments):
     for c in comments:
+        if c["response_focus"] in {"speaker", "presentation", "unrelated"} and c[
+            "alignment"
+        ] in {"supports", "opposes", "mixed"}:
+            raise ValueError(
+                "Speaker/presentation-only reactions do not establish main-message alignment; use no_position, unrelated or unclear. Use mixed focus if the main message is also addressed."
+            )
         if not c["rationale"].strip():
             raise ValueError("Comment rationale required")
         if (
@@ -306,7 +328,7 @@ def retained_inputs(store, batch):
     ]
     translations = {
         r["payload"]["comment_translation_id"]: r["payload"]
-        for r in runs
+        for r in sorted(runs, key=lambda r: r["payload"].get("translated_at", ""))
         if r["payload"].get("comment_translation_id")
     }
     return videos, comments, translations, runs
@@ -355,7 +377,10 @@ def reclassify(store, batch, classifier=None):
         try:
             for comment in selected:
                 cid = comment["comment_id"]
-                if cid not in translations:
+                if (
+                    translations.get(cid, {}).get("translation_version")
+                    != TRANSLATION_VERSION
+                ):
                     translated = translated_comment(comment, classifier)
                     store.write(
                         batch,
@@ -363,7 +388,11 @@ def reclassify(store, batch, classifier=None):
                             record(
                                 "pipeline_runs",
                                 batch,
-                                batch + ":translation-en:" + cid,
+                                batch
+                                + ":translation-en:"
+                                + TRANSLATION_VERSION
+                                + ":"
+                                + cid,
                                 translated,
                                 vid,
                             )
@@ -388,7 +417,15 @@ def reclassify(store, batch, classifier=None):
                 + ":"
                 + vid
                 + ":"
-                + digest([document, classifier.cfg, prompt])[:20]
+                + digest(
+                    [
+                        document,
+                        classifier.cfg,
+                        prompt,
+                        (ROOT / "prompts" / (COMMENT_VERSION + ".txt")).read_text(),
+                        TRANSLATION_VERSION,
+                    ]
+                )[:20]
             )
             if ident in done:
                 continue

@@ -1,5 +1,5 @@
 {
-  "version": "hybrid-framing-1.2",
+  "version": "hybrid-framing-1.3",
   "relevance": ["related", "not_related", "unclear"],
   "roles": ["readiness", "projecting_power", "under_pressure"],
   "alignment": [
@@ -80,5 +80,14 @@
     "space_security",
     "civil_protection",
     "other_security"
+  ],
+  "response_focus": [
+    "main_message",
+    "video_target",
+    "speaker",
+    "presentation",
+    "mixed",
+    "unrelated",
+    "unclear"
   ]
 }

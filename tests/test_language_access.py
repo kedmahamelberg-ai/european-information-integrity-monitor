@@ -81,6 +81,8 @@ class LanguageAccessTests(unittest.TestCase):
         self.assertEqual(translated["label_language"], "en")
         self.assertEqual(translated["original_language"], "pt")
         english = translated_comment(
-            dict(source, language="en", text_original="Original English"), None
+            dict(source, language="en", text_original="Não concordo"), model
         )
-        self.assertEqual(english["translation_status"], "original_english")
+        self.assertEqual(english["translation_status"], "machine_translated")
+        self.assertEqual(english["translation_detected_language"], "pt")
+        self.assertEqual(english["text_english"], "I disagree")

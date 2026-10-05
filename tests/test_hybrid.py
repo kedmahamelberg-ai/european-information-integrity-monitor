@@ -43,6 +43,9 @@ def label():
             }
         ],
         "content_reference": {
+            "speaker": "Narrator",
+            "target": "Attack",
+            "speaker_sentiment": "negative",
             "summary": "The narrator calls for defence preparation and condemns an attack.",
             "evidence": {"quote": "This attack is awful.", "source_id": "transcript:0"},
         },
@@ -51,6 +54,7 @@ def label():
             {
                 "comment_id": "c",
                 "alignment": "supports",
+                "response_focus": "main_message",
                 "stance_target": "The narrator’s condemnation of the attack",
                 "sentiment": "negative",
                 "sentiment_target": "attack",
@@ -154,6 +158,9 @@ class HybridTests(unittest.TestCase):
         x.update(topics=[], roles=[], relevance="not_related")
         x["evidence"] = {"quote": "", "source_id": ""}
         x["content_reference"] = {
+            "speaker": "Reporter",
+            "target": "Deployment",
+            "speaker_sentiment": "neutral",
             "summary": "A deployment began today.",
             "evidence": {
                 "quote": "The deployment began today.",
@@ -468,6 +475,7 @@ class StagedCommentTests(unittest.TestCase):
                     {
                         "comment_translation_id": cid,
                         "text_english": "That attack is awful",
+                        "translation_version": "english-comment-1.1",
                     },
                     "v",
                 ),

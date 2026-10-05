@@ -19,7 +19,7 @@ A transcript-based research monitor of conflict and hybrid-threat communication 
 
 `Sunday research collection` retains the existing discovery/sample design and feeds the conflict taxonomy. `Transcript-based conflict classification` reuses a specified retained batch and refreshes counters for existing eligible videos. It never discovers additional videos or retrieves additional comments. Both share the same single-writer concurrency group and $5 weekly model budget.
 
-The Observatory model policy remains `gpt-5-nano`, switching to `gpt-5.6-luna` at 2026-12-10 00:00 UTC. No expensive fallback is configured. Configuration is in `config/review_models.json`; taxonomy in `config/hybrid.json`; prompts in `prompts/hybrid-framing-1.2.txt`.
+The Observatory model policy remains `gpt-5-nano`, switching to `gpt-5.6-luna` at 2026-12-10 00:00 UTC. No expensive fallback is configured. Configuration is in `config/review_models.json`; taxonomy in `config/hybrid.json`; prompts in `prompts/hybrid-framing-1.3.txt`.
 
 ```sh
 PYTHONPATH=src python -m eiim.hybrid --batch 2026-W40 --retrieve-captions
@@ -50,3 +50,15 @@ The public exporter allows source metadata, engagement counters and individually
 The country frame, random sampling, inclusion probabilities and original collection timestamps are preserved. Caption availability and visibility-based comment sampling limit generalization. No temporal label is collected. Historical actor names and dates stay in source evidence; aggregate portrayals must not be presented as current threat estimates. Raw observations follow the existing 30-day retention policy.
 
 The execution codebook has exactly five categories. **Imagery/visual** includes both visual presentation and vivid descriptive narration within the same category; the rationale explains the evidence with no extra subtype. This and clear implicit comparisons are explicit adaptations of the source paper. The paper’s execution categories are binary (1 present / 0 absent), not intensity scales; unavailable evidence is not a verified 0. Earlier human reviews remain under their original version, including the superseded groundwater exclusion. Country metadata use title/description, not language alone. `--refresh-engagement` refreshes only existing eligible IDs, preserving original snapshots.
+
+## Calibration update, 5 October 2026
+
+Version 1.3 separates main-message alignment from speaker/presentation praise. Establish the attributed speaker, main proposition, target, and speaker sentiment once per video. Each comment records focus, agreement with that proposition, proposition text, sentiment and its named object. Negative comments can align with a critical speaker. Praise for speaking skill alone is not agreement with policy claims. Neutral reporting of an event is not refuted merely by condemning the event. These are research annotations, not diagnoses or factual verification.
+
+All retained comments undergo independent language verification and English translation, including previously confident English detections. Originals remain immutable and both languages appear together. The form preserves corrections on repeated Disagree clicks, saves select changes, and names incomplete/incompatible fields beside confirmation. Earlier reviews remain attached as calibration evidence, never silently recoded as new human decisions.
+
+National laws and trade agreements are in scope, including European trade with non-European partners. Entertainment requires humor OR drama OR constructed plot; these are alternatives. An identified official presenting a substantive argument can be a knowledgeable-source execution device without certifying expertise or truth. Routine political criticism is not a hostile security attack.
+
+The YouTube API supplies thumbnail URLs, not a background-music flag. The private form displays retained thumbnails and counts explicit caption music cues, clearly marked as incomplete evidence. No cue does not prove silence. A thumbnail is packaging evidence, not evidence of a full story; music is mnemonic only when identity-linked/distinctive, not simply background accompaniment. Being a video does not make imagery automatically present.
+
+Country/topic frequencies and message alignment measure the retained sample only. Inferring rising political capital would require a defined longitudinal measure, stable sampling, target resolution and validation. This calibration batch cannot establish Europe-wide public opinion, causal influence, or a trend. Changes informed by these reviews are development calibration, not an independent accuracy test.

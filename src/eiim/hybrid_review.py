@@ -10,13 +10,50 @@ from .engagement import engagement
 
 VIDEO_FIELDS = ["relevance", "topics", "roles"]
 EXECUTION = config("hybrid")["execution"]
-COMMENT_FIELDS = ["alignment", "stance_target", "sentiment", "sentiment_target"]
+REFERENCE_FIELDS = ["speaker", "summary", "target", "speaker_sentiment"]
+COMMENT_FIELDS = [
+    "response_focus",
+    "alignment",
+    "stance_target",
+    "sentiment",
+    "sentiment_target",
+]
 
 
 def video_values(label):
     return {
         **{k: label[k] for k in VIDEO_FIELDS},
+        **{"reference:" + k: label["content_reference"][k] for k in REFERENCE_FIELDS},
         **{"execution:" + e["category"]: e["status"] for e in label["execution"]},
+    }
+
+
+def media_evidence(source, access):
+    """Observed metadata/caption cues only; no inferred audio or thumbnail labels."""
+    import re
+
+    thumbnails = (
+        source.get("raw_api_response", {}).get("snippet", {}).get("thumbnails", {})
+    )
+    thumbnail = next(
+        (
+            thumbnails[k].get("url")
+            for k in ["maxres", "standard", "high", "medium", "default"]
+            if thumbnails.get(k, {}).get("url")
+        ),
+        None,
+    )
+    cues = [
+        s
+        for s in access.get("transcript_english", [])
+        if re.search(
+            r"\[(?:music|instrumental|singing)[^]]*\]|[♪♫]", s.get("text", ""), re.I
+        )
+    ]
+    return {
+        "thumbnail_url": thumbnail,
+        "music_caption_cues": cues,
+        "audio_analysis": "not_performed",
     }
 
 
@@ -55,6 +92,7 @@ def packet(store, batch):
                 "description": source.get("description", ""),
                 "source_language": access["original_language"],
                 "caption_status": access.get("status"),
+                "media_evidence": media_evidence(source, access),
                 "transcript": access["transcript_english"],
                 "transcript_truncated": p["transcript_truncated"],
                 "label": p["label"],
@@ -74,6 +112,13 @@ def packet(store, batch):
                     {
                         **c,
                         "translation": translations.get(c["comment_id"], {}),
+                        "prior_reviews": [
+                            r["payload"]
+                            for r in store.read("human_validation", batch)
+                            if not r.get("purged_at")
+                            and r["payload"].get("comment_id") == c["comment_id"]
+                            and r["payload"].get("version") != VERSION
+                        ],
                         "ai": next(
                             (
                                 x
@@ -160,11 +205,20 @@ def validate_review(item, row):
     if item["item_type"] == "hybrid_comment":
         if (
             human["alignment"] not in cfg["alignment"]
+            or human["response_focus"] not in cfg["response_focus"]
             or human["sentiment"] not in cfg["sentiment"]
             or not isinstance(human["sentiment_target"], str)
             or not isinstance(human["stance_target"], str)
         ):
             raise ValueError("Invalid comment labels")
+        if human["response_focus"] in {
+            "speaker",
+            "presentation",
+            "unrelated",
+        } and human["alignment"] in {"supports", "opposes", "mixed"}:
+            raise ValueError(
+                "Speaker/presentation-only praise is not main-message agreement"
+            )
         if (
             human["alignment"] in {"supports", "opposes", "mixed"}
             and not human["stance_target"].strip()
@@ -173,6 +227,16 @@ def validate_review(item, row):
                 "Specify the video content the comment supports or opposes"
             )
     else:
+        if any(
+            not isinstance(human["reference:" + k], str)
+            or not human["reference:" + k].strip()
+            for k in REFERENCE_FIELDS
+        ):
+            raise ValueError(
+                "Complete speaker, main message, target and speaker sentiment"
+            )
+        if human["reference:speaker_sentiment"] not in cfg["sentiment"]:
+            raise ValueError("Invalid speaker sentiment")
         if human["relevance"] not in cfg["relevance"]:
             raise ValueError("Invalid video relevance")
         if not isinstance(human["topics"], list) or any(

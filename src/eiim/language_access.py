@@ -144,27 +144,25 @@ class EnglishCaptionAccess:
             return dict(result, failure_reason=reason)
 
 
+TRANSLATION_VERSION = "english-comment-1.1"
+
+
 def translated_comment(comment, classifier):
     """Keep the original text/language and provide separate English labeling text."""
     original = comment["text_original"]
     language = comment.get("original_language", comment.get("language", "und"))
-    if primary_language(language) == "en" and comment.get("confidence", 0) >= 0.9:
-        return {
-            "comment_translation_id": comment["comment_id"],
-            "original_language": language,
-            "text_english": original,
-            "translation_status": "original_english",
-            "translation_model": None,
-            "translated_at": now(),
-            "label_language": "en",
-        }
     result = classifier.translate(original)
     return {
         "comment_translation_id": comment["comment_id"],
         "original_language": language,
         "translation_detected_language": result["parsed"]["source_language"],
         "text_english": result["parsed"]["text_english"],
-        "translation_status": "machine_translated",
+        "translation_version": TRANSLATION_VERSION,
+        "translation_status": (
+            "original_english_verified"
+            if primary_language(result["parsed"]["source_language"]) == "en"
+            else "machine_translated"
+        ),
         "translation_model": result["model_version"],
         "translated_at": result["classification_timestamp"],
         "label_language": "en",

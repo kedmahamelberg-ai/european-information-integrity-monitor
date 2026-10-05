@@ -291,3 +291,24 @@ blockquote {
     grid-template-columns: 1fr;
   }
 }
+
+.bilingual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  border-bottom: 1px solid var(--edge);
+  margin-bottom: 16px;
+}
+.thumbnail {
+  width: 320px;
+  max-width: 100%;
+}
+.review-message {
+  color: var(--amber);
+  white-space: pre-wrap;
+}
+@media (max-width: 800px) {
+  .bilingual {
+    grid-template-columns: 1fr;
+  }
+}
