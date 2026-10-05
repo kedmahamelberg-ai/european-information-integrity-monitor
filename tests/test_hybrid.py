@@ -75,6 +75,17 @@ class HybridTests(unittest.TestCase):
             validate_label(label(), document())["comments"][0]["alignment"], "supports"
         )
 
+    def test_citation_repair_supplies_source_without_accepting_paraphrase(self):
+        from eiim.hybrid import repair_evidence_options
+
+        x = label()
+        x["evidence"]["quote"] = "We should prepare our defence."
+        options = repair_evidence_options(document(), x)
+        self.assertEqual(options[0]["text"], document()["sections"][0]["text"])
+        self.assertEqual(options[0]["source_id"], "transcript:0")
+        with self.assertRaises(ValueError):
+            validate_label(x, document())
+
     def test_role_requires_exact_evidence(self):
         x = label()
         x["roles"][0]["evidence"]["quote"] = "invented"

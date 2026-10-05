@@ -200,6 +200,46 @@ def validate_label(value, document):
     return value
 
 
+def repair_evidence_options(document, parsed):
+    """Retrieve short original caption excerpts for a failed model citation.
+
+    This offers source text to a retry; it never repairs or accepts a quotation
+    automatically. The complete result must still pass strict validation.
+    """
+    quotes = []
+
+    def walk(value):
+        if isinstance(value, dict):
+            if isinstance(value.get("quote"), str) and value["quote"].strip():
+                quotes.append(value["quote"])
+            for child in value.values():
+                walk(child)
+        elif isinstance(value, list):
+            for child in value:
+                walk(child)
+
+    walk(parsed)
+    sections = [
+        s for s in document.get("sections", []) if s["id"].startswith("transcript:")
+    ]
+    selected = {}
+    for quote in quotes[:16]:
+        words = set(re.findall(r"\w+", quote.casefold()))
+        if not words:
+            continue
+        ranked = sorted(
+            sections,
+            key=lambda s: len(words & set(re.findall(r"\w+", s["text"].casefold()))),
+            reverse=True,
+        )
+        for section in ranked[:2]:
+            selected[section["id"]] = {
+                "source_id": section["id"],
+                "text": section["text"][:600],
+            }
+    return list(selected.values())[:16]
+
+
 def comment_schema():
     return obj({"comments": schema()["properties"]["comments"]})
 
