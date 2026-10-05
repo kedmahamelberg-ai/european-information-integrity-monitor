@@ -25,6 +25,7 @@ def export_public(store, path):
             "classified_comments": 0,
         },
         "role_labels": config("hybrid")["role_labels"],
+        "topic_labels": config("hybrid")["topic_labels"],
     }
     all_labels = {r["id"]: r for r in latest_labels(labels(store))}
     reviews = {}
@@ -105,8 +106,7 @@ def export_public(store, path):
                 if human is None
                 else {
                     "relevance": human["relevance"],
-                    "context": human["context"],
-                    "domains": human["domains"],
+                    "topics": human["topics"],
                     "roles": [
                         {k: r[k] for k in ["entity", "entity_code", "role"]}
                         for r in human["roles"]

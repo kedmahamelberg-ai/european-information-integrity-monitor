@@ -66,8 +66,8 @@ function rows(geo = true) {
       (!geo ||
         $("#country").value === "all" ||
         v.countries.includes($("#country").value)) &&
-      ($("#context").value === "all" ||
-        v.label?.context === $("#context").value),
+      ($("#topic").value === "all" ||
+        v.label?.topics?.includes($("#topic").value)),
   );
 }
 function sum(v, k) {
@@ -81,6 +81,16 @@ function bar(name, n, d) {
   return `<div class="bar-row"><span>${esc(name)}</span><div class="bar-track"><div class="bar-fill" style="width:${d ? (n / d) * 100 : 0}%"></div></div><span>${n}/${d}</span></div>`;
 }
 function render() {
+  const chosenTopic = $("#topic").value;
+  $("#topic").innerHTML =
+    '<option value="all">All topics + pending review</option>' +
+    Object.entries(data.topic_labels || {})
+      .map(
+        ([code, name]) => `<option value="${esc(code)}">${esc(name)}</option>`,
+      )
+      .join("");
+  if (["all", ...Object.keys(data.topic_labels || {})].includes(chosenTopic))
+    $("#topic").value = chosenTopic;
   const v = rows(),
     c = data.collection,
     published = v.filter((x) => x.label),
@@ -96,7 +106,7 @@ function render() {
     [
       reviewed.length,
       "Human-reviewed videos",
-      `${related.length} published security-related`,
+      `${related.length} published in-scope`,
     ],
     [
       sum(v, "views").value,
@@ -136,18 +146,13 @@ function render() {
     endorsement: "Expert / testimonial",
     entertainment: "Entertainment / storytelling",
     imagery_visual: "Imagery / visual",
-    verbal_imagery: "Verbal imagery · study extension",
     mnemonic_devices: "Mnemonic devices",
   };
   $("#execution").innerHTML =
     Object.entries(ex)
       .map(([k, n]) => {
         const assessed = related.filter((v) =>
-          [
-            "present",
-            "absent_after_watching",
-            "not_observed_in_transcript",
-          ].includes(v.label.execution[k]),
+          ["present", "absent_after_watching"].includes(v.label.execution[k]),
         );
         return bar(
           n,
@@ -156,7 +161,7 @@ function render() {
         );
       })
       .join("") +
-    '<p class="small">Present / assessed. “Not observable” is excluded from each denominator.</p>';
+    '<p class="small">Present / assessed. Unknowns and transcript-only non-detections are excluded; absence requires watching.</p>';
   $("#engagement").innerHTML = `<div class="metric-grid">${[
     ["Views", "views"],
     ["Likes", "likes"],
@@ -206,7 +211,7 @@ function renderEvidence() {
       v
         .map((x) => {
           const m = x.engagement;
-          return `<article class="case"><span class="tag">${esc(human(x.classification_status))}</span><span class="tag">Original language: ${esc(x.original_language)}</span><h2>${esc(x.title)}</h2><p>${esc(x.channel)} · ${esc(x.batch)}</p>${x.label ? `<p>${esc(human(x.label.relevance))} · ${esc(human(x.label.context))}</p>${x.label.roles.map((r) => `<span class="tag">${icons[r.role]} ${esc(r.entity)} · ${esc(data.role_labels[r.role])}</span>`).join("")}` : "<p>Substantive labels await human review.</p>"}<div class="metric-grid"><div><b>${num(m.views)}</b><small>Views</small></div><div><b>${num(m.likes)}</b><small>Likes</small></div><div><b>${num(m.total_comments)}</b><small>Total comments</small></div></div><p>Likes / 1,000 views: ${m.likes_per_1000_views == null ? "Unavailable" : m.likes_per_1000_views.toFixed(1)} · Comments / 1,000 views: ${m.comments_per_1000_views == null ? "Unavailable" : m.comments_per_1000_views.toFixed(1)}</p><p class="small">Captured ${esc(m.captured_at || "unknown")} · ${m.age_hours_at_capture == null ? "Age unknown" : m.age_hours_at_capture.toFixed(1) + " hours since publication"} · ${x.retained_comments} comments retained · Shares unavailable.</p><a href="https://www.youtube.com/watch?v=${encodeURIComponent(x.id)}" target="_blank" rel="noopener">Watch source ↗</a></article>`;
+          return `<article class="case"><span class="tag">${esc(human(x.classification_status))}</span><span class="tag">Original language: ${esc(x.original_language)}</span><h2>${esc(x.title)}</h2><p>${esc(x.channel)} · ${esc(x.batch)}</p>${x.label ? `<p>${esc(human(x.label.relevance))} · ${esc(x.label.topics.map((t) => data.topic_labels?.[t] || human(t)).join(" · "))}</p>${x.label.roles.map((r) => `<span class="tag">${icons[r.role]} ${esc(r.entity)} · ${esc(data.role_labels[r.role])}</span>`).join("")}` : "<p>Substantive labels await human review.</p>"}<div class="metric-grid"><div><b>${num(m.views)}</b><small>Views</small></div><div><b>${num(m.likes)}</b><small>Likes</small></div><div><b>${num(m.total_comments)}</b><small>Total comments</small></div></div><p>Likes / 1,000 views: ${m.likes_per_1000_views == null ? "Unavailable" : m.likes_per_1000_views.toFixed(1)} · Comments / 1,000 views: ${m.comments_per_1000_views == null ? "Unavailable" : m.comments_per_1000_views.toFixed(1)}</p><p class="small">Captured ${esc(m.captured_at || "unknown")} · ${m.age_hours_at_capture == null ? "Age unknown" : m.age_hours_at_capture.toFixed(1) + " hours since publication"} · ${x.retained_comments} comments retained · Shares unavailable.</p><a href="https://www.youtube.com/watch?v=${encodeURIComponent(x.id)}" target="_blank" rel="noopener">Watch source ↗</a></article>`;
         })
         .join("") ||
       '<p class="empty">No eligible sources match these filters.</p>'
@@ -264,11 +269,11 @@ async function init() {
       "The data snapshot could not be loaded. Please refresh or check the repository’s publishing status.";
   }
 }
-for (const id of ["batch", "country", "context", "metric"])
+for (const id of ["batch", "country", "topic", "metric"])
   $("#" + id).onchange = render;
 $("#search").oninput = renderEvidence;
 $("#reset").onclick = () => {
-  for (const id of ["batch", "country", "context"]) $("#" + id).value = "all";
+  for (const id of ["batch", "country", "topic"]) $("#" + id).value = "all";
   $("#metric").value = "coverage";
   render();
 };

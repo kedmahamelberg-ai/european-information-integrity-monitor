@@ -10,14 +10,21 @@ const esc = (s) =>
       ],
   );
 const human = (s) =>
+  ({
+    present: "Yes · present (1)",
+    absent_after_watching: "No · absent after watching (0)",
+    not_observed_in_transcript:
+      "Not observed in transcript · absence unverified",
+    not_observable: "Cannot assess from available evidence",
+    not_applicable: "Not applicable",
+  })[s] ||
   String(s)
     .replaceAll("_", " ")
     .replace(/^./, (c) => c.toUpperCase());
 const names = {
-  relevance: "Security / sovereignty relevance",
-  context: "Temporal context",
-  domains: "Security domains",
-  roles: "Country / entity roles",
+  relevance: "Study relevance",
+  topics: "Topics",
+  roles: "Military / security portrayal",
   alignment: "Stance toward video content",
   stance_target: "Stance target in the video",
   sentiment: "Comment sentiment",
@@ -25,8 +32,7 @@ const names = {
   comparative: "Comparative",
   endorsement: "Expert / testimonial endorsement",
   entertainment: "Entertainment / storytelling",
-  imagery_visual: "Imagery / visual (watching required)",
-  verbal_imagery: "Verbal imagery (descriptive narration)",
+  imagery_visual: "Imagery / visual",
   mnemonic_devices: "Mnemonic devices",
 };
 const key = "eiim-hybrid-review-v1";
@@ -91,12 +97,15 @@ function describe(k, v) {
           .map((r) => `${r.entity} · ${P.taxonomy.role_labels[r.role]}`)
           .join("\n")
       : "No evidenced security role";
-  if (k === "domains") return v.length ? v.map(human).join(" · ") : "None";
+  if (k === "topics")
+    return v.length
+      ? v.map((x) => P.taxonomy.topic_labels[x] || human(x)).join(" · ")
+      : "None";
   return human(v);
 }
 function editor(k, v) {
-  if (k === "domains")
-    return `<div class="domain-editor">${P.taxonomy.domains.map((d) => `<label><input type="checkbox" value="${d}" ${v.includes(d) ? "checked" : ""}>${human(d)}</label>`).join("")}</div>`;
+  if (k === "topics")
+    return `<div class="domain-editor">${P.taxonomy.topics.map((d) => `<label><input type="checkbox" value="${d}" ${v.includes(d) ? "checked" : ""}>${esc(P.taxonomy.topic_labels[d] || human(d))}</label>`).join("")}</div>`;
   if (k === "roles")
     return `<div class="roles">${v.map((r) => roleEditor(r)).join("")}</div><button type="button" data-add-role>Add entity role</button>`;
   const cat = k.startsWith("execution:") ? "execution_status" : k;
@@ -158,7 +167,7 @@ function render() {
     m = i.engagement,
     n = (v) => (v == null ? "Unavailable" : Number(v).toLocaleString());
   $("#case").innerHTML =
-    `<section class="card"><p class="eyebrow">${esc(i.batch)} · ${esc(i.model)}</p><h2>${esc(i.title)}</h2><p class="meta">${esc(i.channel)} · Original language: ${esc(i.source_language)} · ${esc(human(i.caption_status || "saved English transcript"))}</p><iframe class="video" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(i.video_id)}?cc_load_policy=1&cc_lang_pref=en" title="${esc(i.title)}" allowfullscreen></iframe><a href="https://www.youtube.com/watch?v=${encodeURIComponent(i.video_id)}" target="_blank" rel="noopener">Watch on YouTube ↗</a><div class="metrics">${[
+    `<section class="card"><p class="eyebrow">${esc(i.batch)} · ${esc(i.model)}</p><h2>${esc(i.title)}</h2><p class="meta">${esc(i.channel)} · Country discussed: ${esc((i.countries || []).map((c) => c.name).join(", ") || "Unidentified")} · Spoken language: ${esc(i.source_language)} · ${esc(human(i.caption_status || "saved English transcript"))}</p><iframe class="video" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(i.video_id)}?cc_load_policy=1&cc_lang_pref=en" title="${esc(i.title)}" allowfullscreen></iframe><a href="https://www.youtube.com/watch?v=${encodeURIComponent(i.video_id)}" target="_blank" rel="noopener">Watch on YouTube ↗</a><div class="metrics">${[
       ["Views", m.views],
       ["Likes", m.likes],
       ["Total comments", m.total_comments],
@@ -167,7 +176,7 @@ function render() {
       .map(([k, v]) => `<div><b>${n(v)}</b><small>${k}</small></div>`)
       .join(
         "",
-      )}</div><p class="meta">Counters captured: ${esc(m.captured_at || "unknown")} · ${i.comments.length} comments retained here. Shares are not publicly available.</p><details><summary>Read English transcript${i.transcript_truncated ? " · AI input truncated" : ""}</summary><div class="transcript">${i.transcript.map((t) => `<p><a href="https://www.youtube.com/watch?v=${encodeURIComponent(i.video_id)}&t=${Math.floor(t.start)}s" target="_blank" rel="noopener">${Math.floor(t.start / 60)}:${String(Math.floor(t.start % 60)).padStart(2, "0")}</a> ${esc(t.text)}</p>`).join("")}</div></details><p>${esc(i.label.rationale)}</p><blockquote>${esc(i.label.evidence.quote)}</blockquote><p class="meta">Portrayal status: ${esc(human(i.label.evidence_status))}. A report or allegation is not independent verification.</p></section>${(
+      )}</div><p class="meta">Counters captured: ${esc(m.captured_at || "unknown")} · ${i.comments.length} comments retained here. Shares are not publicly available.</p><p class="meta">Country is identified from title/description; spoken language alone does not establish country or audience location.</p><details><summary>Original title and description</summary><p>${esc(i.title)}</p><p>${esc(i.description)}</p></details><details><summary>Read English transcript${i.transcript_truncated ? " · AI input truncated" : ""}</summary><div class="transcript">${i.transcript.map((t) => `<p><a href="https://www.youtube.com/watch?v=${encodeURIComponent(i.video_id)}&t=${Math.floor(t.start)}s" target="_blank" rel="noopener">${Math.floor(t.start / 60)}:${String(Math.floor(t.start % 60)).padStart(2, "0")}</a> ${esc(t.text)}</p>`).join("")}</div></details><p>${esc(i.label.rationale)}</p><blockquote>${esc(i.label.evidence.quote)}</blockquote><p class="meta">Portrayal status: ${esc(human(i.label.evidence_status))}. A report or allegation is not independent verification.</p></section>${(
       i.prior_reviews || []
     )
       .map(
@@ -175,7 +184,15 @@ function render() {
           `<details class="card"><summary>Your previous review · ${esc(r.version)}</summary><p>Preserved as calibration feedback. The new AI result still needs an explicit decision.</p>${Object.entries(
             r.human_label,
           )
-            .filter(([k]) => k !== "stance")
+            .filter(
+              ([k]) =>
+                ![
+                  "stance",
+                  "context",
+                  "domains",
+                  "execution:verbal_imagery",
+                ].includes(k),
+            )
             .map(
               ([k, v]) =>
                 `<p><b>${esc(names[k] || names[k.split(":")[1]])}:</b> ${esc(describe(k, v))}</p>`,
@@ -203,7 +220,7 @@ function capture(f, i) {
   if (s.decisions[k] !== "disagree") return;
   const e = f.querySelector(".editor");
   let v;
-  if (k === "domains")
+  if (k === "topics")
     v = [...e.querySelectorAll("input:checked")].map((x) => x.value);
   else if (k === "roles")
     v = [...e.querySelectorAll(".role-editor")].map((r) =>
@@ -230,24 +247,15 @@ function check(i, c) {
   if (!c) {
     if (!s.basis) return "Select the evidence you used.";
     const h = s.values;
-    if (h.relevance !== "related" && (h.domains.length || h.roles.length))
-      return "Clear security domains and roles for an unrelated/unclear video.";
-    if (
-      h.relevance === "related" &&
-      (!h.domains.length || h.context === "not_applicable")
-    )
-      return "Related videos need a security domain and temporal context.";
-    if (h.relevance === "not_related" && h.context !== "not_applicable")
-      return "Set temporal context to Not applicable for unrelated videos.";
+    if (h.relevance !== "related" && (h.topics.length || h.roles.length))
+      return "Clear study topics and roles for an out-of-scope/unclear video.";
+    if (h.relevance === "related" && !h.topics.length)
+      return "Choose at least one topic for a relevant video.";
     for (const k of P.taxonomy.execution) {
       let v = h["execution:" + k];
       if ((v === "not_applicable") === (h.relevance === "related"))
         return "Execution labels apply only to related videos.";
-      if (
-        (v === "absent_after_watching" ||
-          (k === "imagery_visual" && v === "present")) &&
-        s.basis !== "watched_video"
-      )
+      if (v === "absent_after_watching" && s.basis !== "watched_video")
         return "Watch the video before making an audiovisual judgment.";
     }
     if (h.roles.some((r) => !r.entity.trim() || !r.entity_code.trim()))

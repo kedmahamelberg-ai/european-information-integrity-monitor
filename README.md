@@ -8,18 +8,18 @@ A transcript-based research monitor of conflict and hybrid-threat communication 
 
 - Every included video needs a successfully retrieved English transcript/subtitle track. English audio without saved text is not sufficient. Preserve original language and caption/translation provenance.
 - Reclassification uses the frozen source sample, saved captions and retained comments. Caption recovery does not discover new videos or comments.
-- Security/sovereignty relevance is related, not related or unclear. Separate current, historical, hypothetical and mixed contexts. Natural-disaster protection and ordinary political criticism alone are not conflict topics.
+- Security/resource/sovereignty relevance is related, not related or unclear. Topics include water, energy, food security and other essential resource dependencies as well as military and hybrid threats. No temporal classification or security-domains field is used. Scarcity does not establish aggression or intent to invade.
 - Roles are entity-specific, multi-label portrayals: **Defence readiness**, **Force projection & coercion**, **Target of hostile action**. A portrayal or allegation is not verified attribution.
-- Execution adapts Dall’Olio & Vakratsas (2022), Table 5: comparative, endorsement, entertainment, imagery/visual and mnemonic devices. Apply only to security-related videos. Transcript-only models cannot code visual execution. This advertising-derived adaptation is not a validated persuasion/effectiveness scale.
+- Execution adapts Dall’Olio & Vakratsas (2022), Table 5: comparative, endorsement, entertainment, imagery/visual and mnemonic devices. Apply only to security-related videos. Imagery/visual includes vivid descriptive narration; its rationale identifies evidence without adding a subcategory. Unseen footage cannot be inferred. This advertising-derived adaptation is not a validated persuasion/effectiveness scale.
 - Stance applies only to comments, relative to a named claim, policy, action or narrative in the video content. Neutral videos can receive supportive/opposing comments; sentiment and its target are independent. Original comments and saved English translations stay private.
 - Public counters are timestamped views, likes and total comments, with nullable missing values, video age and per-1,000-view ratios. Public shares are unavailable. No combined “engagement” sum or causal claims.
 - Minimum available comments: **2**. Existing collection retains up to 30 from a pool of up to 100 visible top-level comments. This is not the full audience.
 
 ## Workflows
 
-`Sunday research collection` retains the existing discovery/sample design and feeds the conflict taxonomy. `Transcript-based conflict classification` reuses a specified retained batch and attempts public English caption recovery. It never discovers additional videos or retrieves additional comments. Both share the same single-writer concurrency group and $5 weekly model budget.
+`Sunday research collection` retains the existing discovery/sample design and feeds the conflict taxonomy. `Transcript-based conflict classification` reuses a specified retained batch and refreshes counters for existing eligible videos. It never discovers additional videos or retrieves additional comments. Both share the same single-writer concurrency group and $5 weekly model budget.
 
-The Observatory model policy remains `gpt-5-nano`, switching to `gpt-5.6-luna` at 2026-12-10 00:00 UTC. No expensive fallback is configured. Configuration is in `config/review_models.json`; taxonomy in `config/hybrid.json`; prompts in `prompts/hybrid-framing-1.1.txt`.
+The Observatory model policy remains `gpt-5-nano`, switching to `gpt-5.6-luna` at 2026-12-10 00:00 UTC. No expensive fallback is configured. Configuration is in `config/review_models.json`; taxonomy in `config/hybrid.json`; prompts in `prompts/hybrid-framing-1.2.txt`.
 
 ```sh
 PYTHONPATH=src python -m eiim.hybrid --batch 2026-W40 --retrieve-captions
@@ -47,6 +47,6 @@ The public exporter allows source metadata, engagement counters and individually
 - [Mohammad et al. — SemEval 2016 stance detection](https://aclanthology.org/S16-1003/): stance is distinct from sentiment.
 - [YouTube video statistics](https://developers.google.com/youtube/v3/docs/videos#statistics): available public counters.
 
-The country frame, random sampling, inclusion probabilities and original collection timestamps are preserved. Caption availability and visibility-based comment sampling limit generalization. Historical content and current threats must not be pooled without an explicit context filter. Raw observations follow the existing 30-day retention policy.
+The country frame, random sampling, inclusion probabilities and original collection timestamps are preserved. Caption availability and visibility-based comment sampling limit generalization. No temporal label is collected. Historical actor names and dates stay in source evidence; aggregate portrayals must not be presented as current threat estimates. Raw observations follow the existing 30-day retention policy.
 
-The execution codebook includes a separately named sixth category, **verbal imagery**, for transcript-evidenced scene-setting. Clear implicit comparisons of institutions, rights or living conditions also qualify; this is an explicit adaptation beyond the paper’s direct-comparison criterion. Two supplied human reviews inform calibration and remain bound to their original version, not counted as fresh independent validation. `--refresh-engagement` refreshes only counters for retained transcript-eligible IDs and preserves original snapshots.
+The execution codebook has exactly five categories. **Imagery/visual** includes both visual presentation and vivid descriptive narration within the same category; the rationale explains the evidence with no extra subtype. This and clear implicit comparisons are explicit adaptations of the source paper. The paper’s execution categories are binary (1 present / 0 absent), not intensity scales; unavailable evidence is not a verified 0. Earlier human reviews remain under their original version, including the superseded groundwater exclusion. Country metadata use title/description, not language alone. `--refresh-engagement` refreshes only existing eligible IDs, preserving original snapshots.

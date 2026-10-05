@@ -16,7 +16,7 @@ from .review_sampling import plans_for_store, assignment
 from .services import Classifier, Ledger, BudgetExhausted, ClassificationUnavailable
 from .storage import Store, record
 
-VERSION = "hybrid-framing-1.1"
+VERSION = "hybrid-framing-1.2"
 COMMENT_VERSION = "hybrid-comments-1.1"
 
 
@@ -62,8 +62,7 @@ def schema():
     return obj(
         {
             "relevance": enum("relevance"),
-            "context": enum("context"),
-            "domains": {"type": "array", "items": enum("domains")},
+            "topics": {"type": "array", "items": enum("topics")},
             "evidence_status": enum("evidence_status"),
             "evidence": evidence,
             "rationale": string,
@@ -147,14 +146,12 @@ def validate_label(value, document):
                 )
 
     evidence(value["evidence"], value["relevance"] == "related")
-    if value["relevance"] != "related" and (value["domains"] or value["roles"]):
-        raise ValueError("Only related videos can have security domains/roles")
-    if value["relevance"] == "related" and (
-        not value["domains"] or value["context"] == "not_applicable"
-    ):
-        raise ValueError("Related videos require a domain and temporal context")
-    if value["relevance"] == "not_related" and value["context"] != "not_applicable":
-        raise ValueError("Unrelated video context must be not_applicable")
+    if value["relevance"] != "related" and (value["topics"] or value["roles"]):
+        raise ValueError("Only relevant videos can have study topics/roles")
+    if value["relevance"] == "related" and not value["topics"]:
+        raise ValueError("Relevant videos require at least one topic")
+    if len(value["topics"]) != len(set(value["topics"])):
+        raise ValueError("Return unique topics")
     seen = set()
     for role in value["roles"]:
         evidence(role["evidence"], True)
@@ -187,12 +184,6 @@ def validate_label(value, document):
     for x in ex:
         if (x["status"] == "not_applicable") == (value["relevance"] == "related"):
             raise ValueError("Execution applies only to related videos")
-        if (
-            value["relevance"] == "related"
-            and x["category"] == "imagery_visual"
-            and x["status"] != "not_observable"
-        ):
-            raise ValueError("Visual execution cannot be inferred from transcript")
         if x["status"] == "present":
             evidence(x["evidence"], True)
             if not x["evidence"]["source_id"].startswith("transcript"):

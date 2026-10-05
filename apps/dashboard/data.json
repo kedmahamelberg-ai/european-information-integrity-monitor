@@ -1,5 +1,5 @@
 {
-  "version": "hybrid-framing-1.1",
+  "version": "hybrid-framing-1.2",
   "as_of": null,
   "mode": "empty",
   "videos": [],
@@ -9,5 +9,30 @@
     "readiness": "Defence readiness",
     "projecting_power": "Force projection & coercion",
     "under_pressure": "Target of hostile action"
+  },
+  "topic_labels": {
+    "water": "Water",
+    "energy": "Energy",
+    "food_security": "Food security",
+    "critical_minerals_resources": "Critical minerals and resources",
+    "climate_environment": "Climate and environment",
+    "critical_infrastructure": "Critical infrastructure",
+    "health_biosecurity": "Health and biosecurity",
+    "economic_financial_security": "Economic and financial security",
+    "technology_supply_chains": "Technology and supply chains",
+    "cyber": "Cybersecurity",
+    "information_influence": "Information and influence",
+    "political_institutions": "Political institutions",
+    "sovereignty_borders": "Sovereignty, territory and borders",
+    "military_defence": "Military and defence",
+    "armed_conflict": "War and armed conflict",
+    "nuclear_cbrn": "Nuclear, chemical and biological risks",
+    "terrorism_organised_crime": "Terrorism and organised crime",
+    "migration_displacement": "Migration and displacement",
+    "diplomacy_alliances": "Diplomacy and alliances",
+    "maritime_security": "Maritime security",
+    "space_security": "Space security",
+    "civil_protection": "Civil protection and resilience",
+    "other_security": "Other security topic"
   }
 }

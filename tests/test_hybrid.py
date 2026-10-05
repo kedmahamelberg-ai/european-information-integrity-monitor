@@ -23,8 +23,7 @@ def document():
 def label():
     return {
         "relevance": "related",
-        "context": "current",
-        "domains": ["defence_readiness"],
+        "topics": ["military_defence"],
         "evidence_status": "reported",
         "evidence": {
             "quote": "We must prepare our defence.",
@@ -82,11 +81,49 @@ class HybridTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_label(x, document())
 
-    def test_visuals_not_guessed_from_transcript(self):
+    def test_combined_imagery_requires_transcript_evidence(self):
         x = label()
-        x["execution"][3]["status"] = "present"
+        imagery = next(e for e in x["execution"] if e["category"] == "imagery_visual")
+        imagery["status"] = "present"
         with self.assertRaises(ValueError):
             validate_label(x, document())
+        doc = document()
+        doc["sections"].append(
+            {
+                "id": "transcript:1",
+                "text": "A white line glows on the empty square under the lamps.",
+            }
+        )
+        imagery.update(
+            evidence={
+                "source_id": "transcript:1",
+                "quote": "A white line glows on the empty square",
+            },
+            rationale="Descriptive narration creates a mental picture.",
+        )
+        validate_label(x, doc)
+        self.assertEqual(len(x["execution"]), 5)
+        self.assertNotIn("verbal_imagery", config("hybrid")["execution"])
+
+    def test_resource_topic_does_not_require_military_role(self):
+        x, doc = label(), document()
+        doc["sections"].append(
+            {
+                "id": "transcript:1",
+                "text": "Our groundwater is unsafe and its quantity is not infinite.",
+            }
+        )
+        x.update(
+            topics=["water"],
+            roles=[],
+            evidence={
+                "source_id": "transcript:1",
+                "quote": "Our groundwater is unsafe",
+            },
+        )
+        validate_label(x, doc)
+        self.assertNotIn("context", schema()["properties"])
+        self.assertNotIn("domains", schema()["properties"])
 
     def test_neutral_video_allows_comment_stance(self):
         from eiim.hybrid import validate_comments
@@ -94,9 +131,7 @@ class HybridTests(unittest.TestCase):
 
         x, doc = label(), document()
         doc["sections"][0]["text"] = "The deployment began today."
-        x.update(
-            domains=[], roles=[], relevance="not_related", context="not_applicable"
-        )
+        x.update(topics=[], roles=[], relevance="not_related")
         x["evidence"] = {"quote": "", "source_id": ""}
         x["content_reference"] = {
             "summary": "A deployment began today.",
@@ -145,10 +180,10 @@ class HybridTests(unittest.TestCase):
 
     def test_unrelated_no_execution_or_roles(self):
         x = label()
-        x.update(relevance="not_related", context="not_applicable")
+        x.update(relevance="not_related")
         with self.assertRaises(ValueError):
             validate_label(x, document())
-        x.update(domains=[], roles=[])
+        x.update(topics=[], roles=[])
         for e in x["execution"]:
             e["status"] = "not_applicable"
         validate_label(x, document())
@@ -345,7 +380,7 @@ class HumanReviewTests(unittest.TestCase):
         from eiim.hybrid_review import validate_review
 
         item, row = self.review()
-        item["human_label"]["execution:imagery_visual"] = "present"
+        item["human_label"]["execution:imagery_visual"] = "absent_after_watching"
         item["decisions"]["execution:imagery_visual"] = "disagree"
         with self.assertRaises(ValueError):
             validate_review(item, row)
@@ -356,7 +391,7 @@ class HumanReviewTests(unittest.TestCase):
         from eiim.hybrid_review import validate_review
 
         item, row = self.review()
-        item["human_label"]["context"] = "historical"
+        item["human_label"]["topics"] = ["energy"]
         with self.assertRaises(ValueError):
             validate_review(item, row)
 
@@ -427,7 +462,7 @@ class StagedCommentTests(unittest.TestCase):
                 doc = json.loads(text)
                 if kind == "hybrid":
                     assert (
-                        "CONTENT REFERENCE." in prompt and "verbal_imagery:" in prompt
+                        "CONTENT REFERENCE." in prompt and "imagery_visual:" in prompt
                     )
                     self.sizes.append(("video", len(doc["comments"])))
                     x = label()

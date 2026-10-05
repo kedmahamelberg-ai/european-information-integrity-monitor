@@ -8,7 +8,7 @@ from .review_sampling import sample_plan, assignment
 from .storage import record
 from .engagement import engagement
 
-VIDEO_FIELDS = ["relevance", "context", "domains", "roles"]
+VIDEO_FIELDS = ["relevance", "topics", "roles"]
 EXECUTION = config("hybrid")["execution"]
 COMMENT_FIELDS = ["alignment", "stance_target", "sentiment", "sentiment_target"]
 
@@ -37,6 +37,22 @@ def packet(store, batch):
                 "video_id": vid,
                 "title": source["title"],
                 "channel": source.get("channel", ""),
+                "countries": [
+                    {
+                        "code": code,
+                        "name": next(
+                            (
+                                c["country_name"]
+                                for c in config("countries")["countries"]
+                                if c["iso2"] == code
+                            ),
+                            code,
+                        ),
+                    }
+                    for code in source.get("countries", [])
+                ],
+                "country_basis": "title_and_description",
+                "description": source.get("description", ""),
                 "source_language": access["original_language"],
                 "caption_status": access.get("status"),
                 "transcript": access["transcript_english"],
@@ -157,25 +173,20 @@ def validate_review(item, row):
                 "Specify the video content the comment supports or opposes"
             )
     else:
-        if (
-            human["relevance"] not in cfg["relevance"]
-            or human["context"] not in cfg["context"]
+        if human["relevance"] not in cfg["relevance"]:
+            raise ValueError("Invalid video relevance")
+        if not isinstance(human["topics"], list) or any(
+            x not in cfg["topics"] for x in human["topics"]
         ):
-            raise ValueError("Invalid video labels")
-        if not isinstance(human["domains"], list) or any(
-            x not in cfg["domains"] for x in human["domains"]
-        ):
-            raise ValueError("Invalid security domain")
-        if human["relevance"] != "related" and (human["domains"] or human["roles"]):
+            raise ValueError("Invalid topic")
+        if len(human["topics"]) != len(set(human["topics"])):
+            raise ValueError("Duplicate topic")
+        if human["relevance"] != "related" and (human["topics"] or human["roles"]):
             raise ValueError(
-                "Unrelated/unclear videos cannot have security roles/domains"
+                "Out-of-scope/unclear videos cannot have study topics/roles"
             )
-        if human["relevance"] == "related" and (
-            not human["domains"] or human["context"] == "not_applicable"
-        ):
-            raise ValueError("Related videos require a domain and context")
-        if human["relevance"] == "not_related" and human["context"] != "not_applicable":
-            raise ValueError("Unrelated context must be not_applicable")
+        if human["relevance"] == "related" and not human["topics"]:
+            raise ValueError("Relevant videos require a topic")
         if not isinstance(human["roles"], list):
             raise ValueError("Roles must be an array")
         codes = {c["iso2"] for c in config("countries")["countries"]} | {"EU", "OTHER"}
@@ -193,10 +204,7 @@ def validate_review(item, row):
                 raise ValueError("Invalid execution label")
             if (value == "not_applicable") == (human["relevance"] == "related"):
                 raise ValueError("Execution applies only to security-related videos")
-            if (
-                value == "absent_after_watching"
-                or (k == "imagery_visual" and value == "present")
-            ) and item["basis"] != "watched_video":
+            if value == "absent_after_watching" and item["basis"] != "watched_video":
                 raise ValueError("Audiovisual judgment requires watching the video")
     return item
 
