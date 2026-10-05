@@ -86,6 +86,15 @@ class HybridTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_label(x, document())
 
+    def test_repair_feedback_reports_multiple_issues_together(self):
+        x = label()
+        x["evidence"]["quote"] = "Invented quotation"
+        x["execution"][0]["status"] = "not_applicable"
+        with self.assertRaises(ValueError) as error:
+            validate_label(x, document())
+        self.assertIn("evidence: quotation not found", str(error.exception))
+        self.assertIn("comparative: not_applicable is forbidden", str(error.exception))
+
     def test_role_requires_exact_evidence(self):
         x = label()
         x["roles"][0]["evidence"]["quote"] = "invented"

@@ -431,7 +431,14 @@ class Classifier:
             body["temperature"] = self.cfg["temperature"]
         if self.cfg.get("reasoning_effort"):
             body["reasoning_effort"] = self.cfg["reasoning_effort"]
-        for attempt in range(self.cfg["max_attempts"]):
+        # Video outputs contain several independent evidence constraints; allow
+        # bounded repairs while retaining the same model and weekly cost ceiling.
+        attempts = (
+            self.cfg.get("hybrid_max_attempts", 4)
+            if kind == "hybrid"
+            else self.cfg["max_attempts"]
+        )
+        for attempt in range(attempts):
             # Recompute after feedback; repeated source/output tokens also cost money.
             reserve = (len(json.dumps(body).encode()) + 100) * self.cfg[
                 "input_usd_per_million"
@@ -603,7 +610,7 @@ class Classifier:
                         )
                     ],
                 )
-                if attempt + 1 >= self.cfg["max_attempts"]:
+                if attempt + 1 >= attempts:
                     raise ClassificationUnavailable(
                         "Classification failed after bounded attempts"
                     ) from None

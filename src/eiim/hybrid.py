@@ -113,11 +113,12 @@ def validate_shape(value, shape):
 def validate_label(value, document):
     value = copy.deepcopy(value)
     validate_shape(value, schema())
+    errors = []
     sections = {s["id"]: s["text"] for s in document["sections"]}
 
     def evidence(e, required=False, field="evidence"):
         if required and not e["quote"].strip():
-            raise ValueError(field + ": a short exact evidence quotation is required")
+            errors.append(field + ": a short exact evidence quotation is required")
         if e["quote"] and e["quote"] not in sections.get(e["source_id"], ""):
             # Caption lines often omit punctuation or split a sentence. Resolve
             # formatting-only differences to the actual source substring; never
@@ -141,50 +142,47 @@ def validate_label(value, document):
                 if found:
                     break
             if not found:
-                raise ValueError(
+                errors.append(
                     field
                     + ": quotation not found. Replace this field with a SHORT verbatim substring copied from a supplied transcript section and its correct source_id. Do not paraphrase or add/remove words."
                 )
 
     evidence(value["evidence"], value["relevance"] == "related")
     if value["relevance"] != "related" and (value["topics"] or value["roles"]):
-        raise ValueError("Only relevant videos can have study topics/roles")
+        errors.append("Only relevant videos can have study topics/roles")
     if value["relevance"] == "related" and not value["topics"]:
-        raise ValueError("Relevant videos require at least one topic")
+        errors.append("Relevant videos require at least one topic")
     if len(value["topics"]) != len(set(value["topics"])):
-        raise ValueError("Return unique topics")
+        errors.append("Return unique topics")
     seen = set()
     for role in value["roles"]:
         evidence(role["evidence"], True, "roles[" + str(len(seen)) + "].evidence")
         key = (role["entity"].casefold(), role["role"])
         if key in seen or not role["entity"].strip() or not role["rationale"].strip():
-            raise ValueError(
+            errors.append(
                 "Return only ONE entry for each entity + role pair, with nonempty entity and rationale. Sovereign governance is not military readiness evidence."
             )
         seen.add(key)
     reference = value["content_reference"]
     if not reference["summary"].strip():
-        raise ValueError("A neutral video content summary is required")
-    try:
-        evidence(reference["evidence"], True, "content_reference.evidence")
-    except ValueError as error:
-        raise ValueError(
-            "content_reference.evidence needs a short verbatim transcript quote even for not_related videos. "
-            + str(error)
-        ) from error
+        errors.append("A neutral video content summary is required")
+    evidence(reference["evidence"], True, "content_reference.evidence")
     ids = [c["comment_id"] for c in value["comments"]]
     expected = [c["comment_id"] for c in document["comments"]]
     if len(ids) != len(set(ids)) or set(ids) != set(expected):
-        raise ValueError("Return each supplied comment ID exactly once")
-    validate_comment_targets(value["comments"])
+        errors.append("Return each supplied comment ID exactly once")
+    try:
+        validate_comment_targets(value["comments"])
+    except ValueError as error:
+        errors.append(str(error))
     ex = value["execution"]
     if len(ex) != len(config("hybrid")["execution"]) or {
         x["category"] for x in ex
     } != set(config("hybrid")["execution"]):
-        raise ValueError("Return each configured execution category exactly once")
+        errors.append("Return each configured execution category exactly once")
     for x in ex:
         if (x["status"] == "not_applicable") == (value["relevance"] == "related"):
-            raise ValueError(
+            errors.append(
                 x["category"]
                 + ": "
                 + (
@@ -196,7 +194,9 @@ def validate_label(value, document):
         if x["status"] == "present":
             evidence(x["evidence"], True, "execution." + x["category"] + ".evidence")
             if not x["evidence"]["source_id"].startswith("transcript"):
-                raise ValueError("Execution requires transcript evidence")
+                errors.append("Execution requires transcript evidence")
+    if errors:
+        raise ValueError("Validation issues: " + " | ".join(errors))
     return value
 
 
