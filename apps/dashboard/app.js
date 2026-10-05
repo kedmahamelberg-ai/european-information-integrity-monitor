@@ -66,19 +66,17 @@ function render(){
  const v=rows(), all=rows(true,true), coded=v.filter(x=>x.label), related=coded.filter(x=>x.label.relevance==="related"), reviewed=coded.filter(x=>x.classification_status==="human_reviewed"), c=data.collection;
  $("#edition").textContent=data.batches.map(b=>b.id).join(" / ") || "NO BATCH";
  $("#snapshot").textContent=`SNAPSHOT ${new Date(data.as_of).toLocaleString()}`;
- $("#stats").innerHTML=[
- [all.length,"Sampled sources","Whole retained inventory"],
- [coded.length,"Classified sources",`${reviewed.length} human validated · ${coded.length-reviewed.length} AI only`],
- [related.length,"Security related","Transcript-evidenced framing"],
- [v.reduce((n,x)=>n+x.classified_comments,0),"Comments coded","Main-message alignment + sentiment"],
- [all.filter(x=>x.caption_state!=="saved").length,"Awaiting transcripts",`${data.caption_health?.blocked||0} access blocked · ${data.caption_health?.unavailable||0} English unavailable`,"warning"]
- ].map(([n,t,d,cls])=>`<div class="stat ${cls||""}"><span>${t}</span><b>${num(n)}</b><small>${d}</small></div>`).join("");
+ // Repeated weekly observations of one video must not inflate cumulative views.
+ const uniqueRelated=[...related.reduce((m,x)=>{const old=m.get(x.id);if(!old||(x.engagement?.captured_at||'')>(old.engagement?.captured_at||''))m.set(x.id,x);return m;},new Map()).values()];
+ const relevantViews=sum(uniqueRelated,"views"), relevantLikes=sum(uniqueRelated,"likes");
+ $("#stats").innerHTML=`<div class="stat"><span>Security-related videos</span><b>${num(uniqueRelated.length)}</b><small>Classified content in this selection</small></div><div class="stat stat-hero"><span>Views on security-related videos</span><b>${num(relevantViews.value)}</b><small>Lifetime views · ${relevantViews.n}/${uniqueRelated.length} counters available · not unique viewers</small></div><div class="stat"><span>Likes on related videos</span><b>${num(relevantLikes.value)}</b><small>${relevantLikes.n}/${uniqueRelated.length} counters available</small></div>`;
+ $(".coverage-details summary").textContent=`Data coverage · ${c.classified_videos||0} of ${c.sampled_videos||0} sources classified · ${(c.sampled_videos||0)-(c.classified_videos||0)} not yet classified`;
  const country=countries.find(x=>x.iso2===$("#country").value)?.country_name || "Europe";
  $("#focus-title").textContent=country;$("#map-focus").textContent=country.toUpperCase();
  const topics=Object.entries(data.topic_labels||{}).map(([k,n])=>[k,n,related.filter(x=>x.label.topics.includes(k)).length]).filter(x=>x[2]).sort((a,b)=>b[2]-a[2]);
  $("#topics").innerHTML=topics.slice(0,7).map(([k,n,count])=>`<button class="topic-button" data-topic="${esc(k)}"><span>${esc(n)}</span><b>${count}</b></button>`).join("") || '<p class="small">No coded topics for these filters.</p>';
  const lead=topics[0];
- $('#situation-brief').innerHTML=`<strong>WEEK AT A GLANCE</strong><span>${lead?`Most observed topic: <b>${esc(lead[1])}</b> · ${lead[2]} classified sources`:'No classified topic for this selection'}</span><span><b>${related.length}</b> security-related sources · <b>${reviewed.length}</b> human validated</span><span class="amber-text">${c.awaiting_transcript||0} sources await English text</span>`;
+ $('#situation-brief').innerHTML=`<strong>WEEK AT A GLANCE</strong><span>${lead?`Most observed topic: <b>${esc(lead[1])}</b> · ${lead[2]} classified sources`:'No classified topic for this selection'}</span><span><b>${v.reduce((n,x)=>n+(x.classified_comments||0),0)}</b> comments analysed for message alignment and sentiment</span>`;
  const health=data.caption_health||{}, saved=health.saved||c.transcript_eligible||0;
  $("#quality").innerHTML=`<div class="pipeline-line"><span>Sample frozen</span><b>${c.sampled_videos||0}</b></div><div class="pipeline-line"><span>English text saved</span><b>${saved}</b></div><div class="pipeline-meter"><span style="width:${c.sampled_videos?saved/c.sampled_videos*100:0}%"></span></div><div class="pipeline-line warn"><span>Retrieval blocked</span><b>${health.blocked||0}</b></div><div class="pipeline-line warn"><span>No English access found</span><b>${health.unavailable||0}</b></div><div class="pipeline-line"><span>Access unverified</span><b>${health.unverified||0}</b></div><p class="small">GLOBAL PIPELINE · ${c.all_retained_comments||0} comments retained.<br>Weekly collection: Sunday 05:17 UTC.<br>Caption / AI retry: daily 08:41 UTC.<br>AI coding is automatic once English text is saved. Human review is a separate quality sample.</p>`;
  $("#roles").innerHTML=roles.map(r=>`<div class="role" style="color:${colors[r]}"><span class="icon" aria-hidden="true">${icons[r]}</span><div>${esc(data.role_labels?.[r]||human(r))}<small>Sources portraying this role</small></div><b>${related.filter(x=>x.label.roles.some(z=>z.role===r&&($("#country").value==="all"||z.entity_code===$("#country").value))).length}</b></div>`).join("");
