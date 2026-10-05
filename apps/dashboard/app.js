@@ -167,3 +167,7 @@ setInterval(async()=>{
     render();
   }catch{/* Retain the last successfully loaded snapshot during network failures. */}
 },300000);
+
+// Animate a focus reticle between actual country markers, never invented events.
+let scanIndex=0;
+setInterval(()=>{if(document.hidden||matchMedia('(prefers-reduced-motion: reduce)').matches||$('#monitor').hidden)return;const markers=[...document.querySelectorAll('#markers .marker')];if(!markers.length)return;markers.forEach(m=>m.classList.remove('scan-focus'));markers[scanIndex++%markers.length].classList.add('scan-focus');},2200);
