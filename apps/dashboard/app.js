@@ -107,7 +107,7 @@ function renderResponses(v){
 }
 function renderMap(){
  const all=rows(), layer=$('#metric').value, field=$('#response-metric').value;
- const points=countries.map(c=>({...c,...MonitorMap.aggregate(all,c.iso2)})).filter(c=>c.count);
+ const points=countries.map(c=>({...c,...MonitorMap.aggregate(all,c.iso2)})).filter(c=>c.count&&($('#country').value==='all'||$('#country').value===c.iso2));
  const max=Math.max(1,...points.map(c=>c.views.value||0));
  $('#markers').innerHTML=points.map(c=>{
    const [x,y]=project(c.longitude,c.latitude), radius=c.views.value?Math.max(3,32*Math.sqrt(c.views.value/max)):3;
