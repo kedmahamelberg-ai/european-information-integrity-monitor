@@ -48,7 +48,13 @@ def access_records(rows):
             and p.get("policy_version") == POLICY_VERSION
             and p.get("english_access_video_id")
         ):
-            records[(r["batch_id"], p["english_access_video_id"])] = p
+            key = (r["batch_id"], p["english_access_video_id"])
+            previous = records.get(key, {})
+            # A later failed lookup must not erase already saved source evidence.
+            if (previous.get("eligible") and previous.get("transcript_english")
+                    and not (p.get("eligible") and p.get("transcript_english"))):
+                continue
+            records[key] = p
     return records
 
 
@@ -59,7 +65,7 @@ def video_access(video, batch, records):
 def caption_state(access):
     if access.get("eligible") and any(s.get("text", "").strip() for s in access.get("transcript_english", [])):
         return "saved"
-    if access.get("failure_reason") in {"IpBlocked", "RequestBlocked"}:
+    if access.get("failure_reason") in {"IpBlocked", "RequestBlocked", "AudioAccessBlocked"} or access.get("direct_failure_reason") in {"IpBlocked", "RequestBlocked"}:
         return "blocked"
     if access.get("status") == "no_english_captions" or access.get("failure_reason") == "TranscriptsDisabled":
         return "unavailable"
@@ -102,7 +108,7 @@ class EnglishCaptionAccess:
                 [t for t in tracks if primary_language(t.language_code) == "en"],
                 key=lambda t: t.is_generated,
             )
-            choices = [(t, t, False) for t in english]
+            choices = [(t, False) for t in english]
             # User explicitly accepts successful YouTube English auto-translation.
             for t in tracks:
                 if (
@@ -118,9 +124,19 @@ class EnglishCaptionAccess:
                         for x in t.translation_languages
                     )
                 ):
-                    choices.append((t, t.translate("en"), True))
-            for original, translated, auto_translated in choices:
-                fetched = translated.fetch()
+                    choices.append((t, True))
+            failures = []
+            for original, auto_translated in choices:
+                try:
+                    translated = original.translate("en") if auto_translated else original
+                    fetched = translated.fetch()
+                except Exception as error:
+                    reason = type(error).__name__
+                    if reason in {"RequestBlocked", "IpBlocked"}:
+                        self.blocked = reason
+                        return dict(result, failure_reason=reason)
+                    failures.append(reason)
+                    continue
                 segments = fetched.to_raw_data()
                 if not segments or not any(s.get("text", "").strip() for s in segments):
                     continue
@@ -140,6 +156,8 @@ class EnglishCaptionAccess:
                     transcript_language="en",
                     transcript_english=segments,
                 )
+            if failures:
+                return dict(result, failure_reason=failures[-1])
             return dict(
                 result,
                 status="english_audio" if result["eligible"] else "no_english_captions",

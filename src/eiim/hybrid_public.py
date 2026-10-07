@@ -19,6 +19,7 @@ def export_public(store, path):
         "videos": [],
         "inventory": [],
         "caption_health": {},
+        "caption_recovery": [],
         "learning": "Human corrections guide prompts and retained calibration examples; this is not model fine-tuning.",
         "batches": [],
         "status": "human_review_pending",
@@ -69,6 +70,19 @@ def export_public(store, path):
             continue
         candidates = {r["video_id"]: r["payload"] for r in store.read("candidate_videos", batch) if not r.get("purged_at")}
         accesses = access_records(store.read("pipeline_runs", batch))
+        recovery = [r["payload"] for r in store.read("pipeline_runs", batch)
+                    if not r.get("purged_at") and "caption_recovery_report" in r["payload"]]
+        if recovery:
+            latest = max(recovery, key=lambda p: p["checked_at"])
+            health = latest["caption_recovery_report"]
+            output["caption_recovery"].append({
+                "batch": batch, "checked_at": latest["checked_at"],
+                "direct_reader_blocked": health.get("direct_reader_blocked"),
+                "provider_configured": health.get("fallback", {}).get("configured", False),
+                "audio_configured": health.get("audio", {}).get("configured", False),
+                "audio_saved": health.get("audio", {}).get("saved_transcripts", 0),
+                "audio_stopped": health.get("audio", {}).get("stopped"),
+            })
         for sampled_row in store.read("sampled_videos", batch):
             vid = sampled_row["video_id"]
             if vid not in sampled or sampled_row.get("purged_at"):
@@ -152,6 +166,8 @@ def export_public(store, path):
                     "tier": source.get("tier"),
                     "original_language": access["original_language"],
                     "caption_status": access.get("status"),
+                    "transcript_method": access.get("caption_provider", "youtube_captions"),
+                    "transcript_translation": access.get("caption_translation", "none"),
                     "responses": response,
                     "engagement": engagement(source),
                     "retained_comments": sum(x["video_id"] == vid for x in comments),
