@@ -11,7 +11,7 @@
     return [...selected.values()];
   }
   function responses(videos) {
-    const out = {total:0, human_reviewed:0, alignment:{}, sentiment:{}, response_focus:{}};
+    const out = {total:0, human_reviewed:0, alignment:{supports:0,opposes:0,mixed:0,no_position:0,unrelated:0,unclear:0}, sentiment:{positive:0,negative:0,mixed:0,neutral:0,unclear:0}, response_focus:{}};
     for (const v of unique(videos)) {
       const r = v.responses || {};
       out.total += r.total || 0;

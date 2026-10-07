@@ -106,7 +106,7 @@ function renderResponses(v){
  $('#responses').innerHTML=responseLegend(r)+`<p class="small">${r.human_reviewed} human-reviewed · ${r.total-r.human_reviewed} AI-only. Latest saved comments per unique video. Praise of presentation is separate from agreement with the main message. Counts describe retained comments, not population opinion.</p>`;
 }
 function renderMap(){
- const all=rows(false), layer=$('#metric').value, field=$('#response-metric').value;
+ const all=rows(), layer=$('#metric').value, field=$('#response-metric').value;
  const points=countries.map(c=>({...c,...MonitorMap.aggregate(all,c.iso2)})).filter(c=>c.count);
  const max=Math.max(1,...points.map(c=>c.views.value||0));
  $('#markers').innerHTML=points.map(c=>{
