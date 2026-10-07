@@ -22,3 +22,13 @@ class ReviewSamplingTests(unittest.TestCase):
         self.assertNotEqual(
             a["selected_video_ids"], sample_plan("2026-W42", ids)["selected_video_ids"]
         )
+
+    def test_comment_sample_is_independent_and_deduplicated(self):
+        from eiim.review_sampling import comment_plan
+        ids = [str(i) for i in range(315)]
+        a = comment_plan('2026-W41', ids)
+        self.assertEqual(a['target'], 10)
+        self.assertEqual(a, comment_plan('2026-W41', ids[::-1] + ids[:10]))
+        self.assertNotEqual(a['selected_comment_ids'], sample_plan('2026-W41', ids)['selected_video_ids'])
+        self.assertEqual(comment_plan('2026-W41', [])['target'], 0)
+        self.assertEqual(comment_plan('2026-W41', ids[:2])['target'], 2)

@@ -52,3 +52,15 @@ class ClassificationExitTests(unittest.TestCase):
     def test_complete_retrieval_succeeds(self):
         self.assertEqual(self.run_report({"status": "complete",
             "classification_status": "complete", "failures": []}, "--retrieve-captions")[0], 0)
+
+    def test_sunday_hands_pending_acquisition_to_mac_but_preserves_real_failures(self):
+        for classification, errors, expected in [('complete', [], 0), ('pending_budget', [], 1), ('partial', [{'error_type':'ClassificationUnavailable'}], 1)]:
+            report = {'status':'awaiting_transcripts','classification_status':classification,'failures':errors,'coverage':{'awaiting_transcripts':252}}
+            with patch('sys.argv', ['hybrid','--collect']), patch('eiim.hybrid.Store', return_value=MemoryStore()), patch('eiim.hybrid.collect_week', return_value=report), contextlib.redirect_stdout(io.StringIO()) as output:
+                try:
+                    main()
+                    code = 0
+                except SystemExit as e:
+                    code = e.code
+            self.assertEqual(code, expected)
+            self.assertIn('awaiting_transcripts', output.getvalue())

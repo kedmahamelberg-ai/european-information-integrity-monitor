@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from .core import ROOT, config, digest, now
 from .hybrid import VERSION, retained_inputs, labels, latest_labels
-from .review_sampling import sample_plan, assignment
+from .review_sampling import sample_plan, assignment, comment_plan
 from .storage import record
 from .engagement import engagement
 
@@ -62,7 +62,13 @@ def packet(store, batch):
     from .calibration import current_reviews
 
     saved_reviews = current_reviews(store, batch)
-    plan = sample_plan(batch, videos)
+    current = [r for r in latest_labels(labels(store, batch)) if r["video_id"] in videos]
+    plan = sample_plan(batch, [r["video_id"] for r in current])
+    available_comments = {c["comment_id"] for c in comments
+                          if translations.get(c["comment_id"], {}).get("text_english")}
+    comment_audit = comment_plan(batch, [c["comment_id"] for r in current
+                                for c in r["payload"]["label"]["comments"]
+                                if c["comment_id"] in available_comments])
     items = []
     for row in latest_labels(labels(store, batch)):
         vid, p = row["video_id"], row["payload"]
@@ -116,6 +122,7 @@ def packet(store, batch):
                 "comments": [
                     {
                         **c,
+                        "review_selected": c["comment_id"] in comment_audit["selected_comment_ids"],
                         "translation": translations.get(c["comment_id"], {}),
                         "confirmed_review": saved_reviews.get(
                             (row["id"], c["comment_id"])
@@ -145,6 +152,7 @@ def packet(store, batch):
         "version": VERSION,
         "batch": batch,
         "plan": plan,
+        "comment_plan": comment_audit,
         "items": items,
         "taxonomy": config("hybrid"),
         "generated_at": now(),
