@@ -19,7 +19,7 @@ from .model_policy import selected_policy
 from .reclassification import evidence_input
 from .review_sampling import plans_for_store, assignment
 from .services import Classifier, Ledger, BudgetExhausted, ClassificationUnavailable
-from .storage import Store, record
+from .storage import Store, ReadSnapshot, record
 
 VERSION = "hybrid-framing-1.4"
 COMMENT_VERSION = "hybrid-comments-1.3"
@@ -376,6 +376,9 @@ def reclassify(store, batch, classifier=None):
     from .calibration import current_reviews, calibration_examples
 
     reviewed = current_reviews(store, batch)
+    # Human examples stay fixed within this run. Avoid downloading thousands of
+    # retained pipeline records repeatedly for every source being classified.
+    calibration_store = ReadSnapshot(store)
     completed = {r["video_id"]: r for r in latest_labels(labels(store, batch))}
     for vid, (source, language) in sorted(videos.items()):
         existing = completed.get(vid)
@@ -432,7 +435,7 @@ def reclassify(store, batch, classifier=None):
                 }
 
             document["calibration_examples"] = calibration_examples(
-                store, exclude_video_id=vid
+                calibration_store, exclude_video_id=vid
             )
             document["entity_codes"] = {
                 c["country_name"]: c["iso2"] for c in config("countries")["countries"]
