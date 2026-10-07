@@ -88,9 +88,11 @@ function render(){
  $("#execution").innerHTML=Object.entries(ex).map(([k,n])=>{
    const present=related.filter(x=>x.label.execution[k]==="present").length;
    const absent=related.filter(x=>x.label.execution[k]==="absent_after_watching").length;
-   const unknown=related.length-present-absent;
-   return bar(n,present,related.length)+`<p class="execution-coverage small">${present} present · ${absent} confirmed absent · ${unknown} unknown</p>`;
- }).join("")+`<p class="small">Bars show confirmed presence / ${related.length} security-related videos. Unknown is not absence. Categories can overlap.</p>`;
+   const notObserved=related.filter(x=>x.label.execution[k]==="not_observed_in_transcript").length;
+   const unassessable=related.filter(x=>x.label.execution[k]==="not_observable").length;
+   const pending=related.length-present-absent-notObserved-unassessable;
+   return bar(n,present,related.length)+`<p class="execution-coverage small">${present} present · ${notObserved} not observed in text · ${unassessable} cannot assess${absent ? ` · ${absent} confirmed absent after viewing` : ""}${pending ? ` · ${pending} awaiting assessment` : ""}</p>`;
+ }).join("")+`<p class="small">Bars show confirmed presence / ${related.length} security-related videos. Not observed in text does not mean absent from the video. Categories can overlap.</p>`;
  renderResponses(rows());
  $("#engagement").innerHTML=`<div class="metric-grid">${[["Views","views"],["Likes","likes"],["Total comments","total_comments"]].map(([name,k])=>{const s=sum(all,k);return `<div><b>${num(s.value)}</b><small>${name} · ${s.n}/${all.length} counters</small></div>`}).join("")}</div><p class="small">Latest saved counters · shares unavailable · views are not unique people.</p>`;
  $("#data-status").textContent=`${c.classified_videos||0} of ${c.sampled_videos||0} sources classified, including ${c.reviewed_videos||0} human reviewed. ${c.transcript_eligible||0} have usable English text. ${missingText} still need text; ${pendingCoding} have text but await a valid classification. AI results publish provisionally only after evidence and classification checks pass. Human corrections take precedence. This sample does not establish country-level public opinion or a trend.`;
