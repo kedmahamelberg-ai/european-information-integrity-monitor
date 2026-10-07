@@ -1,15 +1,17 @@
 /* Shared map aggregation. Repeated weekly snapshots are not new viewers/comments. */
 (function (root) {
   'use strict';
-  function unique(videos) {
+  function latest(videos) {
     const selected = new Map();
-    for (const video of videos.filter(v => v.label)) {
+    for (const video of videos) {
       const old = selected.get(video.id);
       const stamp = v => `${v.batch || ''}|${v.engagement?.captured_at || ''}`;
       if (!old || stamp(video) > stamp(old)) selected.set(video.id, video);
     }
     return [...selected.values()];
   }
+  function unique(videos) { return latest(videos).filter(v=>v.label); }
+  function markerSize(count, maximum) { return count>0&&maximum>0 ? Math.max(4,18*Math.sqrt(Math.min(count/maximum,1))) : 0; }
   function responses(videos) {
     const out = {total:0, human_reviewed:0, alignment:{supports:0,opposes:0,mixed:0,no_position:0,unrelated:0,unclear:0}, sentiment:{positive:0,negative:0,mixed:0,neutral:0,unclear:0}, response_focus:{}};
     for (const v of unique(videos)) {
@@ -51,7 +53,7 @@
     }).sort((a,b)=>b.count-a.count||a.country_name.localeCompare(b.country_name));
     return {available:true,total,rows};
   }
-  const api = {unique, responses, aggregate, mapCategories, matchingComments, ranking};
+  const api = {latest, unique, markerSize, responses, aggregate, mapCategories, matchingComments, ranking};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.MonitorMap = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

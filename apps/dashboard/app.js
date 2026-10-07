@@ -63,7 +63,7 @@ function bar(name,n,d){return `<div class="bar-row"><span>${esc(name)}</span><di
 function state(v){return v.classification_status==="human_reviewed"?"Human validated":v.label?"AI · provisional":v.caption_state==="saved"?"Awaiting AI coding":v.caption_state==="blocked"?"Captions · access blocked":v.caption_state==="unavailable"?"English captions unavailable":"Captions · unverified";}
 function thumbnail(v){return `https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/mqdefault.jpg`;}
 function render(){
- const v=rows(), all=rows(true,true), coded=v.filter(x=>x.label), related=coded.filter(x=>x.label.relevance==="related"), reviewed=coded.filter(x=>x.classification_status==="human_reviewed"), c=data.collection;
+ const v=MonitorMap.unique(rows()), all=MonitorMap.latest(rows(true,true)), coded=v.filter(x=>x.label), related=coded.filter(x=>x.label.relevance==="related"), reviewed=coded.filter(x=>x.classification_status==="human_reviewed"), c=data.collection;
  $("#edition").textContent=data.batches.map(b=>b.id).join(" / ") || "NO BATCH";
  $("#snapshot").textContent=`SNAPSHOT ${new Date(data.as_of).toLocaleString()}`;
  // Repeated weekly observations of one video must not inflate cumulative views.
@@ -85,8 +85,13 @@ function render(){
  $("#quality").innerHTML=`<div class="pipeline-line"><span>Sample frozen</span><b>${c.sampled_videos||0}</b></div><div class="pipeline-line"><span>English text saved</span><b>${saved}</b></div><div class="pipeline-meter"><span style="width:${c.sampled_videos?saved/c.sampled_videos*100:0}%"></span></div><div class="pipeline-line warn"><span>Retrieval blocked</span><b>${health.blocked||0}</b></div><div class="pipeline-line warn"><span>No English access found</span><b>${health.unavailable||0}</b></div><div class="pipeline-line"><span>Access unverified</span><b>${health.unverified||0}</b></div><p class="small">GLOBAL PIPELINE · ${c.all_retained_comments||0} comments retained.<br>Weekly collection: Sunday 05:17 UTC.<br>Saved-text classification follows recovered evidence.<br>YouTube may block caption requests even when a video has subtitles.<br>${esc(recoveryNote)}<br>AI coding is automatic once English text is saved. Human review is a separate quality sample.</p>`;
  $("#roles").innerHTML=roles.map(r=>`<div class="role" style="color:${colors[r]}"><span class="icon" aria-hidden="true">${icons[r]}</span><div>${esc(data.role_labels?.[r]||human(r))}<small>Sources portraying this role</small></div><b>${related.filter(x=>x.label.roles.some(z=>z.role===r&&($("#country").value==="all"||z.entity_code===$("#country").value))).length}</b></div>`).join("");
  const ex={comparative:"Comparative",endorsement:"Expert / testimonial",entertainment:"Entertainment / storytelling",mnemonic_devices:"Mnemonic devices"};
- $("#execution").innerHTML=Object.entries(ex).map(([k,n])=>{const assessed=related.filter(x=>["present","absent_after_watching"].includes(x.label.execution[k]));return bar(n,assessed.filter(x=>x.label.execution[k]==="present").length,assessed.length)}).join("")+`<p class="small">Present / assessed. Unknowns excluded; absence requires watching. ${related.length} security-related sources. Categories can overlap.</p>`;
- renderResponses(v);
+ $("#execution").innerHTML=Object.entries(ex).map(([k,n])=>{
+   const present=related.filter(x=>x.label.execution[k]==="present").length;
+   const absent=related.filter(x=>x.label.execution[k]==="absent_after_watching").length;
+   const unknown=related.length-present-absent;
+   return bar(n,present,related.length)+`<p class="execution-coverage small">${present} present · ${absent} confirmed absent · ${unknown} unknown</p>`;
+ }).join("")+`<p class="small">Bars show confirmed presence / ${related.length} security-related videos. Unknown is not absence. Categories can overlap.</p>`;
+ renderResponses(rows());
  $("#engagement").innerHTML=`<div class="metric-grid">${[["Views","views"],["Likes","likes"],["Total comments","total_comments"]].map(([name,k])=>{const s=sum(all,k);return `<div><b>${num(s.value)}</b><small>${name} · ${s.n}/${all.length} counters</small></div>`}).join("")}</div><p class="small">Latest saved counters · shares unavailable · views are not unique people.</p>`;
  $("#data-status").textContent=`${c.classified_videos||0} of ${c.sampled_videos||0} sources classified, including ${c.reviewed_videos||0} human reviewed. ${c.transcript_eligible||0} have usable English text. ${missingText} still need text; ${pendingCoding} have text but await a valid classification. AI results publish provisionally only after evidence and classification checks pass. Human corrections take precedence. This sample does not establish country-level public opinion or a trend.`;
  renderMap();renderRanking();renderFeed();renderEvidence();
@@ -102,13 +107,15 @@ function responseLegend(r){
 }
 function renderResponses(v){
  const r=MonitorMap.responses(v);
+ const retained=MonitorMap.latest(v).reduce((n,x)=>n+(x.retained_comments||0),0);
  $('#response-count').textContent=`${num(r.total)} COMMENTS`;
- $('#responses').innerHTML=responseLegend(r)+`<p class="small">${r.human_reviewed} human-reviewed · ${r.total-r.human_reviewed} AI-only. Latest saved comments per unique video. Praise of presentation is separate from agreement with the main message. Counts describe retained comments, not population opinion.</p>`;
+ $('#responses').innerHTML=responseLegend(r)+`<p class="small">${r.human_reviewed} human-reviewed · ${r.total-r.human_reviewed} AI-only. ${Math.max(0,retained-r.total)} retained comments in this selection await classification. Latest saved comments per unique video. Praise of presentation is separate from agreement with the main message. Counts describe retained comments, not population opinion.</p>`;
 }
 function renderMap(){
  const all=rows(), layer=$('#metric').value, field=$('#response-metric').value;
  const points=countries.map(c=>({...c,...MonitorMap.aggregate(all,c.iso2)})).filter(c=>c.count&&($('#country').value==='all'||$('#country').value===c.iso2));
  const max=Math.max(1,...points.map(c=>c.views.value||0));
+ const responseMax=Math.max(1,...points.flatMap(c=>MonitorMap.mapCategories[field].map(k=>c.responses[field][k]||0)));
  $('#markers').innerHTML=points.map(c=>{
    const [x,y]=project(c.longitude,c.latitude), radius=c.views.value?Math.max(3,32*Math.sqrt(c.views.value/max)):3;
    const selected=$('#country').value===c.iso2?'selected':'';
@@ -116,8 +123,9 @@ function renderMap(){
    const video=layer==='comments'?'':`<g class="marker video-marker ${selected}" ${attrs} data-measure="views" aria-label="${esc(c.country_name)}: ${num(c.views.value)} views, ${c.count} classified videos"><title>${esc(c.country_name)} · ${num(c.views.value)} views · ${c.count} classified videos</title><circle class="orbit" r="${radius+5}"/><circle r="${radius}"/><circle class="core" r="2"/></g>`;
    const values=Object.entries(c.responses[field]).filter(([key,n])=>n>0&&MonitorMap.mapCategories[field].includes(key));
    const symbols=layer==='videos'?'':values.map(([key,n],i)=>{
-     const style=responseStyles[key]||responseStyles.unclear, dx=layer==='comments'?((i%3)-1)*17:radius+12+(i%3)*17,dy=layer==='comments'?Math.floor(i/3)*18-7:Math.floor(i/3)*18-9;
-     return `<g class="response-marker ${selected}" ${attrs} data-measure="${field}|${key}" transform="translate(${dx},${dy})" aria-label="${esc(c.country_name)}: ${n} ${esc(human(key))} comments"><title>${esc(c.country_name)} · ${esc(human(key))} · ${n} comments</title><rect x="-8" y="-10" width="16" height="18" fill="#070c0e" fill-opacity=".85"/><text text-anchor="middle" y="5" style="fill:${style.color}">${style.shape}</text></g>`;
+     const style=responseStyles[key]||responseStyles.unclear, size=MonitorMap.markerSize(n,responseMax);
+     const dx=layer==='comments'?0:radius+size+9,dy=(i-(values.length-1)/2)*40;
+     return `<g class="response-marker ${selected}" ${attrs} data-count="${n}" data-size="${size}" data-measure="${field}|${key}" transform="translate(${dx},${dy})" aria-label="${esc(c.country_name)}: ${n} ${esc(human(key))} comments"><title>${esc(c.country_name)} · ${esc(human(key))} · ${n} comments</title><rect x="${-size-2}" y="${-size-2}" width="${size*2+22}" height="${size*2+4}" fill="#070c0e" fill-opacity=".8"/><text class="response-glyph" text-anchor="middle" dominant-baseline="central" style="fill:${style.color};font-size:${size*2}px">${style.shape}</text><text class="response-number" x="${size+3}" y="4">${num(n)}</text></g>`;
    }).join('');
    if(!video&&!symbols)return '';
    return `<g transform="translate(${x},${y})">${video}${symbols}<text class="country-code" x="-7" y="${radius+16}">${c.iso2}</text></g>`;
@@ -193,13 +201,13 @@ function setZoom(){const w=960/zoom,h=650/zoom;$('#map').setAttribute('viewBox',
 $('#zoom-in').onclick=()=>{zoom=Math.min(3,zoom+.25);setZoom();};$('#zoom-out').onclick=()=>{zoom=Math.max(1,zoom-.25);setZoom();};$('#zoom-reset').onclick=()=>{zoom=1;setZoom();};
 window.addEventListener('hashchange',route);init();
 // Pick up new published batches/results without requiring an unattended screen to reload.
-setInterval(async()=>{
+async function refreshSnapshot(){
   if(document.hidden||$('#source-dialog').open||$('#country-dialog').open||$('#camera-list-dialog').open)return;
   try{
     const response=await fetch(`data.json?refresh=${Date.now()}`,{cache:'no-store'});
     if(!response.ok)return;
     const updated=await response.json();
-    if(!Array.isArray(updated.videos)||!Array.isArray(updated.batches)||updated.as_of===data.as_of)return;
+    if(!Array.isArray(updated.videos)||!Array.isArray(updated.batches)||updated.as_of<=data.as_of)return;
     data=updated;
     const coded=new Map(data.videos.map(v=>[v.batch+'|'+v.id,v]));
     inventory=(data.inventory||data.videos).map(v=>({...v,...coded.get(v.batch+'|'+v.id)}));
@@ -207,7 +215,10 @@ setInterval(async()=>{
     for(const b of data.batches)if(!existing.has(b.id))$('#batch').insertAdjacentHTML('beforeend',`<option value="${esc(b.id)}">${esc(b.id)}</option>`);
     render();
   }catch{/* Retain the last successfully loaded snapshot during network failures. */}
-},300000);
+}
+setInterval(refreshSnapshot,300000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSnapshot();});
+window.addEventListener('focus',refreshSnapshot);
 
 // Animate a focus reticle between actual country markers, never invented events.
 let scanIndex=0;

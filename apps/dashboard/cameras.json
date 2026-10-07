@@ -140,6 +140,34 @@
       "status": "live",
       "checked_at": "2026-10-05T15:44:29.829397+00:00",
       "verification": "YouTube liveBroadcastDetails.isLiveNow and playableInEmbed"
+    },
+    {
+      "id": "bremen",
+      "city": "Bremen",
+      "country": "Germany",
+      "country_code": "DE",
+      "view": "Market Square, Town Hall and Roland",
+      "video_id": "SsyiWrkUjy4",
+      "timezone": "Europe/Berlin",
+      "operator": "Visit Bremen",
+      "source_url": "https://www.youtube.com/watch?v=SsyiWrkUjy4",
+      "status": "unverified",
+      "checked_at": null,
+      "verification": "Candidate verified on operator page; live and embedding status checked during publication"
+    },
+    {
+      "id": "warsaw",
+      "city": "Warsaw",
+      "country": "Poland",
+      "country_code": "PL",
+      "view": "City skyline and National Stadium",
+      "video_id": "bb-hTtjpXUA",
+      "timezone": "Europe/Warsaw",
+      "operator": "Warsaw Livestream",
+      "source_url": "https://www.youtube.com/watch?v=bb-hTtjpXUA",
+      "status": "unverified",
+      "checked_at": null,
+      "verification": "Candidate verified on operator page; live and embedding status checked during publication"
     }
   ]
 }
