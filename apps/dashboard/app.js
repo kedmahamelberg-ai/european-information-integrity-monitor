@@ -127,7 +127,7 @@ function renderMap(){
    const symbols=layer==='videos'?'':values.map(([key,n],i)=>{
      const style=responseStyles[key]||responseStyles.unclear, size=MonitorMap.markerSize(n,responseMax);
      const dx=layer==='comments'?0:radius+size+9,dy=(i-(values.length-1)/2)*40;
-     return `<g class="response-marker ${selected}" ${attrs} data-count="${n}" data-size="${size}" data-measure="${field}|${key}" transform="translate(${dx},${dy})" aria-label="${esc(c.country_name)}: ${n} ${esc(human(key))} comments"><title>${esc(c.country_name)} · ${esc(human(key))} · ${n} comments</title><rect x="${-size-2}" y="${-size-2}" width="${size*2+22}" height="${size*2+4}" fill="#070c0e" fill-opacity=".8"/><text class="response-glyph" text-anchor="middle" dominant-baseline="central" style="fill:${style.color};font-size:${size*2}px">${style.shape}</text><text class="response-number" x="${size+3}" y="4">${num(n)}</text></g>`;
+     return `<g class="response-marker ${selected}" ${attrs} data-count="${n}" data-size="${size}" data-measure="${field}|${key}" transform="translate(${dx},${dy})" aria-label="${esc(c.country_name)}: ${n} ${esc(human(key))} comments"><title>${esc(c.country_name)} · ${esc(human(key))} · ${n} comments</title><rect x="${-size-2}" y="${-size-2}" width="${size*2+4}" height="${size*2+4}" fill="#070c0e" fill-opacity=".8"/><text class="response-glyph" text-anchor="middle" dominant-baseline="central" style="fill:${style.color};font-size:${size*2}px">${style.shape}</text></g>`;
    }).join('');
    if(!video&&!symbols)return '';
    return `<g transform="translate(${x},${y})">${video}${symbols}<text class="country-code" x="-7" y="${radius+16}">${c.iso2}</text></g>`;
