@@ -16,7 +16,7 @@ concurrency:
 jobs:
   classify:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
@@ -25,6 +25,7 @@ jobs:
       SUPADATA_API_KEY: ${{ secrets.SUPADATA_API_KEY }}
       EIIM_CAPTION_MONTHLY_REQUEST_LIMIT: ${{ vars.EIIM_CAPTION_MONTHLY_REQUEST_LIMIT || '100' }}
       EIIM_ENABLE_LIVE: ${{ vars.EIIM_ENABLE_LIVE }}
+      EIIM_ENABLE_AUDIO_TRANSCRIPTION: "true"
       REVIEW_BATCH: ${{ inputs.batch }}
     steps:
       - uses: actions/checkout@v4
@@ -39,14 +40,14 @@ jobs:
           done
       - name: Test evidence and review invariants
         run: PYTHONPATH=src python -m unittest discover -s tests -q
-      - name: Install public caption reader
-        run: pip install youtube-transcript-api==1.2.4
+      - name: Install public caption and CPU audio readers
+        run: pip install '.[audio]'
       - name: Reclassify retained sources with English transcripts
         run: |
           if [ -n "$REVIEW_BATCH" ]; then
-            PYTHONPATH=src python -m eiim.hybrid --retrieve-captions --refresh-engagement --batch "$REVIEW_BATCH" > /tmp/hybrid-report.json
+            PYTHONPATH=src python -m eiim.hybrid --retrieve-captions --refresh-engagement --batch "$REVIEW_BATCH" | tee /tmp/hybrid-report.json
           else
-            PYTHONPATH=src python -m eiim.hybrid --retrieve-captions --refresh-engagement > /tmp/hybrid-report.json
+            PYTHONPATH=src python -m eiim.hybrid --all-retained --retrieve-captions --refresh-engagement | tee /tmp/hybrid-report.json
           fi
       - name: Publish run summary even after a partial run
         if: always()

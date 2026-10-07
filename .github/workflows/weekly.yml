@@ -22,6 +22,7 @@ jobs:
       EIIM_CAPTION_MONTHLY_REQUEST_LIMIT: ${{ vars.EIIM_CAPTION_MONTHLY_REQUEST_LIMIT || '100' }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       EIIM_ENABLE_LIVE: ${{ vars.EIIM_ENABLE_LIVE }}
+      EIIM_ENABLE_AUDIO_TRANSCRIPTION: "true"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -33,9 +34,9 @@ jobs:
           PYTHONPATH=src python -m eiim.cli preflight > /tmp/eiim-preflight.json
           python -c 'import json,sys; x=json.load(open("/tmp/eiim-preflight.json")); print(x); sys.exit(0 if x["ready"] else 1)'
       - name: Install collection dependencies
-        run: pip install '.[live]'
+        run: pip install '.[live,audio]'
       - name: Collect and classify completed Amsterdam week
-        run: PYTHONPATH=src python -m eiim.hybrid --collect > run-report.json
+        run: PYTHONPATH=src python -m eiim.hybrid --collect | tee run-report.json
       - name: Publish non-sensitive run report
         if: always()
         run: |
