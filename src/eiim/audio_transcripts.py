@@ -67,6 +67,7 @@ class AudioTranscripts:
         self.started = clock()
         self.attempted = self.saved = self.blocked_attempts = 0
         self.stopped = None
+        self.download_errors = {}
 
     @classmethod
     def from_environment(cls):
@@ -79,7 +80,8 @@ class AudioTranscripts:
                 "attempted_videos": self.attempted, "saved_transcripts": self.saved,
                 "max_videos": self.max_videos, "max_seconds": self.max_seconds,
                 "stopped": self.stopped, "paid_api": False,
-                "authenticated_download": bool(cookie_file())}
+                "authenticated_download": bool(cookie_file()),
+                "download_errors": self.download_errors}
 
     def check(self, video):
         if self.stopped:
@@ -108,12 +110,18 @@ class AudioTranscripts:
                     speech = json.loads(Path(target).read_text())
                     if speech.get("failure_reason"):
                         result["failure_reason"] = speech["failure_reason"]
+                        category = speech.get("audio_download_error")
+                        if category in {"youtube_bot_check", "youtube_sign_in", "http_403", "http_429", "format_unavailable", "javascript_runtime", "private_video", "video_unavailable", "other_download_error"}:
+                            result["audio_download_error"] = category
                     else:
                         result.update(english_result(video, speech))
             except subprocess.TimeoutExpired:
                 result["failure_reason"] = "AudioTimedOut"
             except (OSError, ValueError, TypeError):
                 result["failure_reason"] = "AudioWorkerFailed"
+        category = result.get("audio_download_error")
+        if category:
+            self.download_errors[category] = self.download_errors.get(category, 0) + 1
         reason = result.get("failure_reason")
         if reason in {"AudioAccessBlocked", "AudioDownloadUnavailable"}:
             self.blocked_attempts += 1
@@ -147,7 +155,8 @@ def transcribe_public_audio(video_id, folder):
                "outtmpl": str(Path(folder) / "audio.%(ext)s"),
                "socket_timeout": 15, "retries": 0, "fragment_retries": 0,
                "max_filesize": MAX_BYTES, "quiet": True, "no_warnings": True,
-               "logger": Quiet(), "progress_hooks": [bound]}
+               "logger": Quiet(), "progress_hooks": [bound],
+               "js_runtimes": {"node": {}}}
     try:
         cookies = cookie_file()
         if cookies:
@@ -171,7 +180,16 @@ def transcribe_public_audio(video_id, folder):
     except Exception as error:
         message = str(error).lower()
         blocked = any(s in message for s in ["sign in", "not a bot", "429", "403", "blocked", "private video", "age-restricted"])
-        return {"failure_reason": "AudioAccessBlocked" if blocked else "AudioDownloadUnavailable"}
+        category = "other_download_error"
+        for token, name in [("not a bot", "youtube_bot_check"), ("sign in", "youtube_sign_in"),
+                            ("403", "http_403"), ("429", "http_429"),
+                            ("requested format", "format_unavailable"), ("javascript", "javascript_runtime"),
+                            ("private video", "private_video"), ("unavailable", "video_unavailable")]:
+            if token in message:
+                category = name
+                break
+        return {"failure_reason": "AudioAccessBlocked" if blocked else "AudioDownloadUnavailable",
+                "audio_download_error": category}
     try:
         model = WhisperModel(MODEL, device="cpu", compute_type="int8", cpu_threads=2, num_workers=1)
     except Exception:
