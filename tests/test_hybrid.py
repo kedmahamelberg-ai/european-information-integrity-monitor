@@ -433,6 +433,22 @@ class HumanReviewTests(unittest.TestCase):
 
 
 class StagedCommentTests(unittest.TestCase):
+    def test_video_stage_cannot_classify_calibration_comments(self):
+        from eiim.hybrid import video_input, video_schema
+        source = {"sections": [{"id": "transcript", "text": "Current evidence"}],
+                  "comments": [{"comment_id": "current", "text_english": "Current comment"}],
+                  "calibration_examples": {"videos": [{"title": "Reviewed video"}],
+                                           "comments": [{"text_english": "Unrelated housing comment"}]}}
+        doc = video_input(source)
+        self.assertEqual(doc["comments"], [])
+        self.assertEqual(doc["calibration_examples"]["comments"], [])
+        self.assertEqual(doc["sections"], source["sections"])
+        self.assertEqual(len(doc["calibration_examples"]["videos"]), 1)
+        self.assertEqual(len(source["comments"]), 1)
+        self.assertEqual(len(source["calibration_examples"]["comments"]), 1)
+        self.assertEqual(video_schema()["properties"]["comments"]["maxItems"], 0)
+
+
     def test_comments_batched_independently_and_coverage_preserved(self):
         s = HybridTests().make_transcript_store()
         s.batch({"id": "2026-W40"}, "test")
@@ -495,6 +511,8 @@ class StagedCommentTests(unittest.TestCase):
                 )
                 if kind == "hybrid":
                     assert "CONTENT REFERENCE." in prompt and "entertainment:" in prompt
+                    assert shape["properties"]["comments"]["maxItems"] == 0
+                    assert doc["calibration_examples"]["comments"] == []
                     self.sizes.append(("video", len(doc["comments"])))
                     x = label()
                     x["comments"] = []
