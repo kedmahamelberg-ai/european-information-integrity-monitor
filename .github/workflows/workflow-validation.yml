@@ -6,6 +6,24 @@ on:
 permissions:
   contents: read
 jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Check evidence recovery and classification invariants
+        run: PYTHONPATH=src python -m unittest discover -s tests -q
+      - name: Check dashboard totals and syntax
+        run: |
+          node --check apps/dashboard/app.js
+          node --check apps/dashboard/map-data.js
+          node --check apps/dashboard/live.js
+          node --test tests/*.test.cjs
   validate:
     runs-on: ubuntu-latest
     steps:
