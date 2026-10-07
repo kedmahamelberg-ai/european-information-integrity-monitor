@@ -792,7 +792,10 @@ def main():
             report = reclassify(store, batch)
             reports.append(report)
             print(json.dumps(report, indent=2), flush=True)
-        if any(r["status"] != "complete" for r in reports):
+        # Saved-text classification can finish while acquisition is still pending.
+        # Retrieval runs must continue to report incomplete acquisition as such.
+        status_field = "status" if args.retrieve_captions else "classification_status"
+        if any(r.get(status_field) != "complete" or r.get("failures") for r in reports):
             raise SystemExit(1)
         return
     print(json.dumps(report, indent=2))
