@@ -36,6 +36,7 @@ jobs:
       - name: Install collection dependencies
         run: pip install '.[live,audio]'
       - name: Collect and classify completed Amsterdam week
+        shell: bash
         run: PYTHONPATH=src python -m eiim.hybrid --collect | tee run-report.json
       - name: Publish non-sensitive run report
         if: always()
