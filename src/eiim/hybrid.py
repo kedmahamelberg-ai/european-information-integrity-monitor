@@ -799,7 +799,9 @@ def main():
             raise SystemExit(1)
         return
     print(json.dumps(report, indent=2))
-    if report["status"] != "complete":
+    # Missing acquisition is a visible handoff to the scheduled Mac recovery.
+    # A classification failure or budget stop must still fail the workflow.
+    if report.get("classification_status") != "complete" or report.get("failures"):
         raise SystemExit(1)
 
 

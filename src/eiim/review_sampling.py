@@ -62,3 +62,16 @@ def assignment(plan, video_id):
         "target": plan["target"],
         "selected": video_id in plan["selected_video_ids"],
     }
+
+
+def comment_plan(batch, comment_ids, policy=None):
+    """Independent 3% audit of coded, translated comments, not video clusters."""
+    policy = policy or config("review_sampling")
+    population = sorted(set(comment_ids))
+    target = min(len(population), max(policy["routine_minimum"],
+                 ceil(len(population) * policy["routine_fraction"])))
+    ranked = sorted(population, key=lambda cid: (digest([policy["seed"], batch, "comment", cid]), cid))
+    return {"policy_version": policy["version"], "batch": batch,
+            "population": len(population), "population_hash": digest(population),
+            "target": target, "fraction": policy["routine_fraction"],
+            "minimum": policy["routine_minimum"], "selected_comment_ids": ranked[:target]}
