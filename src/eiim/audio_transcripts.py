@@ -1,9 +1,10 @@
-"""Bounded public-audio recovery. No credentials, proxies or paid speech API."""
+"""Bounded audio recovery, with an optional private YouTube cookie file."""
 
 import json
 import math
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -12,6 +13,7 @@ from pathlib import Path
 
 from .core import now
 from .language_access import declared_access, primary_language
+from .youtube_session import cookie_file
 
 VERSION = "whisper-audio-1.0"
 MODEL = "small"
@@ -76,7 +78,8 @@ class AudioTranscripts:
         return {"configured": True, "provider": "faster-whisper", "model": MODEL,
                 "attempted_videos": self.attempted, "saved_transcripts": self.saved,
                 "max_videos": self.max_videos, "max_seconds": self.max_seconds,
-                "stopped": self.stopped, "paid_api": False}
+                "stopped": self.stopped, "paid_api": False,
+                "authenticated_download": bool(cookie_file())}
 
     def check(self, video):
         if self.stopped:
@@ -88,7 +91,8 @@ class AudioTranscripts:
             return None
         self.attempted += 1
         result = dict(declared_access(video), eligible=False, transcript_checked=True,
-                      audio_recovery_version=VERSION, audio_attempted_at=now())
+                      audio_recovery_version=VERSION, audio_attempted_at=now(),
+                      audio_authenticated=bool(cookie_file()))
         # A process timeout bounds downloads, model loading and CPU transcription.
         # The parent owns this directory so a killed worker cannot leave raw audio.
         with tempfile.TemporaryDirectory(prefix="eiim-audio-") as folder:
@@ -145,6 +149,14 @@ def transcribe_public_audio(video_id, folder):
                "max_filesize": MAX_BYTES, "quiet": True, "no_warnings": True,
                "logger": Quiet(), "progress_hooks": [bound]}
     try:
+        cookies = cookie_file()
+        if cookies:
+            # yt-dlp may update its jar. Keep that private copy inside the
+            # parent's temporary directory, removed even if the worker times out.
+            private_cookie = Path(folder) / 'cookies.txt'
+            shutil.copyfile(cookies, private_cookie)
+            private_cookie.chmod(0o600)
+            options['cookiefile'] = str(private_cookie)
         with yt_dlp.YoutubeDL(options) as downloader:
             info = downloader.extract_info("https://www.youtube.com/watch?v=" + video_id, download=False)
             if info.get("is_live") or info.get("live_status") in {"is_live", "is_upcoming", "post_live"}:

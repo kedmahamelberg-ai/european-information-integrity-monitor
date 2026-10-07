@@ -665,7 +665,9 @@ def retrieve_retained_captions(store, batch, audio=None):
                 result = recovered
         if not result.get("transcript_english") and audio:
             previous_attempt = old.get("audio_attempted_at")
-            due = not previous_attempt or datetime.fromisoformat(previous_attempt) < datetime.now(timezone.utc) - timedelta(hours=24)
+            from .youtube_session import cookie_file
+            new_session = bool(cookie_file()) and not old.get('audio_authenticated')
+            due = new_session or not previous_attempt or datetime.fromisoformat(previous_attempt) < datetime.now(timezone.utc) - timedelta(hours=24)
             if due:
                 recovered = audio.check(source)
                 if recovered is not None:
@@ -674,6 +676,7 @@ def retrieve_retained_captions(store, batch, audio=None):
                     print(json.dumps({"audio_recovery": audio.report()}), flush=True)
             elif previous_attempt:
                 result["audio_attempted_at"] = previous_attempt
+                result["audio_authenticated"] = old.get("audio_authenticated", False)
         # Keep previously known original-language metadata if a track lookup fails.
         if (
             result.get("original_language") == "und"
