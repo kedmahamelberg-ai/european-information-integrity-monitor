@@ -89,7 +89,7 @@ function render(){
  renderResponses(v);
  $("#engagement").innerHTML=`<div class="metric-grid">${[["Views","views"],["Likes","likes"],["Total comments","total_comments"]].map(([name,k])=>{const s=sum(all,k);return `<div><b>${num(s.value)}</b><small>${name} · ${s.n}/${all.length} counters</small></div>`}).join("")}</div><p class="small">Latest saved counters · shares unavailable · views are not unique people.</p>`;
  $("#data-status").textContent=`${c.classified_videos||0} of ${c.sampled_videos||0} sources classified, including ${c.reviewed_videos||0} human reviewed. ${c.transcript_eligible||0} have usable English text. ${missingText} still need text; ${pendingCoding} have text but await a valid classification. AI results publish provisionally only after evidence and classification checks pass. Human corrections take precedence. This sample does not establish country-level public opinion or a trend.`;
- renderMap();renderFeed();renderEvidence();
+ renderMap();renderRanking();renderFeed();renderEvidence();
 }
 const responseStyles={
  supports:{color:'#ffee38',shape:'▲'},opposes:{color:'#ff8c32',shape:'▼'},
@@ -114,7 +114,7 @@ function renderMap(){
    const selected=$('#country').value===c.iso2?'selected':'';
    const attrs=`data-country="${c.iso2}" tabindex="0" role="button"`;
    const video=layer==='comments'?'':`<g class="marker video-marker ${selected}" ${attrs} data-measure="views" aria-label="${esc(c.country_name)}: ${num(c.views.value)} views, ${c.count} classified videos"><title>${esc(c.country_name)} · ${num(c.views.value)} views · ${c.count} classified videos</title><circle class="orbit" r="${radius+5}"/><circle r="${radius}"/><circle class="core" r="2"/></g>`;
-   const values=Object.entries(c.responses[field]).filter(([,n])=>n>0);
+   const values=Object.entries(c.responses[field]).filter(([key,n])=>n>0&&MonitorMap.mapCategories[field].includes(key));
    const symbols=layer==='videos'?'':values.map(([key,n],i)=>{
      const style=responseStyles[key]||responseStyles.unclear, dx=layer==='comments'?((i%3)-1)*17:radius+12+(i%3)*17,dy=layer==='comments'?Math.floor(i/3)*18-7:Math.floor(i/3)*18-9;
      return `<g class="response-marker ${selected}" ${attrs} data-measure="${field}|${key}" transform="translate(${dx},${dy})" aria-label="${esc(c.country_name)}: ${n} ${esc(human(key))} comments"><title>${esc(c.country_name)} · ${esc(human(key))} · ${n} comments</title><rect x="-8" y="-10" width="16" height="18" fill="#070c0e" fill-opacity=".85"/><text text-anchor="middle" y="5" style="fill:${style.color}">${style.shape}</text></g>`;
@@ -123,8 +123,18 @@ function renderMap(){
    return `<g transform="translate(${x},${y})">${video}${symbols}<text class="country-code" x="-7" y="${radius+16}">${c.iso2}</text></g>`;
  }).join('');
  const r=MonitorMap.responses(rows());
- $('#map-key').innerHTML=(layer==='comments'?'':'<span class="video-key">● Classified videos · size follows views</span>')+(layer==='videos'?'':Object.entries(r[field]).filter(([,n])=>n>0).map(([key,n])=>{const style=responseStyles[key]||responseStyles.unclear;return `<span><b style="color:${style.color}">${style.shape}</b> ${esc(human(key))} ${num(n)}</span>`}).join(''));
+ $('#map-key').innerHTML=(layer==='comments'?'':'<span class="video-key">● Classified videos · size follows views</span>')+(layer==='videos'?'':Object.entries(r[field]).filter(([key,n])=>n>0&&MonitorMap.mapCategories[field].includes(key)).map(([key,n])=>{const style=responseStyles[key]||responseStyles.unclear;return `<span><b style="color:${style.color}">${style.shape}</b> ${esc(human(key))} ${num(n)}</span>`}).join(''));
  $('#response-metric').disabled=layer==='videos';
+}
+function renderRanking(){
+ const alignment=$('#rank-alignment').value, sentiment=$('#rank-sentiment').value;
+ const result=MonitorMap.ranking(rows(false),countries,alignment,sentiment);
+ const period=$('#batch').selectedOptions[0].textContent,topic=$('#topic').selectedOptions[0].textContent;
+ $('#ranking-total').textContent=result.available?`${num(result.total)} MATCHING COMMENTS`:'JOINT COUNTS UNAVAILABLE';
+ $('#ranking-context').textContent=`${period} · ${topic}. All countries are ranked, independently of the country selector above. Both filters apply to the same comment.`;
+ if(!result.available){$('#ranking-denominator').textContent='';$('#country-ranking').innerHTML='<p class="small">Combined filters need the updated public snapshot. No intersection is inferred from separate alignment and sentiment totals.</p>';return;}
+ $('#ranking-denominator').textContent=result.total?`Percentage = comments linked to this country ÷ ${num(result.total)} matching comments in this window. A video may mention several countries, so shares overlap and need not sum to 100%. Country mentions are not audience locations.`:'No comments match these filters. Percentages are unavailable, not zero evidence of a response.';
+ $('#country-ranking').innerHTML=result.rows.map((c,i)=>`<div class="ranking-row ${$('#country').value===c.iso2?'rank-selected':''}"><span class="rank-position">${i+1}</span><span class="rank-name">${esc(c.country_name)}</span><div class="ranking-track" aria-hidden="true"><span style="width:${c.percentage||0}%"></span></div><b>${c.percentage===null?'—':c.percentage.toFixed(1)+'%'}</b><span class="rank-count">${num(c.count)} comments</span></div>`).join('');
 }
 function showCountry(code,measure){
  const country=countries.find(c=>c.iso2===code);if(!country)return;
@@ -168,9 +178,11 @@ async function init(){try{
  render();route();
  }catch(e){$('#data-status').textContent='Snapshot unavailable. Please refresh or check the publishing workflow.';console.error(e);}}
 for(const id of ['batch','country','topic','metric','response-metric'])$('#'+id).onchange=render;
+for(const id of ['rank-alignment','rank-sentiment'])$('#'+id).onchange=renderRanking;
+$('#rank-reset').onclick=()=>{$('#rank-alignment').value='all';$('#rank-sentiment').value='all';renderRanking();};
 $('#feed-pause').onclick=()=>{feedPaused=!feedPaused;drawFeed();};
 $('#feed-mode').onchange=renderFeed;$('#search').oninput=renderEvidence;
-$('#reset').onclick=()=>{for(const id of ['batch','country','topic'])$('#'+id).value='all';$('#metric').value='both';$('#response-metric').value='alignment';zoom=1;setZoom();render();};
+$('#reset').onclick=()=>{for(const id of ['batch','country','topic'])$('#'+id).value='all';$('#metric').value='both';$('#response-metric').value='alignment';$('#rank-alignment').value='all';$('#rank-sentiment').value='all';zoom=1;setZoom();render();};
 $('#topics').onclick=e=>{const b=e.target.closest('[data-topic]');if(b){$('#topic').value=b.dataset.topic;render();}};
 $('#markers').onclick=e=>{const el=e.target.closest('[data-country]');if(el){showCountry(el.dataset.country,el.dataset.measure);}};
 $('#markers').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));}};

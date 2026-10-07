@@ -30,7 +30,28 @@
     return {videos:selected, count:selected.length, related:selected.filter(v=>v.label.relevance==='related').length,
       views:counter('views'), likes:counter('likes'), responses:responses(selected)};
   }
-  const api = {unique, responses, aggregate};
+  const mapCategories = {alignment:['supports','opposes'], sentiment:['positive','negative','neutral']};
+  function matchingComments(video, alignment='all', sentiment='all') {
+    const r=video.responses || {};
+    if (alignment==='all' && sentiment==='all') return r.total || 0;
+    if (alignment==='all') return r.sentiment?.[sentiment] || 0;
+    if (sentiment==='all') return r.alignment?.[alignment] || 0;
+    // Separate marginal counts cannot establish the intersection.
+    if (!r.alignment_sentiment && r.total) return null;
+    return r.alignment_sentiment?.[alignment]?.[sentiment] || 0;
+  }
+  function ranking(videos, countries, alignment='all', sentiment='all') {
+    const selected=unique(videos);
+    const counts=selected.map(v=>({video:v,count:matchingComments(v,alignment,sentiment)}));
+    if(counts.some(x=>x.count===null)) return {available:false, rows:[], total:null};
+    const total=counts.reduce((n,x)=>n+x.count,0);
+    const rows=countries.map(c=>{
+      const count=counts.filter(x=>x.video.countries?.includes(c.iso2)).reduce((n,x)=>n+x.count,0);
+      return {...c,count,percentage:total?count/total*100:null};
+    }).sort((a,b)=>b.count-a.count||a.country_name.localeCompare(b.country_name));
+    return {available:true,total,rows};
+  }
+  const api = {unique, responses, aggregate, mapCategories, matchingComments, ranking};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.MonitorMap = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

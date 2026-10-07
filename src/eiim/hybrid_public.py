@@ -219,11 +219,15 @@ def comment_summary(row, reviews):
     """Counts only: never publish comment text, usernames or quoted evidence."""
     counts = {k: Counter() for k in ["alignment", "sentiment", "response_focus"]}
     reviewed = 0
+    joint = {}
     comments = row["payload"]["label"].get("comments", []) if row else []
     for ai in comments:
         review = reviews.get((row["id"], ai["comment_id"]))
         value = review["human_label"] if review else ai
         reviewed += bool(review)
+        alignment = value.get("alignment", "unclear")
+        sentiment = value.get("sentiment", "unclear")
+        joint.setdefault(alignment, Counter())[sentiment] += 1
         for field in counts:
             counts[field][value.get(field, "unclear")] += 1
-    return {**{k: dict(v) for k, v in counts.items()}, "total": len(comments), "human_reviewed": reviewed, "ai_only": len(comments) - reviewed}
+    return {**{k: dict(v) for k, v in counts.items()}, "alignment_sentiment": {k: dict(v) for k, v in joint.items()}, "total": len(comments), "human_reviewed": reviewed, "ai_only": len(comments) - reviewed}
