@@ -256,6 +256,20 @@ def repair_evidence_options(document, parsed):
     return list(selected.values())[:16]
 
 
+def video_schema():
+    shape = schema()
+    shape["properties"]["comments"].update(minItems=0, maxItems=0)
+    return shape
+
+
+def video_input(document):
+    # Examples teach coding; their comments are never current source evidence.
+    return dict(document, comments=[], calibration_examples={
+        "videos": document.get("calibration_examples", {}).get("videos", []),
+        "comments": [],
+    })
+
+
 def comment_schema(ids=None):
     shape = obj({"comments": schema()["properties"]["comments"]})
     if ids is not None:
@@ -466,11 +480,11 @@ def reclassify(store, batch, classifier=None):
             )
             if ident in done:
                 continue
-            video_document = dict(document, comments=[])
+            video_document = video_input(document)
             result = classifier.request(
                 json.dumps(video_document, ensure_ascii=False),
-                prompt,
-                schema(),
+                prompt + "\nVIDEO-ONLY STAGE. Return comments=[] exactly. Classify only the current video sections. Calibration examples are separate historical examples, never current comments or current evidence.\n",
+                video_schema(),
                 "hybrid",
             )
             label = validate_label(result["parsed"], video_document)
