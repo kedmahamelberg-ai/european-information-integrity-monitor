@@ -19,7 +19,7 @@ from eiim.audio_transcripts import AudioTranscripts
 from eiim.core import digest
 from eiim.storage import record
 
-URL = 'https://kedmahamelberg-ai.github.io/european-information-integrity-monitor/data.json'
+URL = 'https://monitor.hamelberg-ai.com/data.json'
 
 def retained(batch, today):
     if not re.fullmatch(r'\d{4}-W\d{2}', batch):
