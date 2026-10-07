@@ -16,6 +16,11 @@ class ClassificationExitTests(unittest.TestCase):
         self.assertIn('grep -q \'"error_type": "ClassificationUnavailable"\'', workflow)
         self.assertIn("Never\n          # repeat caption/audio retrieval", workflow)
 
+    def test_completed_classification_triggers_publication(self):
+        site = (Path(__file__).parents[1] / ".github/workflows/site.yml").read_text()
+        self.assertIn('"Classify saved Monitor evidence"', site)
+        self.assertNotIn('"Transcript-based conflict classification"', site)
+
     def run_report(self, report, *options):
         store = MemoryStore()
         store.write("2026-W40", [record("sampled_videos", "2026-W40", "sample:v",
