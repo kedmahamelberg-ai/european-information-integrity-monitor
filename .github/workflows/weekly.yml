@@ -23,7 +23,6 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       EIIM_ENABLE_LIVE: ${{ vars.EIIM_ENABLE_LIVE }}
       EIIM_ENABLE_AUDIO_TRANSCRIPTION: "true"
-      EIIM_YOUTUBE_COOKIE_FILE: ${{ runner.temp }}/eiim-youtube-cookies.txt
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -36,6 +35,8 @@ jobs:
           python -c 'import json,sys; x=json.load(open("/tmp/eiim-preflight.json")); print(x); sys.exit(0 if x["ready"] else 1)'
       - name: Install collection dependencies
         run: pip install '.[live,audio]'
+      - name: Set private session path on runner
+        run: echo "EIIM_YOUTUBE_COOKIE_FILE=$RUNNER_TEMP/eiim-youtube-cookies.txt" >> "$GITHUB_ENV"
       - name: Prepare private YouTube session
         env:
           EIIM_YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES_TXT }}

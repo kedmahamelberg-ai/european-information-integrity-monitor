@@ -26,7 +26,6 @@ jobs:
       EIIM_CAPTION_MONTHLY_REQUEST_LIMIT: ${{ vars.EIIM_CAPTION_MONTHLY_REQUEST_LIMIT || '100' }}
       EIIM_ENABLE_LIVE: ${{ vars.EIIM_ENABLE_LIVE }}
       EIIM_ENABLE_AUDIO_TRANSCRIPTION: "true"
-      EIIM_YOUTUBE_COOKIE_FILE: ${{ runner.temp }}/eiim-youtube-cookies.txt
       REVIEW_BATCH: ${{ inputs.batch }}
     steps:
       - uses: actions/checkout@v4
@@ -43,6 +42,8 @@ jobs:
         run: PYTHONPATH=src python -m unittest discover -s tests -q
       - name: Install public caption and CPU audio readers
         run: pip install '.[audio]'
+      - name: Set private session path on runner
+        run: echo "EIIM_YOUTUBE_COOKIE_FILE=$RUNNER_TEMP/eiim-youtube-cookies.txt" >> "$GITHUB_ENV"
       - name: Prepare private YouTube session
         env:
           EIIM_YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES_TXT }}
