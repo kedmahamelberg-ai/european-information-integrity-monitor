@@ -44,6 +44,9 @@ jobs:
         run: pip install '.[audio]'
       - name: Set private session path on runner
         run: echo "EIIM_YOUTUBE_COOKIE_FILE=$RUNNER_TEMP/eiim-youtube-cookies.txt" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
       - name: Prepare private YouTube session
         env:
           EIIM_YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES_TXT }}
@@ -52,9 +55,9 @@ jobs:
         shell: bash
         run: |
           if [ -n "$REVIEW_BATCH" ]; then
-            PYTHONPATH=src python -m eiim.hybrid --retrieve-captions --refresh-engagement --batch "$REVIEW_BATCH" | tee /tmp/hybrid-report.json
+            PYTHONPATH=src python -m eiim.hybrid --retrieve-captions --batch "$REVIEW_BATCH" | tee /tmp/hybrid-report.json
           else
-            PYTHONPATH=src python -m eiim.hybrid --all-retained --retrieve-captions --refresh-engagement | tee /tmp/hybrid-report.json
+            PYTHONPATH=src python -m eiim.hybrid --all-retained --retrieve-captions | tee /tmp/hybrid-report.json
           fi
       - name: Remove private YouTube session
         if: always()

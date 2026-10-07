@@ -37,6 +37,9 @@ jobs:
         run: pip install '.[live,audio]'
       - name: Set private session path on runner
         run: echo "EIIM_YOUTUBE_COOKIE_FILE=$RUNNER_TEMP/eiim-youtube-cookies.txt" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
       - name: Prepare private YouTube session
         env:
           EIIM_YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES_TXT }}
