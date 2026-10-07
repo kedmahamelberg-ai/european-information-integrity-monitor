@@ -396,8 +396,8 @@ def reclassify(store, batch, classifier=None):
     completed = {r["video_id"]: r for r in latest_labels(labels(store, batch))}
     for vid, (source, language) in sorted(videos.items()):
         existing = completed.get(vid)
-        if existing and (existing["id"], None) in reviewed:
-            continue  # Never overwrite a completed human review during retries.
+        if existing and any(key[0] == existing["id"] for key in reviewed):
+            continue  # Preserve independently reviewed comments as well as videos.
         selected = sorted(
             [c for c in comments if c["video_id"] == vid], key=lambda c: c["comment_id"]
         )
