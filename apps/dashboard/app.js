@@ -77,12 +77,12 @@ function render(){
  const topics=Object.entries(data.topic_labels||{}).map(([k,n])=>[k,n,related.filter(x=>x.label.topics.includes(k)).length]).filter(x=>x[2]).sort((a,b)=>b[2]-a[2]);
  $("#topics").innerHTML=topics.slice(0,7).map(([k,n,count])=>`<button class="topic-button" data-topic="${esc(k)}"><span>${esc(n)}</span><b>${count}</b></button>`).join("") || '<p class="small">No coded topics for these filters.</p>';
  const lead=topics[0];
- $('#situation-brief').innerHTML=`<strong>WEEK AT A GLANCE</strong><span>${lead?`Most observed topic: <b>${esc(lead[1])}</b> · ${lead[2]} classified sources`:'No classified topic for this selection'}</span><span><b>${v.reduce((n,x)=>n+(x.classified_comments||0),0)}</b> comments analysed for message alignment and sentiment</span>`;
+ $('#situation-brief').innerHTML=`<strong>WEEK AT A GLANCE</strong><span>${lead?`Most observed topic: <b>${esc(lead[1])}</b> · ${lead[2]} classified sources`:'No classified topic for this selection'}</span><span><b>${MonitorMap.responses(v).total}</b> comments analysed for message alignment and sentiment</span>`;
  const health=data.caption_health||{}, saved=health.saved||c.transcript_eligible||0;
  const recovery=data.caption_recovery||[], audio=recovery.some(x=>x.audio_configured);
  const stopped=recovery.some(x=>x.audio_stopped==='audio_access_unavailable');
- const recoveryNote=stopped?'Public audio retrieval is also blocked. These sources remain unclassified until evidence can be retrieved.':audio?'Automatic audio transcription is enabled. Work resumes in bounded daily runs.':'Audio recovery has not run in this snapshot.';
- $("#quality").innerHTML=`<div class="pipeline-line"><span>Sample frozen</span><b>${c.sampled_videos||0}</b></div><div class="pipeline-line"><span>English text saved</span><b>${saved}</b></div><div class="pipeline-meter"><span style="width:${c.sampled_videos?saved/c.sampled_videos*100:0}%"></span></div><div class="pipeline-line warn"><span>Retrieval blocked</span><b>${health.blocked||0}</b></div><div class="pipeline-line warn"><span>No English access found</span><b>${health.unavailable||0}</b></div><div class="pipeline-line"><span>Access unverified</span><b>${health.unverified||0}</b></div><p class="small">GLOBAL PIPELINE · ${c.all_retained_comments||0} comments retained.<br>Weekly collection: Sunday 05:17 UTC.<br>Caption / AI retry: daily 08:41 UTC.<br>YouTube may block caption requests even when a video has subtitles.<br>${esc(recoveryNote)}<br>AI coding is automatic once English text is saved. Human review is a separate quality sample.</p>`;
+ const recoveryNote=stopped?'Public audio retrieval is also blocked. These sources remain unclassified until evidence can be retrieved.':audio?'Automatic audio transcription is enabled. Missing audio can be recovered in bounded Sunday runs on the configured Mac.':'Audio recovery has not run in this snapshot.';
+ $("#quality").innerHTML=`<div class="pipeline-line"><span>Sample frozen</span><b>${c.sampled_videos||0}</b></div><div class="pipeline-line"><span>English text saved</span><b>${saved}</b></div><div class="pipeline-meter"><span style="width:${c.sampled_videos?saved/c.sampled_videos*100:0}%"></span></div><div class="pipeline-line warn"><span>Retrieval blocked</span><b>${health.blocked||0}</b></div><div class="pipeline-line warn"><span>No English access found</span><b>${health.unavailable||0}</b></div><div class="pipeline-line"><span>Access unverified</span><b>${health.unverified||0}</b></div><p class="small">GLOBAL PIPELINE · ${c.all_retained_comments||0} comments retained.<br>Weekly collection: Sunday 05:17 UTC.<br>Saved-text classification follows recovered evidence.<br>YouTube may block caption requests even when a video has subtitles.<br>${esc(recoveryNote)}<br>AI coding is automatic once English text is saved. Human review is a separate quality sample.</p>`;
  $("#roles").innerHTML=roles.map(r=>`<div class="role" style="color:${colors[r]}"><span class="icon" aria-hidden="true">${icons[r]}</span><div>${esc(data.role_labels?.[r]||human(r))}<small>Sources portraying this role</small></div><b>${related.filter(x=>x.label.roles.some(z=>z.role===r&&($("#country").value==="all"||z.entity_code===$("#country").value))).length}</b></div>`).join("");
  const ex={comparative:"Comparative",endorsement:"Expert / testimonial",entertainment:"Entertainment / storytelling",mnemonic_devices:"Mnemonic devices"};
  $("#execution").innerHTML=Object.entries(ex).map(([k,n])=>{const assessed=related.filter(x=>["present","absent_after_watching"].includes(x.label.execution[k]));return bar(n,assessed.filter(x=>x.label.execution[k]==="present").length,assessed.length)}).join("")+`<p class="small">Present / assessed. Unknowns excluded; absence requires watching. ${related.length} security-related sources. Categories can overlap.</p>`;
@@ -91,24 +91,48 @@ function render(){
  $("#data-status").textContent=`${c.classified_videos||0} of ${c.sampled_videos||0} sources classified, including ${c.reviewed_videos||0} human reviewed. ${c.transcript_eligible||0} have usable English text. ${missingText} still need text; ${pendingCoding} have text but await a valid classification. AI results publish provisionally only after evidence and classification checks pass. Human corrections take precedence. This sample does not establish country-level public opinion or a trend.`;
  renderMap();renderFeed();renderEvidence();
 }
+const responseStyles={
+ supports:{color:'#ffee38',shape:'▲'},opposes:{color:'#ff8c32',shape:'▼'},
+ positive:{color:'#3ce7ef',shape:'◆'},negative:{color:'#ff69ad',shape:'✕'},
+ mixed:{color:'#c58aff',shape:'■'},neutral:{color:'#f5f5ea',shape:'◇'},
+ no_position:{color:'#c4cad4',shape:'□'},unrelated:{color:'#98a8bb',shape:'+'},unclear:{color:'#a6b6b1',shape:'?'}
+};
+function responseLegend(r){
+ return [['alignment','Alignment with main message'],['sentiment','Comment sentiment']].map(([k,title])=>`<div class="response-title">${title}</div><div class="response-legend">${Object.entries(r[k]).map(([key,n])=>{const style=responseStyles[key]||responseStyles.unclear;return `<span><span class="response-symbol" style="color:${style.color}">${style.shape}</span> ${esc(human(key))} <b>${num(n)}</b></span>`}).join('')||'No classified comments'}</div>`).join('');
+}
 function renderResponses(v){
- const totals={alignment:{},sentiment:{},response_focus:{}};let n=0,h=0;
- for(const x of v){const r=x.responses||{};n+=r.total||0;h+=r.human_reviewed||0;for(const k of Object.keys(totals))for(const [val,count]of Object.entries(r[k]||{}))totals[k][val]=(totals[k][val]||0)+count;}
- $("#response-count").textContent=`${n} COMMENTS`;
- const palette={supports:"#b9ee74",opposes:"#f17a69",no_position:"#647a95",unrelated:"#647a95",mixed:"#efb85b",unclear:"#788b83",not_applicable:"#647a95",positive:"#61d7bc",negative:"#f17a69",neutral:"#93a393"};
- $("#responses").innerHTML=[['alignment','Alignment with main message'],['sentiment','Comment sentiment']].map(([k,title])=>`<div class="response-title">${title}</div><div class="response-bars">${Object.entries(totals[k]).map(([key,count])=>`<span style="width:${n?count/n*100:0}%;background:${palette[key]||'#9baa88'}" title="${esc(human(key))}: ${count}"></span>`).join('')}</div><div class="response-legend">${Object.entries(totals[k]).map(([key,count])=>`<span><span style="color:${palette[key]||'#9baa88'}">●</span> ${esc(human(key))} <b>${count}</b></span>`).join('')||'No classified comments'}</div>`).join('')+`<p class="small">${h} human-reviewed · ${n-h} AI-only. Praise of presentation is separate from agreement with the main message. Counts describe retained comments, not population opinion.</p>`;
+ const r=MonitorMap.responses(v);
+ $('#response-count').textContent=`${num(r.total)} COMMENTS`;
+ $('#responses').innerHTML=responseLegend(r)+`<p class="small">${r.human_reviewed} human-reviewed · ${r.total-r.human_reviewed} AI-only. Latest saved comments per unique video. Praise of presentation is separate from agreement with the main message. Counts describe retained comments, not population opinion.</p>`;
 }
 function renderMap(){
- const all=rows(false,true), metric=$("#metric").value;
- $("#markers").innerHTML=countries.map(c=>{
- const relevant=all.filter(v=>v.countries.includes(c.iso2));
- const matching=metric==='coverage'?relevant:metric==='related'?relevant.filter(v=>v.label?.relevance==='related'):all.filter(v=>v.label?.relevance==='related'&&v.label.roles.some(r=>r.entity_code===c.iso2&&r.role===metric));
- const n=matching.length;if(!n)return '';
- const ready=relevant.filter(v=>v.label).length, colour=metric==='coverage'?(ready?'#b9ee74':'#efb85b'):colors[metric];
- const [x,y]=project(c.longitude,c.latitude),r=Math.sqrt(n)*4+5;
- return `<g class="marker ${$("#country").value===c.iso2?'selected':''}" style="color:${colour}" transform="translate(${x},${y})" tabindex="0" role="button" data-country="${c.iso2}" aria-label="${esc(c.country_name)}: ${n} sources"><title>${esc(c.country_name)} · ${n} sources · ${ready} classified</title><circle r="${r+5}" class="orbit"/><circle r="${r}"/><circle r="3" class="core"/><text x="${r+5}" y="3">${c.iso2} ${n}</text></g>`;
+ const all=rows(), layer=$('#metric').value, field=$('#response-metric').value;
+ const points=countries.map(c=>({...c,...MonitorMap.aggregate(all,c.iso2)})).filter(c=>c.count&&($('#country').value==='all'||$('#country').value===c.iso2));
+ const max=Math.max(1,...points.map(c=>c.views.value||0));
+ $('#markers').innerHTML=points.map(c=>{
+   const [x,y]=project(c.longitude,c.latitude), radius=c.views.value?Math.max(3,32*Math.sqrt(c.views.value/max)):3;
+   const selected=$('#country').value===c.iso2?'selected':'';
+   const attrs=`data-country="${c.iso2}" tabindex="0" role="button"`;
+   const video=layer==='comments'?'':`<g class="marker video-marker ${selected}" ${attrs} data-measure="views" aria-label="${esc(c.country_name)}: ${num(c.views.value)} views, ${c.count} classified videos"><title>${esc(c.country_name)} · ${num(c.views.value)} views · ${c.count} classified videos</title><circle class="orbit" r="${radius+5}"/><circle r="${radius}"/><circle class="core" r="2"/></g>`;
+   const values=Object.entries(c.responses[field]).filter(([,n])=>n>0);
+   const symbols=layer==='videos'?'':values.map(([key,n],i)=>{
+     const style=responseStyles[key]||responseStyles.unclear, dx=layer==='comments'?((i%3)-1)*17:radius+12+(i%3)*17,dy=layer==='comments'?Math.floor(i/3)*18-7:Math.floor(i/3)*18-9;
+     return `<g class="response-marker ${selected}" ${attrs} data-measure="${field}|${key}" transform="translate(${dx},${dy})" aria-label="${esc(c.country_name)}: ${n} ${esc(human(key))} comments"><title>${esc(c.country_name)} · ${esc(human(key))} · ${n} comments</title><rect x="-8" y="-10" width="16" height="18" fill="#070c0e" fill-opacity=".85"/><text text-anchor="middle" y="5" style="fill:${style.color}">${style.shape}</text></g>`;
+   }).join('');
+   if(!video&&!symbols)return '';
+   return `<g transform="translate(${x},${y})">${video}${symbols}<text class="country-code" x="-7" y="${radius+16}">${c.iso2}</text></g>`;
  }).join('');
- $("#map-key").innerHTML=metric==='coverage'?'<span style="color:#b9ee74">● Country has classified sources</span><span style="color:#efb85b">● No sources classified yet · see data coverage</span>':`<span style="color:${colors[metric]}">● ${esc($("#metric").selectedOptions[0].textContent)}</span><span>Only evidenced security-related portrayals</span>`;
+ const r=MonitorMap.responses(rows());
+ $('#map-key').innerHTML=(layer==='comments'?'':'<span class="video-key">● Classified videos · size follows views</span>')+(layer==='videos'?'':Object.entries(r[field]).filter(([,n])=>n>0).map(([key,n])=>{const style=responseStyles[key]||responseStyles.unclear;return `<span><b style="color:${style.color}">${style.shape}</b> ${esc(human(key))} ${num(n)}</span>`}).join(''));
+ $('#response-metric').disabled=layer==='videos';
+}
+function showCountry(code,measure){
+ const country=countries.find(c=>c.iso2===code);if(!country)return;
+ const result=MonitorMap.aggregate(rows(false),code), r=result.responses;
+ const period=$('#batch').selectedOptions[0].textContent, topic=$('#topic').selectedOptions[0].textContent;
+ const focus=measure==='views'?`${num(result.views.value)} lifetime views`: (()=>{const [field,key]=(measure||'').split('|');return `${num(r[field]?.[key]||0)} comments · ${human(key)}`;})();
+ $('#country-detail').innerHTML=`<span class="eyebrow">${esc(code)} / ${esc(period)} / ${esc(topic)}</span><h2 id="country-title">${esc(country.country_name)}</h2><p class="country-highlight">${esc(focus)}</p><div class="country-metrics"><div><b>${num(result.count)}</b><small>Unique classified videos</small></div><div><b>${num(result.related)}</b><small>Security-related videos</small></div><div><b>${num(result.views.value)}</b><small>Lifetime views · ${result.views.n}/${result.count} counters</small></div><div><b>${num(result.likes.value)}</b><small>Likes · ${result.likes.n}/${result.count} counters</small></div><div><b>${num(r.total)}</b><small>Classified comments</small></div><div><b>${num(r.human_reviewed)}</b><small>Human-reviewed comments</small></div></div>${responseLegend(r)}<p class="small">Country mentions in the selected content, not audience location. A video may mention several countries, so country totals overlap. All retained weeks use one latest snapshot per video. Lifetime views are not unique people or views gained during this window. Data are retained for 30 days.</p>`;
+ $('#country-dialog').showModal();
 }
 function renderFeed(){const mode=$("#feed-mode").value;
  const sorted=rows(true,true).filter(x=>mode==='all'||(mode==='coded'?x.label:!x.label)).sort((a,b)=>Number(!!b.label)-Number(!!a.label)||(b.engagement?.views||0)-(a.engagement?.views||0));
@@ -143,21 +167,22 @@ async function init(){try{
  $('#topic').insertAdjacentHTML('beforeend',Object.entries(data.topic_labels||{}).map(([c,n])=>`<option value="${esc(c)}">${esc(n)}</option>`).join(''));
  render();route();
  }catch(e){$('#data-status').textContent='Snapshot unavailable. Please refresh or check the publishing workflow.';console.error(e);}}
-for(const id of ['batch','country','topic','metric'])$('#'+id).onchange=render;
+for(const id of ['batch','country','topic','metric','response-metric'])$('#'+id).onchange=render;
 $('#feed-pause').onclick=()=>{feedPaused=!feedPaused;drawFeed();};
 $('#feed-mode').onchange=renderFeed;$('#search').oninput=renderEvidence;
-$('#reset').onclick=()=>{for(const id of ['batch','country','topic'])$('#'+id).value='all';$('#metric').value='coverage';zoom=1;setZoom();render();};
+$('#reset').onclick=()=>{for(const id of ['batch','country','topic'])$('#'+id).value='all';$('#metric').value='both';$('#response-metric').value='alignment';zoom=1;setZoom();render();};
 $('#topics').onclick=e=>{const b=e.target.closest('[data-topic]');if(b){$('#topic').value=b.dataset.topic;render();}};
-$('#markers').onclick=e=>{const el=e.target.closest('[data-country]');if(el){$('#country').value=el.dataset.country;render();}};
+$('#markers').onclick=e=>{const el=e.target.closest('[data-country]');if(el){showCountry(el.dataset.country,el.dataset.measure);}};
 $('#markers').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));}};
 for(const id of ['source-feed','evidence-table'])$('#'+id).onclick=e=>{const b=e.target.closest('[data-source]');if(b)showSource(b.dataset.source);};
+$('#close-country').onclick=()=>$('#country-dialog').close();
 $('#close-source').onclick=()=>$('#source-dialog').close();$('#source-dialog').addEventListener('close',()=>$('#source-detail').innerHTML='');
 function setZoom(){const w=960/zoom,h=650/zoom;$('#map').setAttribute('viewBox',`${(960-w)/2} ${(650-h)/2} ${w} ${h}`);}
 $('#zoom-in').onclick=()=>{zoom=Math.min(3,zoom+.25);setZoom();};$('#zoom-out').onclick=()=>{zoom=Math.max(1,zoom-.25);setZoom();};$('#zoom-reset').onclick=()=>{zoom=1;setZoom();};
 window.addEventListener('hashchange',route);init();
 // Pick up new published batches/results without requiring an unattended screen to reload.
 setInterval(async()=>{
-  if(document.hidden||$('#source-dialog').open||$('#camera-list-dialog').open)return;
+  if(document.hidden||$('#source-dialog').open||$('#country-dialog').open||$('#camera-list-dialog').open)return;
   try{
     const response=await fetch(`data.json?refresh=${Date.now()}`,{cache:'no-store'});
     if(!response.ok)return;

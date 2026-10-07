@@ -24,7 +24,7 @@ if "--live" in sys.argv:
     refresh(out / "cameras.json", os.environ.get("YOUTUBE_API_KEY"))
 # Bind code, styles and the data snapshot to one deployment revision.
 revision = hashlib.sha256(
-    b"".join((out / name).read_bytes() for name in ["app.js", "live.js", "style.css", "data.json", "cameras.json"])
+    b"".join((out / name).read_bytes() for name in ["map-data.js", "app.js", "live.js", "style.css", "data.json", "cameras.json"])
 ).hexdigest()[:16]
 page = out / "index.html"
 html = page.read_text().replace(
@@ -34,5 +34,6 @@ html = html.replace('src="app.js"', f'src="app.js?v={revision}"').replace(
     'href="style.css"', f'href="style.css?v={revision}"'
 )
 html = html.replace('src="live.js"', f'src="live.js?v={revision}"')
+html = html.replace('src="map-data.js"', f'src="map-data.js?v={revision}"')
 page.write_text(html)
 print("Public website built in build/")

@@ -72,7 +72,9 @@
     "maritime_security": "Maritime security",
     "space_security": "Space security",
     "civil_protection": "Civil protection and resilience",
-    "other_security": "Other security topic"
+    "other_security": "Other security topic",
+    "artificial_intelligence": "Artificial intelligence and sovereignty",
+    "bioweapons": "Biological weapons"
   },
   "topics": [
     "water",
@@ -97,7 +99,9 @@
     "maritime_security",
     "space_security",
     "civil_protection",
-    "other_security"
+    "other_security",
+    "artificial_intelligence",
+    "bioweapons"
   ],
   "response_focus": [
     "main_message",

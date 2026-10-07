@@ -1,7 +1,5 @@
 name: Transcript-based conflict classification
 on:
-  schedule:
-    - cron: "41 8 * * *"
   workflow_dispatch:
     inputs:
       batch:

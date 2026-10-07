@@ -36,7 +36,8 @@ jobs:
         run: |
           node --check apps/dashboard/app.js
           node --check apps/dashboard/live.js
-          node --test tests/camera-rotation.test.cjs
+          node --check apps/dashboard/map-data.js
+          node --test tests/*.test.cjs
       - name: Build public export
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
