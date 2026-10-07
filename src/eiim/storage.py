@@ -1,6 +1,7 @@
 """Service-role-only Supabase RPC client; no public access to raw observations."""
 
-import json, os, urllib.request, urllib.error
+import copy
+import json, os, time, urllib.request, urllib.error
 from .core import digest
 
 
@@ -24,13 +25,28 @@ class Store:
             data=json.dumps(args, ensure_ascii=False).encode(),
             headers=headers,
         )
-        try:
-            with urllib.request.urlopen(req, timeout=60) as response:
-                return json.load(response)
-        except urllib.error.HTTPError as e:
-            raise RuntimeError(
-                f"Supabase RPC {name} failed (HTTP {e.code}); no source data or credentials logged"
-            ) from None
+        # Reads are safe to retry. Never blindly repeat a mutation whose outcome
+        # is unknown, and never print a response body or authorization headers.
+        attempts = 3 if name in {"eiim_read", "eiim_progress"} else 1
+        for attempt in range(attempts):
+            try:
+                with urllib.request.urlopen(req, timeout=60) as response:
+                    return json.load(response)
+            except urllib.error.HTTPError as e:
+                if e.code in {429, 500, 502, 503, 504} and attempt + 1 < attempts:
+                    e.close()
+                    time.sleep(2 ** attempt)
+                    continue
+                raise RuntimeError(
+                    f"Supabase RPC {name} failed (HTTP {e.code}); no source data or credentials logged"
+                ) from None
+            except (urllib.error.URLError, TimeoutError):
+                if attempt + 1 < attempts:
+                    time.sleep(2 ** attempt)
+                    continue
+                raise RuntimeError(
+                    f"Supabase RPC {name} failed (network unavailable); no source data or credentials logged"
+                ) from None
 
     def batch(self, window, config_hash):
         return self.rpc(
@@ -64,6 +80,20 @@ def record(table, batch, id, payload, video_id=None):
             "payload_hash": digest(payload),
         },
     }
+
+
+class ReadSnapshot:
+    """Explicit, run-scoped read cache for immutable calibration inputs only."""
+
+    def __init__(self, store):
+        self.store = store
+        self.rows = {}
+
+    def read(self, table, batch=None):
+        key = (table, batch)
+        if key not in self.rows:
+            self.rows[key] = self.store.read(table, batch)
+        return copy.deepcopy(self.rows[key])
 
 
 class MemoryStore:
