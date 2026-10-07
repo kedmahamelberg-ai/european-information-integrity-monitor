@@ -448,6 +448,48 @@ class StagedCommentTests(unittest.TestCase):
         self.assertEqual(len(source["calibration_examples"]["comments"]), 1)
         self.assertEqual(video_schema()["properties"]["comments"]["maxItems"], 0)
 
+    def test_video_stage_bounds_long_transcript_without_changing_source(self):
+        from eiim.hybrid import video_input, VIDEO_TRANSCRIPT_CHAR_LIMIT
+
+        sections = [{"id": "title", "text": "A long programme"}]
+        sections.extend(
+            {"id": f"transcript:{n}", "text": (str(n) + " exact words ") * 80}
+            for n in range(40)
+        )
+        sections.append(
+            {
+                "id": "transcript",
+                "text": " ".join(s["text"] for s in sections[1:]),
+            }
+        )
+        source = {
+            "sections": sections,
+            "comments": [],
+            "calibration_examples": {"videos": [], "comments": []},
+            "transcript_truncated": False,
+            "transcript_segments_included": 40,
+        }
+
+        compact = video_input(source)
+
+        segment_text = [
+            s["text"]
+            for s in compact["sections"]
+            if s["id"].startswith("transcript:")
+        ]
+        self.assertLessEqual(
+            sum(map(len, segment_text)), VIDEO_TRANSCRIPT_CHAR_LIMIT + len(segment_text[-1])
+        )
+        self.assertLess(len(segment_text), 40)
+        self.assertTrue(compact["transcript_truncated"])
+        self.assertEqual(compact["transcript_segments_included"], len(segment_text))
+        self.assertEqual(
+            next(s["text"] for s in compact["sections"] if s["id"] == "transcript"),
+            " ".join(segment_text),
+        )
+        self.assertEqual(len(source["sections"]), 42)
+        self.assertFalse(source["transcript_truncated"])
+
 
     def test_comments_batched_independently_and_coverage_preserved(self):
         s = HybridTests().make_transcript_store()
