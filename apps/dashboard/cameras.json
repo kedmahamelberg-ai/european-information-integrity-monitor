@@ -168,6 +168,62 @@
       "status": "unverified",
       "checked_at": null,
       "verification": "Candidate verified on operator page; live and embedding status checked during publication"
+    },
+    {
+      "id": "siberia-tour",
+      "city": "Siberia camera tour",
+      "country": "Russia",
+      "country_code": "RU",
+      "view": "Rotating public webcams across Siberia",
+      "video_id": "tHf8xbUNlTU",
+      "timezone": "Asia/Novosibirsk",
+      "operator": "Cam Nomad",
+      "source_url": "https://www.youtube.com/watch?v=tHf8xbUNlTU",
+      "status": "unverified",
+      "checked_at": null,
+      "verification": "Candidate supplied by project owner; live and embedding status checked during publication"
+    },
+    {
+      "id": "saint-petersburg-nevsky",
+      "city": "Saint Petersburg",
+      "country": "Russia",
+      "country_code": "RU",
+      "view": "Nevsky Avenue and Gostiny Dvor",
+      "video_id": "w_Dg2vC0tUE",
+      "timezone": "Europe/Moscow",
+      "operator": "Mobotix Webcams Russia | Marathon to 100k",
+      "source_url": "https://www.youtube.com/watch?v=w_Dg2vC0tUE",
+      "status": "unverified",
+      "checked_at": null,
+      "verification": "Candidate supplied by project owner; live and embedding status checked during publication"
+    },
+    {
+      "id": "lisbon-airport",
+      "city": "Lisbon",
+      "country": "Portugal",
+      "country_code": "PT",
+      "view": "Lisbon Airport",
+      "video_id": "zVNOlDHh4lk",
+      "timezone": "Europe/Lisbon",
+      "operator": "AVIAÇÃO TV",
+      "source_url": "https://www.youtube.com/watch?v=zVNOlDHh4lk",
+      "status": "unverified",
+      "checked_at": null,
+      "verification": "Candidate supplied by project owner; live and embedding status checked during publication"
+    },
+    {
+      "id": "venice-guglie",
+      "city": "Venice",
+      "country": "Italy",
+      "country_code": "IT",
+      "view": "Ponte delle Guglie",
+      "video_id": "mt7uE-n0YPI",
+      "timezone": "Europe/Rome",
+      "operator": "I Love You Venice",
+      "source_url": "https://www.youtube.com/watch?v=mt7uE-n0YPI",
+      "status": "unverified",
+      "checked_at": null,
+      "verification": "Candidate supplied by project owner; live and embedding status checked during publication"
     }
   ]
 }
