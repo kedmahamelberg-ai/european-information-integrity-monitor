@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       batch:
-        description: Retained batch ID (blank selects latest)
+        description: Retained batch ID (blank resumes all retained batches)
         required: false
         type: string
 permissions:
@@ -43,6 +43,7 @@ jobs:
       - name: Install public caption and CPU audio readers
         run: pip install '.[audio]'
       - name: Reclassify retained sources with English transcripts
+        shell: bash
         run: |
           if [ -n "$REVIEW_BATCH" ]; then
             PYTHONPATH=src python -m eiim.hybrid --retrieve-captions --refresh-engagement --batch "$REVIEW_BATCH" | tee /tmp/hybrid-report.json
