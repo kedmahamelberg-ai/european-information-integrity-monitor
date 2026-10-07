@@ -22,6 +22,8 @@ if "--live" in sys.argv:
 if "--live" in sys.argv:
     from check_cameras import refresh
     refresh(out / "cameras.json", os.environ.get("YOUTUBE_API_KEY"))
+from check_public_counts import check
+check(json.loads((out / "data.json").read_text()))
 # Bind code, styles and the data snapshot to one deployment revision.
 revision = hashlib.sha256(
     b"".join((out / name).read_bytes() for name in ["map-data.js", "app.js", "live.js", "style.css", "data.json", "cameras.json"])
