@@ -26,6 +26,7 @@ jobs:
       EIIM_CAPTION_MONTHLY_REQUEST_LIMIT: ${{ vars.EIIM_CAPTION_MONTHLY_REQUEST_LIMIT || '100' }}
       EIIM_ENABLE_LIVE: ${{ vars.EIIM_ENABLE_LIVE }}
       EIIM_ENABLE_AUDIO_TRANSCRIPTION: "true"
+      EIIM_YOUTUBE_COOKIE_FILE: ${{ runner.temp }}/eiim-youtube-cookies.txt
       REVIEW_BATCH: ${{ inputs.batch }}
     steps:
       - uses: actions/checkout@v4
@@ -42,6 +43,10 @@ jobs:
         run: PYTHONPATH=src python -m unittest discover -s tests -q
       - name: Install public caption and CPU audio readers
         run: pip install '.[audio]'
+      - name: Prepare private YouTube session
+        env:
+          EIIM_YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES_TXT }}
+        run: PYTHONPATH=src python -m eiim.youtube_session
       - name: Reclassify retained sources with English transcripts
         shell: bash
         run: |
@@ -50,6 +55,9 @@ jobs:
           else
             PYTHONPATH=src python -m eiim.hybrid --all-retained --retrieve-captions --refresh-engagement | tee /tmp/hybrid-report.json
           fi
+      - name: Remove private YouTube session
+        if: always()
+        run: PYTHONPATH=src python -m eiim.youtube_session cleanup
       - name: Publish run summary even after a partial run
         if: always()
         run: |
