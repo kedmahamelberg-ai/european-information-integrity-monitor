@@ -6,7 +6,7 @@ A transcript-based research monitor of conflict and hybrid-threat communication 
 
 ## Evidence rules
 
-- Every included video needs a successfully retrieved English transcript/subtitle track. English audio without saved text is not sufficient. Preserve original language and caption/translation provenance.
+- Every included video needs saved English text from retrieved captions or automatic public-audio transcription. English audio without saved text is not sufficient. Preserve original language and caption/translation provenance.
 - Reclassification uses the frozen source sample, saved captions and retained comments. Caption recovery does not discover new videos or comments.
 - Security/resource/sovereignty relevance is related, not related or unclear. Topics include water, energy, food security and other essential resource dependencies as well as military and hybrid threats. No temporal classification or security-domains field is used. Scarcity does not establish aggression or intent to invade.
 - Roles are entity-specific, multi-label portrayals: **Defence readiness**, **Force projection & coercion**, **Target of hostile action**. A portrayal or allegation is not verified attribution.
@@ -93,3 +93,18 @@ The optional Supadata fallback is configured by adding `SUPADATA_API_KEY` to rep
 The free provider plan currently includes 100 requests/month. It cannot clear a 305-video backlog or support approximately 315 new videos each week. Paid capacity requires a separate user decision. Verify current terms at https://supadata.ai/pricing. Activate with a small trial first; then raise the repository cap only to match approved capacity. See [caption setup](docs/CAPTION-SETUP.md).
 
 Run reports now distinguish `classification_status` for videos with saved evidence from overall `status` and full-sample `coverage`. A run with missing transcripts reports `awaiting_transcripts`, even if every eligible video was classified. Human review remains a separate quality sample and is never a classification gate.
+
+
+## Audio recovery, 7 October 2026
+
+The 315-source retained batch had 288 blocked caption requests, 17 without usable English captions and only 10 saved transcripts. All ten were already classified. `RequestBlocked` / `IpBlocked` describe failed acquisition, not a request for manual coding and not proof that the video has no subtitles. The optional Supadata key was not configured.
+
+Both scheduled workflows now try public captions, the optional bounded native-caption provider, then **Faster Whisper small on CPU** (`EIIM_ENABLE_AUDIO_TRANSCRIPTION=true`). This adapts the research notebook's captions-to-audio fallback. It uses no paid speech API, account cookies, proxy, geolocation override or disabled TLS checks. A failed subtitle track no longer prevents trying another available track. Public audio access may also be blocked; after three consecutive access/download failures the run stops audio attempts and reports that limitation.
+
+Recovery is capped at 80 attempted videos or 45 minutes per invocation, with a 15-minute worker timeout (so the final worker may extend the recovery window). Each audio file must be no longer than two hours and no larger than 256 MiB. Temporary audio is removed on success, failure and timeout. Live/upcoming videos are excluded. No video/camera footage is retained or published. Only timestamps, English text and provenance enter the existing private, 30-day evidence store.
+
+Whisper's multilingual model translates non-English speech into English and records the detected language separately from the publisher's original-language metadata. Automatic speech recognition/translation can be wrong. Low-confidence language detection, malformed timestamps, empty output, fewer than 20 words and heavily repetitive output do not qualify. Low-quality speech segments are removed and the evidence is explicitly marked incomplete; the classifier may not infer absence from missing material. These are conservative quality gates, not a claim that the transcript is human-verified. The public source detail identifies Whisper evidence.
+
+Saved transcripts are reused. Untouched sources are attempted before previous failures; failed audio attempts wait at least 24 hours. The daily workflow resumes all unpurged retained batches, newest first, rather than abandoning last week's backlog. The shared run cap applies across those batches. Captions, audio and classification status remain distinct; incomplete coverage still reports failure instead of falsely claiming full completion. Logs now retain the acquisition report as well as the GitHub summary. Human reviews and the existing $5 per-batch AI ceiling are preserved.
+
+Validation includes live public-audio retrieval and a 101-second English-source transcription, plus regression tests for blocked-reader recovery, interrupted workers, restart reuse, malformed/repetitive output, translation provenance and alternate caption tracks. Local success does not establish availability from a GitHub-hosted IP; verify each Actions report's `audio` and `coverage` fields. If both caption and audio requests are blocked, obtaining an authorized transcript provider or running recovery on a network with public media access remains necessary.
