@@ -8,6 +8,11 @@ on:
         description: Retained batch ID (blank resumes all retained batches)
         required: false
         type: string
+      classification_only:
+        description: Classify saved text only (skip blocked caption and audio retrieval)
+        required: false
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -27,6 +32,7 @@ jobs:
       EIIM_ENABLE_LIVE: ${{ vars.EIIM_ENABLE_LIVE }}
       EIIM_ENABLE_AUDIO_TRANSCRIPTION: "true"
       REVIEW_BATCH: ${{ inputs.batch }}
+      REVIEW_CLASSIFICATION_ONLY: ${{ inputs.classification_only }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -48,16 +54,21 @@ jobs:
         with:
           node-version: "24"
       - name: Prepare private YouTube session
+        if: inputs.classification_only != true
         env:
           EIIM_YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES_TXT }}
         run: PYTHONPATH=src python -m eiim.youtube_session
       - name: Reclassify retained sources with English transcripts
         shell: bash
         run: |
+          recovery=()
+          if [ "$REVIEW_CLASSIFICATION_ONLY" != "true" ]; then
+            recovery+=(--retrieve-captions)
+          fi
           if [ -n "$REVIEW_BATCH" ]; then
-            PYTHONPATH=src python -m eiim.hybrid --retrieve-captions --batch "$REVIEW_BATCH" | tee /tmp/hybrid-report.json
+            PYTHONPATH=src python -m eiim.hybrid "${recovery[@]}" --batch "$REVIEW_BATCH" | tee /tmp/hybrid-report.json
           else
-            PYTHONPATH=src python -m eiim.hybrid --all-retained --retrieve-captions | tee /tmp/hybrid-report.json
+            PYTHONPATH=src python -m eiim.hybrid --all-retained "${recovery[@]}" | tee /tmp/hybrid-report.json
           fi
       - name: Remove private YouTube session
         if: always()
