@@ -1,6 +1,7 @@
 """CLI exit codes distinguish saved-text work from incomplete acquisition."""
 import contextlib
 import io
+from pathlib import Path
 import unittest
 from unittest.mock import patch
 
@@ -9,6 +10,12 @@ from eiim.storage import MemoryStore, record
 
 
 class ClassificationExitTests(unittest.TestCase):
+    def test_workflow_retries_only_validation_failures_without_retrieval(self):
+        workflow = (Path(__file__).parents[1] / ".github/workflows/classification-review.yml").read_text()
+        self.assertIn("run_classification saved-text", workflow)
+        self.assertIn('grep -q \'"error_type": "ClassificationUnavailable"\'', workflow)
+        self.assertIn("Never\n          # repeat caption/audio retrieval", workflow)
+
     def run_report(self, report, *options):
         store = MemoryStore()
         store.write("2026-W40", [record("sampled_videos", "2026-W40", "sample:v",
