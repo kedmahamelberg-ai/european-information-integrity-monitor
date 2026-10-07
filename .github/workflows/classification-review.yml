@@ -1,4 +1,4 @@
-name: Transcript-based conflict classification
+name: Classify saved Monitor evidence
 on:
   workflow_dispatch:
     inputs:
@@ -59,15 +59,37 @@ jobs:
       - name: Reclassify retained sources with English transcripts
         shell: bash
         run: |
-          recovery=()
+          run_classification() {
+            recovery=()
+            if [ "$1" = "retrieve" ]; then
+              recovery+=(--retrieve-captions)
+            fi
+            if [ -n "$REVIEW_BATCH" ]; then
+              PYTHONPATH=src python -m eiim.hybrid "${recovery[@]}" --batch "$REVIEW_BATCH" | tee /tmp/hybrid-report.json
+            else
+              PYTHONPATH=src python -m eiim.hybrid --all-retained "${recovery[@]}" | tee /tmp/hybrid-report.json
+            fi
+            return "${PIPESTATUS[0]}"
+          }
+
+          first_mode=saved-text
           if [ "$REVIEW_CLASSIFICATION_ONLY" != "true" ]; then
-            recovery+=(--retrieve-captions)
+            first_mode=retrieve
           fi
-          if [ -n "$REVIEW_BATCH" ]; then
-            PYTHONPATH=src python -m eiim.hybrid "${recovery[@]}" --batch "$REVIEW_BATCH" | tee /tmp/hybrid-report.json
-          else
-            PYTHONPATH=src python -m eiim.hybrid --all-retained "${recovery[@]}" | tee /tmp/hybrid-report.json
+          set +e
+          run_classification "$first_mode"
+          first_status=$?
+          set -e
+          if [ "$first_status" -eq 0 ]; then
+            exit 0
           fi
+          if ! grep -q '"error_type": "ClassificationUnavailable"' /tmp/hybrid-report.json; then
+            exit "$first_status"
+          fi
+          echo '::warning::Some evidence labels failed validation. Retrying only unfinished saved-text classifications once.'
+          # Completed records are immutable and skipped by the second pass. Never
+          # repeat caption/audio retrieval merely because classification failed.
+          run_classification saved-text
       - name: Remove private YouTube session
         if: always()
         run: PYTHONPATH=src python -m eiim.youtube_session cleanup
