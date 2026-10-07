@@ -9,7 +9,7 @@ on:
       [
         "Sunday research collection",
         "Refresh comments under corrected minimum",
-        "Transcript-based conflict classification",
+        "Classify saved Monitor evidence",
       ]
     types: [completed]
 permissions:
