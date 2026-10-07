@@ -70,7 +70,8 @@ function render(){
  const uniqueRelated=[...related.reduce((m,x)=>{const old=m.get(x.id);if(!old||(x.engagement?.captured_at||'')>(old.engagement?.captured_at||''))m.set(x.id,x);return m;},new Map()).values()];
  const relevantViews=sum(uniqueRelated,"views"), relevantLikes=sum(uniqueRelated,"likes");
  $("#stats").innerHTML=`<div class="stat"><span>Security-related videos</span><b>${num(uniqueRelated.length)}</b><small>Classified content in this selection</small></div><div class="stat stat-hero"><span>Views on security-related videos</span><b>${num(relevantViews.value)}</b><small>Lifetime views · ${relevantViews.n}/${uniqueRelated.length} counters available · not unique viewers</small></div><div class="stat"><span>Likes on related videos</span><b>${num(relevantLikes.value)}</b><small>${relevantLikes.n}/${uniqueRelated.length} counters available</small></div>`;
- $(".coverage-details summary").textContent=`Data coverage · ${c.classified_videos||0} of ${c.sampled_videos||0} sources classified · ${(c.sampled_videos||0)-(c.classified_videos||0)} not yet classified`;
+ const missingText=c.awaiting_transcript||0, pendingCoding=Math.max(0,(c.transcript_eligible||0)-(c.classified_videos||0));
+ $(".coverage-details summary").textContent=`Data coverage · ${c.classified_videos||0} of ${c.sampled_videos||0} sources classified · ${missingText} need English text · ${pendingCoding} have text and await valid classification`;
  const country=countries.find(x=>x.iso2===$("#country").value)?.country_name || "Europe";
  $("#focus-title").textContent=country;$("#map-focus").textContent=country.toUpperCase();
  const topics=Object.entries(data.topic_labels||{}).map(([k,n])=>[k,n,related.filter(x=>x.label.topics.includes(k)).length]).filter(x=>x[2]).sort((a,b)=>b[2]-a[2]);
@@ -87,7 +88,7 @@ function render(){
  $("#execution").innerHTML=Object.entries(ex).map(([k,n])=>{const assessed=related.filter(x=>["present","absent_after_watching"].includes(x.label.execution[k]));return bar(n,assessed.filter(x=>x.label.execution[k]==="present").length,assessed.length)}).join("")+`<p class="small">Present / assessed. Unknowns excluded; absence requires watching. ${related.length} security-related sources. Categories can overlap.</p>`;
  renderResponses(v);
  $("#engagement").innerHTML=`<div class="metric-grid">${[["Views","views"],["Likes","likes"],["Total comments","total_comments"]].map(([name,k])=>{const s=sum(all,k);return `<div><b>${num(s.value)}</b><small>${name} · ${s.n}/${all.length} counters</small></div>`}).join("")}</div><p class="small">Latest saved counters · shares unavailable · views are not unique people.</p>`;
- $("#data-status").textContent=`${c.classified_videos||0} sources coded, ${c.reviewed_videos||0} human reviewed. AI classifications publish provisionally as soon as English text is saved. Human corrections guide future prompts and take precedence in the results. ${c.awaiting_transcript||0} sources still need English text. This sample does not establish country-level public opinion or a trend.`;
+ $("#data-status").textContent=`${c.classified_videos||0} of ${c.sampled_videos||0} sources classified, including ${c.reviewed_videos||0} human reviewed. ${c.transcript_eligible||0} have usable English text. ${missingText} still need text; ${pendingCoding} have text but await a valid classification. AI results publish provisionally only after evidence and classification checks pass. Human corrections take precedence. This sample does not establish country-level public opinion or a trend.`;
  renderMap();renderFeed();renderEvidence();
 }
 function renderResponses(v){
