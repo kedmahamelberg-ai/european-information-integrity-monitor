@@ -17,7 +17,7 @@ A transcript-based research monitor of conflict and hybrid-threat communication 
 
 ## Workflows
 
-`Sunday research collection` retains the existing discovery/sample design and feeds the conflict taxonomy. `Transcript-based conflict classification` reuses a specified retained batch and refreshes counters for existing eligible videos. It never discovers additional videos or retrieves additional comments. Both share the same single-writer concurrency group and $5 weekly model budget.
+`Sunday research collection` retains the existing discovery/sample design and feeds the conflict taxonomy. `Classify saved Monitor evidence` reuses a specified retained batch and refreshes counters for existing eligible videos. It never discovers additional videos or retrieves additional comments. Both share the same single-writer concurrency group and $5 weekly model budget.
 
 The Observatory model policy remains `gpt-5-nano`, switching to `gpt-5.6-luna` at 2026-12-10 00:00 UTC. No expensive fallback is configured. Configuration is in `config/review_models.json`; taxonomy in `config/hybrid.json`; prompts in `prompts/hybrid-framing-1.4.txt`.
 
