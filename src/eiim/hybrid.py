@@ -23,6 +23,7 @@ from .storage import Store, ReadSnapshot, record
 
 VERSION = "hybrid-framing-1.4"
 COMMENT_VERSION = "hybrid-comments-1.3"
+VIDEO_TRANSCRIPT_CHAR_LIMIT = 12000
 
 
 def obj(properties):
@@ -263,8 +264,47 @@ def video_schema():
 
 
 def video_input(document):
+    # Keep unusually long speech from crowding the strict result fields out of
+    # the model context. The retained evidence remains complete for review and
+    # comment coding; this video stage receives a bounded, verbatim prefix and
+    # validates every quotation against that same bounded document.
+    source_sections = document.get("sections", [])
+    metadata = [
+        copy.deepcopy(s)
+        for s in source_sections
+        if not s["id"].startswith("transcript")
+    ]
+    transcript_sections = [
+        copy.deepcopy(s)
+        for s in source_sections
+        if s["id"].startswith("transcript:")
+    ]
+    selected = []
+    used = 0
+    for section in transcript_sections:
+        text = section.get("text", "")
+        if selected and used + len(text) > VIDEO_TRANSCRIPT_CHAR_LIMIT:
+            break
+        selected.append(section)
+        used += len(text)
+        if used >= VIDEO_TRANSCRIPT_CHAR_LIMIT:
+            break
+    sections = metadata + selected
+    if selected:
+        sections.append(
+            {"id": "transcript", "text": " ".join(s["text"] for s in selected)}
+        )
+    elif not transcript_sections:
+        sections.extend(
+            copy.deepcopy(s) for s in source_sections if s["id"] == "transcript"
+        )
+    compacted = len(selected) < len(transcript_sections)
+
     # Examples teach coding; their comments are never current source evidence.
-    return dict(document, comments=[], calibration_examples={
+    return dict(document, sections=sections,
+        transcript_truncated=document.get("transcript_truncated", False) or compacted,
+        transcript_segments_included=len(selected),
+        comments=[], calibration_examples={
         "videos": document.get("calibration_examples", {}).get("videos", []),
         "comments": [],
     })
