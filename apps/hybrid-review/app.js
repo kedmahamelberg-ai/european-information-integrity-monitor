@@ -100,7 +100,7 @@ function summary() {
       comments += !!itemState(i, c.comment_id).confirmed;
   }
   $("#summary").textContent =
-    `${P.items.length} transcript-eligible videos · ${P.plan.target} assigned for review · ${done} videos and ${comments} comments confirmed. Calibration target: 30 where available; later batches: 3%, minimum 5.`;
+    `${P.items.length} coded videos · ${P.plan.target} videos and ${P.comment_plan?.target ?? 0} comments assigned independently · ${done} videos and ${comments} comments confirmed. Weekly samples use 3%, rounded up, minimum 5 where available. The first video calibration uses 30.`;
 }
 function options(values, current) {
   return values
@@ -166,7 +166,7 @@ function list() {
     w = $("#workload").value;
   const items = P.items.filter(
     (i) =>
-      (w !== "assigned" || i.review_assignment.selected) &&
+      (w !== "assigned" || i.review_assignment.selected || i.comments.some(c => c.review_selected)) &&
       (w !== "related" || i.label.relevance === "related") &&
       `${i.title} ${i.channel}`.toLowerCase().includes(q),
   );
@@ -175,7 +175,7 @@ function list() {
     items
       .map(
         (i) =>
-          `<button data-item="${esc(i.id)}" aria-pressed="${i.id === selected}">${esc(i.title)}<small>${esc(human(i.label.relevance))} · ${esc(i.source_language)}${itemState(i).confirmed ? " · Confirmed" : ""}</small></button>`,
+          `<button data-item="${esc(i.id)}" aria-pressed="${i.id === selected}">${esc(i.title)}<small>${i.review_assignment.selected ? "Video assigned · " : "Comment context · "}${esc(human(i.label.relevance))} · ${esc(i.source_language)}${itemState(i).confirmed ? " · Confirmed" : ""}</small></button>`,
       )
       .join("") || '<p class="empty">No videos match.</p>';
   render();
@@ -241,7 +241,7 @@ function render() {
       .join(
         "",
       )}<section class="card"><label>Evidence you used<select id="basis"><option value="">Select evidence basis</option>${options(["english_transcript", "watched_video"], s.basis)}</select></label><label>Notes<textarea id="notes">${esc(s.notes || "")}</textarea></label><p class="review-message" role="status"></p><p><button class="confirm" id="confirm-video">Confirm video review</button> <span class="confirmed">${s.confirmed ? "Confirmed" : ""}</span></p></section><h3>Comments · ${i.comments.length} retained</h3><section class="notice"><b>Reference for every comment</b><p>Speaker: ${esc(ref.speaker)}<br>Main message: ${esc(ref.summary)}<br>Target: ${esc(ref.target)}<br>Speaker sentiment toward target: ${esc(human(ref.speaker_sentiment))}</p><p>First identify what the comment evaluates; then agreement with the main message; then sentiment toward its named object. Praise for speaking skill or editing alone is not message agreement. A negative comment about a criticized target can support the speaker’s negative message. This reference includes your draft corrections.</p></section>${i.comments
-      .filter((c) => c.ai)
+      .filter((c) => c.ai && ($("#workload").value !== "assigned" || c.review_selected))
       .map(
         (c) =>
           `<section class="comment" data-cid="${esc(c.comment_id)}"><div class="bilingual"><div><b>Original · ${esc(c.translation.translation_detected_language || "unverified")}</b><p>${esc(c.text_original)}</p></div><div><b>English · ${esc(human(c.translation.translation_status || "unavailable"))}</b><p>${esc(c.translation.text_english || "English translation unavailable — do not confirm")}</p></div></div>${(
@@ -439,10 +439,10 @@ $("#export").onclick = () => {
       new Blob([JSON.stringify(out, null, 2)], { type: "application/json" }),
     );
   a.href = url;
-  a.download = `eiim-hybrid-confirmed-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `eiim-hybrid-confirmed-${P.batch}-${new Date().toISOString().replaceAll(":", "-")}.json`;
   a.click();
   URL.revokeObjectURL(url);
-  say(`Exported ${out.length} confirmed reviews.`);
+  say(`Exported ${out.length} confirmed reviews. Leave the file in Downloads. The scheduled review importer validates it and applies your corrections; exporting is required.`);
 };
 summary();
 list();
