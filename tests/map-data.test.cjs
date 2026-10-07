@@ -36,3 +36,18 @@ test('combined filters use actual cross-tab counts, never marginal products or s
  assert.equal(ranking([video()],countries,'supports','positive').available,false);
  assert.equal(ranking([a],countries,'opposes','negative').rows[0].percentage,null);
 });
+
+test('comment symbol area grows with count and updates against the selected maximum',()=>{
+ const {markerSize}=require('../apps/dashboard/map-data.js');
+ assert.equal(markerSize(0,100),0);
+ assert.equal(markerSize(25,100)**2/(markerSize(100,100)**2),.25);
+ assert.ok(markerSize(10,100)<markerSize(40,100));
+ assert.ok(markerSize(10,100)>markerSize(10,200));
+});
+test('latest unclassified snapshot cannot resurrect older classifications',()=>{
+ const {unique,latest}=require('../apps/dashboard/map-data.js');
+ const observations=[video(),video({batch:'2026-W41',label:null,engagement:{views:120}})];
+ assert.equal(unique(observations).length,0);
+ assert.equal(latest(observations).length,1);
+ assert.equal(latest(observations)[0].engagement.views,120);
+});
