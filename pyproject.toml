@@ -8,6 +8,7 @@ description = "Reproducible computational information-forensics research infrast
 requires-python = ">=3.11"
 dependencies = []
 [project.optional-dependencies]
+audio = ["youtube-transcript-api==1.2.4", "yt-dlp==2026.8.19", "faster-whisper==1.2.1"]
 live = ["sentence-transformers==3.4.1", "scikit-learn==1.6.1", "numpy==2.2.3", "langdetect==1.0.9", "youtube-transcript-api==1.2.4"]
 [tool.setuptools.packages.find]
 where = ["src"]

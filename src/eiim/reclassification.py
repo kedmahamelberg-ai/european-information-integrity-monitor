@@ -41,8 +41,8 @@ def evidence_input(video, access):
         sections.append(
             {"id": "transcript", "text": " ".join(s["text"] for s in sections[2:])}
         )
-    truncated = included < sum(bool(s.get("text", "").strip()) for s in segments)
-    return {
+    truncated = access.get("transcript_complete") is False or included < sum(bool(s.get("text", "").strip()) for s in segments)
+    document = {
         "scope": "metadata_and_english_transcript" if included else "metadata_only",
         "original_audio_language": access.get("original_language", "und"),
         "transcript_truncated": truncated,
@@ -50,6 +50,16 @@ def evidence_input(video, access):
         "transcript_segments_available": len(segments),
         "sections": sections,
     }
+    if access.get("caption_provider") == "faster-whisper":
+        document["transcript_provenance"] = {
+            "method": "automatic_speech_recognition",
+            "model": access.get("transcription_model"),
+            "detected_source_language": access.get("caption_source_language"),
+            "translation": access.get("caption_translation"),
+            "human_verified": False,
+            "limitation": "Speech recognition and translation may contain errors. Do not infer visual content or missing speech. If the text cannot support a judgment, use unclear or not_observable.",
+        }
+    return document
 
 
 def evidence_schema(allow_abstention=True):

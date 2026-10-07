@@ -625,7 +625,7 @@ def caption_coverage(store, batch):
             "unverified": counts["unverified"]}
 
 
-def retrieve_retained_captions(store, batch):
+def retrieve_retained_captions(store, batch, audio=None):
     """Attempt public English captions for frozen sources only; never discover videos."""
     from .language_access import EnglishCaptionAccess
 
@@ -636,12 +636,17 @@ def retrieve_retained_captions(store, batch):
         if not r.get("purged_at") and r["payload"].get("selected_for_sample")
     }
     from .caption_provider import SupadataCaptions
+    from .audio_transcripts import AudioTranscripts
 
     reader = EnglishCaptionAccess()
     fallback = SupadataCaptions.from_environment(store, batch)
+    audio = audio or AudioTranscripts.from_environment()
     retrieved = 0
     attempted = 0
-    for row in sorted(store.read("candidate_videos", batch), key=lambda r: r["id"]):
+    # Untouched sources first; failed sources cannot monopolise every daily run.
+    candidates = sorted(store.read("candidate_videos", batch), key=lambda r: (
+        access.get((batch, r["video_id"]), {}).get("audio_attempted_at", ""), r["id"]))
+    for row in candidates:
         if row.get("purged_at") or row["video_id"] not in sampled:
             continue
         source = dict(row["payload"], video_id=row["video_id"])
@@ -655,6 +660,17 @@ def retrieve_retained_captions(store, batch):
             if recovered is not None:
                 recovered["direct_failure_reason"] = result.get("failure_reason")
                 result = recovered
+        if not result.get("transcript_english") and audio:
+            previous_attempt = old.get("audio_attempted_at")
+            due = not previous_attempt or datetime.fromisoformat(previous_attempt) < datetime.now(timezone.utc) - timedelta(hours=24)
+            if due:
+                recovered = audio.check(source)
+                if recovered is not None:
+                    recovered["direct_failure_reason"] = result.get("failure_reason")
+                    result = recovered
+                    print(json.dumps({"audio_recovery": audio.report()}), flush=True)
+            elif previous_attempt:
+                result["audio_attempted_at"] = previous_attempt
         # Keep previously known original-language metadata if a track lookup fails.
         if (
             result.get("original_language") == "und"
@@ -677,12 +693,16 @@ def retrieve_retained_captions(store, batch):
             ],
         )
         retrieved += bool(result.get("transcript_english"))
-        if reader.blocked and (not fallback or fallback.stopped):
+        if reader.blocked and (not fallback or fallback.stopped) and (not audio or audio.stopped):
             break
-    return {"new_saved_transcripts": retrieved, "attempted_videos": attempted,
+    report = {"new_saved_transcripts": retrieved, "attempted_videos": attempted,
             "direct_reader_blocked": reader.blocked,
             "fallback": fallback.report() if fallback else {"configured": False},
+            "audio": audio.report() if audio else {"configured": False},
             "coverage": caption_coverage(store, batch)}
+    payload = {"caption_recovery_report": report, "checked_at": now()}
+    store.write(batch, [record("pipeline_runs", batch, batch + ":caption-health:" + digest(payload), payload)])
+    return report
 
 
 def refresh_engagement(store, batch, youtube=None):
@@ -731,17 +751,30 @@ def main():
     parser.add_argument("--collect", action="store_true")
     parser.add_argument("--retrieve-captions", action="store_true")
     parser.add_argument("--refresh-engagement", action="store_true")
+    parser.add_argument("--all-retained", action="store_true", help="Resume every unpurged retained batch, newest first")
     args = parser.parse_args()
     store = Store()
     if args.collect:
         report = collect_week(store)
     else:
-        batch = args.batch or sorted(r["id"] for r in store.read("weekly_batches"))[-1]
-        if args.retrieve_captions:
-            print(json.dumps(retrieve_retained_captions(store, batch)), flush=True)
-        if args.refresh_engagement:
-            print(json.dumps(refresh_engagement(store, batch)), flush=True)
-        report = reclassify(store, batch)
+        from .audio_transcripts import AudioTranscripts
+        audio = AudioTranscripts.from_environment()
+        batches = sorted((r["id"] for r in store.read("weekly_batches")), reverse=True)
+        batches = [args.batch] if args.batch else (batches if args.all_retained else batches[:1])
+        reports = []
+        for batch in batches:
+            if not any(not r.get("purged_at") and r["payload"].get("selected_for_sample") for r in store.read("sampled_videos", batch)):
+                continue
+            if args.retrieve_captions:
+                print(json.dumps(retrieve_retained_captions(store, batch, audio)), flush=True)
+            if args.refresh_engagement:
+                print(json.dumps(refresh_engagement(store, batch)), flush=True)
+            report = reclassify(store, batch)
+            reports.append(report)
+            print(json.dumps(report, indent=2), flush=True)
+        if any(r["status"] != "complete" for r in reports):
+            raise SystemExit(1)
+        return
     print(json.dumps(report, indent=2))
     if report["status"] != "complete":
         raise SystemExit(1)
