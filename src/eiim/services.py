@@ -26,14 +26,10 @@ class Ledger:
     def events(self):
         # Collection is single-writer (GitHub concurrency group). Reload on restart.
         if not hasattr(self, "_events"):
-            base_batch = self.batch.split("--")[0]
-            batches = [base_batch]
-            if self.batch != base_batch:
-                batches.append(self.batch)
             self._events = [
                 r["payload"]
-                for batch in batches
-                for r in self.store.read("cost_events", batch)
+                for r in self.store.read("cost_events")
+                if r["batch_id"].split("--")[0] == self.batch.split("--")[0]
             ]
         return self._events
 
@@ -409,6 +405,15 @@ class Classifier:
 
     def request(self, text, prompt, shape, kind):
         ident = self.batch + ":model:" + digest([text, prompt, shape, self.cfg])
+        try:
+            request_document = json.loads(text)
+            context_video_id = (
+                request_document.get("video_id")
+                if isinstance(request_document, dict)
+                else None
+            )
+        except (json.JSONDecodeError, TypeError):
+            context_video_id = None
         cached = self.cache.get(ident)
         if cached and cached.get("parsed") is not None:
             return cached
@@ -611,12 +616,16 @@ class Classifier:
                                 "raw_model_response": locals().get("raw"),
                                 "at": now(),
                             },
+                            context_video_id,
                         )
                     ],
                 )
                 if attempt + 1 >= attempts:
+                    detail = (
+                        ": " + str(error) if isinstance(error, ValueError) else ""
+                    )
                     raise ClassificationUnavailable(
-                        "Classification failed after bounded attempts"
+                        "Classification failed after bounded attempts" + detail
                     ) from None
 
     def translate(self, text):
