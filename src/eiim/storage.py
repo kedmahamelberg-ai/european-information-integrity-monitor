@@ -4,6 +4,8 @@ import copy
 import json, os, time, urllib.request, urllib.error
 from .core import digest
 
+WRITE_CHUNK_SIZE = 200
+
 
 class Store:
     def __init__(self, url=None, key=None):
@@ -30,9 +32,11 @@ class Store:
             data=json.dumps(args, ensure_ascii=False).encode(),
             headers=headers,
         )
-        # Reads are safe to retry. Never blindly repeat a mutation whose outcome
-        # is unknown, and never print a response body or authorization headers.
-        attempts = 3 if name in {"eiim_read", "eiim_progress"} else 1
+        # Reads and immutable envelope writes are safe to retry.  eiim_write is
+        # atomic and uses immutable IDs with ON CONFLICT DO NOTHING, so repeating
+        # the exact request after a lost response cannot duplicate observations.
+        # Never print a response body or authorization headers.
+        attempts = 3 if name in {"eiim_read", "eiim_progress", "eiim_write"} else 1
         for attempt in range(attempts):
             try:
                 with urllib.request.urlopen(req, timeout=60) as response:
@@ -71,9 +75,25 @@ class Store:
         return copy.deepcopy(self._read_cache[key])
 
     def write(self, batch, rows, stage=None):
-        result = self.rpc(
-            "eiim_write", {"p_batch": batch, "p_stage": stage, "p_rows": rows}
-        )
+        # Discovery can produce thousands of raw API envelopes.  Sending all of
+        # them in one RPC can exceed the database statement/client timeout.  A
+        # stage is recorded only with the final chunk, after every prior chunk
+        # has been accepted.  Empty stage-only writes remain supported.
+        chunks = [rows[i : i + WRITE_CHUNK_SIZE] for i in range(0, len(rows), WRITE_CHUNK_SIZE)]
+        if not chunks:
+            chunks = [[]]
+        accepted = 0
+        result = None
+        for index, chunk in enumerate(chunks):
+            chunk_stage = stage if index == len(chunks) - 1 else None
+            result = self.rpc(
+                "eiim_write",
+                {"p_batch": batch, "p_stage": chunk_stage, "p_rows": chunk},
+            )
+            accepted += int(result.get("accepted", 0))
+        result = dict(result or {})
+        result["accepted"] = accepted
+        result["stage"] = stage
         for entry in rows:
             table = entry["table"]
             row = copy.deepcopy(entry["record"])
