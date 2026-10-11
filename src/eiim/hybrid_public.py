@@ -3,7 +3,7 @@
 import json
 from .core import config, now
 from .hybrid import VERSION, retained_inputs, labels, latest_labels
-from .hybrid_review import validate_review, video_values
+from .hybrid_review import video_values
 from .review_sampling import sample_plan
 from .engagement import engagement
 from .language_access import access_records, video_access, caption_state
@@ -36,29 +36,26 @@ def export_public(store, path):
         "role_labels": config("hybrid")["role_labels"],
         "topic_labels": config("hybrid")["topic_labels"],
     }
-    validated = current_reviews(store)
     caption_health = Counter()
-    all_labels = {r["id"]: r for r in latest_labels(labels(store))}
+    retained_batches = store.read("weekly_batches")
+    labels_by_batch = {}
+    validated = {}
     reviews = {}
-    for row in sorted(
-        store.read("human_validation"),
-        key=lambda r: r["payload"].get("reviewed_at", ""),
-    ):
-        p = row["payload"]
-        original = all_labels.get(p.get("queue_record_id"))
-        if (
-            row.get("purged_at")
-            or p.get("review_status") != "complete"
-            or original is None
-            or p.get("item_type") != "hybrid_video"
-        ):
-            continue
-        try:
-            validate_review(p, original)
-        except (ValueError, KeyError, TypeError):
-            continue
-        reviews[p["queue_record_id"]] = p
-    for b in store.read("weekly_batches"):
+    # Read labels and reviews per retained batch.  A previous global scan sent
+    # every transcript-bearing pipeline record once here and then sent the same
+    # records again in retained_inputs below.  Batch-scoped reads are reused by
+    # Store's run cache and keep publication egress proportional to retained data.
+    for b in retained_batches:
+        batch = b["id"]
+        labels_by_batch[batch] = {
+            r["id"]: r for r in latest_labels(labels(store, batch))
+        }
+        batch_reviews = current_reviews(store, batch)
+        validated.update(batch_reviews)
+        for (queue_record_id, comment_id), review in batch_reviews.items():
+            if comment_id is None and review.get("item_type") == "hybrid_video":
+                reviews[queue_record_id] = review
+    for b in retained_batches:
         batch = b["id"]
         videos, comments, _, _ = retained_inputs(store, batch)
         sampled = {
@@ -95,8 +92,8 @@ def export_public(store, path):
             output["inventory"].append({"id": vid, "batch": batch, "title": source.get("title", ""), "channel": source.get("channel", ""), "countries": source.get("countries", []), "original_language": access.get("original_language", "und"), "caption_state": reason, "engagement": engagement(source)})
         rows = {
             r["video_id"]: r
-            for r in all_labels.values()
-            if r["batch_id"] == batch and r["video_id"] in videos
+            for r in labels_by_batch[batch].values()
+            if r["video_id"] in videos
         }
         plan = sample_plan(batch, videos)
         reviewed_ids = {vid for vid, row in rows.items() if row["id"] in reviews}
