@@ -22,7 +22,7 @@ from .services import Classifier, Ledger, BudgetExhausted, ClassificationUnavail
 from .storage import Store, ReadSnapshot, record
 
 VERSION = "hybrid-framing-1.4"
-COMMENT_VERSION = "hybrid-comments-1.3"
+COMMENT_VERSION = "hybrid-comments-1.4"
 VIDEO_TRANSCRIPT_CHAR_LIMIT = 12000
 
 
