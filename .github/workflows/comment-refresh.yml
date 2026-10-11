@@ -1,10 +1,13 @@
 name: Refresh comments under corrected minimum
 on:
+  schedule:
+    - cron: "17 19 * * 0"
+      timezone: "Europe/Amsterdam"
   workflow_dispatch:
     inputs:
       batch:
-        description: Existing retained batch ID
-        required: true
+        description: Existing retained batch ID (blank uses the newest retained batch)
+        required: false
         type: string
 permissions:
   contents: read
@@ -14,7 +17,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 180
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
@@ -30,7 +33,41 @@ jobs:
         run: PYTHONPATH=src python -m unittest discover -s tests -q
       - name: Install local inference dependencies
         run: pip install '.[live]'
+      - name: Resolve newest retained batch for the weekly schedule
+        shell: bash
+        run: |
+          if [ -z "$REVIEW_BATCH" ]; then
+            REVIEW_BATCH=$(PYTHONPATH=src python -c 'from eiim.storage import Store; batches=Store().read("weekly_batches"); print(max((row["id"] for row in batches), default=""))')
+          fi
+          test -n "$REVIEW_BATCH" || { echo '::error::No retained batch is available'; exit 1; }
+          echo "REVIEW_BATCH=$REVIEW_BATCH" >> "$GITHUB_ENV"
       - name: Refresh retained comments within existing budget
         run: |
           PYTHONPATH=src python -m eiim.cli refresh-comments --batch "$REVIEW_BATCH" > /tmp/comment-refresh.json
           cat /tmp/comment-refresh.json >> "$GITHUB_STEP_SUMMARY"
+      - name: Attach refreshed comments to Monitor classifications
+        shell: bash
+        run: |
+          run_hybrid() {
+            PYTHONPATH=src python -m eiim.hybrid --batch "$REVIEW_BATCH" | tee /tmp/hybrid-report.json
+            return "${PIPESTATUS[0]}"
+          }
+
+          set +e
+          run_hybrid
+          first_status=$?
+          set -e
+          if [ "$first_status" -eq 0 ]; then
+            exit 0
+          fi
+          if ! grep -q '"error_type": "ClassificationUnavailable"' /tmp/hybrid-report.json; then
+            exit "$first_status"
+          fi
+          echo '::warning::Retrying only unfinished saved-text classifications once.'
+          run_hybrid
+      - name: Publish hybrid summary even after a partial run
+        if: always()
+        run: |
+          if [ -f /tmp/hybrid-report.json ]; then
+            tail -80 /tmp/hybrid-report.json >> "$GITHUB_STEP_SUMMARY"
+          fi
