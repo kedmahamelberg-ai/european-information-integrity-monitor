@@ -43,6 +43,7 @@ def evidence_input(video, access):
         )
     truncated = access.get("transcript_complete") is False or included < sum(bool(s.get("text", "").strip()) for s in segments)
     document = {
+        "video_id": video.get("video_id") or "",
         "scope": "metadata_and_english_transcript" if included else "metadata_only",
         "original_audio_language": access.get("original_language", "und"),
         "transcript_truncated": truncated,
