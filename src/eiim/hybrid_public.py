@@ -89,7 +89,7 @@ def export_public(store, path):
             access = video_access(source, batch, accesses)
             reason = caption_state(access)
             caption_health[reason] += 1
-            output["inventory"].append({"id": vid, "batch": batch, "title": source.get("title", ""), "channel": source.get("channel", ""), "countries": source.get("countries", []), "original_language": access.get("original_language", "und"), "caption_state": reason, "engagement": engagement(source)})
+            output["inventory"].append({"id": vid, "batch": batch, "title": source.get("title", ""), "channel": source.get("channel", ""), "countries": source.get("countries", []), "published_at": source.get("published_at"), "original_language": access.get("original_language", "und"), "caption_state": reason, "engagement": engagement(source)})
         rows = {
             r["video_id"]: r
             for r in labels_by_batch[batch].values()
@@ -160,6 +160,7 @@ def export_public(store, path):
                     "title": source.get("title", ""),
                     "channel": source.get("channel", ""),
                     "countries": source.get("countries", []),
+                    "published_at": source.get("published_at"),
                     "tier": source.get("tier"),
                     "original_language": access["original_language"],
                     "caption_status": access.get("status"),
