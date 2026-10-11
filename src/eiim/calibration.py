@@ -1,8 +1,29 @@
 """Auditable schema projection and retained human examples; never model training."""
 
 import copy
+from datetime import datetime, timezone, timedelta
 from .core import digest
 from .storage import record
+
+
+def retained_batch_ids(store, batch=None):
+    """Return only recent retained batches without reading large tables globally."""
+    if batch:
+        return [batch]
+    cutoff = datetime.now(timezone.utc) - timedelta(days=30)
+    retained = []
+    for row in store.read("weekly_batches"):
+        stamp = row.get("created_at") or row.get("payload", {}).get(
+            "collection_timestamp"
+        )
+        if stamp:
+            try:
+                if datetime.fromisoformat(stamp.replace("Z", "+00:00")) < cutoff:
+                    continue
+            except ValueError:
+                continue
+        retained.append(row["id"])
+    return sorted(retained)
 
 
 def project_four_categories(store, batch):
@@ -89,10 +110,19 @@ def current_reviews(store, batch=None):
     from .hybrid import labels, latest_labels
     from .hybrid_review import validate_review
 
-    known = {r["id"]: r for r in latest_labels(labels(store, batch))}
+    batches = retained_batch_ids(store, batch)
+    known = {
+        r["id"]: r
+        for batch_id in batches
+        for r in latest_labels(labels(store, batch_id))
+    }
     out = {}
     for r in sorted(
-        store.read("human_validation", batch),
+        [
+            row
+            for batch_id in batches
+            for row in store.read("human_validation", batch_id)
+        ],
         key=lambda r: r["payload"].get("reviewed_at", ""),
     ):
         p = r["payload"]
@@ -111,7 +141,11 @@ def calibration_examples(store, exclude_video_id=None):
     """Bounded private examples from validated retained reviews, excluding self."""
     from .hybrid import labels, retained_inputs
 
-    known = {r["id"]: r for r in labels(store)}
+    known = {
+        r["id"]: r
+        for batch_id in retained_batch_ids(store)
+        for r in labels(store, batch_id)
+    }
     examples = {"videos": [], "comments": []}
     cache = {}
     validated = current_reviews(store)
