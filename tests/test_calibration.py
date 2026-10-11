@@ -16,6 +16,13 @@ from test_hybrid import label
 class CalibrationTests(unittest.TestCase):
     def fixture(self):
         s = MemoryStore()
+        s.batch(
+            {
+                "id": "b",
+                "collection_timestamp": "2026-10-05T00:00:00Z",
+            },
+            "config",
+        )
         x = label()
         x["execution"].append(
             {
@@ -113,3 +120,15 @@ class CalibrationTests(unittest.TestCase):
                 calibration_examples(s, exclude_video_id="v"),
                 {"videos": [], "comments": []},
             )
+
+    def test_calibration_reads_large_tables_one_retained_batch_at_a_time(self):
+        s, review, inputs = self.fixture()
+        with patch("eiim.hybrid.retained_inputs", return_value=inputs):
+            project_four_categories(s, "b")
+            with patch.object(s, "read", wraps=s.read) as read:
+                calibration_examples(s)
+        calls = [call.args for call in read.call_args_list]
+        self.assertNotIn(("pipeline_runs",), calls)
+        self.assertNotIn(("human_validation",), calls)
+        self.assertIn(("pipeline_runs", "b"), calls)
+        self.assertIn(("human_validation", "b"), calls)
