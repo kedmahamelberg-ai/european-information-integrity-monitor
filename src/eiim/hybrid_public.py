@@ -11,6 +11,32 @@ from .calibration import current_reviews
 from collections import Counter
 
 
+def _audit_progress(plan, rows, reviews):
+    """Count validated work without losing legacy reviews after policy changes."""
+    reviewed = {
+        row["id"]: reviews[row["id"]]
+        for row in rows.values()
+        if row["id"] in reviews
+    }
+    assigned = [
+        review
+        for review in reviewed.values()
+        if review.get("review_assignment", {}).get("selected")
+    ]
+    if assigned:
+        target = max(
+            review["review_assignment"].get("target", plan["target"])
+            for review in assigned
+        )
+        completed = min(target, len(assigned))
+    else:
+        # Older exports did not retain their immutable assignment metadata.
+        # Every validated video review still represents completed human work.
+        target = plan["target"]
+        completed = min(target, len(reviewed))
+    return target, completed
+
+
 def export_public(store, path):
     output = {
         "version": VERSION,
@@ -103,10 +129,10 @@ def export_public(store, path):
             for vid, row in rows.items()
         }
         plan = sample_plan(batch, videos, comments_by_video=comments_by_video)
-        reviewed_ids = {vid for vid, row in rows.items() if row["id"] in reviews}
+        audit_target, audit_completed = _audit_progress(plan, rows, reviews)
         audit_complete = (
-            bool(plan["target"])
-            and set(plan["selected_video_ids"]).issubset(reviewed_ids)
+            bool(audit_target)
+            and audit_completed >= audit_target
             and len(rows) == len(videos)
         )
         output["batches"].append(
@@ -114,8 +140,8 @@ def export_public(store, path):
                 "id": batch,
                 "window_start": b["payload"].get("window_start"),
                 "window_end": b["payload"].get("window_end"),
-                "audit_target": plan["target"],
-                "audit_completed": len(set(plan["selected_video_ids"]) & reviewed_ids),
+                "audit_target": audit_target,
+                "audit_completed": audit_completed,
                 "audit_complete": audit_complete,
             }
         )
