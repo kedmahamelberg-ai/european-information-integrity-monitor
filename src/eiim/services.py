@@ -26,10 +26,14 @@ class Ledger:
     def events(self):
         # Collection is single-writer (GitHub concurrency group). Reload on restart.
         if not hasattr(self, "_events"):
+            base_batch = self.batch.split("--")[0]
+            batches = [base_batch]
+            if self.batch != base_batch:
+                batches.append(self.batch)
             self._events = [
                 r["payload"]
-                for r in self.store.read("cost_events")
-                if r["batch_id"].split("--")[0] == self.batch.split("--")[0]
+                for batch in batches
+                for r in self.store.read("cost_events", batch)
             ]
         return self._events
 

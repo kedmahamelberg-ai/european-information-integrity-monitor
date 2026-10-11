@@ -15,6 +15,11 @@ class Store:
         )
         if not self.url.startswith("https://"):
             raise ValueError("HTTPS Supabase URL required")
+        # A workflow repeatedly asks for the same immutable batch tables while
+        # moving through collection, classification and publication.  Keep one
+        # process-local copy so those reads do not repeatedly transfer multi-MB
+        # JSON payloads from Supabase.  Writes below update any populated cache.
+        self._read_cache = {}
 
     def rpc(self, name, args):
         headers = {"apikey": self.key, "Content-Type": "application/json"}
@@ -49,24 +54,52 @@ class Store:
                 ) from None
 
     def batch(self, window, config_hash):
-        return self.rpc(
+        result = self.rpc(
             "eiim_batch",
             {"p_id": window["id"], "p_payload": window, "p_config_hash": config_hash},
         )
+        self._read_cache.pop(("weekly_batches", None), None)
+        self._read_cache.pop(("weekly_batches", window["id"]), None)
+        return result
 
     def read(self, table, batch=None):
-        return self.rpc("eiim_read", {"p_table": table, "p_batch": batch})
+        key = (table, batch)
+        if key not in self._read_cache:
+            self._read_cache[key] = self.rpc(
+                "eiim_read", {"p_table": table, "p_batch": batch}
+            )
+        return copy.deepcopy(self._read_cache[key])
 
     def write(self, batch, rows, stage=None):
-        return self.rpc(
+        result = self.rpc(
             "eiim_write", {"p_batch": batch, "p_stage": stage, "p_rows": rows}
         )
+        for entry in rows:
+            table = entry["table"]
+            row = copy.deepcopy(entry["record"])
+            for key in ((table, batch), (table, None)):
+                cached = self._read_cache.get(key)
+                if cached is None:
+                    continue
+                existing = next((r for r in cached if r["id"] == row["id"]), None)
+                if existing is None:
+                    cached.append(copy.deepcopy(row))
+                elif existing.get("payload_hash") != row.get("payload_hash"):
+                    # The database rejects this immutable conflict.  This is a
+                    # defensive guard for nonstandard RPC test doubles.
+                    self._read_cache.pop(key, None)
+        if stage is not None:
+            self._read_cache.pop(("weekly_batches", None), None)
+            self._read_cache.pop(("weekly_batches", batch), None)
+        return result
 
     def progress(self):
         return self.rpc("eiim_progress", {})
 
     def purge(self, days=30):
-        return self.rpc("eiim_purge", {"p_days": days})
+        result = self.rpc("eiim_purge", {"p_days": days})
+        self._read_cache.clear()
+        return result
 
 
 def record(table, batch, id, payload, video_id=None):
