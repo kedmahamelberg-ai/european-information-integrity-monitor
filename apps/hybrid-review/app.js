@@ -427,6 +427,7 @@ $("#export").onclick = () => {
           notes: s.notes || "",
           human_label: s.values,
           decisions: s.decisions,
+          review_assignment: cid ? null : i.review_assignment,
         });
     }
   }
