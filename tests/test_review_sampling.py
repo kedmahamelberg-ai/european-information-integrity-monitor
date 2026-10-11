@@ -23,12 +23,25 @@ class ReviewSamplingTests(unittest.TestCase):
             a["selected_video_ids"], sample_plan("2026-W42", ids)["selected_video_ids"]
         )
 
-    def test_comment_sample_is_independent_and_deduplicated(self):
-        from eiim.review_sampling import comment_plan
-        ids = [str(i) for i in range(315)]
-        a = comment_plan('2026-W41', ids)
-        self.assertEqual(a['target'], 10)
-        self.assertEqual(a, comment_plan('2026-W41', ids[::-1] + ids[:10]))
-        self.assertNotEqual(a['selected_comment_ids'], sample_plan('2026-W41', ids)['selected_video_ids'])
-        self.assertEqual(comment_plan('2026-W41', [])['target'], 0)
-        self.assertEqual(comment_plan('2026-W41', ids[:2])['target'], 2)
+    def test_video_sample_represents_comment_bearing_clusters(self):
+        ids = [str(i) for i in range(143)]
+        comments = {vid: ([f"c-{vid}"] if int(vid) < 10 else []) for vid in ids}
+        plan = sample_plan("2026-W41", ids, comments_by_video=comments)
+        self.assertEqual(plan["target"], 5)
+        self.assertTrue(any(comments[vid] for vid in plan["selected_video_ids"]))
+        self.assertTrue(any(not comments[vid] for vid in plan["selected_video_ids"]))
+
+    def test_comments_follow_selected_video_clusters(self):
+        from eiim.review_sampling import linked_comment_plan
+        ids = [f"v{i}" for i in range(100)]
+        comments = {vid: [f"{vid}-a", f"{vid}-b"] for vid in ids}
+        video_plan = sample_plan("2026-W41", ids, comments_by_video=comments)
+        plan = linked_comment_plan("2026-W41", video_plan, comments)
+        expected = sorted(
+            cid
+            for vid in video_plan["selected_video_ids"]
+            for cid in comments[vid]
+        )
+        self.assertEqual(plan["selected_comment_ids"], expected)
+        self.assertEqual(plan["target"], len(expected))
+        self.assertEqual(plan["population"], 200)
