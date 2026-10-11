@@ -35,13 +35,41 @@ class StorageRecoveryTests(unittest.TestCase):
             self.assertNotIn('private-test-key', str(caught.exception))
 
     @patch('eiim.storage.time.sleep')
-    def test_auth_errors_and_writes_are_not_retried(self, sleep):
-        for name, status in [('eiim_read',401), ('eiim_read',403), ('eiim_write',500)]:
+    def test_auth_errors_are_not_retried(self, sleep):
+        for name, status in [('eiim_read',401), ('eiim_read',403)]:
             with patch('eiim.storage.urllib.request.urlopen', side_effect=self.http(status)) as request:
                 with self.assertRaises(RuntimeError):
                     self.client().rpc(name, {})
                 self.assertEqual(request.call_count, 1)
         sleep.assert_not_called()
+
+    @patch('eiim.storage.time.sleep')
+    def test_immutable_write_recovers_with_identical_request(self, sleep):
+        saved = io.BytesIO(b'{"accepted":1,"stage":null}')
+        saved.__enter__ = lambda value: value
+        saved.__exit__ = lambda *args: None
+        with patch('eiim.storage.urllib.request.urlopen', side_effect=[
+            urllib.error.URLError('private network detail'), saved
+        ]) as request:
+            result = self.client().rpc('eiim_write', {'p_batch':'b','p_stage':None,'p_rows':[]})
+            self.assertEqual(result['accepted'], 1)
+            self.assertEqual(request.call_count, 2)
+            self.assertEqual(request.call_args_list[0].args[0].data,
+                             request.call_args_list[1].args[0].data)
+
+    def test_write_chunks_rows_and_sets_stage_only_on_final_chunk(self):
+        store = self.client()
+        rows = [record('pipeline_runs', 'b', str(i), {'value': i}) for i in range(201)]
+        with patch.object(store, 'rpc', side_effect=[
+            {'accepted': 200, 'stage': None},
+            {'accepted': 1, 'stage': 'discovery_complete'},
+        ]) as rpc:
+            result = store.write('b', rows, 'discovery_complete')
+        self.assertEqual(result, {'accepted': 201, 'stage': 'discovery_complete'})
+        self.assertEqual(len(rpc.call_args_list[0].args[1]['p_rows']), 200)
+        self.assertIsNone(rpc.call_args_list[0].args[1]['p_stage'])
+        self.assertEqual(len(rpc.call_args_list[1].args[1]['p_rows']), 1)
+        self.assertEqual(rpc.call_args_list[1].args[1]['p_stage'], 'discovery_complete')
 
     @patch('eiim.storage.time.sleep')
     def test_network_read_failure_recovers(self, sleep):
