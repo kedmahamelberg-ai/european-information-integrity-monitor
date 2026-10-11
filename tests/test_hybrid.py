@@ -188,12 +188,24 @@ class HybridTests(unittest.TestCase):
     def test_unrelated_no_execution_or_roles(self):
         x = label()
         x.update(relevance="not_related")
-        with self.assertRaises(ValueError):
+        normalized = validate_label(x, document())
+        self.assertEqual(normalized["topics"], [])
+        self.assertEqual(normalized["roles"], [])
+        self.assertTrue(
+            all(e["status"] == "not_applicable" for e in normalized["execution"])
+        )
+        self.assertTrue(
+            all(e["evidence"] == {"quote": "", "source_id": ""}
+                for e in normalized["execution"])
+        )
+
+    def test_unrelated_still_requires_grounded_content_reference(self):
+        x = label()
+        x.update(relevance="not_related")
+        x["content_reference"]["evidence"] = {"quote": "", "source_id": ""}
+        with self.assertRaises(ValueError) as error:
             validate_label(x, document())
-        x.update(topics=[], roles=[])
-        for e in x["execution"]:
-            e["status"] = "not_applicable"
-        validate_label(x, document())
+        self.assertIn("content_reference.evidence", str(error.exception))
 
     def make_transcript_store(self):
         s = MemoryStore()
