@@ -1,5 +1,6 @@
 import unittest, copy, json
 from datetime import datetime, timezone
+from unittest.mock import patch
 from eiim.core import *
 from eiim.storage import MemoryStore, record
 from eiim.services import Ledger, BudgetExhausted, schema
@@ -251,6 +252,16 @@ class StorageTests(unittest.TestCase):
         ledger.settle(r, {}, {})
         with self.assertRaises(BudgetExhausted):
             ledger.reserve("llm_reserved_usd", 0.3, 1)
+
+    def test_ledger_reads_only_the_relevant_batch(self):
+        self.s.batch({"id": "other"}, "hash")
+        self.s.write(
+            "other",
+            [record("cost_events", "other", "old", {"kind": "llm_calls", "amount": 99})],
+        )
+        with patch.object(self.s, "read", wraps=self.s.read) as read:
+            self.assertEqual(Ledger(self.s, "test").events(), [])
+            read.assert_called_once_with("cost_events", "test")
 
 
 class ResearchTests(unittest.TestCase):
