@@ -55,34 +55,51 @@ function geometry(g) {
 function rows(geo=true, all=false) {
   return (all ? inventory : data.videos).filter(v =>
     ($("#batch").value === "all" || v.batch === $("#batch").value) &&
+    MonitorMap.inDateRange(v,$("#date-range").value,$("#date-from").value,$("#date-to").value,data.as_of) &&
     (!geo || $("#country").value === "all" || v.countries.includes($("#country").value)) &&
     ($("#topic").value === "all" || v.label?.topics?.includes($("#topic").value)));
 }
 function sum(v,k){const ns=v.map(x=>x.engagement?.[k]).filter(x=>x!=null);return {value:ns.length?ns.reduce((a,b)=>a+b,0):null,n:ns.length};}
+function dateLabel(){
+ const mode=$('#date-range').value;
+ if(mode!=='custom')return $('#date-range').selectedOptions[0].textContent;
+ const from=$('#date-from').value||'earliest',to=$('#date-to').value||'latest';
+ return `${from} to ${to} UTC`;
+}
+function configureDateInputs(){
+ const dates=inventory.map(v=>(v.published_at||'').slice(0,10)).filter(Boolean).sort();
+ const min=dates[0]||'',max=(data.as_of||'').slice(0,10)||dates.at(-1)||'';
+ for(const id of ['date-from','date-to']){$('#'+id).min=min;$('#'+id).max=max;}
+ if(!$('#date-from').value)$('#date-from').value=min;
+ if(!$('#date-to').value)$('#date-to').value=max;
+}
 function bar(name,n,d){return `<div class="bar-row"><span>${esc(name)}</span><div class="bar-track"><div class="bar-fill" style="width:${d?n/d*100:0}%"></div></div><span>${n}/${d}</span></div>`;}
 function state(v){return v.classification_status==="human_reviewed"?"Human validated":v.label?"AI · provisional":v.caption_state==="saved"?"Awaiting AI coding":v.caption_state==="blocked"?"Captions · access blocked":v.caption_state==="unavailable"?"English captions unavailable":"Captions · unverified";}
 function thumbnail(v){return `https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/mqdefault.jpg`;}
 function render(){
  const v=MonitorMap.unique(rows()), all=MonitorMap.latest(rows(true,true)), coded=v.filter(x=>x.label), related=coded.filter(x=>x.label.relevance==="related"), reviewed=coded.filter(x=>x.classification_status==="human_reviewed"), c=data.collection;
+ const selectedInventory=MonitorMap.latest(rows(true,true)), selectedSaved=selectedInventory.filter(x=>x.caption_state==="saved").length;
+ const selectedCoverage={sampled:selectedInventory.length,classified:selectedInventory.filter(x=>x.label).length,saved:selectedSaved,reviewed:selectedInventory.filter(x=>x.classification_status==="human_reviewed").length};
  $("#edition").textContent=data.batches.map(b=>b.id).join(" / ") || "NO BATCH";
  $("#snapshot").textContent=`SNAPSHOT ${new Date(data.as_of).toLocaleString()}`;
  // Repeated weekly observations of one video must not inflate cumulative views.
  const uniqueRelated=[...related.reduce((m,x)=>{const old=m.get(x.id);if(!old||(x.engagement?.captured_at||'')>(old.engagement?.captured_at||''))m.set(x.id,x);return m;},new Map()).values()];
  const relevantViews=sum(uniqueRelated,"views"), relevantLikes=sum(uniqueRelated,"likes");
  $("#stats").innerHTML=`<div class="stat"><span>Security-related videos</span><b>${num(uniqueRelated.length)}</b><small>Classified content in this selection</small></div><div class="stat stat-hero"><span>Views on security-related videos</span><b>${num(relevantViews.value)}</b><small>Lifetime views · ${relevantViews.n}/${uniqueRelated.length} counters available · not unique viewers</small></div><div class="stat"><span>Likes on related videos</span><b>${num(relevantLikes.value)}</b><small>${relevantLikes.n}/${uniqueRelated.length} counters available</small></div>`;
- const missingText=c.awaiting_transcript||0, pendingCoding=Math.max(0,(c.transcript_eligible||0)-(c.classified_videos||0));
- $(".coverage-details summary").textContent=`Data coverage · ${c.classified_videos||0} of ${c.sampled_videos||0} sources classified · ${missingText} need English text · ${pendingCoding} have text and await valid classification`;
+ const missingText=Math.max(0,selectedCoverage.sampled-selectedCoverage.saved), pendingCoding=Math.max(0,selectedCoverage.saved-selectedCoverage.classified);
+ $(".coverage-details summary").textContent=`Data coverage · ${selectedCoverage.classified} of ${selectedCoverage.sampled} sources classified · ${missingText} need English text · ${pendingCoding} have text and await valid classification`;
  const country=countries.find(x=>x.iso2===$("#country").value)?.country_name || "Europe";
  $("#focus-title").textContent=country;$("#map-focus").textContent=country.toUpperCase();
  const topics=Object.entries(data.topic_labels||{}).map(([k,n])=>[k,n,related.filter(x=>x.label.topics.includes(k)).length]).filter(x=>x[2]).sort((a,b)=>b[2]-a[2]);
  $("#topics").innerHTML=topics.slice(0,7).map(([k,n,count])=>`<button class="topic-button" data-topic="${esc(k)}"><span>${esc(n)}</span><b>${count}</b></button>`).join("") || '<p class="small">No coded topics for these filters.</p>';
  const lead=topics[0];
  $('#situation-brief').innerHTML=`<strong>WEEK AT A GLANCE</strong><span>${lead?`Most observed topic: <b>${esc(lead[1])}</b> · ${lead[2]} classified sources`:'No classified topic for this selection'}</span><span><b>${MonitorMap.responses(v).total}</b> comments analysed for message alignment and sentiment</span>`;
- const health=data.caption_health||{}, saved=health.saved||c.transcript_eligible||0;
+ const health={saved:selectedSaved,blocked:selectedInventory.filter(x=>x.caption_state==='blocked').length,unavailable:selectedInventory.filter(x=>x.caption_state==='unavailable').length,unverified:selectedInventory.filter(x=>x.caption_state==='unverified').length}, saved=selectedSaved;
+ const selectedComments=MonitorMap.latest(rows()).reduce((n,x)=>n+(x.retained_comments||0),0);
  const recovery=data.caption_recovery||[], audio=recovery.some(x=>x.audio_configured);
  const stopped=recovery.some(x=>x.audio_stopped==='audio_access_unavailable');
  const recoveryNote=stopped?'Public audio retrieval is also blocked. These sources remain unclassified until evidence can be retrieved.':audio?'Automatic audio transcription is enabled. Missing audio can be recovered in bounded Sunday runs on the configured Mac.':'Audio recovery has not run in this snapshot.';
- $("#quality").innerHTML=`<div class="pipeline-line"><span>Sample frozen</span><b>${c.sampled_videos||0}</b></div><div class="pipeline-line"><span>English text saved</span><b>${saved}</b></div><div class="pipeline-meter"><span style="width:${c.sampled_videos?saved/c.sampled_videos*100:0}%"></span></div><div class="pipeline-line warn"><span>Retrieval blocked</span><b>${health.blocked||0}</b></div><div class="pipeline-line warn"><span>No English access found</span><b>${health.unavailable||0}</b></div><div class="pipeline-line"><span>Access unverified</span><b>${health.unverified||0}</b></div><p class="small">GLOBAL PIPELINE · ${c.all_retained_comments||0} comments retained.<br>Weekly collection: Sunday 05:17 UTC.<br>Saved-text classification follows recovered evidence.<br>YouTube may block caption requests even when a video has subtitles.<br>${esc(recoveryNote)}<br>AI coding is automatic once English text is saved. Human review is a separate quality sample.</p>`;
+ $("#quality").innerHTML=`<div class="pipeline-line"><span>Sources in selection</span><b>${selectedCoverage.sampled}</b></div><div class="pipeline-line"><span>English text saved</span><b>${saved}</b></div><div class="pipeline-meter"><span style="width:${selectedCoverage.sampled?saved/selectedCoverage.sampled*100:0}%"></span></div><div class="pipeline-line warn"><span>Retrieval blocked</span><b>${health.blocked||0}</b></div><div class="pipeline-line warn"><span>No English access found</span><b>${health.unavailable||0}</b></div><div class="pipeline-line"><span>Access unverified</span><b>${health.unverified||0}</b></div><p class="small">SELECTED WINDOW · ${selectedComments} comments retained.<br>Weekly collection: Sunday 05:17 UTC.<br>Saved-text classification follows recovered evidence.<br>YouTube may block caption requests even when a video has subtitles.<br>${esc(recoveryNote)}<br>AI coding is automatic once English text is saved. Human review is a separate quality sample.</p>`;
  $("#roles").innerHTML=roles.map(r=>`<div class="role" style="color:${colors[r]}"><span class="icon" aria-hidden="true">${icons[r]}</span><div>${esc(data.role_labels?.[r]||human(r))}<small>Sources portraying this role</small></div><b>${related.filter(x=>x.label.roles.some(z=>z.role===r&&($("#country").value==="all"||z.entity_code===$("#country").value))).length}</b></div>`).join("");
  const ex={comparative:"Comparative",endorsement:"Expert / testimonial",entertainment:"Entertainment / storytelling",mnemonic_devices:"Mnemonic devices"};
  $("#execution").innerHTML=Object.entries(ex).map(([k,n])=>{
@@ -95,7 +112,7 @@ function render(){
  }).join("")+`<p class="small">Bars show confirmed presence / ${related.length} security-related videos. Not observed in text does not mean absent from the video. Categories can overlap.</p>`;
  renderResponses(rows());
  $("#engagement").innerHTML=`<div class="metric-grid">${[["Views","views"],["Likes","likes"],["Total comments","total_comments"]].map(([name,k])=>{const s=sum(all,k);return `<div><b>${num(s.value)}</b><small>${name} · ${s.n}/${all.length} counters</small></div>`}).join("")}</div><p class="small">Latest saved counters · shares unavailable · views are not unique people.</p>`;
- $("#data-status").textContent=`${c.classified_videos||0} of ${c.sampled_videos||0} sources classified, including ${c.reviewed_videos||0} human reviewed. ${c.transcript_eligible||0} have usable English text. ${missingText} still need text; ${pendingCoding} have text but await a valid classification. AI results publish provisionally only after evidence and classification checks pass. Human corrections take precedence. This sample does not establish country-level public opinion or a trend.`;
+ $("#data-status").textContent=`${selectedCoverage.classified} of ${selectedCoverage.sampled} sources classified, including ${selectedCoverage.reviewed} human reviewed. ${selectedCoverage.saved} have usable English text. ${missingText} still need text; ${pendingCoding} have text but await a valid classification. AI results publish provisionally only after evidence and classification checks pass. Human corrections take precedence. This sample does not establish country-level public opinion or a trend.`;
  renderMap();renderRanking();renderFeed();renderEvidence();
 }
 const responseStyles={
@@ -139,7 +156,7 @@ function renderMap(){
 function renderRanking(){
  const alignment=$('#rank-alignment').value, sentiment=$('#rank-sentiment').value;
  const result=MonitorMap.ranking(rows(false),countries,alignment,sentiment);
- const period=$('#batch').selectedOptions[0].textContent,topic=$('#topic').selectedOptions[0].textContent;
+ const period=`${$('#batch').selectedOptions[0].textContent} · ${dateLabel()}`,topic=$('#topic').selectedOptions[0].textContent;
  $('#ranking-total').textContent=result.available?`${num(result.total)} MATCHING COMMENTS`:'JOINT COUNTS UNAVAILABLE';
  $('#ranking-context').textContent=`${period} · ${topic}. All countries are ranked, independently of the country selector above. Both filters apply to the same comment.`;
  if(!result.available){$('#ranking-denominator').textContent='';$('#country-ranking').innerHTML='<p class="small">Combined filters need the updated public snapshot. No intersection is inferred from separate alignment and sentiment totals.</p>';return;}
@@ -149,7 +166,7 @@ function renderRanking(){
 function showCountry(code,measure){
  const country=countries.find(c=>c.iso2===code);if(!country)return;
  const result=MonitorMap.aggregate(rows(false),code), r=result.responses;
- const period=$('#batch').selectedOptions[0].textContent, topic=$('#topic').selectedOptions[0].textContent;
+ const period=`${$('#batch').selectedOptions[0].textContent} · ${dateLabel()}`, topic=$('#topic').selectedOptions[0].textContent;
  const focus=measure==='views'?`${num(result.views.value)} lifetime views`: (()=>{const [field,key]=(measure||'').split('|');return `${num(r[field]?.[key]||0)} comments · ${human(key)}`;})();
  $('#country-detail').innerHTML=`<span class="eyebrow">${esc(code)} / ${esc(period)} / ${esc(topic)}</span><h2 id="country-title">${esc(country.country_name)}</h2><p class="country-highlight">${esc(focus)}</p><div class="country-metrics"><div><b>${num(result.count)}</b><small>Unique classified videos</small></div><div><b>${num(result.related)}</b><small>Security-related videos</small></div><div><b>${num(result.views.value)}</b><small>Lifetime views · ${result.views.n}/${result.count} counters</small></div><div><b>${num(result.likes.value)}</b><small>Likes · ${result.likes.n}/${result.count} counters</small></div><div><b>${num(r.total)}</b><small>Classified comments</small></div><div><b>${num(r.human_reviewed)}</b><small>Human-reviewed comments</small></div></div>${responseLegend(r)}<p class="small">Country mentions in the selected content, not audience location. A video may mention several countries, so country totals overlap. All retained weeks use one latest snapshot per video. Lifetime views are not unique people or views gained during this window. Data are retained for 30 days.</p>`;
  $('#country-dialog').showModal();
@@ -185,14 +202,17 @@ async function init(){try{
  $('#country').insertAdjacentHTML('beforeend',countries.map(c=>`<option value="${esc(c.iso2)}">${esc(c.country_name)}</option>`).join(''));
  $('#batch').insertAdjacentHTML('beforeend',data.batches.map(b=>`<option value="${esc(b.id)}">${esc(b.id)}</option>`).join(''));
  $('#topic').insertAdjacentHTML('beforeend',Object.entries(data.topic_labels||{}).map(([c,n])=>`<option value="${esc(c)}">${esc(n)}</option>`).join(''));
+ configureDateInputs();
  render();route();
  }catch(e){$('#data-status').textContent='Snapshot unavailable. Please refresh or check the publishing workflow.';console.error(e);}}
 for(const id of ['batch','country','topic','metric','response-metric'])$('#'+id).onchange=render;
+$('#date-range').onchange=()=>{$('#custom-dates').hidden=$('#date-range').value!=='custom';if($('#date-range').value==='custom')configureDateInputs();render();};
+for(const id of ['date-from','date-to'])$('#'+id).onchange=render;
 for(const id of ['rank-alignment','rank-sentiment'])$('#'+id).onchange=renderRanking;
 $('#rank-reset').onclick=()=>{$('#rank-alignment').value='all';$('#rank-sentiment').value='all';renderRanking();};
 $('#feed-pause').onclick=()=>{feedPaused=!feedPaused;drawFeed();};
 $('#feed-mode').onchange=renderFeed;$('#search').oninput=renderEvidence;
-$('#reset').onclick=()=>{for(const id of ['batch','country','topic'])$('#'+id).value='all';$('#metric').value='both';$('#response-metric').value='alignment';$('#rank-alignment').value='all';$('#rank-sentiment').value='all';zoom=1;setZoom();render();};
+$('#reset').onclick=()=>{for(const id of ['batch','date-range','country','topic'])$('#'+id).value='all';for(const id of ['date-from','date-to'])$('#'+id).value='';$('#custom-dates').hidden=true;$('#metric').value='both';$('#response-metric').value='alignment';$('#rank-alignment').value='all';$('#rank-sentiment').value='all';zoom=1;setZoom();render();};
 $('#topics').onclick=e=>{const b=e.target.closest('[data-topic]');if(b){$('#topic').value=b.dataset.topic;render();}};
 $('#markers').onclick=e=>{const el=e.target.closest('[data-country]');if(el){showCountry(el.dataset.country,el.dataset.measure);}};
 $('#markers').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));}};
@@ -215,6 +235,7 @@ async function refreshSnapshot(){
     inventory=(data.inventory||data.videos).map(v=>({...v,...coded.get(v.batch+'|'+v.id)}));
     const existing=new Set([...$('#batch').options].map(o=>o.value));
     for(const b of data.batches)if(!existing.has(b.id))$('#batch').insertAdjacentHTML('beforeend',`<option value="${esc(b.id)}">${esc(b.id)}</option>`);
+    configureDateInputs();
     render();
   }catch{/* Retain the last successfully loaded snapshot during network failures. */}
 }

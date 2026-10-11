@@ -13,7 +13,7 @@ class PublicCoverageTests(unittest.TestCase):
         s = fixtures.HybridTests().make_transcript_store()
         s.batch({'id': '2026-W40'}, 'test')
         s.write('2026-W40', [
-            record('candidate_videos', '2026-W40', 'blocked-candidate', {'title': 'Public source', 'countries': ['FR']}, 'blocked'),
+            record('candidate_videos', '2026-W40', 'blocked-candidate', {'title': 'Public source', 'countries': ['FR'], 'published_at': '2026-10-04T12:00:00Z'}, 'blocked'),
             record('sampled_videos', '2026-W40', 'blocked-sample', {'selected_for_sample': True}, 'blocked'),
             record('pipeline_runs', '2026-W40', 'blocked-access', {'english_access_video_id': 'blocked', 'policy_version': POLICY_VERSION, 'eligible': False, 'original_language': 'fr', 'status': 'english_access_unverified', 'failure_reason': 'IpBlocked', 'checked_at': '2026-10-05T00:00:00Z', 'transcript_english': []}, 'blocked'),
         ])
@@ -23,6 +23,7 @@ class PublicCoverageTests(unittest.TestCase):
         self.assertEqual(out['caption_health'], {'saved': 1, 'blocked': 1})
         blocked=next(x for x in out['inventory'] if x['id']=='blocked')
         self.assertEqual(blocked['caption_state'], 'blocked')
+        self.assertEqual(blocked['published_at'], '2026-10-04T12:00:00Z')
         self.assertNotIn('label',blocked)
         self.assertNotIn('blocked', [x['id'] for x in out['videos']])
         self.assertNotIn('transcript_english', json.dumps(out))

@@ -51,3 +51,12 @@ test('latest unclassified snapshot cannot resurrect older classifications',()=>{
  assert.equal(latest(observations).length,1);
  assert.equal(latest(observations)[0].engagement.views,120);
 });
+test('date ranges use content publication time and accumulation remains the default',()=>{
+ const {inDateRange,dateBounds}=require('../apps/dashboard/map-data.js');
+ const asOf='2026-10-11T12:00:00Z', recent=video({published_at:'2026-10-10T18:00:00Z'}), old=video({published_at:'2026-10-03T12:00:00Z'});
+ assert.equal(inDateRange(old,'all','','',asOf),true);
+ assert.equal(inDateRange(recent,'day','','',asOf),true);
+ assert.equal(inDateRange(old,'week','','',asOf),false);
+ assert.equal(inDateRange(recent,'custom','2026-10-10','2026-10-10',asOf),true);
+ assert.deepEqual(dateBounds('2days','','',asOf),{start:Date.parse(asOf)-2*86400000,end:Date.parse(asOf)});
+});

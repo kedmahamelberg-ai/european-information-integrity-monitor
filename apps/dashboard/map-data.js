@@ -11,6 +11,24 @@
     return [...selected.values()];
   }
   function unique(videos) { return latest(videos).filter(v=>v.label); }
+  function dateBounds(mode, from='', to='', asOf=new Date().toISOString()) {
+    const end = Date.parse(asOf);
+    if (mode === 'all') return {start:null,end:null};
+    if (['day','2days','week'].includes(mode)) {
+      const days={day:1,'2days':2,week:7}[mode];
+      return {start:end-days*86400000,end};
+    }
+    const start=from ? Date.parse(from+'T00:00:00Z') : null;
+    const customEnd=to ? Date.parse(to+'T00:00:00Z')+86400000 : null;
+    return {start:Number.isFinite(start)?start:null,end:Number.isFinite(customEnd)?customEnd:null};
+  }
+  function inDateRange(video, mode='all', from='', to='', asOf=new Date().toISOString()) {
+    if (mode === 'all') return true;
+    const published=Date.parse(video.published_at || '');
+    if (!Number.isFinite(published)) return false;
+    const bounds=dateBounds(mode,from,to,asOf);
+    return (bounds.start===null||published>=bounds.start)&&(bounds.end===null||published<bounds.end);
+  }
   function markerSize(count, maximum) { return count>0&&maximum>0 ? Math.max(4,18*Math.sqrt(Math.min(count/maximum,1))) : 0; }
   function responses(videos) {
     const out = {total:0, human_reviewed:0, alignment:{supports:0,opposes:0,mixed:0,no_position:0,unrelated:0,unclear:0}, sentiment:{positive:0,negative:0,mixed:0,neutral:0,unclear:0}, response_focus:{}};
@@ -53,7 +71,7 @@
     }).sort((a,b)=>b.count-a.count||a.country_name.localeCompare(b.country_name));
     return {available:true,total,rows};
   }
-  const api = {latest, unique, markerSize, responses, aggregate, mapCategories, matchingComments, ranking};
+  const api = {latest, unique, dateBounds, inDateRange, markerSize, responses, aggregate, mapCategories, matchingComments, ranking};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.MonitorMap = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
