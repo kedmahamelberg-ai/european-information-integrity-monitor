@@ -2,7 +2,14 @@ import copy
 import json
 import unittest
 from unittest.mock import patch
-from eiim.hybrid import validate_label, retained_inputs, reclassify, schema
+from eiim.hybrid import (
+    classify_comment_batch,
+    validate_label,
+    retained_inputs,
+    reclassify,
+    schema,
+)
+from eiim.services import ClassificationUnavailable
 from eiim.storage import MemoryStore, record
 from eiim.core import config
 
@@ -74,6 +81,33 @@ def label():
 
 
 class HybridTests(unittest.TestCase):
+    def test_comment_batch_shape_failure_falls_back_to_single_comments(self):
+        class Fake:
+            def __init__(self):
+                self.sizes = []
+
+            def request(self, text, prompt, shape, kind):
+                doc = json.loads(text)
+                self.sizes.append(len(doc["comments"]))
+                if len(doc["comments"]) > 1:
+                    raise ClassificationUnavailable("duplicate comment IDs")
+                item = copy.deepcopy(label()["comments"][0])
+                item["comment_id"] = doc["comments"][0]["comment_id"]
+                return {"parsed": {"comments": [item]}, "model_version": "test"}
+
+        comment_input = {
+            "content_reference": label()["content_reference"],
+            "comments": [
+                {"comment_id": "c1", "text_english": "Agreed"},
+                {"comment_id": "c2", "text_english": "Agreed"},
+            ],
+        }
+        fake = Fake()
+        comments, models = classify_comment_batch(fake, comment_input, "prompt")
+        self.assertEqual(fake.sizes, [2, 1, 1])
+        self.assertEqual([c["comment_id"] for c in comments], ["c1", "c2"])
+        self.assertEqual(models, ["test", "test"])
+
     def test_negative_sentiment_can_support(self):
         self.assertEqual(
             validate_label(label(), document())["comments"][0]["alignment"], "supports"

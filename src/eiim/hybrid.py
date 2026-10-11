@@ -361,6 +361,45 @@ def validate_comments(value, document):
     return value
 
 
+def classify_comment_batch(classifier, comment_input, prompt):
+    """Classify a small comment batch, isolating persistent batch-shape failures.
+
+    Structured output constrains every returned ID to the requested set, but it
+    cannot require each enum value exactly once. If bounded repair still
+    duplicates or omits IDs, retry the same evidence one comment at a time so a
+    malformed sibling cannot prevent valid comments from being saved.
+    """
+    ids = [c["comment_id"] for c in comment_input["comments"]]
+    try:
+        result = classifier.request(
+            json.dumps(comment_input, ensure_ascii=False),
+            prompt,
+            comment_schema(ids),
+            "hybrid_comments",
+        )
+        return (
+            validate_comments(result["parsed"], comment_input)["comments"],
+            [result["model_version"]],
+        )
+    except ClassificationUnavailable:
+        if len(ids) <= 1:
+            raise
+
+    comments = []
+    models = []
+    for comment in comment_input["comments"]:
+        single_input = dict(comment_input, comments=[comment])
+        result = classifier.request(
+            json.dumps(single_input, ensure_ascii=False),
+            prompt,
+            comment_schema([comment["comment_id"]]),
+            "hybrid_comments",
+        )
+        comments.extend(validate_comments(result["parsed"], single_input)["comments"])
+        models.append(result["model_version"])
+    return comments, models
+
+
 def retained_inputs(store, batch):
     runs = [r for r in store.read("pipeline_runs", batch) if not r.get("purged_at")]
     access = access_records(runs)
@@ -556,20 +595,13 @@ def reclassify(store, batch, classifier=None):
                     "transcript_truncated": document["transcript_truncated"],
                     "comments": document["comments"][offset : offset + 5],
                 }
-                comment_result = classifier.request(
-                    json.dumps(comment_input, ensure_ascii=False),
+                classified_comments, models = classify_comment_batch(
+                    classifier,
+                    comment_input,
                     (ROOT / "prompts" / (COMMENT_VERSION + ".txt")).read_text(),
-                    comment_schema(
-                        [c["comment_id"] for c in comment_input["comments"]]
-                    ),
-                    "hybrid_comments",
                 )
-                all_comments.extend(
-                    validate_comments(comment_result["parsed"], comment_input)[
-                        "comments"
-                    ]
-                )
-                comment_models.append(comment_result["model_version"])
+                all_comments.extend(classified_comments)
+                comment_models.extend(models)
             label["comments"] = all_comments
             label = validate_label(label, document)
             payload = {
@@ -585,7 +617,7 @@ def reclassify(store, batch, classifier=None):
                 "classified_at": result["classification_timestamp"],
                 "human_validated": False,
                 "comment_models": sorted(set(comment_models)),
-                "pipeline_method": "video_then_comment_batches_v1",
+                "pipeline_method": "video_then_comment_batches_v2",
                 "reviewer_context": document.get("reviewer_context"),
             }
             store.write(batch, [record("pipeline_runs", batch, ident, payload, vid)])
