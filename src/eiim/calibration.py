@@ -137,6 +137,37 @@ def current_reviews(store, batch=None):
     return out
 
 
+def _review_disagreements(review):
+    return sum(value == "disagree" for value in review["decisions"].values())
+
+
+def _balanced_reviews(validated, known, *, comments, limit):
+    """Prioritize corrections while retaining cross-batch calibration coverage."""
+    pool = [
+        review
+        for review in validated.values()
+        if bool(review.get("comment_id")) == comments
+        and review.get("queue_record_id") in known
+    ]
+    key = lambda review: (
+        _review_disagreements(review),
+        review.get("reviewed_at", ""),
+        review.get("queue_record_id", ""),
+        review.get("comment_id") or "",
+    )
+    ranked = sorted(pool, key=key, reverse=True)
+    leaders = {}
+    for review in ranked:
+        if not _review_disagreements(review):
+            continue
+        batch = known[review["queue_record_id"]]["batch_id"]
+        leaders.setdefault(batch, review)
+    selected = [leaders[batch] for batch in sorted(leaders, reverse=True)][:limit]
+    selected_ids = {id(review) for review in selected}
+    selected.extend(review for review in ranked if id(review) not in selected_ids)
+    return selected
+
+
 def calibration_examples(store, exclude_video_id=None):
     """Bounded private examples from validated retained reviews, excluding self."""
     from .hybrid import labels, retained_inputs
@@ -149,11 +180,8 @@ def calibration_examples(store, exclude_video_id=None):
     examples = {"videos": [], "comments": []}
     cache = {}
     validated = current_reviews(store)
-    reviews = sorted(
-        validated.values(),
-        key=lambda p: sum(v == "disagree" for v in p["decisions"].values()),
-        reverse=True,
-    )
+    reviews = _balanced_reviews(validated, known, comments=False, limit=4)
+    reviews += _balanced_reviews(validated, known, comments=True, limit=6)
     for p in reviews:
         row = known[p["queue_record_id"]]
         if row["video_id"] == exclude_video_id:
