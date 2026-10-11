@@ -676,7 +676,16 @@ def reclassify(store, batch, classifier=None):
 
 def latest_labels(rows):
     latest = {}
-    for row in sorted(rows, key=lambda r: r["payload"]["classified_at"]):
+    # Comment-enriched retries retain the video's original classification time.
+    # Break those ties by insertion time so the completed comment record wins.
+    # MemoryStore rows lack created_at, and stable sorting keeps append order.
+    for row in sorted(
+        rows,
+        key=lambda r: (
+            r["payload"]["classified_at"],
+            r.get("created_at", ""),
+        ),
+    ):
         latest[(row["batch_id"], row["video_id"])] = row
     return list(latest.values())
 
