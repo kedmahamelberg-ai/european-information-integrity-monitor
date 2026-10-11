@@ -16,19 +16,27 @@ jobs:
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+    outputs:
+      purged: ${{ steps.purge.outputs.purged }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Apply permitted retention
+        id: purge
         run: |
           if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_SECRET_KEY" ]; then
-            PYTHONPATH=src python -m eiim.cli purge
+            PYTHONPATH=src python -m eiim.cli purge > /tmp/eiim-purge.json
+            cat /tmp/eiim-purge.json
+            PURGED=$(python -c 'import json; print(int(json.load(open("/tmp/eiim-purge.json")).get("purged", 0)))')
+            echo "purged=$PURGED" >> "$GITHUB_OUTPUT"
           else
+            echo "purged=0" >> "$GITHUB_OUTPUT"
             echo 'No credentials configured; no live data collected.' >> "$GITHUB_STEP_SUMMARY"
           fi
   refresh:
     needs: retention
+    if: needs.retention.outputs.purged != '0'
     uses: ./.github/workflows/site.yml
     secrets: inherit
