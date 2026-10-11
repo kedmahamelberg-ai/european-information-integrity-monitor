@@ -21,6 +21,13 @@ class ClassificationExitTests(unittest.TestCase):
         self.assertIn('"Classify saved Monitor evidence"', site)
         self.assertNotIn('"Transcript-based conflict classification"', site)
 
+    def test_retention_skips_unchanged_daily_publication(self):
+        workflow = (
+            Path(__file__).parents[1] / ".github/workflows/retention.yml"
+        ).read_text()
+        self.assertIn("purged: ${{ steps.purge.outputs.purged }}", workflow)
+        self.assertIn("if: needs.retention.outputs.purged != '0'", workflow)
+
     def run_report(self, report, *options):
         store = MemoryStore()
         store.write("2026-W40", [record("sampled_videos", "2026-W40", "sample:v",
