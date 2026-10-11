@@ -128,6 +128,17 @@ def validate_shape(value, shape):
 def validate_label(value, document):
     value = copy.deepcopy(value)
     validate_shape(value, schema())
+    # These fields are mechanically determined by the relevance gate. Models
+    # sometimes preserve a delivery observation while correctly deciding that
+    # a source is outside the Monitor's scope. Normalize that structural
+    # inconsistency instead of spending repeated calls asking for four fixed
+    # not-applicable values. Human review can still correct the relevance gate.
+    if value["relevance"] != "related":
+        value["topics"] = []
+        value["roles"] = []
+        for item in value["execution"]:
+            item["status"] = "not_applicable"
+            item["evidence"] = {"quote": "", "source_id": ""}
     errors = []
     sections = {s["id"]: s["text"] for s in document["sections"]}
 
@@ -163,8 +174,6 @@ def validate_label(value, document):
                 )
 
     evidence(value["evidence"], value["relevance"] == "related")
-    if value["relevance"] != "related" and (value["topics"] or value["roles"]):
-        errors.append("Only relevant videos can have study topics/roles")
     if value["relevance"] == "related" and not value["topics"]:
         errors.append("Relevant videos require at least one topic")
     if len(value["topics"]) != len(set(value["topics"])):
@@ -583,7 +592,13 @@ def reclassify(store, batch, classifier=None):
             status = "pending_budget"
             break
         except (ClassificationUnavailable, ValueError) as error:
-            errors.append({"video_id": vid, "error_type": type(error).__name__})
+            errors.append(
+                {
+                    "video_id": vid,
+                    "error_type": type(error).__name__,
+                    "reason": str(error),
+                }
+            )
     current = latest_labels(labels(store, batch))
     coverage = caption_coverage(store, batch)
     classification_status = status if not errors else "partial"
