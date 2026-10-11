@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import subprocess
 import sys
 import ssl
 import time
@@ -29,6 +30,20 @@ def configure_private_cookie(private=PRIVATE):
     local_cookie = private / 'cookies.txt'
     if local_cookie.is_file():
         os.environ['EIIM_YOUTUBE_COOKIE_FILE'] = str(local_cookie)
+
+def keep_mac_awake(*, platform=sys.platform, pid=os.getpid, spawn=subprocess.Popen):
+    """Keep macOS awake only while this recovery process exists."""
+    if platform != 'darwin':
+        return None
+    try:
+        return spawn(
+            ['/usr/bin/caffeinate', '-dimsu', '-w', str(pid())],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+    except OSError:
+        return None
 
 def recover_queue(queue, save, progress, *, reader_factory=AudioTranscripts,
                   clock=time.monotonic, max_seconds=14400):
@@ -153,6 +168,7 @@ def main():
         print(json.dumps({'eligible_for_recovery': len(queue), 'retained_local_records': len(rows), 'dry_run': args.dry_run}), flush=True)
         if args.dry_run:
             return
+        keep_mac_awake()
         temp = output.with_suffix('.new')
         temp.write_text(''.join(json.dumps(r) + '\n' for r in rows))
         os.chmod(temp, 0o600)

@@ -1,6 +1,8 @@
 import importlib.util
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+import os
+import tempfile
 import unittest
 
 spec = importlib.util.spec_from_file_location('local_recovery', Path(__file__).resolve().parents[1] / 'scripts/local_recovery.py')
@@ -8,6 +10,37 @@ recovery = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(recovery)
 
 class LocalRecoveryTests(unittest.TestCase):
+    def test_mac_stay_awake_is_bound_to_recovery_pid(self):
+        calls = []
+        marker = object()
+        def spawn(command, **options):
+            calls.append((command, options))
+            return marker
+        self.assertIs(
+            recovery.keep_mac_awake(platform='darwin', pid=lambda: 4321, spawn=spawn),
+            marker,
+        )
+        self.assertEqual(calls[0][0],
+                         ['/usr/bin/caffeinate', '-dimsu', '-w', '4321'])
+        self.assertTrue(calls[0][1]['start_new_session'])
+        self.assertIsNone(recovery.keep_mac_awake(platform='linux', spawn=spawn))
+        self.assertEqual(len(calls), 1)
+
+    def test_private_cookie_path_is_configured_automatically(self):
+        previous = os.environ.pop('EIIM_YOUTUBE_COOKIE_FILE', None)
+        try:
+            with tempfile.TemporaryDirectory() as folder:
+                private = Path(folder)
+                (private / 'cookies.txt').write_text('# Netscape HTTP Cookie File\n')
+                recovery.configure_private_cookie(private)
+                self.assertEqual(os.environ['EIIM_YOUTUBE_COOKIE_FILE'],
+                                 str(private / 'cookies.txt'))
+        finally:
+            if previous is None:
+                os.environ.pop('EIIM_YOUTUBE_COOKIE_FILE', None)
+            else:
+                os.environ['EIIM_YOUTUBE_COOKIE_FILE'] = previous
+
     def test_saved_expired_and_invalid_sources_never_enter_queue(self):
         now = datetime(2026,10,7,tzinfo=timezone.utc)
         source={'id':'abcdefghijk','batch':'2026-W40','caption_state':'unverified'}
