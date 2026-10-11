@@ -1,11 +1,11 @@
-"""Reproducible human workload, sampled independently of model outcomes."""
+"""Reproducible human workload sampled as video clusters."""
 
 from math import ceil
 from .core import config, digest
 from .language_access import access_records, video_access
 
 
-def sample_plan(batch, video_ids, policy=None):
+def sample_plan(batch, video_ids, policy=None, comments_by_video=None):
     policy = policy or config("review_sampling")
     population = sorted(set(video_ids))
     calibration = batch == policy["calibration_batch"]
@@ -21,6 +21,39 @@ def sample_plan(batch, video_ids, policy=None):
         population, key=lambda vid: (digest([policy["seed"], batch, vid]), vid)
     )
     target = min(len(population), requested)
+    method = "seeded hash ranking of eligible frozen sampled video IDs; independent of labels"
+    if target and comments_by_video is not None:
+        with_comments = [vid for vid in population if comments_by_video.get(vid)]
+        without_comments = [vid for vid in population if not comments_by_video.get(vid)]
+        if with_comments and without_comments and target > 1:
+            first_with = min(
+                with_comments,
+                key=lambda vid: (digest([policy["seed"], batch, "with-comments", vid]), vid),
+            )
+            first_without = min(
+                without_comments,
+                key=lambda vid: (digest([policy["seed"], batch, "without-comments", vid]), vid),
+            )
+            required = {first_with, first_without}
+            selected = list(required)
+            selected.extend(vid for vid in ranked if vid not in required)
+            ranked = sorted(
+                selected[:target],
+                key=lambda vid: (digest([policy["seed"], batch, vid]), vid),
+            )
+            method = (
+                "seeded hash ranking of eligible frozen sampled video IDs, "
+                "stratified by presence of classified comments; independent of labels"
+            )
+        elif with_comments and target == 1:
+            ranked = sorted(
+                with_comments,
+                key=lambda vid: (digest([policy["seed"], batch, "with-comments", vid]), vid),
+            )
+            method = (
+                "seeded hash ranking of eligible frozen sampled video IDs with a "
+                "classified comment; independent of labels"
+            )
     return {
         "policy_version": policy["version"],
         "batch": batch,
@@ -31,7 +64,7 @@ def sample_plan(batch, video_ids, policy=None):
         "fraction": policy["routine_fraction"],
         "minimum": policy["routine_minimum"],
         "selected_video_ids": ranked[:target],
-        "selection_method": "seeded hash ranking of eligible frozen sampled video IDs; independent of labels",
+        "selection_method": method,
     }
 
 
@@ -64,14 +97,26 @@ def assignment(plan, video_id):
     }
 
 
-def comment_plan(batch, comment_ids, policy=None):
-    """Independent 3% audit of coded, translated comments, not video clusters."""
+def linked_comment_plan(batch, video_plan, comments_by_video, policy=None):
+    """Include every classified comment attached to the sampled videos."""
     policy = policy or config("review_sampling")
-    population = sorted(set(comment_ids))
-    target = min(len(population), max(policy["routine_minimum"],
-                 ceil(len(population) * policy["routine_fraction"])))
-    ranked = sorted(population, key=lambda cid: (digest([policy["seed"], batch, "comment", cid]), cid))
-    return {"policy_version": policy["version"], "batch": batch,
-            "population": len(population), "population_hash": digest(population),
-            "target": target, "fraction": policy["routine_fraction"],
-            "minimum": policy["routine_minimum"], "selected_comment_ids": ranked[:target]}
+    normalized = {
+        vid: sorted(set(comments_by_video.get(vid, [])))
+        for vid in video_plan["selected_video_ids"]
+    }
+    population = sorted(
+        {cid for ids in comments_by_video.values() for cid in ids}
+    )
+    selected = sorted({cid for ids in normalized.values() for cid in ids})
+    return {
+        "policy_version": policy["version"],
+        "batch": batch,
+        "population": len(population),
+        "population_hash": digest(population),
+        "target": len(selected),
+        "fraction": video_plan["fraction"],
+        "minimum": 0,
+        "selected_video_ids": video_plan["selected_video_ids"],
+        "selected_comment_ids": selected,
+        "selection_method": "all classified comments attached to selected video clusters",
+    }
