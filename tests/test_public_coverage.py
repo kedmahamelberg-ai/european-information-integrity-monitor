@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from eiim.hybrid_public import export_public, comment_summary
+from eiim.hybrid_public import export_public, comment_summary, _audit_progress
 from eiim.review_sampling import sample_plan
 from eiim.storage import record
 from eiim.language_access import POLICY_VERSION
@@ -50,3 +50,13 @@ class PublicCoverageTests(unittest.TestCase):
             export_public(s, Path(d) / 'public.json')
         self.assertIn('comments_by_video', planner.call_args.kwargs)
         self.assertEqual(planner.call_args.kwargs['comments_by_video'], {})
+
+    def test_audit_progress_retains_legacy_reviews_and_future_assignments(self):
+        rows = {'v1': {'id': 'r1'}, 'v2': {'id': 'r2'}}
+        plan = {'target': 30, 'selected_video_ids': ['other']}
+        self.assertEqual(_audit_progress(plan, rows, {'r1': {}, 'r2': {}}), (30, 2))
+        assigned = {
+            'r1': {'review_assignment': {'selected': True, 'target': 6}},
+            'r2': {'review_assignment': {'selected': True, 'target': 6}},
+        }
+        self.assertEqual(_audit_progress(plan, rows, assigned), (6, 2))
