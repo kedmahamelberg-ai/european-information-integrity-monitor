@@ -63,12 +63,24 @@ def packet(store, batch):
 
     saved_reviews = current_reviews(store, batch)
     current = [r for r in latest_labels(labels(store, batch)) if r["video_id"] in videos]
-    plan = sample_plan(batch, [r["video_id"] for r in current])
+    population = getattr(store, "review_population", None)
+    plan = sample_plan(
+        batch,
+        population["video_ids"] if population is not None else [r["video_id"] for r in current],
+    )
     available_comments = {c["comment_id"] for c in comments
                           if translations.get(c["comment_id"], {}).get("text_english")}
-    comment_audit = comment_plan(batch, [c["comment_id"] for r in current
-                                for c in r["payload"]["label"]["comments"]
-                                if c["comment_id"] in available_comments])
+    comment_audit = comment_plan(
+        batch,
+        population["comment_ids"]
+        if population is not None
+        else [
+            c["comment_id"]
+            for r in current
+            for c in r["payload"]["label"]["comments"]
+            if c["comment_id"] in available_comments
+        ],
+    )
     items = []
     for row in latest_labels(labels(store, batch)):
         vid, p = row["video_id"], row["payload"]

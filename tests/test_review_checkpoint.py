@@ -22,6 +22,23 @@ class ReviewCheckpointTests(unittest.TestCase):
         with self.assertRaises(ValueError): checkpoint.import_reviews(s,[{'queue_record_id':'forged'}])
         self.assertEqual(s.outbox,[])
 
+    def test_compact_snapshot_preserves_full_review_population(self):
+        from test_hybrid import HybridTests, label
+        from eiim.hybrid_review import packet
+        from eiim.hybrid import VERSION
+        from eiim.storage import record
+        s=HybridTests().make_transcript_store()
+        s.batch({'id':'2026-W41'}, 'test')
+        value=label()
+        row=record('pipeline_runs','2026-W41','coded',{'hybrid_version':VERSION,'label':value,'classified_at':'2026-10-11T00:00:00Z'},'v')
+        s.write('2026-W41',[row])
+        s.review_population={'video_ids':['v']+[f'other-{i}' for i in range(199)],'comment_ids':[value['comments'][0]['comment_id']]+[f'comment-{i}' for i in range(199)]}
+        data=packet(s,'2026-W41')
+        self.assertEqual(data['plan']['population'],200)
+        self.assertEqual(data['plan']['target'],6)
+        self.assertEqual(data['comment_plan']['population'],200)
+        self.assertEqual(data['comment_plan']['target'],6)
+
     def test_independent_comment_review_survives_reclassification_retry(self):
         from test_hybrid import HybridTests, label
         from eiim.hybrid import VERSION, reclassify, latest_labels, labels
