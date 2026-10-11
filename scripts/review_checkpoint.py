@@ -27,6 +27,20 @@ class SnapshotStore(MemoryStore):
         missing = set(TABLES) - set(snapshot['tables'])
         if missing:
             raise ValueError('Incomplete review snapshot')
+        population = snapshot.get('review_population')
+        if population is not None:
+            if (
+                population.get('batch') not in {None, snapshot.get('batch')}
+                or not isinstance(population.get('video_ids'), list)
+                or not isinstance(population.get('comment_ids'), list)
+                or any(not isinstance(x, str) or not x for x in population['video_ids'])
+                or any(not isinstance(x, str) or not x for x in population['comment_ids'])
+            ):
+                raise ValueError('Invalid review population manifest')
+            self.review_population = {
+                'video_ids': sorted(set(population['video_ids'])),
+                'comment_ids': sorted(set(population['comment_ids'])),
+            }
         for table in TABLES:
             rows = [r for r in snapshot['tables'][table] if not r.get('purged_at')]
             if table == 'weekly_batches':
