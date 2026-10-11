@@ -24,17 +24,25 @@ with params as (
   select c.video_id, c.payload
   from coded c join sampled s using(video_id) join access a using(video_id)
   where a.payload->>'eligible'='true'
-), population_comments as (
-  select distinct item->>'comment_id' comment_id
-  from population_videos v cross join lateral jsonb_array_elements(v.payload->'label'->'comments') item
-  where nullif(item->>'comment_id','') is not null
+), population_video_comments as (
+  select v.video_id,
+         coalesce(
+           jsonb_agg(distinct item->>'comment_id' order by item->>'comment_id')
+             filter (where nullif(item->>'comment_id','') is not null),
+           '[]'::jsonb
+         ) comment_ids
+  from population_videos v
+  left join lateral jsonb_array_elements(
+    coalesce(v.payload->'label'->'comments','[]'::jsonb)
+  ) item on true
+  group by v.video_id
 ), selected_comment_rows as (
   select c.* from eiim.comments c join retained b on b.id=c.batch_id, params p
-  where c.purged_at is null and c.payload->>'comment_id'=any(p.selected_comments)
+  where c.purged_at is null
+    and c.video_id=any(p.selected_videos)
+    and c.payload->>'comment_id'=any(p.selected_comments)
 ), context_videos as (
   select unnest(selected_videos) video_id from params
-  union
-  select video_id from selected_comment_rows
 ), translation_runs as (
   select distinct on (r.payload->>'comment_translation_id') r.*
   from eiim.pipeline_runs r join retained b on b.id=r.batch_id, params p
@@ -57,7 +65,10 @@ select jsonb_build_object(
   'review_population',jsonb_build_object(
     'batch','__BATCH__',
     'video_ids',coalesce((select jsonb_agg(video_id order by video_id) from population_videos),'[]'::jsonb),
-    'comment_ids',coalesce((select jsonb_agg(comment_id order by comment_id) from population_comments),'[]'::jsonb)
+    'video_comments',coalesce(
+      (select jsonb_object_agg(video_id,comment_ids order by video_id) from population_video_comments),
+      '{}'::jsonb
+    )
   ),
   'tables',jsonb_build_object(
     'weekly_batches',coalesce((select jsonb_agg(to_jsonb(b)) from eiim.weekly_batches b join retained r on r.id=b.id),'[]'::jsonb),
