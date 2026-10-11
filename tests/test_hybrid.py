@@ -195,8 +195,10 @@ class HybridTests(unittest.TestCase):
             all(e["status"] == "not_applicable" for e in normalized["execution"])
         )
         self.assertTrue(
-            all(e["evidence"] == {"quote": "", "source_id": ""}
-                for e in normalized["execution"])
+            all(
+                e["evidence"] == {"quote": "", "source_id": ""}
+                for e in normalized["execution"]
+            )
         )
 
     def test_unrelated_still_requires_grounded_content_reference(self):
