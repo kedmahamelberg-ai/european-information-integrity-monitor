@@ -445,14 +445,17 @@ def reclassify(store, batch, classifier=None):
     completed = {r["video_id"]: r for r in latest_labels(labels(store, batch))}
     for vid, (source, language) in sorted(videos.items()):
         existing = completed.get(vid)
-        if existing:
-            # A saved label for this hybrid version is complete. Prompt/config
-            # edits must not recode the whole retained batch during recovery;
-            # dedicated migrations handle intentional historical recoding.
-            continue
         selected = sorted(
             [c for c in comments if c["video_id"] == vid], key=lambda c: c["comment_id"]
         )
+        existing_comment_ids = {
+            c["comment_id"] for c in existing["payload"]["label"].get("comments", [])
+        } if existing else set()
+        current_comment_ids = {c["comment_id"] for c in selected}
+        if existing and any(key[0] == existing["id"] for key in reviewed):
+            continue  # A completed human decision always keeps precedence.
+        if existing and existing_comment_ids == current_comment_ids:
+            continue  # Only missing labels or newly retained comments need work.
         # All existing translations are reused. Missing translations use retained
         # text only; this never calls YouTube or retrieves captions/comments.
         try:
