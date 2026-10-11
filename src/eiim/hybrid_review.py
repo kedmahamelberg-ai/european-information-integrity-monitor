@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from .core import ROOT, config, digest, now
 from .hybrid import VERSION, retained_inputs, labels, latest_labels
-from .review_sampling import sample_plan, assignment, comment_plan
+from .review_sampling import sample_plan, assignment, linked_comment_plan
 from .storage import record
 from .engagement import engagement
 
@@ -64,29 +64,33 @@ def packet(store, batch):
     saved_reviews = current_reviews(store, batch)
     current = [r for r in latest_labels(labels(store, batch)) if r["video_id"] in videos]
     population = getattr(store, "review_population", None)
-    plan = sample_plan(
-        batch,
-        population["video_ids"] if population is not None else [r["video_id"] for r in current],
-    )
     available_comments = {c["comment_id"] for c in comments
                           if translations.get(c["comment_id"], {}).get("text_english")}
-    comment_audit = comment_plan(
-        batch,
-        population["comment_ids"]
-        if population is not None
-        else [
-            c["comment_id"]
+    if population is not None:
+        comments_by_video = population["video_comments"]
+        video_ids = population["video_ids"]
+    else:
+        video_ids = [r["video_id"] for r in current]
+        comments_by_video = {
+            r["video_id"]: [
+                c["comment_id"]
+                for c in r["payload"]["label"]["comments"]
+                if c["comment_id"] in available_comments
+            ]
             for r in current
-            for c in r["payload"]["label"]["comments"]
-            if c["comment_id"] in available_comments
-        ],
+        }
+    plan = sample_plan(
+        batch, video_ids, comments_by_video=comments_by_video
     )
+    comment_audit = linked_comment_plan(batch, plan, comments_by_video)
+    selected_comments = set(comment_audit["selected_comment_ids"])
     items = []
     for row in latest_labels(labels(store, batch)):
         vid, p = row["video_id"], row["payload"]
-        if vid not in videos:
+        if vid not in videos or vid not in plan["selected_video_ids"]:
             continue
         source, access = videos[vid]
+        ai_comments = {c["comment_id"]: c for c in p["label"]["comments"]}
         items.append(
             {
                 "id": row["id"],
@@ -134,7 +138,7 @@ def packet(store, batch):
                 "comments": [
                     {
                         **c,
-                        "review_selected": c["comment_id"] in comment_audit["selected_comment_ids"],
+                        "review_selected": True,
                         "translation": translations.get(c["comment_id"], {}),
                         "confirmed_review": saved_reviews.get(
                             (row["id"], c["comment_id"])
@@ -146,17 +150,12 @@ def packet(store, batch):
                             and r["payload"].get("comment_id") == c["comment_id"]
                             and r["payload"].get("version") != VERSION
                         ],
-                        "ai": next(
-                            (
-                                x
-                                for x in p["label"]["comments"]
-                                if x["comment_id"] == c["comment_id"]
-                            ),
-                            None,
-                        ),
+                        "ai": ai_comments[c["comment_id"]],
                     }
                     for c in comments
                     if c["video_id"] == vid
+                    and c["comment_id"] in selected_comments
+                    and c["comment_id"] in ai_comments
                 ],
             }
         )

@@ -24,14 +24,25 @@ with retained as (
   select c.video_id, c.payload
   from coded c join sampled s using(video_id) join access a using(video_id)
   where a.payload->>'eligible'='true'
-), comment_ids as (
-  select distinct item->>'comment_id' as comment_id
-  from videos v cross join lateral jsonb_array_elements(v.payload->'label'->'comments') item
-  where nullif(item->>'comment_id','') is not null
+), video_comments as (
+  select v.video_id,
+         coalesce(
+           jsonb_agg(distinct item->>'comment_id' order by item->>'comment_id')
+             filter (where nullif(item->>'comment_id','') is not null),
+           '[]'::jsonb
+         ) comment_ids
+  from videos v
+  left join lateral jsonb_array_elements(
+    coalesce(v.payload->'label'->'comments','[]'::jsonb)
+  ) item on true
+  group by v.video_id
 )
 select jsonb_build_object(
   'as_of', now(),
   'batch', '__BATCH__',
   'video_ids', coalesce((select jsonb_agg(video_id order by video_id) from videos),'[]'::jsonb),
-  'comment_ids', coalesce((select jsonb_agg(comment_id order by comment_id) from comment_ids),'[]'::jsonb)
+  'video_comments', coalesce(
+    (select jsonb_object_agg(video_id,comment_ids order by video_id) from video_comments),
+    '{}'::jsonb
+  )
 ) as review_population;

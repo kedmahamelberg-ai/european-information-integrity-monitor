@@ -9,7 +9,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from eiim.review_sampling import comment_plan, sample_plan
+from eiim.review_sampling import linked_comment_plan, sample_plan
 
 
 def selection(population, batch):
@@ -20,15 +20,23 @@ def selection(population, batch):
     if population.get("batch") != batch:
         raise ValueError("Review population batch mismatch")
     videos = population.get("video_ids")
-    comments = population.get("comment_ids")
+    video_comments = population.get("video_comments")
     if (
         not isinstance(videos, list)
-        or not isinstance(comments, list)
-        or any(not isinstance(x, str) or not x for x in videos + comments)
+        or not isinstance(video_comments, dict)
+        or any(not isinstance(x, str) or not x for x in videos)
+        or any(
+            not isinstance(vid, str)
+            or vid not in videos
+            or not isinstance(ids, list)
+            or any(not isinstance(cid, str) or not cid for cid in ids)
+            for vid, ids in video_comments.items()
+        )
     ):
         raise ValueError("Invalid review population")
-    video_plan = sample_plan(batch, videos)
-    comments_plan = comment_plan(batch, comments)
+    comments_by_video = {vid: video_comments.get(vid, []) for vid in videos}
+    video_plan = sample_plan(batch, videos, comments_by_video=comments_by_video)
+    comments_plan = linked_comment_plan(batch, video_plan, comments_by_video)
     return {
         "batch": batch,
         "video_population": video_plan["population"],
