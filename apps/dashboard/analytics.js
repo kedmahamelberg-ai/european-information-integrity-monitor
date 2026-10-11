@@ -1,8 +1,8 @@
 (() => {
   "use strict";
 
-  // Shared with kedmahamelberg.com; use hostname and page path to segment ESM.
-  const MEASUREMENT_ID = "G-0KJEDKBCY5";
+  // Dedicated European Security Monitor Google Analytics 4 stream.
+  const MEASUREMENT_ID = "G-1JQ1MNNVKR";
   if (!/^G-[A-Z0-9]+$/.test(MEASUREMENT_ID) || !/^https?:$/.test(location.protocol)) return;
 
   window.dataLayer = window.dataLayer || [];
