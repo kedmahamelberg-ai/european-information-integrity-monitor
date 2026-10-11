@@ -22,6 +22,14 @@ from eiim.storage import record
 
 URL = 'https://monitor.hamelberg-ai.com/data.json'
 
+def configure_private_cookie(private=PRIVATE):
+    """Use the ignored Mac cookie file unless the caller chose another path."""
+    if os.environ.get('EIIM_YOUTUBE_COOKIE_FILE'):
+        return
+    local_cookie = private / 'cookies.txt'
+    if local_cookie.is_file():
+        os.environ['EIIM_YOUTUBE_COOKIE_FILE'] = str(local_cookie)
+
 def recover_queue(queue, save, progress, *, reader_factory=AudioTranscripts,
                   clock=time.monotonic, max_seconds=14400):
     """Continue normal chunk boundaries, but never retry an access block in a loop."""
@@ -118,6 +126,7 @@ def main():
         parser.error('--max-session-seconds must be between 1 and 14400')
     PRIVATE.mkdir(parents=True, exist_ok=True, mode=0o700)
     os.chmod(PRIVATE, 0o700)
+    configure_private_cookie()
     os.chdir(ROOT)
     with (PRIVATE / 'local-recovery.lock').open('w') as lock:
         try:
