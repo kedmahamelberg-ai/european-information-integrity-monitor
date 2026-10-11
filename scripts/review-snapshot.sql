@@ -8,18 +8,18 @@ with retained as (
 ), selected_runs as (
  (select distinct on (video_id) * from runs
   where payload->>'policy_version'='english-access-1.0' and payload->>'eligible'='true'
-  order by video_id, payload->>'checked_at' desc)
+  order by video_id, payload->>'checked_at' desc, created_at desc, id desc)
  union
  (select distinct on (video_id) * from runs
   where payload->>'hybrid_version'='hybrid-framing-1.4' and payload ? 'label'
-  order by video_id, payload->>'classified_at' desc)
+  order by video_id, payload->>'classified_at' desc, created_at desc, id desc)
  union
  (select distinct on (payload->>'comment_translation_id') * from runs
   where payload ? 'comment_translation_id'
-  order by payload->>'comment_translation_id', payload->>'translated_at' desc)
+  order by payload->>'comment_translation_id', payload->>'translated_at' desc, created_at desc, id desc)
  union
  (select distinct on (video_id) * from runs where payload ? 'engagement_video_id'
-  order by video_id, payload->>'captured_at' desc)
+  order by video_id, payload->>'captured_at' desc, created_at desc, id desc)
 )
 select jsonb_build_object('as_of',now(),'tables',jsonb_build_object(
  'weekly_batches',coalesce((select jsonb_agg(to_jsonb(b)) from eiim.weekly_batches b join retained r on r.id=b.id),'[]'::jsonb),

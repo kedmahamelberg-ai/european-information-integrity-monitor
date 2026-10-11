@@ -14,12 +14,12 @@ with params as (
   select distinct on (r.video_id) r.*
   from eiim.pipeline_runs r join retained b on b.id=r.batch_id
   where r.purged_at is null and r.payload->>'policy_version'='english-access-1.0'
-  order by r.video_id, r.payload->>'checked_at' desc
+  order by r.video_id, r.payload->>'checked_at' desc, r.created_at desc, r.id desc
 ), coded as (
   select distinct on (r.video_id) r.*
   from eiim.pipeline_runs r join retained b on b.id=r.batch_id
   where r.purged_at is null and r.payload->>'hybrid_version'='hybrid-framing-1.4' and r.payload ? 'label'
-  order by r.video_id, r.payload->>'classified_at' desc
+  order by r.video_id, r.payload->>'classified_at' desc, r.created_at desc, r.id desc
 ), population_videos as (
   select c.video_id, c.payload
   from coded c join sampled s using(video_id) join access a using(video_id)
@@ -47,7 +47,7 @@ with params as (
   select distinct on (r.payload->>'comment_translation_id') r.*
   from eiim.pipeline_runs r join retained b on b.id=r.batch_id, params p
   where r.purged_at is null and r.payload->>'comment_translation_id'=any(p.selected_comments)
-  order by r.payload->>'comment_translation_id', r.payload->>'translated_at' desc
+  order by r.payload->>'comment_translation_id', r.payload->>'translated_at' desc, r.created_at desc, r.id desc
 ), selected_runs as (
   select a.* from access a join context_videos v using(video_id)
   union all
@@ -58,7 +58,7 @@ with params as (
   select distinct on (r.video_id) r.*
   from eiim.pipeline_runs r join retained b on b.id=r.batch_id join context_videos v using(video_id)
   where r.purged_at is null and r.payload ? 'engagement_video_id'
-  order by r.video_id, r.payload->>'captured_at' desc
+  order by r.video_id, r.payload->>'captured_at' desc, r.created_at desc, r.id desc
 )
 select jsonb_build_object(
   'as_of',now(), 'batch','__BATCH__',

@@ -12,14 +12,14 @@ with retained as (
   from eiim.pipeline_runs r join retained b on b.id=r.batch_id
   where r.purged_at is null
     and r.payload->>'policy_version'='english-access-1.0'
-  order by r.video_id, r.payload->>'checked_at' desc
+  order by r.video_id, r.payload->>'checked_at' desc, r.created_at desc, r.id desc
 ), coded as (
   select distinct on (r.video_id) r.video_id, r.payload
   from eiim.pipeline_runs r join retained b on b.id=r.batch_id
   where r.purged_at is null
     and r.payload->>'hybrid_version'='hybrid-framing-1.4'
     and r.payload ? 'label'
-  order by r.video_id, r.payload->>'classified_at' desc
+  order by r.video_id, r.payload->>'classified_at' desc, r.created_at desc, r.id desc
 ), videos as (
   select c.video_id, c.payload
   from coded c join sampled s using(video_id) join access a using(video_id)

@@ -66,3 +66,15 @@ class ReviewCheckpointTests(unittest.TestCase):
         classifier.request.assert_not_called()
         self.assertEqual(latest_labels(labels(s))[0]['id'],'coded')
         self.assertIn(('coded',c['comment_id']),current_reviews(s))
+
+    def test_latest_label_uses_newer_record_when_classification_time_ties(self):
+        from eiim.hybrid import latest_labels
+        common={
+            'batch_id':'2026-W41',
+            'video_id':'v',
+            'payload':{'classified_at':'2026-10-11T12:00:00Z'},
+        }
+        older={**common,'id':'older','created_at':'2026-10-11T12:00:01Z'}
+        newer={**common,'id':'newer','created_at':'2026-10-11T12:05:00Z'}
+        self.assertEqual(latest_labels([newer,older])[0]['id'],'newer')
+        self.assertEqual(latest_labels([older,newer])[0]['id'],'newer')
