@@ -6,6 +6,7 @@ from eiim.storage import MemoryStore, record
 from eiim.hybrid import VERSION
 from eiim.hybrid_review import video_values
 from eiim.calibration import (
+    _balanced_reviews,
     project_four_categories,
     current_reviews,
     calibration_examples,
@@ -132,3 +133,35 @@ class CalibrationTests(unittest.TestCase):
         self.assertNotIn(("human_validation",), calls)
         self.assertIn(("pipeline_runs", "b"), calls)
         self.assertIn(("human_validation", "b"), calls)
+
+    def test_corrected_examples_retain_cross_batch_coverage(self):
+        known = {
+            "w40-video": {"batch_id": "2026-W40"},
+            "w41-video": {"batch_id": "2026-W41"},
+            "w41-newer": {"batch_id": "2026-W41"},
+        }
+        reviews = {
+            ("w40-video", None): {
+                "queue_record_id": "w40-video",
+                "comment_id": None,
+                "reviewed_at": "2026-10-05T10:00:00Z",
+                "decisions": {"relevance": "disagree"},
+            },
+            ("w41-video", None): {
+                "queue_record_id": "w41-video",
+                "comment_id": None,
+                "reviewed_at": "2026-10-11T10:00:00Z",
+                "decisions": {"relevance": "disagree"},
+            },
+            ("w41-newer", None): {
+                "queue_record_id": "w41-newer",
+                "comment_id": None,
+                "reviewed_at": "2026-10-11T11:00:00Z",
+                "decisions": {"relevance": "disagree", "topics": "disagree"},
+            },
+        }
+        selected = _balanced_reviews(reviews, known, comments=False, limit=4)
+        first_batches = {
+            known[review["queue_record_id"]]["batch_id"] for review in selected[:2]
+        }
+        self.assertEqual(first_batches, {"2026-W40", "2026-W41"})

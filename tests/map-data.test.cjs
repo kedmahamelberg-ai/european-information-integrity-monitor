@@ -2,6 +2,8 @@ const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const {aggregate} = require('../apps/dashboard/map-data.js');
 const {ranking,mapCategories} = require('../apps/dashboard/map-data.js');
+const fs = require('node:fs');
+const path = require('node:path');
 const video = (overrides={}) => ({id:'a',batch:'2026-W40',countries:['FR','DE'],label:{relevance:'related'},
   engagement:{views:100,likes:5}, responses:{total:4,human_reviewed:1,alignment:{supports:3,opposes:1},sentiment:{positive:2,neutral:2}},...overrides});
 test('map excludes sources without classification, even with engagement counters',()=>{
@@ -59,4 +61,10 @@ test('date ranges use content publication time and accumulation remains the defa
  assert.equal(inDateRange(old,'week','','',asOf),false);
  assert.equal(inDateRange(recent,'custom','2026-10-10','2026-10-10',asOf),true);
  assert.deepEqual(dateBounds('2days','','',asOf),{start:Date.parse(asOf)-2*86400000,end:Date.parse(asOf)});
+});
+test('dashboard copy distinguishes classified sources, security subset and reviewed comments',()=>{
+ const source=fs.readFileSync(path.join(__dirname,'../apps/dashboard/app.js'),'utf8');
+ assert.match(source,/Of those classified sources/);
+ assert.match(source,/security-related and appear in the security totals above/);
+ assert.match(source,/human-reviewed comment labels/);
 });

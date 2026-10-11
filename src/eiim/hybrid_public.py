@@ -95,7 +95,14 @@ def export_public(store, path):
             for r in labels_by_batch[batch].values()
             if r["video_id"] in videos
         }
-        plan = sample_plan(batch, videos)
+        comments_by_video = {
+            vid: [
+                item["comment_id"]
+                for item in row["payload"]["label"].get("comments", [])
+            ]
+            for vid, row in rows.items()
+        }
+        plan = sample_plan(batch, videos, comments_by_video=comments_by_video)
         reviewed_ids = {vid for vid, row in rows.items() if row["id"] in reviews}
         audit_complete = (
             bool(plan["target"])

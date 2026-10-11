@@ -2,7 +2,9 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from eiim.hybrid_public import export_public, comment_summary
+from eiim.review_sampling import sample_plan
 from eiim.storage import record
 from eiim.language_access import POLICY_VERSION
 import test_hybrid as fixtures
@@ -38,3 +40,13 @@ class PublicCoverageTests(unittest.TestCase):
         self.assertEqual(out['ai_only'],0)
         self.assertNotIn('rationale', json.dumps(out))
         self.assertNotIn('stance_target', json.dumps(out))
+
+    def test_public_audit_uses_same_comment_stratified_video_plan_as_review(self):
+        s = fixtures.HybridTests().make_transcript_store()
+        s.batch({'id': '2026-W40'}, 'test')
+        with tempfile.TemporaryDirectory() as d, patch(
+            'eiim.hybrid_public.sample_plan', wraps=sample_plan
+        ) as planner:
+            export_public(s, Path(d) / 'public.json')
+        self.assertIn('comments_by_video', planner.call_args.kwargs)
+        self.assertEqual(planner.call_args.kwargs['comments_by_video'], {})
