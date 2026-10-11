@@ -100,7 +100,7 @@ function summary() {
       comments += !!itemState(i, c.comment_id).confirmed;
   }
   $("#summary").textContent =
-    `${P.items.length} coded videos · ${P.plan.target} videos and ${P.comment_plan?.target ?? 0} comments assigned independently · ${done} videos and ${comments} comments confirmed. Weekly samples use 3%, rounded up, minimum 5 where available. The first video calibration uses 30.`;
+    `${P.plan.target} videos selected from ${P.plan.population} · ${P.comment_plan?.target ?? 0} classified comments attached to those videos · ${done} videos and ${comments} comments confirmed. Weekly video samples use 3%, rounded up, minimum 5 where available. The first video calibration uses 30.`;
 }
 function options(values, current) {
   return values
@@ -175,7 +175,7 @@ function list() {
     items
       .map(
         (i) =>
-          `<button data-item="${esc(i.id)}" aria-pressed="${i.id === selected}">${esc(i.title)}<small>${i.review_assignment.selected ? "Video assigned · " : "Comment context · "}${esc(human(i.label.relevance))} · ${esc(i.source_language)}${itemState(i).confirmed ? " · Confirmed" : ""}</small></button>`,
+          `<button data-item="${esc(i.id)}" aria-pressed="${i.id === selected}">${esc(i.title)}<small>Video assigned · ${esc(human(i.label.relevance))} · ${esc(i.source_language)}${itemState(i).confirmed ? " · Confirmed" : ""}</small></button>`,
       )
       .join("") || '<p class="empty">No videos match.</p>';
   render();
