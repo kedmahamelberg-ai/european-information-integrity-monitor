@@ -285,6 +285,7 @@ class HybridTests(unittest.TestCase):
             "eiim.services.YouTube", side_effect=AssertionError("No collection")
         ):
             a = reclassify(s, "2026-W40", fake)
+            fake.cfg["model"] = "changed-after-completion"
             b = reclassify(s, "2026-W40", fake)
         self.assertEqual(fake.calls, 1)
         self.assertEqual(a["classified_videos"], 1)
