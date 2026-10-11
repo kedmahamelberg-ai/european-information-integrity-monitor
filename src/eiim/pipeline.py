@@ -334,6 +334,7 @@ class Pipeline:
 
     def sampling(self):
         frame = []
+        relevance_checkpoints = []
         cache = {
             x.get("relevance_video_id"): x
             for x in self.values("pipeline_runs")
@@ -363,18 +364,20 @@ class Pipeline:
                     "language_confidence": lang["confidence"],
                     "relevance_video_id": v["video_id"],
                 }
-                self.store.write(
-                    self.id,
-                    [
-                        record(
-                            "pipeline_runs",
-                            self.id,
-                            self.id + ":relevance:" + v["video_id"],
-                            r,
-                            v["video_id"],
-                        )
-                    ],
+                relevance_checkpoints.append(
+                    record(
+                        "pipeline_runs",
+                        self.id,
+                        self.id + ":relevance:" + v["video_id"],
+                        r,
+                        v["video_id"],
+                    )
                 )
+                # Preserve restart checkpoints without issuing one Supabase RPC
+                # per candidate. Store.write applies its own bounded chunks.
+                if len(relevance_checkpoints) >= 200:
+                    self.store.write(self.id, relevance_checkpoints)
+                    relevance_checkpoints = []
             # Sampling record references raw candidate rather than duplicating the text.
             frame.append(
                 {
@@ -384,6 +387,8 @@ class Pipeline:
                     **r,
                 }
             )
+        if relevance_checkpoints:
+            self.store.write(self.id, relevance_checkpoints)
         sampled = sample_frame(frame, self.id, self.cfg)
         sampled = [
             {

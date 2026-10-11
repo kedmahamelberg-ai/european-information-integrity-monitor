@@ -150,6 +150,26 @@ class IntegrationTests(unittest.TestCase):
             self.assertEqual(out["candidates"], [])
             self.assertNotIn("source_observation", p.read_text())
 
+    def test_sampling_batches_relevance_checkpoints(self):
+        class CountingStore(MemoryStore):
+            def __init__(self):
+                super().__init__()
+                self.write_calls = []
+
+            def write(self, batch, rows, stage=None):
+                self.write_calls.append((rows, stage))
+                return super().write(batch, rows, stage)
+
+        store = CountingStore()
+        self.pipeline(store).run()
+        relevance_calls = [
+            rows
+            for rows, _ in store.write_calls
+            if any(":relevance:" in row["record"]["id"] for row in rows)
+        ]
+        self.assertEqual(len(relevance_calls), 1)
+        self.assertEqual(len(relevance_calls[0]), 9)
+
     def test_failure_restart_after_sampling_preserves_draw(self):
         store = MemoryStore()
         pipe = self.pipeline(store)
