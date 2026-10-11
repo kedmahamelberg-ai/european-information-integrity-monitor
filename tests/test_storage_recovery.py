@@ -50,6 +50,45 @@ class StorageRecoveryTests(unittest.TestCase):
         ]):
             self.assertEqual(self.client().read('pipeline_runs'), [])
 
+    def test_store_caches_reads_and_updates_cached_rows_after_write(self):
+        first = [{
+            'id': 'old', 'batch_id': 'b', 'video_id': 'v',
+            'payload': {'value': 1}, 'payload_hash': 'h1', 'purged_at': None,
+        }]
+        response = io.BytesIO(json.dumps(first).encode())
+        response.__enter__ = lambda value: value
+        response.__exit__ = lambda *args: None
+        write_response = io.BytesIO(b'{"accepted":1}')
+        write_response.__enter__ = lambda value: value
+        write_response.__exit__ = lambda *args: None
+        store = self.client()
+        with patch('eiim.storage.urllib.request.urlopen', side_effect=[response, write_response]) as request:
+            rows = store.read('pipeline_runs', 'b')
+            rows[0]['payload']['value'] = 99
+            self.assertEqual(store.read('pipeline_runs', 'b')[0]['payload']['value'], 1)
+            new = record('pipeline_runs', 'b', 'new', {'value': 2}, 'v')
+            store.write('b', [new])
+            cached = store.read('pipeline_runs', 'b')
+            self.assertEqual([r['id'] for r in cached], ['old', 'new'])
+            self.assertEqual(request.call_count, 2)
+
+    def test_stage_write_invalidates_cached_batch_status(self):
+        batch = [{
+            'id': 'b', 'payload': {}, 'config_hash': 'h', 'status': 'started',
+            'completed_stages': [],
+        }]
+        responses = [io.BytesIO(json.dumps(batch).encode()), io.BytesIO(b'{"accepted":0}'),
+                     io.BytesIO(json.dumps([{**batch[0], 'status':'published'}]).encode())]
+        for response in responses:
+            response.__enter__ = lambda value: value
+            response.__exit__ = lambda *args: None
+        store = self.client()
+        with patch('eiim.storage.urllib.request.urlopen', side_effect=responses) as request:
+            self.assertEqual(store.read('weekly_batches', 'b')[0]['status'], 'started')
+            store.write('b', [], stage='published')
+            self.assertEqual(store.read('weekly_batches', 'b')[0]['status'], 'published')
+            self.assertEqual(request.call_count, 3)
+
     def test_snapshot_is_scoped_and_does_not_mutate_stored_reviews(self):
         store = MemoryStore()
         store.write('b', [record('human_validation','b','r',{'reviewer':'Human'})])
