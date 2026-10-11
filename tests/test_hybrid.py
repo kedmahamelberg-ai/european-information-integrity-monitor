@@ -291,6 +291,44 @@ class HybridTests(unittest.TestCase):
         self.assertEqual(a["classified_videos"], 1)
         self.assertFalse(b["new_source_collection"])
 
+    def test_newly_retained_comment_reclassifies_only_its_existing_video(self):
+        s = self.make_transcript_store()
+        s.batch({"id": "2026-W40"}, "test")
+
+        class Fake:
+            cfg = {"model": "test"}
+            calls = 0
+
+            def request(self, text, prompt, shape, kind):
+                self.calls += 1
+                if kind == "hybrid":
+                    x = label()
+                    x["comments"] = []
+                else:
+                    doc = json.loads(text)
+                    x = {"comments": [
+                        {**label()["comments"][0], "comment_id": c["comment_id"]}
+                        for c in doc["comments"]
+                    ]}
+                return {"parsed": x, "model_name": "test", "model_version": "test",
+                        "classification_timestamp": "2026-10-04T00:00:00Z"}
+
+        fake = Fake()
+        first = reclassify(s, "2026-W40", fake)
+        s.write("2026-W40", [
+            record("comments", "2026-W40", "comment:c", {
+                "comment_id": "c", "video_id": "v", "text_original": "That attack is awful"
+            }, "v"),
+            record("pipeline_runs", "2026-W40", "translation:c", {
+                "comment_translation_id": "c", "text_english": "That attack is awful",
+                "translation_version": "english-comment-1.1"
+            }, "v"),
+        ])
+        second = reclassify(s, "2026-W40", fake)
+        self.assertEqual(first["classified_comments"], 0)
+        self.assertEqual(second["classified_comments"], 1)
+        self.assertEqual(fake.calls, 3)
+
 
 class EngagementTests(unittest.TestCase):
     def test_missing_is_not_zero(self):
