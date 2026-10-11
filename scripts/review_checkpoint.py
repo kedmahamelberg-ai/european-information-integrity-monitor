@@ -32,14 +32,23 @@ class SnapshotStore(MemoryStore):
             if (
                 population.get('batch') not in {None, snapshot.get('batch')}
                 or not isinstance(population.get('video_ids'), list)
-                or not isinstance(population.get('comment_ids'), list)
+                or not isinstance(population.get('video_comments'), dict)
                 or any(not isinstance(x, str) or not x for x in population['video_ids'])
-                or any(not isinstance(x, str) or not x for x in population['comment_ids'])
+                or any(
+                    not isinstance(vid, str)
+                    or vid not in population['video_ids']
+                    or not isinstance(ids, list)
+                    or any(not isinstance(cid, str) or not cid for cid in ids)
+                    for vid, ids in population['video_comments'].items()
+                )
             ):
                 raise ValueError('Invalid review population manifest')
             self.review_population = {
                 'video_ids': sorted(set(population['video_ids'])),
-                'comment_ids': sorted(set(population['comment_ids'])),
+                'video_comments': {
+                    vid: sorted(set(population['video_comments'].get(vid, [])))
+                    for vid in population['video_ids']
+                },
             }
         for table in TABLES:
             rows = [r for r in snapshot['tables'][table] if not r.get('purged_at')]
