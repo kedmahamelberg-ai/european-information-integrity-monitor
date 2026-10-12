@@ -25,6 +25,11 @@ class CalibrationTests(unittest.TestCase):
             "config",
         )
         x = label()
+        # The archived 1.3 fixture predates viewpoint-aware coding.
+        x.pop("viewpoint_structure")
+        x.pop("viewpoints")
+        for comment in x["comments"]:
+            comment.pop("viewpoint_ids")
         x["execution"].append(
             {
                 "category": "imagery_visual",
@@ -93,7 +98,7 @@ class CalibrationTests(unittest.TestCase):
         self.assertEqual(migrated["human_label"], expected)
         self.assertEqual(migrated["reviewed_at"], review["reviewed_at"])
         self.assertEqual(migrated["schema_projection"]["from_review"], "review")
-        self.assertEqual(migrated["version"], VERSION)
+        self.assertEqual(migrated["version"], "hybrid-framing-1.4")
         self.assertEqual(migrated["human_label"]["execution:entertainment"], "present")
 
     def test_invalid_hash_does_not_become_a_confirmed_review(self):

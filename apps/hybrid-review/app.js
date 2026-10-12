@@ -11,10 +11,10 @@ const esc = (s) =>
   );
 const human = (s) =>
   ({
-    supports: "Aligned · supports the main message",
-    opposes: "Not aligned · opposes the main message",
-    no_position: "No position on the main message",
-    main_message: "Main message / claim",
+    supports: "Aligned · supports the selected viewpoint",
+    opposes: "Not aligned · opposes the selected viewpoint",
+    no_position: "No position on a viewpoint",
+    main_message: "Viewpoint message / claim",
     video_target: "Person, policy or topic targeted by the video",
     speaker: "Speaker / speaking skill only",
     presentation: "Visuals, music, editing or channel only",
@@ -32,14 +32,17 @@ const names = {
   relevance: "Study relevance",
   topics: "Topics",
   roles: "Military / security portrayal",
-  alignment: "2. Agreement with the main message",
+  viewpoint_structure: "Does the video present competing viewpoints?",
+  viewpoints: "Attributed viewpoints",
+  viewpoint_ids: "2. Which viewpoint(s) does this comment address?",
+  alignment: "3. Agreement with the selected viewpoint",
   response_focus: "1. What does this comment evaluate?",
   "reference:speaker": "Speaker / narrator",
   "reference:summary": "Main message (attributed proposition)",
   "reference:target": "Target of the main message",
   "reference:speaker_sentiment": "Speaker sentiment toward that target",
   stance_target: "Proposition the comment agrees or disagrees with",
-  sentiment: "3. Comment sentiment",
+  sentiment: "4. Comment sentiment",
   sentiment_target: "Who or what receives that sentiment?",
   comparative: "Comparative",
   endorsement: "Expert / testimonial endorsement",
@@ -81,13 +84,7 @@ function itemState(i, cid = "") {
 function expected(i, c) {
   return c
     ? Object.fromEntries(
-        [
-          "response_focus",
-          "alignment",
-          "stance_target",
-          "sentiment",
-          "sentiment_target",
-        ].map((k) => [k, c.ai[k]]),
+        i.comment_fields.map((k) => [k, c.ai[k]]),
       )
     : i.model_values;
 }
@@ -121,13 +118,39 @@ function describe(k, v) {
     return v.length
       ? v.map((x) => P.taxonomy.topic_labels[x] || human(x)).join(" · ")
       : "None";
+  if (k === "viewpoints")
+    return v
+      .map(
+        (x) =>
+          `${x.viewpoint_id}: ${x.speaker} — ${x.summary} [${human(x.speaker_sentiment)} toward ${x.target}]`,
+      )
+      .join("\n");
+  if (k === "viewpoint_ids")
+    return v.length ? v.join(" · ") : "No attributable viewpoint";
   return human(v);
 }
-function editor(k, v) {
+function viewpointEditor(
+  v = {
+    viewpoint_id: "",
+    speaker: "",
+    summary: "",
+    target: "",
+    speaker_sentiment: "unclear",
+  },
+) {
+  return `<div class="viewpoint-editor"><label>Viewpoint ID<input data-viewpoint="viewpoint_id" value="${esc(v.viewpoint_id)}" placeholder="viewpoint_1"></label><label>Speaker / narrator responsible for this proposition<input data-viewpoint="speaker" value="${esc(v.speaker)}"></label><label>Attributed proposition<textarea data-viewpoint="summary">${esc(v.summary)}</textarea></label><label>Target of this proposition<textarea data-viewpoint="target">${esc(v.target)}</textarea></label><label>Speaker sentiment toward that target<select data-viewpoint="speaker_sentiment">${options(P.taxonomy.sentiment, v.speaker_sentiment)}</select></label><button type="button" data-remove-viewpoint>Remove viewpoint</button></div>`;
+}
+function editor(i, k, v) {
   if (k === "topics")
     return `<div class="domain-editor">${P.taxonomy.topics.map((d) => `<label><input type="checkbox" value="${d}" ${v.includes(d) ? "checked" : ""}>${esc(P.taxonomy.topic_labels[d] || human(d))}</label>`).join("")}</div>`;
   if (k === "roles")
     return `<div class="roles">${v.map((r) => roleEditor(r)).join("")}</div><button type="button" data-add-role>Add entity role</button>`;
+  if (k === "viewpoints")
+    return `<p class="meta">Speaker/narrator identifies who is responsible for each proposition. It does not code ideology, truth or publisher endorsement.</p><div class="viewpoints">${v.map((x) => viewpointEditor(x)).join("")}</div><button type="button" data-add-viewpoint>Add viewpoint</button>`;
+  if (k === "viewpoint_ids") {
+    const viewpoints = itemState(i).values.viewpoints ?? i.model_values.viewpoints ?? [];
+    return `<div class="domain-editor">${viewpoints.map((x) => `<label><input type="checkbox" value="${esc(x.viewpoint_id)}" ${v.includes(x.viewpoint_id) ? "checked" : ""}>${esc(x.viewpoint_id)} · ${esc(x.speaker)} — ${esc(x.summary)}</label>`).join("")}</div>`;
+  }
   const cat = k.startsWith("execution:")
     ? "execution_status"
     : k === "reference:speaker_sentiment"
@@ -159,7 +182,7 @@ function field(i, k, v, c) {
       (e?.rationale || "") +
       (e?.evidence.quote ? ` Evidence: “${e.evidence.quote}”` : "");
   }
-  return `<section class="field" data-field="${esc(k)}" data-comment="${esc(c?.comment_id || "")}"><h4>${esc(names[k] || names[k.split(":")[1]])}</h4><div class="model">AI: ${esc(describe(k, v))}</div>${explanation ? `<p class="meta">${esc(explanation)}</p>` : ""}<div class="buttons"><button data-decision="agree" aria-pressed="${decision === "agree"}">Agree</button><button data-decision="disagree" aria-pressed="${decision === "disagree"}">Disagree / correct</button></div><div class="editor" ${decision === "disagree" ? "" : "hidden"}>${editor(k, value)}</div></section>`;
+  return `<section class="field" data-field="${esc(k)}" data-comment="${esc(c?.comment_id || "")}"><h4>${esc(names[k] || names[k.split(":")[1]])}</h4><div class="model">AI: ${esc(describe(k, v))}</div>${explanation ? `<p class="meta">${esc(explanation)}</p>` : ""}<div class="buttons"><button data-decision="agree" aria-pressed="${decision === "agree"}">Agree</button><button data-decision="disagree" aria-pressed="${decision === "disagree"}">Disagree / correct</button></div><div class="editor" ${decision === "disagree" ? "" : "hidden"}>${editor(i, k, value)}</div></section>`;
 }
 function list() {
   const q = $("#search").value.toLowerCase(),
@@ -196,6 +219,16 @@ function render() {
           .map(([k, v]) => [k.split(":")[1], v]),
       ),
     },
+    viewpoints =
+      s.values.viewpoints ??
+      i.label.viewpoints ??
+      [{ viewpoint_id: "viewpoint_1", ...ref }],
+    referenceHtml = viewpoints
+      .map(
+        (x) =>
+          `<p><b>${esc(x.viewpoint_id)}</b><br>Speaker / narrator responsible for this proposition: ${esc(x.speaker)}<br>Message: ${esc(x.summary)}<br>Target: ${esc(x.target)}<br>Speaker sentiment toward target: ${esc(human(x.speaker_sentiment))}</p>`,
+      )
+      .join(""),
     m = i.engagement,
     n = (v) => (v == null ? "Unavailable" : Number(v).toLocaleString());
   $("#case").innerHTML =
@@ -234,13 +267,13 @@ function render() {
       )
       .join(
         "",
-    )}${i.reviewer_context ? `<section class="notice"><b>Attributed reviewer evidence · ${esc(i.reviewer_context.reviewer)}</b><p>${esc(i.reviewer_context.observation)}</p><small>${esc(i.reviewer_context.basis)}. Used as context, not a new complete human review.</small></section>` : ""}<h3>Review the video classifications and message reference</h3>${i.confirmed_review ? `<p class="notice">Your saved review is restored below. AI labels remain visible for comparison; your selected corrections are the published values.</p>` : ""}<p class="notice">Choosing Not related or Unclear automatically clears Monitor topics and security roles. Delivery categories remain independently reviewable for every video. Your draft saves automatically, including before confirmation.</p>${Object.entries(
+    )}${i.reviewer_context ? `<section class="notice"><b>Attributed reviewer evidence · ${esc(i.reviewer_context.reviewer)}</b><p>${esc(i.reviewer_context.observation)}</p><small>${esc(i.reviewer_context.basis)}. Used as context, not a new complete human review.</small></section>` : ""}<h3>Review the video classifications and message reference</h3>${i.confirmed_review ? `<p class="notice">Your saved review is restored below. AI labels remain visible for comparison; your selected corrections are the published values.</p>` : ""}<p class="notice">Choosing Not related or Unclear automatically clears Monitor topics and security roles. Delivery categories remain independently reviewable for every video. Speaker/narrator means the person or voice responsible for an attributed proposition; it does not encode ideology, truth or endorsement. Your draft saves automatically.</p>${Object.entries(
       i.model_values,
     )
       .map(([k, v]) => field(i, k, v))
       .join(
         "",
-      )}<section class="card"><label>Evidence you used<select id="basis"><option value="">Select evidence basis</option>${options(["english_transcript", "watched_video"], s.basis)}</select></label><label>Notes<textarea id="notes">${esc(s.notes || "")}</textarea></label><p class="review-message" role="status"></p><p><button class="confirm" id="confirm-video">Confirm video review</button> <span class="confirmed">${s.confirmed ? "Confirmed" : ""}</span></p></section><h3>Comments · ${i.comments.length} retained</h3><section class="notice"><b>Reference for every comment</b><p>Speaker: ${esc(ref.speaker)}<br>Main message: ${esc(ref.summary)}<br>Target: ${esc(ref.target)}<br>Speaker sentiment toward target: ${esc(human(ref.speaker_sentiment))}</p><p>First identify what the comment evaluates; then agreement with the main message; then sentiment toward its named object. Praise for speaking skill or editing alone is not message agreement. A negative comment about a criticized target can support the speaker’s negative message. This reference includes your draft corrections.</p></section>${i.comments
+      )}<section class="card"><label>Evidence you used<select id="basis"><option value="">Select evidence basis</option>${options(["english_transcript", "watched_video"], s.basis)}</select></label><label>Notes<textarea id="notes">${esc(s.notes || "")}</textarea></label><p class="review-message" role="status"></p><p><button class="confirm" id="confirm-video">Confirm video review</button> <span class="confirmed">${s.confirmed ? "Confirmed" : ""}</span></p></section><h3>Comments · ${i.comments.length} retained</h3><section class="notice"><b>Attributed viewpoints for every comment</b>${referenceHtml}<p>First identify the viewpoint the comment addresses; then code agreement with that proposition and sentiment toward its named object. In a debate, do not treat the whole video as one message. Praise for speaking skill or editing alone is not viewpoint agreement. This reference includes your draft corrections.</p></section>${i.comments
       .filter((c) => c.ai && ($("#workload").value !== "assigned" || c.review_selected))
       .map(
         (c) =>
@@ -260,7 +293,7 @@ function render() {
             )
             .join(
               "",
-            )}<p class="meta">${esc(c.ai.rationale)}</p>${["response_focus", "alignment", "stance_target", "sentiment", "sentiment_target"].map((k) => field(i, k, c.ai[k], c)).join("")}<p class="review-message" role="status"></p><button class="confirm" data-confirm-comment="${esc(c.comment_id)}">Confirm comment review</button> <span class="confirmed">${itemState(i, c.comment_id).confirmed ? "Confirmed" : ""}</span></section>`,
+            )}<p class="meta">${esc(c.ai.rationale)}</p>${i.comment_fields.map((k) => field(i, k, c.ai[k], c)).join("")}<p class="review-message" role="status"></p><button class="confirm" data-confirm-comment="${esc(c.comment_id)}">Confirm comment review</button> <span class="confirmed">${itemState(i, c.comment_id).confirmed ? "Confirmed" : ""}</span></section>`,
       )
       .join("")}`;
 }
@@ -273,12 +306,23 @@ function capture(f, i) {
   let v;
   if (k === "topics")
     v = [...e.querySelectorAll("input:checked")].map((x) => x.value);
+  else if (k === "viewpoint_ids")
+    v = [...e.querySelectorAll("input:checked")].map((x) => x.value);
   else if (k === "roles")
     v = [...e.querySelectorAll(".role-editor")].map((r) =>
       Object.fromEntries(
         [...r.querySelectorAll("[data-role]")].map((x) => [
           x.dataset.role,
           x.value,
+        ]),
+      ),
+    );
+  else if (k === "viewpoints")
+    v = [...e.querySelectorAll(".viewpoint-editor")].map((x) =>
+      Object.fromEntries(
+        [...x.querySelectorAll("[data-viewpoint]")].map((input) => [
+          input.dataset.viewpoint,
+          input.value,
         ]),
       ),
     );
@@ -330,7 +374,25 @@ function check(i, c) {
   if (!c) {
     if (!s.basis) return "Select the evidence you used.";
     const h = s.values;
-    if (
+    if (Object.hasOwn(h, "viewpoints")) {
+      if (!h.viewpoints.length)
+        return "Add at least one attributed viewpoint.";
+      if (h.viewpoint_structure === "single_viewpoint" && h.viewpoints.length !== 1)
+        return "A single-viewpoint video requires exactly one viewpoint.";
+      if (h.viewpoint_structure === "multiple_viewpoints" && h.viewpoints.length < 2)
+        return "A debate requires at least two attributed viewpoints.";
+      const ids = h.viewpoints.map((x) => x.viewpoint_id.trim());
+      if (new Set(ids).size !== ids.length)
+        return "Give every viewpoint a unique ID.";
+      if (
+        h.viewpoints.some((x) =>
+          ["viewpoint_id", "speaker", "summary", "target", "speaker_sentiment"].some(
+            (k) => !String(x[k] || "").trim(),
+          ),
+        )
+      )
+        return "Complete the ID, speaker, proposition, target and sentiment for every viewpoint.";
+    } else if (
       ["speaker", "summary", "target", "speaker_sentiment"].some(
         (k) => !String(h["reference:" + k] || "").trim(),
       )
@@ -360,7 +422,13 @@ function check(i, c) {
     ["supports", "opposes", "mixed"].includes(s.values.alignment) &&
     !s.values.stance_target.trim()
   )
-    return "Specify the video content this comment supports or opposes.";
+    return "Specify the viewpoint proposition this comment supports or opposes.";
+  else if (
+    Object.hasOwn(s.values, "viewpoint_ids") &&
+    ["supports", "opposes", "mixed"].includes(s.values.alignment) &&
+    !s.values.viewpoint_ids.length
+  )
+    return "Choose the viewpoint this comment supports or opposes.";
   return "";
 }
 $("#case").addEventListener("click", (e) => {
@@ -383,6 +451,12 @@ $("#case").addEventListener("click", (e) => {
     capture(f, i);
   } else if (button.hasAttribute("data-remove-role")) {
     button.closest(".role-editor").remove();
+    capture(f, i);
+  } else if (button.hasAttribute("data-add-viewpoint")) {
+    f.querySelector(".viewpoints").insertAdjacentHTML("beforeend", viewpointEditor());
+    capture(f, i);
+  } else if (button.hasAttribute("data-remove-viewpoint")) {
+    button.closest(".viewpoint-editor").remove();
     capture(f, i);
   } else if (button.id === "confirm-video" || button.dataset.confirmComment) {
     const c = i.comments.find(
@@ -425,7 +499,11 @@ function onEdit(e) {
     render();
     return;
   }
-  if (f?.dataset.field.startsWith("reference:") && e.type === "change")
+  if (
+    (f?.dataset.field.startsWith("reference:") ||
+      f?.dataset.field === "viewpoints") &&
+    e.type === "change"
+  )
     render();
 }
 $("#case").addEventListener("input", onEdit);
@@ -447,7 +525,7 @@ $("#export").onclick = () => {
       const s = itemState(i, cid);
       if (s.confirmed)
         out.push({
-          version: P.version,
+          version: i.version,
           item_type: cid ? "hybrid_comment" : "hybrid_video",
           queue_record_id: i.id,
           queue_hash: i.hash,

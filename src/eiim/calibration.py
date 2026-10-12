@@ -28,11 +28,10 @@ def retained_batch_ids(store, batch=None):
 
 def project_four_categories(store, batch):
     """Remove one retired field, preserving every other human decision verbatim."""
-    from .hybrid import VERSION, latest_labels, retained_inputs
+    from .hybrid import latest_labels, retained_inputs
     from .hybrid_review import validate_review
 
-    if VERSION != "hybrid-framing-1.4":
-        raise ValueError("Projection is specific to schema 1.4")
+    projection_version = "hybrid-framing-1.4"
     eligible = retained_inputs(store, batch)[0]
     originals = latest_labels(
         [
@@ -49,7 +48,7 @@ def project_four_categories(store, batch):
     for old in originals:
         ident = batch + ":schema-1.4:" + digest([old["id"], old["payload_hash"]])
         p = copy.deepcopy(old["payload"])
-        p["hybrid_version"] = VERSION
+        p["hybrid_version"] = projection_version
         p["label"]["execution"] = [
             e for e in p["label"]["execution"] if e["category"] != "imagery_visual"
         ]
@@ -73,8 +72,8 @@ def project_four_categories(store, batch):
         validate_review(p, old)
         q = copy.deepcopy(p)
         q.update(
-            version=VERSION,
-            hybrid_version=VERSION,
+            version=projection_version,
+            hybrid_version=projection_version,
             queue_record_id=new["id"],
             queue_hash=new["payload_hash"],
         )
@@ -196,18 +195,34 @@ def calibration_examples(store, exclude_video_id=None):
         kind = "comments" if cid else "videos"
         if len(examples[kind]) >= (6 if cid else 4):
             continue
+        source_label = row["payload"]["label"]
         example = {
             "reviewer": p["reviewer"],
             "human_label": p["human_label"],
-            "reference": row["payload"]["label"]["content_reference"],
+            "reference": source_label["content_reference"],
             "basis": p["basis"],
         }
+        if "viewpoints" in source_label:
+            example.update(
+                viewpoint_structure=source_label["viewpoint_structure"],
+                viewpoints=[
+                    {k: viewpoint[k] for k in [
+                        "viewpoint_id", "speaker", "summary", "target", "speaker_sentiment"
+                    ]}
+                    for viewpoint in source_label["viewpoints"]
+                ],
+            )
         video_review = validated.get((row["id"], None))
         if video_review:
-            example["reference"] = {
-                k: video_review["human_label"]["reference:" + k]
-                for k in ["speaker", "summary", "target", "speaker_sentiment"]
-            }
+            human = video_review["human_label"]
+            if "viewpoints" in human:
+                example["viewpoint_structure"] = human["viewpoint_structure"]
+                example["viewpoints"] = human["viewpoints"]
+            else:
+                example["reference"] = {
+                    k: human["reference:" + k]
+                    for k in ["speaker", "summary", "target", "speaker_sentiment"]
+                }
         if cid:
             translated = translations.get(cid, {}).get("text_english")
             if not translated:

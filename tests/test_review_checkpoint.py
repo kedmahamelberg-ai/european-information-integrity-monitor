@@ -58,7 +58,7 @@ class ReviewCheckpointTests(unittest.TestCase):
         row=record('pipeline_runs','2026-W40','coded',{'hybrid_version':VERSION,'label':value,'classified_at':'2026-10-04T00:00:00Z'},'v')
         s.write('2026-W40',[row])
         c=value['comments'][0]
-        fields=['response_focus','alignment','stance_target','sentiment','sentiment_target']
+        fields=['viewpoint_ids','response_focus','alignment','stance_target','sentiment','sentiment_target']
         item={'version':VERSION,'item_type':'hybrid_comment','queue_record_id':'coded','queue_hash':row['record']['payload_hash'],'comment_id':c['comment_id'],'reviewer':'Human','reviewed_at':'2026-10-07T10:00:00Z','basis':'english_transcript','human_label':{k:c[k] for k in fields},'decisions':{k:'agree' for k in fields}}
         checkpoint.import_reviews(s,[item])
         classifier=Mock(); classifier.cfg={}
