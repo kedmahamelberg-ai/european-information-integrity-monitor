@@ -128,17 +128,12 @@ def validate_shape(value, shape):
 def validate_label(value, document):
     value = copy.deepcopy(value)
     validate_shape(value, schema())
-    # These fields are mechanically determined by the relevance gate. Models
-    # sometimes preserve a delivery observation while correctly deciding that
-    # a source is outside the Monitor's scope. Normalize that structural
-    # inconsistency instead of spending repeated calls asking for four fixed
-    # not-applicable values. Human review can still correct the relevance gate.
+    # Study topics and entity security roles are determined by the Monitor
+    # relevance gate. Delivery techniques describe how any video communicates
+    # and remain independently classifiable even when its subject is out of scope.
     if value["relevance"] != "related":
         value["topics"] = []
         value["roles"] = []
-        for item in value["execution"]:
-            item["status"] = "not_applicable"
-            item["evidence"] = {"quote": "", "source_id": ""}
     errors = []
     sections = {s["id"]: s["text"] for s in document["sections"]}
 
@@ -207,12 +202,6 @@ def validate_label(value, document):
     } != set(config("hybrid")["execution"]):
         errors.append("Return each configured execution category exactly once")
     for x in ex:
-        if value["relevance"] != "related" and x["status"] != "not_applicable":
-            errors.append(
-                x["category"]
-                + ": For not_related/unclear videos ALL four execution statuses "
-                "must be not_applicable, regardless of delivery features."
-            )
         if x["status"] == "present":
             evidence(x["evidence"], True, "execution." + x["category"] + ".evidence")
             if not x["evidence"]["source_id"].startswith("transcript"):
