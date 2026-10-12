@@ -219,20 +219,23 @@ class HybridTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 validate_label(x, document())
 
-    def test_unrelated_no_execution_or_roles(self):
+    def test_unrelated_clears_topics_roles_and_keeps_execution(self):
         x = label()
         x.update(relevance="not_related")
+        x["execution"][0].update(
+            status="present",
+            evidence={
+                "quote": "We must prepare our defence.",
+                "source_id": "transcript:0",
+            },
+        )
         normalized = validate_label(x, document())
         self.assertEqual(normalized["topics"], [])
         self.assertEqual(normalized["roles"], [])
-        self.assertTrue(
-            all(e["status"] == "not_applicable" for e in normalized["execution"])
-        )
-        self.assertTrue(
-            all(
-                e["evidence"] == {"quote": "", "source_id": ""}
-                for e in normalized["execution"]
-            )
+        self.assertEqual(normalized["execution"][0]["status"], "present")
+        self.assertEqual(
+            normalized["execution"][0]["evidence"]["quote"],
+            "We must prepare our defence.",
         )
 
     def test_unrelated_still_requires_grounded_content_reference(self):
@@ -487,6 +490,20 @@ class HumanReviewTests(unittest.TestCase):
         item, row = self.review()
         item["human_label"]["execution:comparative"] = "not_applicable"
         item["decisions"]["execution:comparative"] = "disagree"
+        validate_review(item, row)
+
+    def test_unrelated_video_keeps_independent_execution_label(self):
+        from eiim.hybrid_review import validate_review
+
+        item, row = self.review()
+        item["human_label"].update(
+            relevance="not_related",
+            topics=[],
+            roles=[],
+            **{"execution:comparative": "present"},
+        )
+        for key in ["relevance", "topics", "roles", "execution:comparative"]:
+            item["decisions"][key] = "disagree"
         validate_review(item, row)
 
     def test_forged_agreement_rejected(self):
