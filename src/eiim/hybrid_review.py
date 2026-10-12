@@ -313,10 +313,6 @@ def validate_review(item, row):
             value = human["execution:" + k]
             if value not in cfg["execution_status"] + ["absent_after_watching"]:
                 raise ValueError("Invalid execution label")
-            if human["relevance"] != "related" and value != "not_applicable":
-                raise ValueError(
-                    "Out-of-scope videos require not_applicable execution labels"
-                )
             if value == "absent_after_watching" and item["basis"] != "watched_video":
                 raise ValueError("Audiovisual judgment requires watching the video")
     return item
