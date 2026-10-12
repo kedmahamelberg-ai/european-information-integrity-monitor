@@ -234,7 +234,7 @@ function render() {
       )
       .join(
         "",
-      )}${i.reviewer_context ? `<section class="notice"><b>Attributed reviewer evidence · ${esc(i.reviewer_context.reviewer)}</b><p>${esc(i.reviewer_context.observation)}</p><small>${esc(i.reviewer_context.basis)}. Used as context, not a new complete human review.</small></section>` : ""}<h3>Review the video classifications and message reference</h3>${i.confirmed_review ? `<p class="notice">Your saved review is restored below. AI labels remain visible for comparison; your selected corrections are the published values.</p>` : ""}<p class="notice">Changing relevance may require new topics and reassessment of all four execution labels. Your draft saves automatically, including before confirmation.</p>${Object.entries(
+    )}${i.reviewer_context ? `<section class="notice"><b>Attributed reviewer evidence · ${esc(i.reviewer_context.reviewer)}</b><p>${esc(i.reviewer_context.observation)}</p><small>${esc(i.reviewer_context.basis)}. Used as context, not a new complete human review.</small></section>` : ""}<h3>Review the video classifications and message reference</h3>${i.confirmed_review ? `<p class="notice">Your saved review is restored below. AI labels remain visible for comparison; your selected corrections are the published values.</p>` : ""}<p class="notice">Choosing Not related or Unclear automatically clears Monitor topics and security roles. Delivery categories remain independently reviewable for every video. Your draft saves automatically, including before confirmation.</p>${Object.entries(
       i.model_values,
     )
       .map(([k, v]) => field(i, k, v))
@@ -288,10 +288,34 @@ function capture(f, i) {
   s.confirmed = false;
   save();
 }
+function applyRelevanceGate(i, s) {
+  if (!["not_related", "unclear"].includes(s.values.relevance)) return false;
+  const model = expected(i),
+    fixed = {
+      topics: [],
+      roles: [],
+    };
+  let changed = false;
+  for (const [k, value] of Object.entries(fixed)) {
+    const decision =
+      JSON.stringify(model[k]) === JSON.stringify(value) ? "agree" : "disagree";
+    if (JSON.stringify(s.values[k]) !== JSON.stringify(value)) {
+      s.values[k] = structuredClone(value);
+      changed = true;
+    }
+    if (s.decisions[k] !== decision) {
+      s.decisions[k] = decision;
+      changed = true;
+    }
+  }
+  if (changed) s.confirmed = false;
+  return changed;
+}
 function check(i, c) {
   const s = itemState(i, c?.comment_id),
     e = expected(i, c);
   if (!$("#reviewer").value.trim()) return "Enter your reviewer name.";
+  if (!c && applyRelevanceGate(i, s)) save();
   if (
     !Object.keys(e).every((k) => s.decisions[k] && Object.hasOwn(s.values, k))
   )
@@ -318,8 +342,6 @@ function check(i, c) {
       return "Choose at least one topic for a relevant video.";
     for (const k of P.taxonomy.execution) {
       let v = h["execution:" + k];
-      if (h.relevance !== "related" && v !== "not_applicable")
-        return `${names[k]} still has an incompatible label. For an out-of-scope video use Not applicable. Your draft is saved.`;
       if (v === "absent_after_watching" && s.basis !== "watched_video")
         return "Watch the video before making an audiovisual judgment.";
     }
@@ -394,6 +416,15 @@ function onEdit(e) {
   }
   const f = e.target.closest("[data-field]");
   if (f) capture(f, i);
+  if (
+    f?.dataset.field === "relevance" &&
+    e.type === "change" &&
+    applyRelevanceGate(i, itemState(i))
+  ) {
+    save();
+    render();
+    return;
+  }
   if (f?.dataset.field.startsWith("reference:") && e.type === "change")
     render();
 }
