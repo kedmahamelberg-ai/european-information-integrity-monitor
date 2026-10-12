@@ -1,5 +1,10 @@
 {
-  "version": "hybrid-framing-1.4",
+  "version": "hybrid-framing-1.5",
+  "viewpoint_structure": [
+    "single_viewpoint",
+    "multiple_viewpoints",
+    "unclear"
+  ],
   "relevance": [
     "related",
     "not_related",

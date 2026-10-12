@@ -21,8 +21,9 @@ from .review_sampling import plans_for_store, assignment
 from .services import Classifier, Ledger, BudgetExhausted, ClassificationUnavailable
 from .storage import Store, ReadSnapshot, record
 
-VERSION = "hybrid-framing-1.4"
-COMMENT_VERSION = "hybrid-comments-1.4"
+VERSION = "hybrid-framing-1.5"
+COMMENT_VERSION = "hybrid-comments-1.5"
+SUPPORTED_VERSIONS = {VERSION, "hybrid-framing-1.4"}
 VIDEO_TRANSCRIPT_CHAR_LIMIT = 12000
 
 
@@ -58,12 +59,23 @@ def schema():
     comment = obj(
         {
             "comment_id": string,
+            "viewpoint_ids": {"type": "array", "items": string},
             "alignment": enum("alignment"),
             "stance_target": string,
             "response_focus": enum("response_focus"),
             "sentiment": enum("sentiment"),
             "sentiment_target": string,
             "rationale": string,
+        }
+    )
+    viewpoint = obj(
+        {
+            "viewpoint_id": string,
+            "speaker": string,
+            "summary": string,
+            "target": string,
+            "speaker_sentiment": enum("sentiment"),
+            "evidence": evidence,
         }
     )
     return obj(
@@ -74,6 +86,8 @@ def schema():
             "evidence": evidence,
             "rationale": string,
             "roles": {"type": "array", "items": role},
+            "viewpoint_structure": enum("viewpoint_structure"),
+            "viewpoints": {"type": "array", "items": viewpoint},
             "content_reference": obj(
                 {
                     "summary": string,
@@ -182,6 +196,29 @@ def validate_label(value, document):
                 "Return only ONE entry for each entity + role pair, with nonempty entity and rationale. Sovereign governance is not military readiness evidence."
             )
         seen.add(key)
+    viewpoints = value["viewpoints"]
+    viewpoint_ids = [v["viewpoint_id"] for v in viewpoints]
+    if not viewpoints:
+        errors.append("Return at least one attributed viewpoint")
+    if value["viewpoint_structure"] == "single_viewpoint" and len(viewpoints) != 1:
+        errors.append("single_viewpoint requires exactly one viewpoint")
+    if value["viewpoint_structure"] == "multiple_viewpoints" and len(viewpoints) < 2:
+        errors.append("multiple_viewpoints requires at least two viewpoints")
+    if len(viewpoint_ids) != len(set(viewpoint_ids)):
+        errors.append("Viewpoint IDs must be unique")
+    for index, viewpoint in enumerate(viewpoints):
+        if (
+            not re.fullmatch(
+                r"[a-z0-9][a-z0-9_-]{0,31}", viewpoint["viewpoint_id"]
+            )
+            or not all(
+                viewpoint[k].strip() for k in ["speaker", "summary", "target"]
+            )
+        ):
+            errors.append(
+                f"viewpoints[{index}] requires a stable lowercase ID, speaker, proposition and target"
+            )
+        evidence(viewpoint["evidence"], True, f"viewpoints[{index}].evidence")
     reference = value["content_reference"]
     if not all(reference[k].strip() for k in ["summary", "speaker", "target"]):
         errors.append(
@@ -193,7 +230,7 @@ def validate_label(value, document):
     if len(ids) != len(set(ids)) or set(ids) != set(expected):
         errors.append("Return each supplied comment ID exactly once")
     try:
-        validate_comment_targets(value["comments"])
+        validate_comment_targets(value["comments"], viewpoint_ids)
     except ValueError as error:
         errors.append(str(error))
     ex = value["execution"]
@@ -315,8 +352,19 @@ def comment_schema(ids=None):
     return shape
 
 
-def validate_comment_targets(comments):
+def validate_comment_targets(comments, viewpoint_ids=None):
+    known = set(viewpoint_ids or [])
     for c in comments:
+        selected = c.get("viewpoint_ids")
+        if (
+            not isinstance(selected, list)
+            or len(selected) != len(set(selected))
+            or any(
+                not isinstance(v, str) or not v or (known and v not in known)
+                for v in selected
+            )
+        ):
+            raise ValueError("Comments must reference unique known viewpoint IDs")
         if c["response_focus"] in {"speaker", "presentation", "unrelated"} and c[
             "alignment"
         ] in {"supports", "opposes", "mixed"}:
@@ -332,6 +380,10 @@ def validate_comment_targets(comments):
             raise ValueError(
                 "Comment stance requires an explicit target in the video content"
             )
+        if c["alignment"] in {"supports", "opposes", "mixed"} and not selected:
+            raise ValueError(
+                "Comment stance requires at least one attributed viewpoint"
+            )
 
 
 def validate_comments(value, document):
@@ -342,7 +394,13 @@ def validate_comments(value, document):
         raise ValueError(
             "Return EXACTLY these comment IDs, once each: " + json.dumps(expected)
         )
-    validate_comment_targets(value["comments"])
+    # Older saved review fixtures and retained 1.4 rows have only the aggregate
+    # content_reference.  Current 1.5 classification input always supplies
+    # viewpoints, where IDs can and should be checked against that closed set.
+    validate_comment_targets(
+        value["comments"],
+        [v["viewpoint_id"] for v in document.get("viewpoints", [])],
+    )
     return value
 
 
@@ -433,7 +491,7 @@ def labels(store, batch=None):
         r
         for r in store.read("pipeline_runs", batch)
         if not r.get("purged_at")
-        and r["payload"].get("hybrid_version") == VERSION
+        and r["payload"].get("hybrid_version") in SUPPORTED_VERSIONS
         and "label" in r["payload"]
     ]
 
@@ -574,6 +632,8 @@ def reclassify(store, batch, classifier=None):
                     "calibration_examples": document["calibration_examples"][
                         "comments"
                     ],
+                    "viewpoint_structure": label["viewpoint_structure"],
+                    "viewpoints": label["viewpoints"],
                     "content_reference": label["content_reference"],
                     "reviewer_context": document.get("reviewer_context"),
                     "sections": document["sections"],

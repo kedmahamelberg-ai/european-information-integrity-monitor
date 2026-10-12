@@ -100,6 +100,18 @@ class StorageRecoveryTests(unittest.TestCase):
             self.assertEqual([r['id'] for r in cached], ['old', 'new'])
             self.assertEqual(request.call_count, 2)
 
+    def test_public_export_uses_bounded_pipeline_projection(self):
+        store = Store(
+            'https://example.supabase.co',
+            'private-test-key',
+            public_pipeline_only=True,
+        )
+        with patch.object(store, 'rpc', return_value=[]) as rpc:
+            store.read('pipeline_runs', '2026-W41')
+        rpc.assert_called_once_with(
+            'eiim_read_pipeline_public', {'p_batch': '2026-W41'}
+        )
+
     def test_stage_write_invalidates_cached_batch_status(self):
         batch = [{
             'id': 'b', 'payload': {}, 'config_hash': 'h', 'status': 'started',

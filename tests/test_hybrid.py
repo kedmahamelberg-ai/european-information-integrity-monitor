@@ -49,6 +49,20 @@ def label():
                 "rationale": "Example identified speaker.",
             }
         ],
+        "viewpoint_structure": "single_viewpoint",
+        "viewpoints": [
+            {
+                "viewpoint_id": "viewpoint_1",
+                "speaker": "Narrator",
+                "target": "Attack",
+                "speaker_sentiment": "negative",
+                "summary": "The narrator calls for defence preparation and condemns an attack.",
+                "evidence": {
+                    "quote": "This attack is awful.",
+                    "source_id": "transcript:0",
+                },
+            }
+        ],
         "content_reference": {
             "speaker": "Narrator",
             "target": "Attack",
@@ -60,6 +74,7 @@ def label():
         "comments": [
             {
                 "comment_id": "c",
+                "viewpoint_ids": ["viewpoint_1"],
                 "alignment": "supports",
                 "response_focus": "main_message",
                 "stance_target": "The narrator’s condemnation of the attack",
@@ -96,6 +111,8 @@ class HybridTests(unittest.TestCase):
                 return {"parsed": {"comments": [item]}, "model_version": "test"}
 
         comment_input = {
+            "viewpoint_structure": label()["viewpoint_structure"],
+            "viewpoints": label()["viewpoints"],
             "content_reference": label()["content_reference"],
             "comments": [
                 {"comment_id": "c1", "text_english": "Agreed"},
@@ -112,6 +129,44 @@ class HybridTests(unittest.TestCase):
         self.assertEqual(
             validate_label(label(), document())["comments"][0]["alignment"], "supports"
         )
+
+    def test_debate_preserves_each_viewpoint_and_routes_comment_alignment(self):
+        x, doc = label(), document()
+        doc["sections"][0]["text"] += " Others argue Ceuta should not be part of Spain."
+        x["viewpoint_structure"] = "multiple_viewpoints"
+        x["viewpoints"].append(
+            {
+                "viewpoint_id": "viewpoint_2",
+                "speaker": "Debate participant B",
+                "summary": "Ceuta should not be part of Spain.",
+                "target": "Ceuta's sovereignty",
+                "speaker_sentiment": "negative",
+                "evidence": {
+                    "quote": "Ceuta should not be part of Spain",
+                    "source_id": "transcript:0",
+                },
+            }
+        )
+        x["comments"][0].update(
+            viewpoint_ids=["viewpoint_2"],
+            stance_target="Ceuta should not be part of Spain",
+        )
+        out = validate_label(x, doc)
+        self.assertEqual(out["comments"][0]["viewpoint_ids"], ["viewpoint_2"])
+
+    def test_substantive_comment_cannot_reference_unknown_or_no_viewpoint(self):
+        for viewpoint_ids in [[], ["invented_side"]]:
+            x = label()
+            x["comments"][0]["viewpoint_ids"] = viewpoint_ids
+            with self.assertRaises(ValueError):
+                validate_label(x, document())
+
+    def test_single_viewpoint_structure_requires_exactly_one_viewpoint(self):
+        x = label()
+        x["viewpoints"].append(copy.deepcopy(x["viewpoints"][0]))
+        x["viewpoints"][1]["viewpoint_id"] = "viewpoint_2"
+        with self.assertRaisesRegex(ValueError, "single_viewpoint"):
+            validate_label(x, document())
 
     def test_citation_repair_supplies_source_without_accepting_paraphrase(self):
         from eiim.hybrid import repair_evidence_options
@@ -181,6 +236,19 @@ class HybridTests(unittest.TestCase):
                 "source_id": "transcript:0",
             },
         }
+        x["viewpoints"] = [
+            {
+                "viewpoint_id": "viewpoint_1",
+                "speaker": "Reporter",
+                "target": "Deployment",
+                "speaker_sentiment": "neutral",
+                "summary": "A deployment began today.",
+                "evidence": {
+                    "quote": "The deployment began today.",
+                    "source_id": "transcript:0",
+                },
+            }
+        ]
         for e in x["execution"]:
             e["status"] = "not_applicable"
         x["comments"][0].update(
@@ -192,7 +260,11 @@ class HybridTests(unittest.TestCase):
         validate_label(x, doc)
         validate_comments(
             {"comments": x["comments"]},
-            dict(doc, content_reference=x["content_reference"]),
+            dict(
+                doc,
+                content_reference=x["content_reference"],
+                viewpoints=x["viewpoints"],
+            ),
         )
         self.assertNotIn("stance", schema()["properties"])
         self.assertNotIn("stance", video_values(x))
@@ -664,7 +736,7 @@ class StagedCommentTests(unittest.TestCase):
                     == "The speaker is a named official."
                 )
                 if kind == "hybrid":
-                    assert "CONTENT REFERENCE." in prompt and "entertainment:" in prompt
+                    assert "VIEWPOINT STRUCTURE" in prompt and "entertainment:" in prompt
                     assert shape["properties"]["comments"]["maxItems"] == 0
                     assert doc["calibration_examples"]["comments"] == []
                     self.sizes.append(("video", len(doc["comments"])))

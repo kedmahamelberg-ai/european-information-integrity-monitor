@@ -11,21 +11,44 @@ from .engagement import engagement
 VIDEO_FIELDS = ["relevance", "topics", "roles"]
 EXECUTION = config("hybrid")["execution"]
 REFERENCE_FIELDS = ["speaker", "summary", "target", "speaker_sentiment"]
-COMMENT_FIELDS = [
+LEGACY_COMMENT_FIELDS = [
     "response_focus",
     "alignment",
     "stance_target",
     "sentiment",
     "sentiment_target",
 ]
+COMMENT_FIELDS = ["viewpoint_ids", *LEGACY_COMMENT_FIELDS]
 
 
-def video_values(label):
-    return {
+def review_viewpoints(label):
+    return [
+        {k: viewpoint[k] for k in [
+            "viewpoint_id", "speaker", "summary", "target", "speaker_sentiment"
+        ]}
+        for viewpoint in label.get("viewpoints", [])
+    ]
+
+
+def comment_fields(label):
+    return COMMENT_FIELDS if "viewpoints" in label else LEGACY_COMMENT_FIELDS
+
+
+def video_values(label, version=None):
+    values = {
         **{k: label[k] for k in VIDEO_FIELDS},
-        **{"reference:" + k: label["content_reference"][k] for k in REFERENCE_FIELDS},
         **{"execution:" + e["category"]: e["status"] for e in label["execution"]},
     }
+    if "viewpoints" in label:
+        values.update(
+            viewpoint_structure=label["viewpoint_structure"],
+            viewpoints=review_viewpoints(label),
+        )
+    else:
+        values.update(
+            {"reference:" + k: label["content_reference"][k] for k in REFERENCE_FIELDS}
+        )
+    return values
 
 
 def media_evidence(source, access):
@@ -140,6 +163,8 @@ def packet(store, batch, plan_override=None):
                 "label": p["label"],
                 "reviewer_context": p.get("reviewer_context"),
                 "model_values": video_values(p["label"]),
+                "version": p.get("hybrid_version", VERSION),
+                "comment_fields": comment_fields(p["label"]),
                 "model": p["model_version"],
                 "confirmed_review": saved_reviews.get((row["id"], None)),
                 "prior_reviews": [
@@ -214,7 +239,7 @@ def write_html(data, path):
 def validate_review(item, row):
     source_version = row["payload"].get("hybrid_version", VERSION)
     if (
-        source_version not in {VERSION, "hybrid-framing-1.3"}
+        source_version not in {VERSION, "hybrid-framing-1.4", "hybrid-framing-1.3"}
         or item.get("version") != source_version
         or item.get("queue_hash") != row.get("payload_hash", digest(row["payload"]))
     ):
@@ -229,7 +254,7 @@ def validate_review(item, row):
         raise ValueError("Evidence basis required")
     label = row["payload"]["label"]
     if item.get("item_type") == "hybrid_video":
-        expected = video_values(label)
+        expected = video_values(label, source_version)
     elif item.get("item_type") == "hybrid_comment":
         c = next(
             (c for c in label["comments"] if c["comment_id"] == item.get("comment_id")),
@@ -237,7 +262,7 @@ def validate_review(item, row):
         )
         if c is None:
             raise ValueError("Unknown comment")
-        expected = {k: c[k] for k in COMMENT_FIELDS}
+        expected = {k: c[k] for k in comment_fields(label)}
     else:
         raise ValueError("Unknown hybrid review type")
     human, decisions = item.get("human_label", {}), item.get("decisions", {})
@@ -273,17 +298,47 @@ def validate_review(item, row):
             raise ValueError(
                 "Specify the video content the comment supports or opposes"
             )
+        if "viewpoints" in label:
+            known = {v["viewpoint_id"] for v in label["viewpoints"]}
+            selected = human["viewpoint_ids"]
+            if (
+                not isinstance(selected, list)
+                or len(selected) != len(set(selected))
+                or any(v not in known for v in selected)
+            ):
+                raise ValueError("Choose only known viewpoint IDs")
+            if human["alignment"] in {"supports", "opposes", "mixed"} and not selected:
+                raise ValueError("Substantive alignment requires a viewpoint")
     else:
-        if any(
-            not isinstance(human["reference:" + k], str)
-            or not human["reference:" + k].strip()
-            for k in REFERENCE_FIELDS
-        ):
-            raise ValueError(
-                "Complete speaker, main message, target and speaker sentiment"
-            )
-        if human["reference:speaker_sentiment"] not in cfg["sentiment"]:
-            raise ValueError("Invalid speaker sentiment")
+        if "viewpoints" in label:
+            viewpoints = human["viewpoints"]
+            structure = human["viewpoint_structure"]
+            if structure not in cfg["viewpoint_structure"] or not isinstance(viewpoints, list):
+                raise ValueError("Invalid viewpoint structure")
+            if structure == "single_viewpoint" and len(viewpoints) != 1:
+                raise ValueError("Single-viewpoint videos require one viewpoint")
+            if structure == "multiple_viewpoints" and len(viewpoints) < 2:
+                raise ValueError("Debates require at least two viewpoints")
+            ids = [v.get("viewpoint_id") for v in viewpoints if isinstance(v, dict)]
+            if len(ids) != len(viewpoints) or len(ids) != len(set(ids)):
+                raise ValueError("Viewpoint IDs must be unique")
+            for viewpoint in viewpoints:
+                if (
+                    not all(str(viewpoint.get(k, "")).strip() for k in ["viewpoint_id", "speaker", "summary", "target"])
+                    or viewpoint.get("speaker_sentiment") not in cfg["sentiment"]
+                ):
+                    raise ValueError("Complete every viewpoint attribution")
+        else:
+            if any(
+                not isinstance(human["reference:" + k], str)
+                or not human["reference:" + k].strip()
+                for k in REFERENCE_FIELDS
+            ):
+                raise ValueError(
+                    "Complete speaker, main message, target and speaker sentiment"
+                )
+            if human["reference:speaker_sentiment"] not in cfg["sentiment"]:
+                raise ValueError("Invalid speaker sentiment")
         if human["relevance"] not in cfg["relevance"]:
             raise ValueError("Invalid video relevance")
         if not isinstance(human["topics"], list) or any(
@@ -332,7 +387,7 @@ def import_reviews(store, items):
         p = dict(
             item,
             review_status="complete",
-            hybrid_version=VERSION,
+            hybrid_version=item["version"],
             source_video_id=row["video_id"],
         )
         prepared.append(

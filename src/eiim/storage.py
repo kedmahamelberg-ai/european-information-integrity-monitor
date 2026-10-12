@@ -8,7 +8,7 @@ WRITE_CHUNK_SIZE = 200
 
 
 class Store:
-    def __init__(self, url=None, key=None):
+    def __init__(self, url=None, key=None, public_pipeline_only=False):
         self.url = (url or os.environ["SUPABASE_URL"]).rstrip("/")
         self.key = (
             key
@@ -22,6 +22,7 @@ class Store:
         # process-local copy so those reads do not repeatedly transfer multi-MB
         # JSON payloads from Supabase.  Writes below update any populated cache.
         self._read_cache = {}
+        self.public_pipeline_only = public_pipeline_only
 
     def rpc(self, name, args):
         headers = {"apikey": self.key, "Content-Type": "application/json"}
@@ -36,7 +37,12 @@ class Store:
         # atomic and uses immutable IDs with ON CONFLICT DO NOTHING, so repeating
         # the exact request after a lost response cannot duplicate observations.
         # Never print a response body or authorization headers.
-        attempts = 3 if name in {"eiim_read", "eiim_progress", "eiim_write"} else 1
+        attempts = 3 if name in {
+            "eiim_read",
+            "eiim_read_pipeline_public",
+            "eiim_progress",
+            "eiim_write",
+        } else 1
         for attempt in range(attempts):
             try:
                 with urllib.request.urlopen(req, timeout=60) as response:
@@ -69,9 +75,14 @@ class Store:
     def read(self, table, batch=None):
         key = (table, batch)
         if key not in self._read_cache:
-            self._read_cache[key] = self.rpc(
-                "eiim_read", {"p_table": table, "p_batch": batch}
-            )
+            if table == "pipeline_runs" and self.public_pipeline_only:
+                self._read_cache[key] = self.rpc(
+                    "eiim_read_pipeline_public", {"p_batch": batch}
+                )
+            else:
+                self._read_cache[key] = self.rpc(
+                    "eiim_read", {"p_table": table, "p_batch": batch}
+                )
         return copy.deepcopy(self._read_cache[key])
 
     def write(self, batch, rows, stage=None):

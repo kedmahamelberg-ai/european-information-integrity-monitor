@@ -18,7 +18,10 @@ if "--live" in sys.argv:
     from eiim.hybrid_public import export_public
     from eiim.storage import Store
 
-    print(export_public(Store(), out / "data.json"))
+    # Publication needs only transcript-access, engagement, translations,
+    # recovery health and hybrid labels from pipeline_runs. Ask Supabase for
+    # that bounded projection instead of transferring model/cache envelopes.
+    print(export_public(Store(public_pipeline_only=True), out / "data.json"))
 if "--live" in sys.argv:
     from check_cameras import refresh
     refresh(out / "cameras.json", os.environ.get("YOUTUBE_API_KEY"))
