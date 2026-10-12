@@ -57,7 +57,7 @@ def media_evidence(source, access):
     }
 
 
-def packet(store, batch):
+def packet(store, batch, plan_override=None):
     videos, comments, translations, _ = retained_inputs(store, batch)
     from .calibration import current_reviews
 
@@ -79,10 +79,27 @@ def packet(store, batch):
             ]
             for r in current
         }
-    plan = sample_plan(
-        batch, video_ids, comments_by_video=comments_by_video
+    if plan_override is None:
+        plan = sample_plan(
+            batch, video_ids, comments_by_video=comments_by_video
+        )
+    else:
+        plan = dict(plan_override)
+        selected = plan.get("selected_video_ids")
+        if (
+            plan.get("batch") != batch
+            or not isinstance(selected, list)
+            or len(selected) != len(set(selected))
+            or plan.get("target") != len(selected)
+            or any(not isinstance(vid, str) or vid not in video_ids for vid in selected)
+        ):
+            raise ValueError("Invalid private review selection plan")
+    comment_audit = linked_comment_plan(
+        batch,
+        plan,
+        comments_by_video,
+        policy={"version": plan["policy_version"]},
     )
-    comment_audit = linked_comment_plan(batch, plan, comments_by_video)
     selected_comments = set(comment_audit["selected_comment_ids"])
     items = []
     for row in latest_labels(labels(store, batch)):
@@ -296,8 +313,10 @@ def validate_review(item, row):
             value = human["execution:" + k]
             if value not in cfg["execution_status"] + ["absent_after_watching"]:
                 raise ValueError("Invalid execution label")
-            if (value == "not_applicable") == (human["relevance"] == "related"):
-                raise ValueError("Execution applies only to security-related videos")
+            if human["relevance"] != "related" and value != "not_applicable":
+                raise ValueError(
+                    "Out-of-scope videos require not_applicable execution labels"
+                )
             if value == "absent_after_watching" and item["basis"] != "watched_video":
                 raise ValueError("Audiovisual judgment requires watching the video")
     return item

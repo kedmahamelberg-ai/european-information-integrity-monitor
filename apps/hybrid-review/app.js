@@ -318,8 +318,8 @@ function check(i, c) {
       return "Choose at least one topic for a relevant video.";
     for (const k of P.taxonomy.execution) {
       let v = h["execution:" + k];
-      if ((v === "not_applicable") === (h.relevance === "related"))
-        return `${names[k]} still has an incompatible label. For a related video, use Yes, No after watching, or an uncertainty option; for an out-of-scope video use Not applicable. Your draft is saved.`;
+      if (h.relevance !== "related" && v !== "not_applicable")
+        return `${names[k]} still has an incompatible label. For an out-of-scope video use Not applicable. Your draft is saved.`;
       if (v === "absent_after_watching" && s.basis !== "watched_video")
         return "Watch the video before making an audiovisual judgment.";
     }

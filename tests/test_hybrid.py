@@ -124,14 +124,14 @@ class HybridTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_label(x, document())
 
-    def test_repair_feedback_reports_multiple_issues_together(self):
+    def test_related_video_allows_inapplicable_execution_category(self):
         x = label()
         x["evidence"]["quote"] = "Invented quotation"
         x["execution"][0]["status"] = "not_applicable"
         with self.assertRaises(ValueError) as error:
             validate_label(x, document())
         self.assertIn("evidence: quotation not found", str(error.exception))
-        self.assertIn("comparative: not_applicable is forbidden", str(error.exception))
+        self.assertNotIn("not_applicable is forbidden", str(error.exception))
 
     def test_role_requires_exact_evidence(self):
         x = label()
@@ -479,6 +479,14 @@ class HumanReviewTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_review(item, row)
         item["basis"] = "watched_video"
+        validate_review(item, row)
+
+    def test_related_video_can_mark_execution_not_applicable(self):
+        from eiim.hybrid_review import validate_review
+
+        item, row = self.review()
+        item["human_label"]["execution:comparative"] = "not_applicable"
+        item["decisions"]["execution:comparative"] = "disagree"
         validate_review(item, row)
 
     def test_forged_agreement_rejected(self):
