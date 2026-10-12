@@ -42,7 +42,7 @@ class ReviewCheckpointTests(unittest.TestCase):
         }
         data=packet(s,'2026-W41')
         self.assertEqual(data['plan']['population'],200)
-        self.assertEqual(data['plan']['target'],6)
+        self.assertEqual(data['plan']['target'],12)
         self.assertEqual(data['comment_plan']['population'],1)
         self.assertEqual(data['comment_plan']['target'],1)
 

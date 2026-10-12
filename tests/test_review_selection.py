@@ -25,7 +25,7 @@ class ReviewSelectionTests(unittest.TestCase):
         }
         result = review_selection.selection(population, "2026-W41")
         self.assertEqual(result["video_population"], 178)
-        self.assertEqual(len(result["selected_video_ids"]), 6)
+        self.assertEqual(len(result["selected_video_ids"]), 11)
         self.assertEqual(result["comment_population"], 40)
         self.assertTrue(result["selected_comment_ids"])
         self.assertEqual(
@@ -35,6 +35,35 @@ class ReviewSelectionTests(unittest.TestCase):
                 for vid in result["selected_video_ids"]
                 for cid in comments[vid]
             ),
+        )
+
+    def test_supplemental_selection_is_disjoint(self):
+        comments = {
+            f"v{i}": ([f"v{i}-c1"] if i < 40 else [])
+            for i in range(178)
+        }
+        population = {
+            "as_of": datetime.now(timezone.utc).isoformat(),
+            "batch": "2026-W41",
+            "video_ids": [f"v{i}" for i in range(178)],
+            "video_comments": comments,
+        }
+        initial = review_selection.selection(
+            population,
+            "2026-W41",
+            routine_fraction=0.03,
+        )
+        supplemental = review_selection.selection(
+            population,
+            "2026-W41",
+            excluded_video_ids=initial["selected_video_ids"],
+            routine_fraction=0.03,
+        )
+        self.assertEqual(len(initial["selected_video_ids"]), 6)
+        self.assertEqual(len(supplemental["selected_video_ids"]), 6)
+        self.assertFalse(
+            set(initial["selected_video_ids"])
+            & set(supplemental["selected_video_ids"])
         )
 
     def test_batch_mismatch_fails_closed(self):

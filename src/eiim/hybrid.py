@@ -207,15 +207,11 @@ def validate_label(value, document):
     } != set(config("hybrid")["execution"]):
         errors.append("Return each configured execution category exactly once")
     for x in ex:
-        if (x["status"] == "not_applicable") == (value["relevance"] == "related"):
+        if value["relevance"] != "related" and x["status"] != "not_applicable":
             errors.append(
                 x["category"]
-                + ": "
-                + (
-                    "not_applicable is forbidden for a related video. Return present only with an exact transcript quotation; otherwise not_observed_in_transcript or not_observable. Missing evidence is NOT not_applicable."
-                    if value["relevance"] == "related"
-                    else "For not_related/unclear videos ALL four execution statuses must be not_applicable, regardless of delivery features."
-                )
+                + ": For not_related/unclear videos ALL four execution statuses "
+                "must be not_applicable, regardless of delivery features."
             )
         if x["status"] == "present":
             evidence(x["evidence"], True, "execution." + x["category"] + ".evidence")

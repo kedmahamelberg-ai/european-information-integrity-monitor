@@ -69,6 +69,8 @@ def main():
     parser.add_argument('--snapshot', type=Path, required=True)
     parser.add_argument('--batch', required=True)
     parser.add_argument('--reviews', type=Path)
+    parser.add_argument('--selection', type=Path)
+    parser.add_argument('--output-dir', type=Path)
     args = parser.parse_args()
     private = ROOT / 'private'
     private.mkdir(mode=0o700, exist_ok=True)
@@ -86,8 +88,21 @@ def main():
         os.chmod(target, 0o600)
         print(json.dumps(result))
     else:
-        data = packet(store, args.batch)
-        folder = private / 'review' / args.batch
+        selection = (
+            json.loads(args.selection.read_text()) if args.selection else None
+        )
+        if selection is not None and selection.get('batch') != args.batch:
+            raise ValueError('Review selection batch mismatch')
+        data = packet(
+            store,
+            args.batch,
+            selection.get('plan') if selection is not None else None,
+        )
+        if selection is not None and set(
+            data['comment_plan']['selected_comment_ids']
+        ) != set(selection.get('selected_comment_ids', [])):
+            raise ValueError('Review comment selection mismatch')
+        folder = args.output_dir or private / 'review' / args.batch
         result = write_html(data, folder / 'index.html')
         for p in folder.iterdir():
             if p.is_file():

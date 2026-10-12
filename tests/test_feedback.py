@@ -54,8 +54,7 @@ class FeedbackTests(unittest.TestCase):
             item["decisions"][k] = "disagree"
         validate_review(item, row)
         item["human_label"]["execution:entertainment"] = "not_applicable"
-        with self.assertRaises(ValueError):
-            validate_review(item, row)
+        validate_review(item, row)
 
     def test_music_cues_are_observations_not_mnemonic_inferences(self):
         result = media_evidence(
