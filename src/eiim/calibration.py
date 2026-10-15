@@ -122,7 +122,14 @@ def current_reviews(store, batch=None):
             for batch_id in batches
             for row in store.read("human_validation", batch_id)
         ],
-        key=lambda r: r["payload"].get("reviewed_at", ""),
+        # Corrected exports intentionally preserve the original review time.
+        # Break that tie with insertion time so the later imported correction
+        # wins deterministically, then use the immutable id for stable ordering.
+        key=lambda r: (
+            r["payload"].get("reviewed_at", ""),
+            r.get("created_at", ""),
+            r.get("id", ""),
+        ),
     ):
         p = r["payload"]
         source = known.get(p.get("queue_record_id"))
