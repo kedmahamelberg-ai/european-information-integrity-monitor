@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 from eiim.hybrid_public import export_public, comment_summary, _audit_progress
+from eiim.hybrid import VERSION
 from eiim.review_sampling import sample_plan
 from eiim.storage import record
 from eiim.language_access import POLICY_VERSION
@@ -11,6 +12,29 @@ import test_hybrid as fixtures
 
 
 class PublicCoverageTests(unittest.TestCase):
+    def test_internal_viewpoints_are_not_exported_publicly(self):
+        s = fixtures.HybridTests().make_transcript_store()
+        s.batch({'id': '2026-W40'}, 'test')
+        payload = {
+            'hybrid_version': VERSION,
+            'video_id': 'v',
+            'label': fixtures.label(),
+            'classified_at': '2026-10-04T00:00:00Z',
+            'model_version': 'test',
+            'transcript_truncated': False,
+        }
+        s.write('2026-W40', [
+            record('pipeline_runs', '2026-W40', 'hybrid', payload, 'v')
+        ])
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / 'public.json'
+            export_public(s, p)
+            out = json.loads(p.read_text())
+        coded = next(video for video in out['videos'] if video.get('label'))
+        self.assertNotIn('viewpoint_structure', coded['label'])
+        self.assertNotIn('viewpoints', coded['label'])
+        self.assertNotIn('viewpoint_ids', json.dumps(out))
+
     def test_blocked_source_visible_without_inventing_content_labels(self):
         s = fixtures.HybridTests().make_transcript_store()
         s.batch({'id': '2026-W40'}, 'test')
