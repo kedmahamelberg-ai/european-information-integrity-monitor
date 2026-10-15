@@ -1,6 +1,7 @@
 """Copy only public assets; research source and secrets never enter Pages output."""
 
-import hashlib, json, shutil, sys, os
+import hashlib, json, shutil, sys, os, urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,9 +23,26 @@ if "--live" in sys.argv:
     # recovery health and hybrid labels from pipeline_runs. Ask Supabase for
     # that bounded projection instead of transferring model/cache envelopes.
     print(export_public(Store(public_pipeline_only=True), out / "data.json"))
-if "--live" in sys.argv:
+if "--camera-only" in sys.argv:
+    # A camera availability refresh must preserve the already published research
+    # snapshot; never query Supabase merely to check independent city streams.
+    timestamp = int(datetime.now(timezone.utc).timestamp())
+    request = urllib.request.Request(
+        f"https://monitor.hamelberg-ai.com/data.json?camera-refresh={timestamp}",
+        headers={"Cache-Control": "no-cache", "User-Agent": "EIIM-camera-refresh/1.0"},
+    )
+    with urllib.request.urlopen(request, timeout=30) as response:
+        payload = response.read(10_000_001)
+    if len(payload) > 10_000_000:
+        raise RuntimeError("Published research snapshot exceeds camera refresh limit")
+    published = json.loads(payload)
+    if not isinstance(published, dict) or not isinstance(published.get("videos"), list):
+        raise RuntimeError("Published research snapshot is invalid")
+    (out / "data.json").write_bytes(payload)
+if "--live" in sys.argv or "--camera-only" in sys.argv:
     from check_cameras import refresh
-    refresh(out / "cameras.json", os.environ.get("YOUTUBE_API_KEY"))
+    refresh(out / "cameras.json", os.environ.get("YOUTUBE_API_KEY"),
+            strict="--camera-only" in sys.argv)
 from check_public_counts import check
 check(json.loads((out / "data.json").read_text()))
 # Bind code, styles and the data snapshot to one deployment revision.

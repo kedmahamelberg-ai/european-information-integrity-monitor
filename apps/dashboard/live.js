@@ -1,21 +1,26 @@
 /* Public third-party streams only. No recording or media proxying. */
 "use strict";
 (function () {
+  function availableCamera(camera, time) {
+    const checked = Date.parse(camera?.checked_at || "");
+    return camera?.status === "live" && /^[A-Za-z0-9_-]{11}$/.test(camera.video_id) &&
+      Number.isFinite(checked) && time - checked < 48 * 3600000;
+  }
   function nextCamera(cameras, previous, occupied, failed, time) {
     for (let step = 1; step <= cameras.length; step++) {
       const index = (previous + step) % cameras.length;
       const camera = cameras[index];
-      if (camera.status === "live" && !occupied.has(camera.country_code) &&
+      if (availableCamera(camera, time) && !occupied.has(camera.country_code) &&
           (failed.get(camera.id) || 0) <= time) return index;
     }
     return -1;
   }
-  if (typeof module !== "undefined") module.exports = { nextCamera };
+  if (typeof module !== "undefined") module.exports = { availableCamera, nextCamera };
   if (typeof document === "undefined") return;
 
   const wall = document.querySelector("#camera-wall");
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let cameras = [], slots = [], paused = reduceMotion, hold = reduceMotion;
+  let cameras = [], slots = [], paused = reduceMotion, hold = reduceMotion, booted = false;
   const failures = new Map();
   const byId = id => document.getElementById(id);
   const safe = text => String(text ?? "").replace(/[&<>"']/g, c =>
@@ -36,10 +41,19 @@
     if (slot.player) { try { slot.player.destroy(); } catch {} }
     slot.player = null;
   }
+  function armWatchdog(slot, generation) {
+    clearTimeout(slot.watchdog);
+    slot.watchdog = setTimeout(() => {
+      if (!active() || generation !== slot.generation || slot.autoplayBlocked) return;
+      if (slot.player?.getPlayerState?.() !== 1) fail(slot);
+    }, 22000);
+  }
   function advance(slot) {
+    const now = Date.now();
     const occupied = new Set(slots.filter(s => s !== slot && s.index >= 0)
+      .filter(s => availableCamera(cameras[s.index], now))
       .map(s => cameras[s.index].country_code));
-    const index = nextCamera(cameras, slot.index, occupied, failures, Date.now());
+    const index = nextCamera(cameras, slot.index, occupied, failures, now);
     destroy(slot);
     slot.index = index;
     slot.elapsed = 0;
@@ -51,10 +65,13 @@
   }
   function mount(slot) {
     const c = cameras[slot.index];
+    slot.autoplayBlocked = false;
     slot.root.innerHTML = `<div class="camera-caption"><div><strong>${safe(c.city)} / ${safe(c.country_code)}</strong><small>${safe(c.view)}</small></div><div><span class="camera-state">CONNECTING</span><div class="camera-clock"></div></div></div><div class="camera-player"><div id="camera-player-${slot.number}"></div></div><button class="camera-start" hidden>Start stream</button><div class="camera-bottom"><a href="${safe(c.source_url)}" target="_blank" rel="noopener" title="${safe(c.operator)}">${safe(c.operator)} ↗</a><button class="camera-next">Next country →</button></div><div class="camera-progress"><span></span></div>`;
     slot.root.querySelector(".camera-next").onclick = () => advance(slot);
     slot.root.querySelector(".camera-start").onclick = () => {
       paused = false; controls();
+      slot.autoplayBlocked = false;
+      armWatchdog(slot, slot.generation);
       slot.player?.mute(); slot.player?.playVideo();
     };
     if (!active()) { badge(slot, "PAUSED"); return; }
@@ -79,24 +96,19 @@
             slot.root.querySelector(".camera-start").hidden = true;
           } else if (event.data === 0) fail(slot);
           else if (event.data === 2) badge(slot, "PAUSED");
-          else if (event.data === 3) badge(slot, "BUFFERING");
+          else if (event.data === 3) { badge(slot, "BUFFERING"); armWatchdog(slot, generation); }
         },
         onError() { if (generation === slot.generation) fail(slot); },
         onAutoplayBlocked() {
           if (generation !== slot.generation) return;
           clearTimeout(slot.watchdog);
+          slot.autoplayBlocked = true;
           badge(slot, "PRESS START");
           slot.root.querySelector(".camera-start").hidden = false;
         }
       }
     });
-    slot.watchdog = setTimeout(() => {
-      if (!active() || generation !== slot.generation) return;
-      if (slot.player?.getPlayerState?.() !== 1) {
-        badge(slot, "PRESS START / NEXT");
-        slot.root.querySelector(".camera-start").hidden = false;
-      }
-    }, 22000);
+    armWatchdog(slot, generation);
   }
   function fail(slot) {
     if (slot.index >= 0) failures.set(cameras[slot.index].id, Date.now() + 300000);
@@ -107,22 +119,24 @@
     for (const slot of slots) {
       if (!active()) { slot.player?.pauseVideo?.(); clearTimeout(slot.watchdog); }
       else if (!slot.player && slot.index >= 0) mount(slot);
-      else slot.player?.playVideo?.();
+      else { slot.player?.playVideo?.(); if (!slot.autoplayBlocked) armWatchdog(slot, slot.generation); }
     }
   }
   function boot() {
+    if (booted) return;
+    booted = true;
     wall.innerHTML = "";
     slots = [0,1].map(number => {
       const root = document.createElement("section");
       root.className = "camera-tile";
       root.setAttribute("aria-label", `Live city view ${number + 1}`);
       wall.appendChild(root);
-      return {number,root,index:number===0?-1:4,player:null,elapsed:0,duration:60+number*15,generation:0};
+      return {number,root,index:-1,player:null,elapsed:0,duration:60+number*15,generation:0,autoplayBlocked:false};
     });
     // Only mounted cameras reserve countries, so initialization cannot reserve a phantom slot.
     slots[1].index = -1;
     advance(slots[0]);
-    slots[1].index = 4;
+    slots[1].index = Math.max(-1, Math.floor(cameras.length / 2) - 1);
     advance(slots[1]);
     setInterval(() => {
       for (const s of slots) {
@@ -145,15 +159,37 @@
   byId("camera-list-open").onclick=()=>byId("camera-list-dialog").showModal();
   byId("camera-list-close").onclick=()=>byId("camera-list-dialog").close();
   document.addEventListener("visibilitychange",resumeVisibility);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)loadCatalogue();});
   window.addEventListener("hashchange",()=>setTimeout(resumeVisibility,0));
+  window.addEventListener("focus",loadCatalogue);
   controls();
-  fetch(`cameras.json?v=${document.documentElement.dataset.build||Date.now()}`)
+  function showDirectory(catalogue) {
+    byId("camera-directory").innerHTML=`<p class="small">Public streams, embedded from their original operators. Checked ${safe(catalogue.checked_at||catalogue.cameras[0]?.checked_at||'unknown')}. Offline streams are excluded from rotation. No footage is stored.</p><table><thead><tr><th>Country / city</th><th>View / operator</th><th>Status</th></tr></thead><tbody>${catalogue.cameras.map(c=>`<tr><td>${safe(c.country)}<br><b>${safe(c.city)}</b></td><td><a href="${safe(c.source_url)}" target="_blank" rel="noopener">${safe(c.view)} ↗</a><br>${safe(c.operator)}</td><td>${safe(c.status)}</td></tr>`).join('')}</tbody></table>`;
+  }
+  function loadCatalogue() {
+    if (document.hidden) return;
+    fetch(`cameras.json?refresh=${Date.now()}`, {cache:"no-store"})
     .then(r=>{if(!r.ok)throw Error("Camera catalogue unavailable");return r.json();})
     .then(catalogue=>{
-      cameras=catalogue.cameras.filter(c=>c.status==='live' && /^[A-Za-z0-9_-]{11}$/.test(c.video_id) && Date.now()-Date.parse(c.checked_at)<48*3600000);
-      byId("camera-directory").innerHTML=`<p class="small">Public streams, embedded from their original operators. Checked ${safe(catalogue.checked_at||catalogue.cameras[0]?.checked_at||'unknown')}. Offline streams are excluded from rotation. No footage is stored.</p><table><thead><tr><th>Country / city</th><th>View / operator</th><th>Status</th></tr></thead><tbody>${catalogue.cameras.map(c=>`<tr><td>${safe(c.country)}<br><b>${safe(c.city)}</b></td><td><a href="${safe(c.source_url)}" target="_blank" rel="noopener">${safe(c.view)} ↗</a><br>${safe(c.operator)}</td><td>${safe(c.status)}</td></tr>`).join('')}</tbody></table>`;
-      if(!cameras.length){wall.innerHTML='<p class="camera-message">No recently verified live streams. Open the camera list for original sources.</p>';return;}
-      if(window.YT?.Player)boot();
-      else {window.onYouTubeIframeAPIReady=boot;const script=document.createElement('script');script.src='https://www.youtube.com/iframe_api';script.onerror=()=>{wall.innerHTML='<p class="camera-message">Camera player could not load. Open the camera list to watch at the source.</p>';};document.head.appendChild(script);}
-    }).catch(()=>wall.innerHTML='<p class="camera-message">Camera directory unavailable. Please refresh.</p>');
+      if (!Array.isArray(catalogue.cameras)) throw Error("Invalid camera catalogue");
+      showDirectory(catalogue);
+      const previous = slots.map(slot=>({slot,camera:cameras[slot.index]}));
+      cameras = catalogue.cameras;
+      if (!booted) {
+        if(window.YT?.Player)boot();
+        else if(!window.onYouTubeIframeAPIReady) {window.onYouTubeIframeAPIReady=boot;const script=document.createElement('script');script.src='https://www.youtube.com/iframe_api';script.onerror=()=>{wall.innerHTML='<p class="camera-message">Camera player could not load. Open the camera list to watch at the source.</p>';};document.head.appendChild(script);}
+        return;
+      }
+      for (const {slot,camera} of previous)
+        slot.index = camera ? cameras.findIndex(c=>c.id===camera.id) : -1;
+      for (const {slot,camera} of previous) {
+        if (!camera) { if (active()) advance(slot); continue; }
+        const current = cameras[slot.index];
+        if (!current || !availableCamera(current,Date.now())) { slot.generation++; advance(slot); }
+        else if (current.video_id!==camera.video_id) { slot.generation++; destroy(slot); mount(slot); }
+      }
+    }).catch(()=>{if(!booted)wall.innerHTML='<p class="camera-message">Camera directory unavailable. Please refresh.</p>';});
+  }
+  loadCatalogue();
+  setInterval(loadCatalogue,300000);
 })();
