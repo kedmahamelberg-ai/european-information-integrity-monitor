@@ -28,7 +28,8 @@ def watch_status(page):
     if match.group(1) == 'LIVE_STREAM_OFFLINE':
         return 'not_live'
     if match.group(1) != 'OK':
-        return 'unavailable'
+        # A CI runner may be denied playback even while the public embed works.
+        return 'unverified'
     return 'live' if '"isLiveNow":true' in page else 'not_live'
 
 
@@ -59,11 +60,13 @@ def refresh(path, key, *, strict=False):
             status = camera_status(items.get(camera['video_id']))
             if status == 'live':
                 try:
-                    status = check_watch_page(camera['video_id'])
+                    playback = check_watch_page(camera['video_id'])
+                    if playback == 'not_live':
+                        status = 'not_live'
                 except Exception:
-                    status = 'unverified'
+                    pass
             camera.update(status=status, checked_at=checked,
-                          verification='YouTube Data API and public watch-page playback status')
+                          verification='YouTube Data API; explicit offline-slate check when accessible')
     except Exception:
         if strict:
             raise RuntimeError('Camera availability check failed; keeping the last published directory') from None
