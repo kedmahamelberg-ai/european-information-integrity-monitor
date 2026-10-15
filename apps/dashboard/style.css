@@ -20,3 +20,4 @@ footer nav{display:flex;flex-wrap:wrap;gap:12px 20px;letter-spacing:0;text-trans
 
 /* Exact map counts remain readable independently of symbol area. */
 .response-marker .response-number{font:700 10px var(--mono);fill:#fff;stroke:#070c0e;stroke-width:3px;paint-order:stroke}.response-marker .response-glyph{stroke-width:.6px}.execution-coverage{margin:-10px 0 18px}.creator-credit{margin:0;line-height:1.8;font-size:10px}.rank-count{color:#e3eddf;font-weight:700}
+.camera-player.pending{position:relative}.camera-player.pending::after{content:"Checking live stream…";position:absolute;z-index:1;inset:0;display:grid;place-items:center;background:#070c0e;color:var(--muted);font:10px var(--mono)}
