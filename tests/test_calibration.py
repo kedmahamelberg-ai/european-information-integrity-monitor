@@ -109,6 +109,39 @@ class CalibrationTests(unittest.TestCase):
                 project_four_categories(s, "b")
         self.assertEqual(len(s.read("pipeline_runs")), 1)
 
+    def test_corrected_export_wins_when_review_time_is_preserved(self):
+        s, _, inputs = self.fixture()
+        with patch("eiim.hybrid.retained_inputs", return_value=inputs):
+            project_four_categories(s, "b")
+        older = next(
+            row
+            for row in s.read("human_validation", "b")
+            if row["payload"].get("schema_projection")
+        )
+        older["created_at"] = "2026-10-05T01:01:00Z"
+        replacement_payload = copy.deepcopy(older["payload"])
+        replacement_payload["human_label"][
+            "execution:entertainment"
+        ] = "absent_after_watching"
+        replacement = record(
+            "human_validation", "b", "replacement", replacement_payload, "v"
+        )["record"]
+        replacement["created_at"] = "2026-10-05T02:00:00Z"
+        # Put the replacement first so insertion order cannot accidentally make
+        # it win when both exports preserve the same reviewed_at timestamp.
+        s.tables["human_validation"] = {
+            "replacement": replacement,
+            older["id"]: older,
+        }
+
+        selected = current_reviews(s)[
+            (replacement_payload["queue_record_id"], None)
+        ]
+        self.assertEqual(
+            selected["human_label"]["execution:entertainment"],
+            "absent_after_watching",
+        )
+
     def test_calibration_examples_exclude_self_and_keep_human_source(self):
         s, review, inputs = self.fixture()
         with patch("eiim.hybrid.retained_inputs", return_value=inputs):

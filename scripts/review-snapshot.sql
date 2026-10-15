@@ -11,7 +11,7 @@ with retained as (
   order by video_id, payload->>'checked_at' desc, created_at desc, id desc)
  union
  (select distinct on (video_id) * from runs
-  where payload->>'hybrid_version'='hybrid-framing-1.4' and payload ? 'label'
+  where payload->>'hybrid_version' in ('hybrid-framing-1.4','hybrid-framing-1.5','hybrid-framing-1.6') and payload ? 'label'
   order by video_id, payload->>'classified_at' desc, created_at desc, id desc)
  union
  (select distinct on (payload->>'comment_translation_id') * from runs
