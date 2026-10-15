@@ -66,7 +66,7 @@
   function mount(slot) {
     const c = cameras[slot.index];
     slot.autoplayBlocked = false;
-    slot.root.innerHTML = `<div class="camera-caption"><div><strong>${safe(c.city)} / ${safe(c.country_code)}</strong><small>${safe(c.view)}</small></div><div><span class="camera-state">CONNECTING</span><div class="camera-clock"></div></div></div><div class="camera-player"><div id="camera-player-${slot.number}"></div></div><button class="camera-start" hidden>Start stream</button><div class="camera-bottom"><a href="${safe(c.source_url)}" target="_blank" rel="noopener" title="${safe(c.operator)}">${safe(c.operator)} ↗</a><button class="camera-next">Next country →</button></div><div class="camera-progress"><span></span></div>`;
+    slot.root.innerHTML = `<div class="camera-caption"><div><strong>${safe(c.city)} / ${safe(c.country_code)}</strong><small>${safe(c.view)}</small></div><div><span class="camera-state">CONNECTING</span><div class="camera-clock"></div></div></div><div class="camera-player pending"><div id="camera-player-${slot.number}"></div></div><button class="camera-start" hidden>Start stream</button><div class="camera-bottom"><a href="${safe(c.source_url)}" target="_blank" rel="noopener" title="${safe(c.operator)}">${safe(c.operator)} ↗</a><button class="camera-next">Next country →</button></div><div class="camera-progress"><span></span></div>`;
     slot.root.querySelector(".camera-next").onclick = () => advance(slot);
     slot.root.querySelector(".camera-start").onclick = () => {
       paused = false; controls();
@@ -92,11 +92,12 @@
           if (generation !== slot.generation) return;
           if (event.data === 1) {
             clearTimeout(slot.watchdog);
+            slot.root.querySelector(".camera-player").classList.remove("pending");
             badge(slot, "● LIVE", true);
             slot.root.querySelector(".camera-start").hidden = true;
           } else if (event.data === 0) fail(slot);
           else if (event.data === 2) badge(slot, "PAUSED");
-          else if (event.data === 3) { badge(slot, "BUFFERING"); armWatchdog(slot, generation); }
+          else if (event.data === 3) { slot.root.querySelector(".camera-player").classList.add("pending"); badge(slot, "BUFFERING"); armWatchdog(slot, generation); }
         },
         onError() { if (generation === slot.generation) fail(slot); },
         onAutoplayBlocked() {
