@@ -11,6 +11,10 @@ on:
         required: false
         type: boolean
         default: false
+      video_ids:
+        description: Optional comma-separated saved video IDs; requires a batch and classification_only
+        required: false
+        type: string
 permissions:
   contents: read
 concurrency:
@@ -31,6 +35,7 @@ jobs:
       EIIM_ENABLE_AUDIO_TRANSCRIPTION: "true"
       REVIEW_BATCH: ${{ inputs.batch }}
       REVIEW_CLASSIFICATION_ONLY: ${{ inputs.classification_only }}
+      REVIEW_VIDEO_IDS: ${{ inputs.video_ids }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -61,11 +66,19 @@ jobs:
         run: |
           run_classification() {
             recovery=()
+            targets=()
             if [ "$1" = "retrieve" ]; then
               recovery+=(--retrieve-captions)
             fi
+            if [ -n "$REVIEW_VIDEO_IDS" ]; then
+              test "$REVIEW_CLASSIFICATION_ONLY" = "true" && test -n "$REVIEW_BATCH" || {
+                echo '::error::Targeted classification requires a batch and classification_only=true'
+                return 1
+              }
+              targets+=(--video-ids "$REVIEW_VIDEO_IDS")
+            fi
             if [ -n "$REVIEW_BATCH" ]; then
-              PYTHONPATH=src python -m eiim.hybrid "${recovery[@]}" --batch "$REVIEW_BATCH" | tee /tmp/hybrid-report.json
+              PYTHONPATH=src python -m eiim.hybrid "${recovery[@]}" "${targets[@]}" --batch "$REVIEW_BATCH" | tee /tmp/hybrid-report.json
             else
               PYTHONPATH=src python -m eiim.hybrid --all-retained "${recovery[@]}" | tee /tmp/hybrid-report.json
             fi
