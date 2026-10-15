@@ -36,3 +36,22 @@ class CameraMetadataTests(unittest.TestCase):
             '{"playabilityStatus":{"status":"OK"},"isLiveNow":true}'), 'live')
         self.assertEqual(module.watch_status(
             '{"playabilityStatus":{"status":"OK"},"isLiveNow":false}'), 'not_live')
+        self.assertEqual(module.watch_status(
+            '{"playabilityStatus":{"status":"UNPLAYABLE"},"isLiveNow":true}'), 'unverified')
+
+    def test_runner_playback_denial_does_not_hide_api_verified_live_stream(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'cameras.json'
+            path.write_text(json.dumps({'cameras': [{'id': 'street', 'video_id': 'zMCea32gpmg'}]}))
+            api_result = {'items': [{'id': 'zMCea32gpmg',
+                'status': {'embeddable': True},
+                'snippet': {'liveBroadcastContent': 'live'},
+                'liveStreamingDetails': {'actualStartTime': '2026-10-16T00:00:00Z'}}]}
+            class Response:
+                def __enter__(self): return self
+                def __exit__(self, *args): return False
+                def read(self): return json.dumps(api_result).encode()
+            with patch.object(module.urllib.request, 'urlopen', return_value=Response()), \
+                 patch.object(module, 'check_watch_page', return_value='unverified'):
+                module.refresh(path, 'test-key', strict=True)
+            self.assertEqual(json.loads(path.read_text())['cameras'][0]['status'], 'live')
