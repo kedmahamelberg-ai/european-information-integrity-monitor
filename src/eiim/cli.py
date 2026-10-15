@@ -1,4 +1,4 @@
-import argparse, json, os, sys
+import argparse, json, os, re, sys
 from pathlib import Path
 from datetime import datetime, timezone
 from .core import config, ROOT, now, digest, sfi
@@ -234,6 +234,7 @@ def main():
     sub.add_parser("purge")
     refresh = sub.add_parser("refresh-comments")
     refresh.add_argument("--batch", required=True)
+    refresh.add_argument("--video-ids", help="Comma-separated exact retained video IDs")
     recode = sub.add_parser("classify-review")
     recode.add_argument("--batch")
     recode.add_argument("--limit", type=int)
@@ -261,7 +262,12 @@ def main():
     if args.command == "refresh-comments":
         from .comment_refresh import refresh_comments
 
-        result = refresh_comments(store, args.batch)
+        target_ids = None
+        if args.video_ids is not None:
+            target_ids = args.video_ids.split(",")
+            if not target_ids or any(not re.fullmatch(r"[A-Za-z0-9_-]{11}", vid) for vid in target_ids):
+                raise ValueError("--video-ids requires comma-separated 11-character YouTube IDs")
+        result = refresh_comments(store, args.batch, video_ids=target_ids)
     elif args.command == "classify-review":
         from .reclassification import reclassify
 

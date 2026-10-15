@@ -9,6 +9,10 @@ on:
         description: Existing retained batch ID (blank uses the newest retained batch)
         required: false
         type: string
+      video_ids:
+        description: Optional comma-separated retained video IDs for a bounded catch-up
+        required: false
+        type: string
 permissions:
   contents: read
 concurrency:
@@ -24,6 +28,7 @@ jobs:
       YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       REVIEW_BATCH: ${{ inputs.batch }}
+      REVIEW_VIDEO_IDS: ${{ inputs.video_ids }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -36,20 +41,33 @@ jobs:
       - name: Resolve newest retained batch for the weekly schedule
         shell: bash
         run: |
+          if [ -n "$REVIEW_VIDEO_IDS" ] && [ -z "$REVIEW_BATCH" ]; then
+            echo '::error::Targeted comment refresh requires an explicit retained batch'
+            exit 1
+          fi
           if [ -z "$REVIEW_BATCH" ]; then
             REVIEW_BATCH=$(PYTHONPATH=src python -c 'from eiim.storage import Store; batches=Store().read("weekly_batches"); print(max((row["id"] for row in batches), default=""))')
           fi
           test -n "$REVIEW_BATCH" || { echo '::error::No retained batch is available'; exit 1; }
           echo "REVIEW_BATCH=$REVIEW_BATCH" >> "$GITHUB_ENV"
       - name: Refresh retained comments within existing budget
+        shell: bash
         run: |
-          PYTHONPATH=src python -m eiim.cli refresh-comments --batch "$REVIEW_BATCH" > /tmp/comment-refresh.json
+          if [ -n "$REVIEW_VIDEO_IDS" ]; then
+            PYTHONPATH=src python -m eiim.cli refresh-comments --batch "$REVIEW_BATCH" --video-ids "$REVIEW_VIDEO_IDS" > /tmp/comment-refresh.json
+          else
+            PYTHONPATH=src python -m eiim.cli refresh-comments --batch "$REVIEW_BATCH" > /tmp/comment-refresh.json
+          fi
           cat /tmp/comment-refresh.json >> "$GITHUB_STEP_SUMMARY"
       - name: Attach refreshed comments to Monitor classifications
         shell: bash
         run: |
           run_hybrid() {
-            PYTHONPATH=src python -m eiim.hybrid --batch "$REVIEW_BATCH" | tee /tmp/hybrid-report.json
+            if [ -n "$REVIEW_VIDEO_IDS" ]; then
+              PYTHONPATH=src python -m eiim.hybrid --batch "$REVIEW_BATCH" --video-ids "$REVIEW_VIDEO_IDS" | tee /tmp/hybrid-report.json
+            else
+              PYTHONPATH=src python -m eiim.hybrid --batch "$REVIEW_BATCH" | tee /tmp/hybrid-report.json
+            fi
             return "${PIPESTATUS[0]}"
           }
 

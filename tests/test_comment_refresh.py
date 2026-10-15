@@ -7,6 +7,40 @@ from test_pipeline import FixtureLocal, FixtureClassifier, FixtureYouTube
 
 
 class CommentMinimumTests(unittest.TestCase):
+    def test_targeted_refresh_never_fetches_other_eligible_videos(self):
+        store = MemoryStore()
+        pipe = Pipeline(
+            store,
+            datetime.fromisoformat("2026-10-04T05:00:00Z"),
+            local=FixtureLocal(),
+            classifier=FixtureClassifier(),
+        )
+        store.batch(pipe.window, "fixture")
+        rows = []
+        for vid in ("target", "other"):
+            rows.extend((
+                record("candidate_videos", pipe.id, pipe.id + ":" + vid,
+                       {"video_id": vid, "comment_count": 2, "original_audio_language": "en"}, vid),
+                record("sampled_videos", pipe.id, pipe.id + ":" + vid,
+                       {"video_id": vid, "selected_for_sample": True}, vid),
+            ))
+        store.write(pipe.id, rows)
+
+        class CountingYouTube(FixtureYouTube):
+            def __init__(self):
+                self.calls = []
+
+            def comments(self, vid):
+                self.calls.append(vid)
+                return super().comments(vid)
+
+        pipe.yt = CountingYouTube()
+        pipe.cfg["minimum_available_comments"] = 2
+        pipe.comments(refresh_policy=True, mark_complete=False,
+                      only_video_ids={"target"})
+        self.assertEqual(pipe.yt.calls, ["target"])
+        self.assertEqual({r["video_id"] for r in store.read("comments")}, {"target"})
+
     def test_two_comment_boundary_and_revisit_old_exclusions_without_rewriting(self):
         store = MemoryStore()
         pipe = Pipeline(

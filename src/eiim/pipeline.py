@@ -439,7 +439,7 @@ class Pipeline:
             "sampling_complete",
         )
 
-    def comments(self, refresh_policy=False, mark_complete=True):
+    def comments(self, refresh_policy=False, mark_complete=True, only_video_ids=None):
         candidates = self.cached("candidate_videos", "video_id")
         metadata = {}
         for x in self.values("pipeline_runs"):
@@ -452,6 +452,8 @@ class Pipeline:
         minimum = self.cfg["minimum_available_comments"]
         for s in self.active_samples():
             if not s["selected_for_sample"]:
+                continue
+            if only_video_ids is not None and s["video_id"] not in only_video_ids:
                 continue
             previous = metadata.get(s["video_id"])
             if previous and (
