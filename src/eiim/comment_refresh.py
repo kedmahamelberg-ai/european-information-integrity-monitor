@@ -8,7 +8,7 @@ from .services import YouTube, LocalModel, Classifier, BudgetExhausted
 from .storage import record
 
 
-def refresh_comments(store, batch, youtube=None, local=None, classifier=None):
+def refresh_comments(store, batch, youtube=None, local=None, classifier=None, video_ids=None):
     batches = store.read("weekly_batches", batch)
     if not batches:
         raise ValueError("An existing retained batch is required")
@@ -28,17 +28,33 @@ def refresh_comments(store, batch, youtube=None, local=None, classifier=None):
     pipe.yt = youtube or YouTube(store, batch, pipe.ledger)
     pipe.local = local or LocalModel(pipe.ledger)
     pipe.classifier = classifier or Classifier(store, batch, pipe.ledger)
+    if video_ids is not None:
+        video_ids = tuple(video_ids)
+        if not video_ids or len(video_ids) != len(set(video_ids)):
+            raise ValueError("Targeted refresh requires distinct video IDs")
+        eligible = {s["video_id"] for s in pipe.active_samples()}
+        if set(video_ids) - eligible:
+            raise ValueError("Targeted refresh IDs must be retained, selected and English-access eligible")
     before = len(pipe.values("comments"))
     status = "complete"
     try:
-        pipe.comments(refresh_policy=True, mark_complete=False)
-        pipe.classification(classify_sources=False, mark_complete=False)
+        pipe.comments(
+            refresh_policy=True,
+            mark_complete=False,
+            only_video_ids=set(video_ids) if video_ids is not None else None,
+        )
+        if video_ids is None:
+            pipe.classification(classify_sources=False, mark_complete=False)
     except BudgetExhausted:
         status = "pending_budget"
-    cluster_count = add_review_clusters(pipe)
+    cluster_count = add_review_clusters(pipe) if video_ids is None else 0
     comments = pipe.values("comments")
     labels = pipe.cached("comment_classifications", "comment_id")
-    pending = sum(c["comment_id"] not in labels for c in comments)
+    pending = sum(
+        c["comment_id"] not in labels
+        for c in comments
+        if video_ids is None or c["video_id"] in video_ids
+    )
     if pending and status == "complete":
         status = "partial"
     report = {
@@ -52,6 +68,11 @@ def refresh_comments(store, batch, youtube=None, local=None, classifier=None):
         "classified_comments": sum(c["comment_id"] in labels for c in comments),
         "pending_classifications": pending,
         "new_review_clusters": cluster_count,
+        "targeted_video_ids": list(video_ids) if video_ids is not None else None,
+        "targeted_retained_comments": (
+            {vid: sum(c["video_id"] == vid for c in comments) for vid in video_ids}
+            if video_ids is not None else None
+        ),
         "frozen_snapshots_preserved": True,
         "generated_at": now(),
     }
