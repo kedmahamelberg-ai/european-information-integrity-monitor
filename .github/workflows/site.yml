@@ -4,6 +4,8 @@ on:
     branches: [main]
   workflow_dispatch:
   workflow_call:
+  schedule:
+    - cron: "17 */2 * * *"
   workflow_run:
     workflows:
       [
@@ -31,8 +33,10 @@ jobs:
         with:
           python-version: "3.12"
       - name: Test research invariants
+        if: github.event_name != 'schedule'
         run: PYTHONPATH=src python -m unittest discover -s tests -v
       - name: Check dashboard JavaScript
+        if: github.event_name != 'schedule'
         run: |
           node --check apps/dashboard/app.js
           node --check apps/dashboard/live.js
@@ -44,7 +48,9 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
         run: |
-          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_SECRET_KEY" ]; then
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            python scripts/build_site.py --camera-only
+          elif [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_SECRET_KEY" ]; then
             python scripts/build_site.py --live
           else
             python scripts/build_site.py
