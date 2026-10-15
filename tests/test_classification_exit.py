@@ -16,6 +16,12 @@ class ClassificationExitTests(unittest.TestCase):
         self.assertIn('grep -q \'"error_type": "ClassificationUnavailable"\'', workflow)
         self.assertIn("Never\n          # repeat caption/audio retrieval", workflow)
 
+    def test_workflow_can_hold_unrequested_videos_for_human_review(self):
+        workflow = (Path(__file__).parents[1] / ".github/workflows/classification-review.yml").read_text()
+        self.assertIn("video_ids:", workflow)
+        self.assertIn('targets+=(--video-ids "$REVIEW_VIDEO_IDS")', workflow)
+        self.assertIn('test "$REVIEW_CLASSIFICATION_ONLY" = "true"', workflow)
+
     def test_completed_classification_triggers_publication(self):
         site = (Path(__file__).parents[1] / ".github/workflows/site.yml").read_text()
         self.assertIn('"Classify saved Monitor evidence"', site)

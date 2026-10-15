@@ -400,6 +400,40 @@ class HybridTests(unittest.TestCase):
         self.assertEqual(a["classified_videos"], 1)
         self.assertFalse(b["new_source_collection"])
 
+    def test_targeted_saved_text_classifies_only_requested_video(self):
+        s = self.make_transcript_store()
+        s.batch({"id": "2026-W40"}, "test")
+        for table in ("candidate_videos", "sampled_videos", "pipeline_runs"):
+            for row in s.read(table):
+                if row["video_id"] != "v":
+                    continue
+                payload = copy.deepcopy(row["payload"])
+                if payload.get("video_id") == "v":
+                    payload["video_id"] = "v2"
+                if payload.get("english_access_video_id") == "v":
+                    payload["english_access_video_id"] = "v2"
+                s.write("2026-W40", [record(table, "2026-W40", row["id"] + "2", payload, "v2")])
+
+        class Fake:
+            cfg = {"model": "test"}
+            calls = 0
+
+            def request(self, text, prompt, shape, kind):
+                self.calls += 1
+                result = label()
+                result["comments"] = []
+                return {"parsed": result, "model_name": "test", "model_version": "test",
+                        "classification_timestamp": "2026-10-04T00:00:00Z"}
+
+        fake = Fake()
+        result = reclassify(s, "2026-W40", fake, video_ids=("v2",))
+        self.assertEqual(fake.calls, 1)
+        self.assertEqual(result["targeted_classified"], 1)
+        self.assertEqual(result["targeted_video_ids"], ["v2"])
+        self.assertEqual(result["classified_videos"], 1)
+        with self.assertRaisesRegex(ValueError, "lack retained usable English text"):
+            reclassify(s, "2026-W40", fake, video_ids=("missing",))
+
     def test_newly_retained_comment_reclassifies_only_its_existing_video(self):
         s = self.make_transcript_store()
         s.batch({"id": "2026-W40"}, "test")

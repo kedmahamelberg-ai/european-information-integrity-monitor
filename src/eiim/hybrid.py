@@ -496,7 +496,7 @@ def labels(store, batch=None):
     ]
 
 
-def reclassify(store, batch, classifier=None):
+def reclassify(store, batch, classifier=None, video_ids=None):
     batches = store.read("weekly_batches", batch)
     if not batches:
         raise ValueError("Unknown retained batch")
@@ -508,6 +508,13 @@ def reclassify(store, batch, classifier=None):
     ) - timedelta(days=30):
         raise ValueError("Retained batch has expired")
     videos, comments, translations, runs = retained_inputs(store, batch)
+    if video_ids is not None:
+        video_ids = tuple(video_ids)
+        if not video_ids or len(video_ids) != len(set(video_ids)):
+            raise ValueError("Targeted classification requires distinct video IDs")
+        missing = set(video_ids) - set(videos)
+        if missing:
+            raise ValueError("Targeted videos lack retained usable English text: " + ", ".join(sorted(missing)))
     classifier = classifier or Classifier(store, batch, Ledger(store, batch))
     classifier.cfg = {
         **classifier.cfg,
@@ -526,6 +533,8 @@ def reclassify(store, batch, classifier=None):
     calibration_store = ReadSnapshot(store)
     completed = {r["video_id"]: r for r in latest_labels(labels(store, batch))}
     for vid, (source, language) in sorted(videos.items()):
+        if video_ids is not None and vid not in video_ids:
+            continue
         existing = completed.get(vid)
         selected = sorted(
             [c for c in comments if c["video_id"] == vid], key=lambda c: c["comment_id"]
@@ -683,6 +692,12 @@ def reclassify(store, batch, classifier=None):
                 }
             )
     current = latest_labels(labels(store, batch))
+    current_ids = {r["video_id"] for r in current}
+    if video_ids is not None and status == "complete":
+        for vid in video_ids:
+            if vid not in current_ids:
+                errors.append({"video_id": vid, "error_type": "ClassificationIncomplete",
+                               "reason": "No validated saved label for requested video"})
     coverage = caption_coverage(store, batch)
     classification_status = status if not errors else "partial"
     overall_status = classification_status
@@ -705,6 +720,9 @@ def reclassify(store, batch, classifier=None):
         "new_source_collection": False,
         "at": now(),
     }
+    if video_ids is not None:
+        report["targeted_video_ids"] = list(video_ids)
+        report["targeted_classified"] = sum(vid in current_ids for vid in video_ids)
     store.write(
         batch,
         [
@@ -919,7 +937,17 @@ def main():
     parser.add_argument("--retrieve-captions", action="store_true")
     parser.add_argument("--refresh-engagement", action="store_true")
     parser.add_argument("--all-retained", action="store_true", help="Resume every unpurged retained batch, newest first")
+    parser.add_argument("--video-ids", help="Comma-separated saved video IDs to classify; requires --batch")
     args = parser.parse_args()
+    target_ids = None
+    if args.video_ids is not None:
+        if not args.batch or args.collect or args.retrieve_captions or args.refresh_engagement or args.all_retained:
+            parser.error("--video-ids requires --batch and saved-text classification only")
+        target_ids = args.video_ids.split(",")
+        if any(not re.fullmatch(r"[A-Za-z0-9_-]{11}", vid) for vid in target_ids):
+            parser.error("--video-ids must contain comma-separated 11-character video IDs")
+        if len(target_ids) != len(set(target_ids)):
+            parser.error("--video-ids must not repeat a video ID")
     store = Store()
     if args.collect:
         report = collect_week(store)
@@ -936,7 +964,7 @@ def main():
                 print(json.dumps(retrieve_retained_captions(store, batch, audio)), flush=True)
             if args.refresh_engagement:
                 print(json.dumps(refresh_engagement(store, batch)), flush=True)
-            report = reclassify(store, batch)
+            report = reclassify(store, batch, video_ids=target_ids)
             reports.append(report)
             print(json.dumps(report, indent=2), flush=True)
         # Saved-text classification can finish while acquisition is still pending.
