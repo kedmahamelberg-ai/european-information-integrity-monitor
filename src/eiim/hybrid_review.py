@@ -239,7 +239,7 @@ def write_html(data, path):
 def validate_review(item, row):
     source_version = row["payload"].get("hybrid_version", VERSION)
     if (
-        source_version not in {VERSION, "hybrid-framing-1.4", "hybrid-framing-1.3"}
+        source_version not in {VERSION, "hybrid-framing-1.5", "hybrid-framing-1.4", "hybrid-framing-1.3"}
         or item.get("version") != source_version
         or item.get("queue_hash") != row.get("payload_hash", digest(row["payload"]))
     ):
