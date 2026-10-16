@@ -111,5 +111,32 @@
     ],
     "viewpoint_structure": "multiple_viewpoints",
     "review_decision": "accept_model_labels"
+  },
+  {
+    "id": "c772e09fc4fdc2c1a422",
+    "relevance": "related",
+    "topics": [
+      "climate_environment",
+      "civil_protection",
+      "health_biosecurity"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Government of the Republic of Serbia",
+        "summary": "The government adopts a remediation plan for fire recovery in a nature reserve and begins establishing a 'One Health' framework for coordinated health and environmental risk management.",
+        "target": "Environmental remediation and integrated health-environment governance in Serbia",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "The remediation plan foresees ... preserving natural values and improving the protection system ... adoption of the national framework \"One Health\" ... aimed at enabling more efficient connection and joint action."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The Government of the Republic of Serbia in technical mandate adopted today the Conclusion on the adoption of the remediation plan for the area of the Special Nature Reserve \"Deliblato Sands\", for which 50 million dinars have been allocated. ... The goal is to remediate fire consequences based on expert assessments and established extent of damage, while preserving natural values and improving the protection system of the Special Nature Reserve \"Deliblato Sands\". ... Members of the Government also adopted a Conclusion of consent to initiate the preparatory phase for establishing and developing the national framework \"One Health\" in the Republic of Serbia, aimed at enabling more efficient connection and joint action of existing bodies without creating parallel administration or infringing on legally established competencies.",
+    "short_rationale": "The government action addresses restoration of a natural reserve after fire damage and initiates integrated health-environment governance, directly relating to climate, civil protection, and health security.",
+    "ticker_message": "Serbia adopts fire remediation plan for nature reserve and initiates One Health framework development.",
+    "source_title": "Усвојен Закључак о санационом плану за подручје Делиблатске пешчаре",
+    "source_summary": "Serbia's government approved a 50 million dinar remediation plan for the Deliblato Sands Nature Reserve to address fire damage, involving coordinated expert action. It also initiated preparatory steps to establish a national \"One Health\" framework for inter-agency collaboration without new bureaucracy.",
+    "review_decision": "accept_model_labels_and_wording"
   }
 ]
