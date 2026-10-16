@@ -154,7 +154,7 @@ function renderMap(){
  const r=MonitorMap.responses(rows());
  $('#map-key').innerHTML=(layer==='comments'?'':'<span class="video-key">● Classified videos · size follows views</span>')+(layer==='videos'?'':Object.entries(r[field]).filter(([key,n])=>n>0&&MonitorMap.mapCategories[field].includes(key)).map(([key,n])=>{const style=responseStyles[key]||responseStyles.unclear;return `<span><b style="color:${style.color}">${style.shape}</b> ${esc(human(key))} ${num(n)}</span>`}).join(''));
  const govVisible=$('#government-map-toggle')?.checked!==false;
- const govByCountry=new Map();for(const item of governmentData.items||[]){if(item.related&&item.classification_status!=='awaiting_calibration')govByCountry.set(item.country_code,(govByCountry.get(item.country_code)||0)+1);}
+ const govByCountry=new Map();for(const item of governmentData.items||[]){if(['provisional','human_reviewed'].includes(item.classification_status))govByCountry.set(item.country_code,(govByCountry.get(item.country_code)||0)+1);}
  $('#government-markers').innerHTML=govVisible?countries.filter(c=>govByCountry.has(c.iso2)).map(c=>{const [x,y]=project(c.longitude,c.latitude),n=govByCountry.get(c.iso2);return `<g class="government-marker" transform="translate(${x},${y})" aria-label="${esc(c.country_name)}: ${n} classified government communications"><title>${esc(c.country_name)} · ${n} government communications</title><text x="9" y="-8">★</text></g>`}).join(''):'';
  $('#response-metric').disabled=layer==='videos';
 }
