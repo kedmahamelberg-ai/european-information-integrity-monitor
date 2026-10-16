@@ -208,5 +208,14 @@
     "topics": [],
     "roles": [],
     "review_decision": "accept_unrelated"
+  },
+  {
+    "id": "ca3210489d40b947668f",
+    "source_title": "Primării mai puternice, trei regiuni și un nou municipiu: Guvernul a prezentat Conceptul reorganizării administrației publice locale de nivelul II",
+    "source_summary": "Moldova proposes reorganizing districts and strengthening local administrative services.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "review_decision": "correct_to_unrelated"
   }
 ]
