@@ -27,6 +27,7 @@ CORRECTIONS = ROOT / "data/government_corrections.json"
 REVIEW_QUEUE = ROOT / "build/government-review-queue.json"
 UA = "EuropeanSecurityMonitor/1.0 (public research; contact: monitor@hamelberg-ai.com)"
 AMSTERDAM = ZoneInfo("Europe/Amsterdam")
+TBILISI = ZoneInfo("Asia/Tbilisi")
 
 
 class Links(HTMLParser):
@@ -189,19 +190,60 @@ def discover_austria(country, start, end):
     return entries,country["url"]
 
 
+def georgia_page(body):
+    match=re.search(rb'<script[^>]*id=["\']__NEXT_DATA__["\'][^>]*>(.*?)</script>',body,re.I|re.S)
+    if not match: raise RuntimeError("Georgian news page has no dated article data")
+    return json.loads(match.group(1))["props"]["pageProps"]["page"]
+
+
+def discover_georgia(country,start,end):
+    """Page through the foreign ministry's original-language News archive."""
+    entries=[]; page_number=1; reported_total=None
+    while True:
+        url=country["url"] if page_number==1 else f'{country["url"]}?page={page_number}'
+        _,body=fetch(url)
+        content=georgia_page(body)["content"]
+        if int(content["page"])!=page_number: raise RuntimeError("Georgian news pagination changed")
+        if reported_total is None: reported_total=int(content["total"])
+        elif int(content["total"])!=reported_total: raise RuntimeError("Georgian news total changed during pagination")
+        rows=content["data"]
+        if len(rows)!=int(content["count"]): raise RuntimeError("Georgian news page is incomplete")
+        oldest=None
+        for row in rows:
+            published=dt.datetime.fromisoformat(row["publishDate"])
+            if published.tzinfo is None: published=published.replace(tzinfo=TBILISI)
+            published=published.astimezone(dt.timezone.utc)
+            oldest=published if oldest is None or published<oldest else oldest
+            if not start<=published<=end: continue
+            slug=row.get("slug","")
+            if not re.fullmatch(r"\d{6}-[a-z0-9-]+",slug): raise RuntimeError("Unexpected Georgian article slug")
+            entries.append({"country":country["name"],"country_code":country["iso2"],"url":f"https://mfa.gov.ge/news/{slug}","title":row["title"],"published_at":published.isoformat(),"text":""})
+        if not rows or (oldest is not None and oldest<start): break
+        if page_number>=int(content["pageCount"]): break
+        page_number+=1
+    return entries,country["url"]
+
+
 def discover(country,start,end):
     if country["iso2"]=="NL": return discover_netherlands(country,start,end)
     if country["iso2"]=="AT": return discover_austria(country,start,end)
+    if country["iso2"]=="GE": return discover_georgia(country,start,end)
     raise NotImplementedError("Date-complete official-news adapter is not yet verified for this source")
 
 
 def article_text(item):
+    if item["country_code"]=="GE":
+        _,body=fetch(item["url"])
+        description=georgia_page(body).get("description") or ""
+        text=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",description))).strip()
+        if not text: raise RuntimeError("Georgian official communication has no article body")
+        return text[:18000]
     if item.get("text") and len(item["text"])>250: return item["text"][:18000]
     _, body=fetch(item["url"])
     return official_article_text(body)
 
 
-def ask_openai(text, classification=True, examples=None):
+def ask_openai(text, classification=True, examples=None, validation_note=""):
     string={"type":"string"}
     def obj(fields): return {"type":"object","properties":fields,"required":list(fields),"additionalProperties":False}
     topic={"type":"string","enum":TOPICS}
@@ -216,7 +258,7 @@ def ask_openai(text, classification=True, examples=None):
     example_text=""
     if classification and examples:
         example_text="\nResearcher corrections from earlier source reviews (use as calibration examples):\n"+json.dumps(examples[-30:],ensure_ascii=False)
-    req={"model":os.getenv("GOVERNMENT_MODEL","gpt-4.1-mini"),"input":[{"role":"system","content":task+"\nTopic codes and meanings: "+json.dumps(HYBRID["topic_labels"],ensure_ascii=False)+example_text},{"role":"user","content":text}],"text":{"format":{"type":"json_schema","name":"government_item","strict":True,"schema":schema}}}
+    req={"model":os.getenv("GOVERNMENT_MODEL","gpt-4.1-mini"),"input":[{"role":"system","content":task+"\nTopic codes and meanings: "+json.dumps(HYBRID["topic_labels"],ensure_ascii=False)+example_text+validation_note},{"role":"user","content":text}],"text":{"format":{"type":"json_schema","name":"government_item","strict":True,"schema":schema}}}
     http=urllib.request.Request("https://api.openai.com/v1/responses",data=json.dumps(req).encode(),headers={"Authorization":"Bearer "+os.environ["OPENAI_API_KEY"],"Content-Type":"application/json"})
     last_problem="empty response"
     for attempt in range(3):
@@ -299,9 +341,17 @@ def main():
             if not text: item["classification_status"]="no_text"; existing[item["id"]]=item; continue
             translated=ask_openai(text,False); item["english_translation"]=translated["english_translation"][:18000]; item["english_summary"]=translated["short_english_summary"]
             examples=[{**correction,"title":existing[ident].get("title"),"summary":existing[ident].get("english_summary")} for ident,correction in correction_map.items() if ident in existing]
-            labels=ask_openai(item["english_translation"],True,examples)
-            if labels["relevance"]=="related" and not labels["topics"]: raise RuntimeError("Related government communication has no hybrid topic")
-            if labels["relevance"]!="related" and (labels["topics"] or labels["roles"]): raise RuntimeError("Unrelated government communication has topic or actor roles")
+            validation_note=""
+            for validation_attempt in range(2):
+                labels=ask_openai(item["english_translation"],True,examples,validation_note)
+                valid=(labels["relevance"]=="related" and bool(labels["topics"])) or (labels["relevance"]!="related" and not labels["topics"] and not labels["roles"])
+                if valid: break
+                validation_note="\nThe previous classification was internally inconsistent. Re-evaluate the source: related requires one or more directly supported topics; not_related/unclear require empty topics and roles. Do not remove a supported security topic merely to satisfy the schema."
+            if not valid:
+                item.update(labels); item["classification_status"]="needs_review"; item["classification_error"]="inconsistent_relevance_topics_roles"; item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item
+                print(f"Needs review: {item['country_code']} {item['id']} inconsistent relevance/topics/roles",flush=True)
+                STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
+                continue
             item.update(labels); item["related"]=labels["relevance"]=="related"; item["primary_narrative"]=(labels["topics"] or ["none_unclear"])[0]; item["secondary_narratives"]=labels["topics"][1:]; item["classification_status"]="provisional"; item["review_sample"]=(int(item["id"][:8],16)%100<3); item["calibration_item"]=bool(calibrating and not calibration_ids); item["source_text_chars"]=len(text); item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item; STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
         for item in candidates[cap:]: item["classification_status"]="awaiting_calibration" if calibrating else "pending_classification"; item.pop("text",None); existing[item["id"]]=item
     calibration_ids={x["id"] for x in existing.values() if x.get("calibration_item")}
@@ -314,7 +364,7 @@ def main():
     public={**out,"items":[{k:v for k,v in item.items() if k!="english_translation"} for item in out["items"]]}
     PUBLIC.write_text(json.dumps(public,ensure_ascii=False,indent=2)+"\n")
     REVIEW_QUEUE.parent.mkdir(exist_ok=True)
-    REVIEW_QUEUE.write_text(json.dumps({"instructions":"Review every calibration_item before calibration is complete. Thereafter review the 3% routine sample. Return corrections as a JSON array with id, relevance, topics, roles and viewpoints where changed. Corrections calibrate later batches.","items":[{k:v for k,v in item.items() if k in {"id","country","country_code","url","title","published_at","english_summary","relevance","topics","evidence_status","evidence_quote","roles","viewpoint_structure","viewpoints","ticker_message","short_rationale","calibration_item","review_sample"}} for item in out["items"] if item.get("calibration_item") or (item.get("review_sample") and not item.get("human_reviewed"))]},ensure_ascii=False,indent=2)+"\n")
+    REVIEW_QUEUE.write_text(json.dumps({"instructions":"Review every calibration_item before calibration is complete, every needs_review conflict, and thereafter the 3% routine sample. Return corrections as a JSON array with id, relevance, topics, roles and viewpoints where changed. Corrections calibrate later batches.","items":[{k:v for k,v in item.items() if k in {"id","country","country_code","url","title","published_at","english_summary","relevance","topics","evidence_status","evidence_quote","roles","viewpoint_structure","viewpoints","ticker_message","short_rationale","calibration_item","review_sample","classification_status","classification_error"}} for item in out["items"] if (item.get("calibration_item") and not item.get("human_reviewed")) or item.get("classification_status")=="needs_review" or (item.get("review_sample") and not item.get("human_reviewed"))]},ensure_ascii=False,indent=2)+"\n")
     ok=sum(x["status"]=="discovered" for x in sources_status)
     print(json.dumps({"window_start":out["window_start"],"window_end":out["window_end"],"sources_ok":ok,"sources_unavailable":sum(x["status"]!="discovered" for x in sources_status),"new_items":len(candidates),"stored_items":len(existing),"awaiting_calibration":sum(x.get("classification_status")=="awaiting_calibration" for x in out["items"]),"review_items":sum(x.get("review_sample") is True for x in out["items"])}))
     if not ok: raise SystemExit("No verified official news sections were reachable.")
