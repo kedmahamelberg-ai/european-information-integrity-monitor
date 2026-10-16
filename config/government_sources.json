@@ -21,7 +21,7 @@
     {
       "iso2": "AM",
       "name": "Armenia",
-      "url": "https://www.gov.am/am/news/page",
+      "url": "https://gov.am/%D5%AC%D6%80%D5%A1%D5%B0%D5%B8%D5%BD",
       "verification_status": "verified"
     },
     {
@@ -47,7 +47,7 @@
     {
       "iso2": "BE",
       "name": "Belgium",
-      "url": "https://news.belgium.be/nl/ministerraad",
+      "url": "https://news.belgium.be/nl/zoek-een-nieuwsbericht",
       "verification_status": "verified",
       "scope_note": "Federal Council of Ministers press archive; the Belgium.be English portal news is not the cabinet archive."
     },
