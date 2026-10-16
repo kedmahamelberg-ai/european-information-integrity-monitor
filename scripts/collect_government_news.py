@@ -8,6 +8,7 @@ import html
 import json
 import os
 import re
+import sys
 import time
 import urllib.error
 import urllib.parse
@@ -18,6 +19,8 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT / "src"))
+from eiim.storage import Store
 SOURCES = json.loads((ROOT / "config/government_sources.json").read_text())["sources"]
 HYBRID = json.loads((ROOT / "config/hybrid.json").read_text())
 TOPICS = HYBRID["topics"]
@@ -431,7 +434,7 @@ def main():
     selected_codes={code.strip().upper() for code in args.countries.split(",") if code.strip()}
     selected_sources=[source for source in SOURCES if source.get("verification_status")=="verified" and (not selected_codes or source["iso2"] in selected_codes)]
     if selected_codes-{source["iso2"] for source in selected_sources}: raise SystemExit("Country selection contains missing or unverified codes")
-    existing={x["id"]:x for x in state.get("items",[])}; sources_status=[]; candidates=[]
+    existing={x["id"]:x for x in state.get("items",[])}; sources_status=[]; candidates=[]; discovered_links={}
     corrections=json.loads(CORRECTIONS.read_text()) if CORRECTIONS.exists() else []
     correction_map={x["id"]:x for x in corrections if x.get("id")}
     calibration_ids={x["id"] for x in existing.values() if x.get("calibration_item")}
@@ -467,6 +470,7 @@ def main():
                     if pub and not(start<=pub<=end): continue
                     if not pub: continue
                     item["published_at"]=(pub or end).isoformat(); item["id"]=hashlib.sha256(item["url"].encode()).hexdigest()[:20]
+                    discovered_links[item["id"]]={key:item[key] for key in ("id","url","country_code","published_at")}
                     if item["id"] not in existing: candidates.append(item)
                 print(f"Discovered {source['name']}: {len(entries)} candidate links",flush=True)
             except Exception as e:
@@ -476,6 +480,16 @@ def main():
         print(json.dumps({"window_start":start.isoformat(),"window_end":end.isoformat(),"sources":sources_status,"items":[{"country":x["country"],"url":x["url"],"title":x["title"],"published_at":x["published_at"]} for x in candidates]},ensure_ascii=False,indent=2))
         if any(x["status"]!="discovered" for x in sources_status): raise SystemExit("One or more selected official sources could not be verified for this window")
         return
+    # Store only source-link metadata in Supabase. Article text, translations,
+    # model labels and review evidence never enter the government links table.
+    if discovered_links:
+        store=Store()
+        links=list(discovered_links.values())
+        for offset in range(0,len(links),100):
+            result=store.rpc("upsert_government_news_links",{"p_links":links[offset:offset+100]})
+            if result.get("accepted")!=len(links[offset:offset+100]):
+                raise RuntimeError("Supabase did not confirm the complete government link batch")
+        print(f"Saved {len(links)} official news links to Supabase",flush=True)
     if not args.discovery_only:
         # The first tenth of a backfill is a calibration tranche. It is published
         # for researcher review; the workflow keeps subsequent items queued until
