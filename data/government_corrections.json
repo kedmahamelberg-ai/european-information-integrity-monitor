@@ -1,6 +1,8 @@
 [
   {
     "id": "a3c89d924af13b0b995f",
+    "source_title": "Netherlands releases strategic oil reserves",
+    "source_summary": "The Netherlands released strategic oil reserves with 31 IEA countries to ease supply losses and prices.",
     "relevance": "related",
     "topics": [
       "energy",
@@ -11,6 +13,8 @@
   },
   {
     "id": "5e12c92b69847a5754a4",
+    "source_title": "Georgia's foreign ministry meets UNICEF representative",
+    "source_summary": "The ministry discussed cooperation with UNICEF and the situation in Russian-occupied Abkhazia and South Ossetia.",
     "relevance": "related",
     "topics": ["sovereignty_borders"],
     "roles": [],
@@ -25,5 +29,22 @@
       }
     ],
     "ticker_message": "Georgia's foreign ministry and UNICEF discuss cooperation and occupied regions."
+  },
+  {
+    "id": "5fc8b338776232e507f9",
+    "source_title": "Belarusian president meets Kazakhstan's prime minister",
+    "source_summary": "The leaders discussed bilateral ties and routine economic cooperation.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": []
+  },
+  {
+    "id": "7ab05e638c457bc4d6c9",
+    "source_title": "Belarusian president sends Independence Day message to Nigeria",
+    "source_summary": "The message explicitly links agricultural mechanization cooperation to Nigeria's food security.",
+    "relevance": "related",
+    "topics": ["food_security"],
+    "roles": [],
+    "ticker_message": "Belarus says farm mechanization cooperation will support Nigeria's food security."
   }
 ]
