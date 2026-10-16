@@ -1,5 +1,6 @@
 """Collect public national-government news, translate it, and classify narratives."""
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import datetime as dt
 import email.utils
 import hashlib
@@ -41,7 +42,7 @@ class Links(HTMLParser):
 
 def fetch(url, limit=2_000_000):
     req=urllib.request.Request(url, headers={"User-Agent":UA,"Accept":"text/html,application/rss+xml,application/atom+xml,application/xml,*/*"})
-    with urllib.request.urlopen(req, timeout=25) as r:
+    with urllib.request.urlopen(req, timeout=8) as r:
         if r.status >= 400: raise RuntimeError(f"HTTP {r.status}")
         return r.geturl(), r.read(limit)
 
@@ -84,7 +85,7 @@ def discover(country):
         if "rss" in typ.lower() or "atom" in typ.lower() or re.search(r"(rss|feed|atom)(\.xml)?/?$",u,re.I): feeds.append(u)
     feeds += [urllib.parse.urljoin(final,p) for p in ("news/rss.xml","news.rss","news.atom","rss.xml","rss","feed","news/feed/")]
     seen=set(); entries=[]
-    for feed in feeds:
+    for feed in feeds[:4]:
         if feed in seen: continue
         seen.add(feed)
         try:
@@ -98,7 +99,7 @@ def discover(country):
         u=urllib.parse.urljoin(final,href)
         if urllib.parse.urlparse(u).netloc != urllib.parse.urlparse(final).netloc: continue
         if re.search(r"news|actualit|press|nieuws|notizie|nachricht|comunic|medij|vijest|presse|novosti|nyheter|uutis|prensa|novità",u,re.I): candidates.append(u)
-    for page_url in dict.fromkeys(candidates[:6]):
+    for page_url in dict.fromkeys(candidates[:2]):
         try:
             _, body=fetch(page_url); p=Links(); p.feed(body.decode("utf-8","replace"))
             for href,_ in p.links:
@@ -160,17 +161,25 @@ def main():
             existing[ident].update({"primary_narrative":correction["primary_narrative"],"secondary_narratives":correction.get("secondary_narratives",[]),"related":correction["related"],"classification_status":"human_reviewed","human_reviewed":True})
     if calibration_complete:
         candidates.extend(x for x in existing.values() if x.get("classification_status")=="awaiting_calibration")
-    for source in SOURCES:
-        try:
-            entries, final=discover(source); sources_status.append({"country_code":source["iso2"],"country":source["name"],"official_home":final,"status":"discovered","candidate_count":len(entries)})
-            for item in entries:
-                pub=date_value(item.get("published_at"))
-                if pub and not(start<=pub<=end): continue
-                if not pub and not args.since and state.get("last_successful_collection_end"): continue
-                item["published_at"]=(pub or end).isoformat(); item["id"]=hashlib.sha256(item["url"].encode()).hexdigest()[:20]
-                if item["id"] not in existing: candidates.append(item)
-        except Exception as e: sources_status.append({"country_code":source["iso2"],"country":source["name"],"official_home":source["url"],"status":"source_unavailable","error":type(e).__name__})
-        time.sleep(.15)
+    # Discover the official sources concurrently and log each completion.
+    # With bounded request timeouts, slow sites cannot stall the whole batch.
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        futures={pool.submit(discover,source):source for source in SOURCES}
+        for future in as_completed(futures):
+            source=futures[future]
+            try:
+                entries, final=future.result()
+                sources_status.append({"country_code":source["iso2"],"country":source["name"],"official_home":final,"status":"discovered","candidate_count":len(entries)})
+                for item in entries:
+                    pub=date_value(item.get("published_at"))
+                    if pub and not(start<=pub<=end): continue
+                    if not pub and not args.since and state.get("last_successful_collection_end"): continue
+                    item["published_at"]=(pub or end).isoformat(); item["id"]=hashlib.sha256(item["url"].encode()).hexdigest()[:20]
+                    if item["id"] not in existing: candidates.append(item)
+                print(f"Discovered {source['name']}: {len(entries)} candidate links",flush=True)
+            except Exception as e:
+                sources_status.append({"country_code":source["iso2"],"country":source["name"],"official_home":source["url"],"status":"source_unavailable","error":type(e).__name__})
+                print(f"Unavailable {source['name']}: {type(e).__name__}",flush=True)
     if not args.discovery_only:
         # The first tenth of a backfill is a calibration tranche. It is published
         # for researcher review; the workflow keeps subsequent items queued until
