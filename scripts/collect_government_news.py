@@ -62,6 +62,42 @@ class MainText(HTMLParser):
         if self.main_depth and not self.skip_depth and data.strip(): self.parts.append(data.strip())
 
 
+class ClassText(HTMLParser):
+    """Extract one named article-content block without navigation or related cards."""
+    def __init__(self, class_name):
+        super().__init__(); self.class_name=class_name; self.depth=0; self.parts=[]
+    def handle_starttag(self, tag, attrs):
+        classes=dict(attrs).get("class","").split()
+        if not self.depth and self.class_name in classes: self.depth=1
+        elif self.depth: self.depth+=1
+    def handle_endtag(self, tag):
+        if self.depth: self.depth-=1
+    def handle_data(self, data):
+        if self.depth and data.strip(): self.parts.append(data.strip())
+
+
+class BelarusCards(HTMLParser):
+    """Read only dated article cards from the presidency's Events section."""
+    def __init__(self):
+        super().__init__(); self.depth=0; self.current=None; self.cards=[]
+    def handle_starttag(self, tag, attrs):
+        attrs=dict(attrs); classes=attrs.get("class","").split()
+        if tag=="li" and "news-card" in classes and not self.depth:
+            self.depth=1; self.current={}; return
+        if not self.depth: return
+        if tag=="li": self.depth+=1
+        if tag=="time" and attrs.get("data-datetime"): self.current["published_at"]=attrs["data-datetime"]
+        if tag=="a" and "news-card__title" in classes:
+            self.current["url"]=urllib.parse.urljoin("https://president.gov.by",attrs.get("href",""))
+            self.current["title"]=attrs.get("title","").strip()
+    def handle_endtag(self, tag):
+        if self.depth and tag=="li":
+            self.depth-=1
+            if not self.depth:
+                if not all(self.current.get(key) for key in ("url","title","published_at")): raise RuntimeError("Belarusian event card has missing metadata")
+                self.cards.append(self.current); self.current=None
+
+
 def official_article_text(body):
     parser=MainText(); parser.feed(body.decode("utf-8","replace"))
     if not parser.found_main: raise RuntimeError("Official article has no main content element")
@@ -225,14 +261,43 @@ def discover_georgia(country,start,end):
     return entries,country["url"]
 
 
+def discover_belarus(country,start,end):
+    """Follow the official Events archive until it passes the requested dates."""
+    entries=[]; previous=[]; offset=0
+    while True:
+        url=country["url"] if not offset else f'{country["url"]}?offset={offset}'
+        _,body=fetch(url)
+        parser=BelarusCards(); parser.feed(body.decode("utf-8","replace")); cards=parser.cards
+        if cards[:len(previous)]!=previous: raise RuntimeError("Belarusian event pagination changed during collection")
+        if len(cards)==len(previous): break
+        for card in cards[len(previous):]:
+            if not card["url"].startswith("https://president.gov.by/ru/events/"): raise RuntimeError("Unexpected Belarusian event URL")
+            published=date_value(card["published_at"])
+            if not published: raise RuntimeError("Belarusian event has invalid publication date")
+            if start<=published<=end:
+                entries.append({"country":country["name"],"country_code":country["iso2"],"url":card["url"],"title":card["title"],"published_at":published.isoformat(),"text":""})
+        previous=cards
+        oldest=date_value(cards[-1]["published_at"])
+        if oldest<start: break
+        offset+=12
+    return entries,country["url"]
+
+
 def discover(country,start,end):
     if country["iso2"]=="NL": return discover_netherlands(country,start,end)
     if country["iso2"]=="AT": return discover_austria(country,start,end)
     if country["iso2"]=="GE": return discover_georgia(country,start,end)
+    if country["iso2"]=="BY": return discover_belarus(country,start,end)
     raise NotImplementedError("Date-complete official-news adapter is not yet verified for this source")
 
 
 def article_text(item):
+    if item["country_code"]=="BY":
+        _,body=fetch(item["url"])
+        parser=ClassText("wysiwyg"); parser.feed(body.decode("utf-8","replace"))
+        text=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        if not text: raise RuntimeError("Belarusian official communication has no article body")
+        return text[:18000]
     if item["country_code"]=="GE":
         _,body=fetch(item["url"])
         description=georgia_page(body).get("description") or ""
