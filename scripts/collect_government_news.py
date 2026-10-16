@@ -28,6 +28,7 @@ REVIEW_QUEUE = ROOT / "build/government-review-queue.json"
 UA = "EuropeanSecurityMonitor/1.0 (public research; contact: monitor@hamelberg-ai.com)"
 AMSTERDAM = ZoneInfo("Europe/Amsterdam")
 TBILISI = ZoneInfo("Asia/Tbilisi")
+TALLINN = ZoneInfo("Europe/Tallinn")
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-2"
 
 
@@ -65,15 +66,17 @@ class MainText(HTMLParser):
 class ClassText(HTMLParser):
     """Extract one named article-content block without navigation or related cards."""
     def __init__(self, class_name):
-        super().__init__(); self.class_name=class_name; self.depth=0; self.parts=[]
+        super().__init__(); self.class_name=class_name; self.depth=0; self.skip_depth=0; self.parts=[]
     def handle_starttag(self, tag, attrs):
-        classes=dict(attrs).get("class","").split()
-        if not self.depth and self.class_name in classes: self.depth=1
-        elif self.depth: self.depth+=1
+        attrs=dict(attrs); classes=attrs.get("class","").split()
+        if not self.depth and (self.class_name in classes or attrs.get("id")==self.class_name): self.depth=1
+        elif self.depth and tag not in {"area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"}: self.depth+=1
+        if self.depth and tag in {"script","style","nav","aside","footer"}: self.skip_depth+=1
     def handle_endtag(self, tag):
+        if self.depth and tag in {"script","style","nav","aside","footer"}: self.skip_depth=max(0,self.skip_depth-1)
         if self.depth: self.depth-=1
     def handle_data(self, data):
-        if self.depth and data.strip(): self.parts.append(data.strip())
+        if self.depth and not self.skip_depth and data.strip(): self.parts.append(data.strip())
 
 
 class BelarusCards(HTMLParser):
@@ -289,15 +292,67 @@ def discover_belarus(country,start,end):
     return entries,country["url"]
 
 
+def estonia_article(body):
+    page=body.decode("utf-8","replace")
+    match=re.search(r'<p[^>]*class="[^"]*vp-date[^"]*"[^>]*>\s*(\d{1,2}\.\d{1,2}\.\d{4})\s*\|\s*(\d{1,2}:\d{2})',page,re.I)
+    if not match: raise RuntimeError("Estonian government news has no publication time")
+    published=dt.datetime.strptime(" ".join(match.groups()),"%d.%m.%Y %H:%M").replace(tzinfo=TALLINN).astimezone(dt.timezone.utc)
+    parts=[]
+    for block_id in ("block-leadtext","block-mainpagecontent"):
+        parser=ClassText(block_id); parser.feed(page)
+        parts.extend(parser.parts)
+    article=re.sub(r"\s+"," "," ".join(parts)).strip()
+    if len(article)<40: raise RuntimeError("Estonian government news has no article text")
+    return published,article
+
+
+def discover_estonia(country,start,end):
+    """Page the dated search API behind the government's Uudis section."""
+    entries=[]; page_number=1; previous_oldest=None; seen=set(); reported_total=None
+    while True:
+        params=urllib.parse.urlencode({"filters[type]":"Uudis","sort_by":"created","page":page_number,"langcode":"et","limit":10})
+        endpoint="https://search.service.eu-live.vportal.ee/v1/search/valitsus?"+params
+        request=urllib.request.Request(endpoint,headers={"User-Agent":UA,"Accept":"application/json","Referer":country["url"]})
+        with urllib.request.urlopen(request,timeout=12) as response: result=json.load(response)["response"]
+        total=int(result["numFound"])
+        if reported_total is None: reported_total=total
+        elif total!=reported_total: raise RuntimeError("Estonian news total changed during pagination")
+        if int(result["start"])!=(page_number-1)*10: raise RuntimeError("Estonian news pagination changed")
+        rows=result["docs"]
+        if not rows and result["start"]<total: raise RuntimeError("Estonian news ended before its reported total")
+        oldest=None
+        for row in rows:
+            if row.get("content_type")!="news" or row.get("langcode")!="et" or not row.get("uri","").startswith("/uudised/"): raise RuntimeError("Unexpected Estonian search result")
+            link=urllib.parse.urljoin(country["url"],row["uri"])
+            if link in seen: raise RuntimeError("Estonian news pagination repeated an article")
+            seen.add(link)
+            published=date_value(row.get("created"))
+            if not published: raise RuntimeError("Estonian news has no publication time")
+            oldest=published if oldest is None or published<oldest else oldest
+            if start<=published<=end:
+                entries.append({"country":country["name"],"country_code":country["iso2"],"url":link,"title":row["title"],"published_at":published.isoformat(),"text":""})
+        if previous_oldest is not None and oldest is not None and oldest>previous_oldest: raise RuntimeError("Estonian news ordering changed")
+        if oldest is not None and oldest<start: break
+        previous_oldest=oldest
+        page_number+=1
+    return entries,country["url"]
+
+
 def discover(country,start,end):
     if country["iso2"]=="NL": return discover_netherlands(country,start,end)
     if country["iso2"]=="AT": return discover_austria(country,start,end)
     if country["iso2"]=="GE": return discover_georgia(country,start,end)
     if country["iso2"]=="BY": return discover_belarus(country,start,end)
+    if country["iso2"]=="EE": return discover_estonia(country,start,end)
     raise NotImplementedError("Date-complete official-news adapter is not yet verified for this source")
 
 
 def article_text(item):
+    if item["country_code"]=="EE":
+        _,body=fetch(item["url"])
+        published,text=estonia_article(body)
+        if abs((published-date_value(item["published_at"])).total_seconds())>3600: raise RuntimeError("Estonian article time differs from official search index")
+        return text
     if item["country_code"]=="BY":
         _,body=fetch(item["url"])
         parser=ClassText("wysiwyg"); parser.feed(body.decode("utf-8","replace"))
