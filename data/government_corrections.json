@@ -16,7 +16,9 @@
     "source_title": "Georgia's foreign ministry meets UNICEF representative",
     "source_summary": "The ministry discussed cooperation with UNICEF and the situation in Russian-occupied Abkhazia and South Ossetia.",
     "relevance": "related",
-    "topics": ["sovereignty_borders"],
+    "topics": [
+      "sovereignty_borders"
+    ],
     "roles": [],
     "viewpoint_structure": "single_viewpoint",
     "viewpoints": [
@@ -43,7 +45,9 @@
     "source_title": "Belarusian president sends Independence Day message to Nigeria",
     "source_summary": "The message explicitly links agricultural mechanization cooperation to Nigeria's food security.",
     "relevance": "related",
-    "topics": ["food_security"],
+    "topics": [
+      "food_security"
+    ],
     "roles": [],
     "ticker_message": "Belarus says farm mechanization cooperation will support Nigeria's food security."
   },
@@ -52,7 +56,10 @@
     "source_title": "Dutch minister proposes a law on obstructing return after an asylum refusal",
     "source_summary": "The Netherlands proposes criminal penalties for people without a right to stay who actively frustrate return after other efforts fail.",
     "relevance": "related",
-    "topics": ["migration_displacement", "political_institutions"],
+    "topics": [
+      "migration_displacement",
+      "political_institutions"
+    ],
     "roles": [],
     "ticker_message": "The Netherlands proposes penalties for obstructing return after an asylum refusal."
   },
@@ -71,5 +78,38 @@
     "relevance": "not_related",
     "topics": [],
     "roles": []
+  },
+  {
+    "id": "93ac0fd86690eb50d881",
+    "source_title": "Valitsuse pressikonverents, 8. oktoober 2026",
+    "source_summary": "Estonia's government discussed fuel market challenges, economic growth, EU budget support, defense procurement investigations, healthcare reforms, and sanctions on Russia. They emphasized transparency, support for Ukraine, balancing excise taxes with competitiveness, advancing clean energy, and managing complex sanctions impacts on the economy and security.",
+    "relevance": "related",
+    "topics": [
+      "energy",
+      "economic_financial_security",
+      "military_defence",
+      "food_security",
+      "political_institutions",
+      "civil_protection",
+      "critical_infrastructure"
+    ],
+    "roles": [
+      {
+        "entity": "Estonia",
+        "entity_code": "EST",
+        "role": "readiness",
+        "evidence_quote": "The Ministry of Defence is improving asset accounting and transparency, while continuing support to Ukraine with ammunition worth hundreds of millions of euros.",
+        "rationale": "Estonia is improving defence accountability and sustaining military aid, indicating preparedness and resilience."
+      },
+      {
+        "entity": "Estonia",
+        "entity_code": "EST",
+        "role": "readiness",
+        "evidence_quote": "Estonia opened South Estonia's largest solar park to move toward energy independence by reducing fossil fuel imports.",
+        "rationale": "Investment in domestic clean energy strengthens critical infrastructure and national resilience."
+      }
+    ],
+    "viewpoint_structure": "multiple_viewpoints",
+    "review_decision": "accept_model_labels"
   }
 ]
