@@ -494,7 +494,10 @@ def main():
     corrections=json.loads(CORRECTIONS.read_text()) if CORRECTIONS.exists() else []
     correction_map={x["id"]:x for x in corrections if x.get("id")}
     calibration_ids={x["id"] for x in existing.values() if x.get("calibration_item")}
-    calibration_complete=bool(state.get("calibration_complete")) or bool(calibration_ids and calibration_ids.issubset(correction_map))
+    # Researcher-reviewed examples are shared across isolated country caches.
+    # Once the first calibration decisions exist, a new country must not start
+    # another separate 10% gate before classifying its small date windows.
+    calibration_complete=bool(correction_map) or bool(state.get("calibration_complete")) or bool(calibration_ids and calibration_ids.issubset(correction_map))
     if calibration_complete:
         for item in existing.values():
             if item.get("classification_status")=="provisional" and not item.get("calibration_item") and item.get("classifier_prompt_version")!=CLASSIFIER_PROMPT_VERSION:
@@ -579,7 +582,7 @@ def main():
             print(f"Classified {position}/{cap}: {item['country_code']} {item['id']} {labels['relevance']} {','.join(labels['topics'])}",flush=True)
         for item in candidates[cap:]: item["classification_status"]="awaiting_calibration" if calibrating else "pending_classification"; item.pop("text",None); existing[item["id"]]=item
     calibration_ids={x["id"] for x in existing.values() if x.get("calibration_item")}
-    calibration_complete=bool(state.get("calibration_complete")) or bool(calibration_ids and calibration_ids.issubset(correction_map))
+    calibration_complete=bool(correction_map) or bool(state.get("calibration_complete")) or bool(calibration_ids and calibration_ids.issubset(correction_map))
     out={"as_of":end.isoformat(),"window_start":start.isoformat(),"window_end":end.isoformat(),"taxonomy_version":HYBRID["version"],"sources":sources_status,"items":sorted(existing.values(),key=lambda x:x.get("published_at",""),reverse=True),"review":{"routine_sample_percent":3,"calibration_tranche_percent":10,"calibration_ready":calibration_complete}}
     collection_complete=not selected_codes and len(sources_status)==len(selected_sources) and all(x["status"]=="discovered" for x in sources_status)
     cursor=end.isoformat() if collection_complete else state.get("last_successful_collection_end")
