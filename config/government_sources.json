@@ -1,5 +1,5 @@
 {
-  "version": "government-sources-1.1",
+  "version": "government-sources-1.2",
   "scope": "Official national executive news or press release sections only. A source marked unverified is not eligible for collection. Section URLs are maintained explicitly; the collector must not discover arbitrary government-site pages.",
   "directory_sources": [
     "https://portal.gov.cz/kam-dal/cesky-egovernment/jednotna-statni-doména-gov-cz",
@@ -9,19 +9,19 @@
     {
       "iso2": "AL",
       "name": "Albania",
-      "url": "https://www.kryeministria.al/en/newsrooms/lajme/",
+      "url": "https://www.kryeministria.al/newsrooms/lajme/",
       "verification_status": "verified"
     },
     {
       "iso2": "AD",
       "name": "Andorra",
-      "url": "https://www.govern.ad/es/actualitat",
+      "url": "https://www.govern.ad/ca/actualitat",
       "verification_status": "verified"
     },
     {
       "iso2": "AM",
       "name": "Armenia",
-      "url": "https://www.gov.am/en/news/",
+      "url": "https://www.gov.am/am/news/page",
       "verification_status": "verified"
     },
     {
@@ -47,8 +47,9 @@
     {
       "iso2": "BE",
       "name": "Belgium",
-      "url": "https://www.belgium.be/en/news",
-      "verification_status": "verified"
+      "url": "https://news.belgium.be/nl/ministerraad",
+      "verification_status": "verified",
+      "scope_note": "Federal Council of Ministers press archive; the Belgium.be English portal news is not the cabinet archive."
     },
     {
       "iso2": "BA",
@@ -71,7 +72,7 @@
     {
       "iso2": "CY",
       "name": "Cyprus",
-      "url": "https://www.gov.cy/en/news/",
+      "url": "https://www.gov.cy/news/",
       "verification_status": "verified"
     },
     {
@@ -95,7 +96,7 @@
     {
       "iso2": "FI",
       "name": "Finland",
-      "url": "https://valtioneuvosto.fi/en/current-issues/press-releases",
+      "url": "https://valtioneuvosto.fi/fi/ajankohtaista/tiedotteet",
       "verification_status": "verified"
     },
     {
@@ -120,8 +121,9 @@
     {
       "iso2": "GR",
       "name": "Greece",
-      "url": "https://www.government.gov.gr/",
-      "verification_status": "verified"
+      "url": "https://media.gov.gr/category/deltia-typou/",
+      "verification_status": "verified",
+      "scope_note": "Greek General Secretariat for Communication and Information press releases, including government spokesperson statements; narrower than all ministries."
     },
     {
       "iso2": "HU",
@@ -132,7 +134,7 @@
     {
       "iso2": "IS",
       "name": "Iceland",
-      "url": "https://www.government.is/news/",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/",
       "verification_status": "verified"
     },
     {
@@ -150,7 +152,7 @@
     {
       "iso2": "KZ",
       "name": "Kazakhstan",
-      "url": "https://primeminister.kz/en/news",
+      "url": "https://primeminister.kz/news",
       "verification_status": "verified"
     },
     {
@@ -204,7 +206,7 @@
     {
       "iso2": "ME",
       "name": "Montenegro",
-      "url": "https://www.gov.me/en/news",
+      "url": "https://www.gov.me/vijesti",
       "verification_status": "verified"
     },
     {
@@ -252,9 +254,9 @@
     {
       "iso2": "SM",
       "name": "San Marino",
-      "url": "https://www.gov.sm/pub1/EsteriSM/Ufficio-Stampa/News-e-Comunicati.html",
+      "url": "https://www.congressodistato.sm/pub1/CongressoSM/Comunicazione/Comunicati-stampa.html",
       "verification_status": "verified",
-      "scope_note": "Foreign Affairs government press office; central Congress of State section not located."
+      "scope_note": "Official central Congress of State press releases."
     },
     {
       "iso2": "RS",
@@ -271,25 +273,25 @@
     {
       "iso2": "SI",
       "name": "Slovenia",
-      "url": "https://www.gov.si/en/news/",
+      "url": "https://www.gov.si/novice/",
       "verification_status": "verified"
     },
     {
       "iso2": "ES",
       "name": "Spain",
-      "url": "https://www.lamoncloa.gob.es/serviciosdeprensa/notasprensa/presidencia/paginas/index.aspx",
+      "url": "https://www.lamoncloa.gob.es/serviciosdeprensa/notasprensa/Paginas/index.aspx",
       "verification_status": "verified"
     },
     {
       "iso2": "SE",
       "name": "Sweden",
-      "url": "https://www.government.se/press-releases/",
+      "url": "https://www.regeringen.se/pressmeddelanden/",
       "verification_status": "verified"
     },
     {
       "iso2": "CH",
       "name": "Switzerland",
-      "url": "https://www.news.admin.ch/en/newnsb?display=list&newsCategoryIDs=medienmitteilung&publisherIDs=all&sort=dateDecreasing",
+      "url": "https://www.news.admin.ch/de/newnsb?display=list&newsCategoryIDs=medienmitteilung&publisherIDs=all&sort=dateDecreasing",
       "verification_status": "verified"
     },
     {
@@ -307,13 +309,14 @@
     {
       "iso2": "GB",
       "name": "United Kingdom",
-      "url": "https://www.gov.uk/government/news",
-      "verification_status": "verified"
+      "url": "https://www.gov.uk/search/news-and-communications?organisations%5B%5D=prime-ministers-office-10-downing-street",
+      "verification_status": "verified",
+      "scope_note": "Prime Minister's Office, 10 Downing Street communications only; the unfiltered government news page includes other bodies."
     },
     {
       "iso2": "VA",
       "name": "Vatican City",
-      "url": "https://www.vaticanstate.va/en/component/content/category/press-release.html?Itemid=216",
+      "url": "https://vaticanstate.va/it/component/content/category/comunicato-stampa.html?Itemid=312",
       "verification_status": "verified"
     }
   ]
