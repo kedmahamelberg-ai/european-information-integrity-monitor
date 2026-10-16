@@ -161,5 +161,31 @@
     "source_title": "ვიეტნამის ახლადდანიშნულმა ელჩმა საქართველოში რწმუნებათა სიგელების ასლები გადასცა საქართველოს საგარეო საქმეთა სამინისტროს დიპლომატიური პროტოკოლის დირექტორატის დირექტორს, ზურაბ დარჩიაშვილს",
     "source_summary": "Vietnam's new ambassador to Georgia presented credentials and discussed bilateral cooperation and an upcoming Vietnamese Vice President visit; Georgia's MFA wished him success.",
     "review_decision": "accept_unrelated"
+  },
+  {
+    "id": "a390d9398d23d870c58e",
+    "relevance": "related",
+    "topics": [
+      "sovereignty_borders",
+      "diplomacy_alliances"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Maka Bochorishvili, Vice Prime Minister and Minister of Foreign Affairs of Georgia",
+        "summary": "Georgia values Switzerland's support for its sovereignty and territorial integrity and stresses the significance of Geneva International Discussions.",
+        "target": "Switzerland's OSCE chairmanship and international partners",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "Maka Bochorishvili expressed gratitude to Switzerland, as the OSCE chairing country, for supporting Georgia's sovereignty and territorial integrity within the organization."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "Maka Bochorishvili expressed gratitude to Switzerland, as the OSCE chairing country, for supporting Georgia's sovereignty and territorial integrity within the organization. Emphasis was placed on the importance of the Geneva International Discussions and the involvement of international partners, including the OSCE co-chairmanship.",
+    "short_rationale": "The meeting highlights Georgia's concerns about sovereignty and regional security with OSCE partners, emphasizing territorial integrity and diplomatic cooperation.",
+    "ticker_message": "Georgia and Switzerland discuss OSCE cooperation and support for Georgia's sovereignty and regional security.",
+    "source_title": "მაკა ბოჭორიშვილი ეუთო-ს მოქმედ თავმჯდომარეს, შვეიცარიის კონფედერაციის ვიცე-პრეზიდენტს, საგარეო საქმეთა ფედერალური დეპარტამენტის ხელმძღვანელს იგნასიო კასისს შეხვდა",
+    "source_summary": "Georgia's Foreign Minister met with the OSCE Chair, Swiss Vice President Ignazio Cassis, discussing bilateral ties, regional security, Geneva talks, economic cooperation, and Georgia's 2027 OSCE chairmanship bid, reaffirming commitment to deepening OSCE collaboration.",
+    "review_decision": "accept_model_labels_and_wording"
   }
 ]
