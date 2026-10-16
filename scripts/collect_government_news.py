@@ -32,6 +32,7 @@ UA = "EuropeanSecurityMonitor/1.0 (public research; contact: monitor@hamelberg-a
 AMSTERDAM = ZoneInfo("Europe/Amsterdam")
 TBILISI = ZoneInfo("Asia/Tbilisi")
 TALLINN = ZoneInfo("Europe/Tallinn")
+BELGRADE = ZoneInfo("Europe/Belgrade")
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-3"
 
 
@@ -331,16 +332,71 @@ def discover_estonia(country,start,end):
     return dated,country["url"]
 
 
+SERBIAN_MONTHS = {"јануар":1,"фебруар":2,"март":3,"април":4,"мај":5,"јун":6,
+                  "јул":7,"август":8,"септембар":9,"октобар":10,"новембар":11,"децембар":12}
+
+
+def serbian_news_date(value):
+    match=re.search(r"(\d{1,2})\.\s*([а-яјљњђћџ]+)\s+(20\d{2})\.",value.lower())
+    if not match or match.group(2) not in SERBIAN_MONTHS:
+        raise RuntimeError(f"Serbian government statement has no readable date: {value[:80]}")
+    return dt.date(int(match.group(3)),SERBIAN_MONTHS[match.group(2)],int(match.group(1)))
+
+
+def discover_serbia(country,start,end):
+    """Read only Government Statements cards, including all pages to the requested day."""
+    first=start.astimezone(BELGRADE).date()
+    last=end.astimezone(BELGRADE).date()
+    entries=[]; seen=set(); page_number=1
+    while True:
+        url=f"https://www.srbija.gov.rs/sekcija/249/{page_number}"
+        _,body=fetch(url)
+        page=body.decode("utf-8","replace")
+        cards=re.findall(r'<li\b[^>]*class=["\'][^"\']*\bnews-item\b[^"\']*["\'][^>]*>(.*?)</li>',page,re.I|re.S)
+        if not cards: raise RuntimeError("Serbian Government Statements page has no news cards")
+        oldest=None
+        for card in cards:
+            date_match=re.search(r'<div\b[^>]*class=["\'][^"\']*\bitem-date\b[^"\']*["\'][^>]*>(.*?)</div>',card,re.I|re.S)
+            title_match=re.search(r'<h1\b[^>]*class=["\'][^"\']*\bpress-title\b[^"\']*["\'][^>]*>\s*<a\b[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>',card,re.I|re.S)
+            if not date_match or not title_match: raise RuntimeError("Serbian government statement card lacks date or title")
+            day=serbian_news_date(re.sub(r'<[^>]+>',' ',date_match.group(1)))
+            oldest=day if oldest is None or day<oldest else oldest
+            if not first<=day<=last: continue
+            article_url=urllib.parse.urljoin(country["url"],html.unescape(title_match.group(1)))
+            if not re.fullmatch(r'https://www\.srbija\.gov\.rs/vest/\d+/[^/]+\.php',article_url):
+                raise RuntimeError(f"Unexpected Serbian government statement URL: {article_url}")
+            if article_url in seen: raise RuntimeError("Serbian Government Statements repeats an article")
+            seen.add(article_url)
+            title=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',title_match.group(2)))).strip()
+            published=dt.datetime.combine(day,dt.time.min,BELGRADE).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":country["iso2"],"url":article_url,
+                            "title":title,"published_at":published.isoformat(),"publication_precision":"day","text":""})
+        if oldest is not None and oldest<first: break
+        if page_number>=119: raise RuntimeError("Serbian Government Statements pagination did not reach the requested date")
+        page_number+=1
+    return entries,country["url"]
+
+
 def discover(country,start,end):
     if country["iso2"]=="NL": return discover_netherlands(country,start,end)
     if country["iso2"]=="AT": return discover_austria(country,start,end)
     if country["iso2"]=="GE": return discover_georgia(country,start,end)
     if country["iso2"]=="BY": return discover_belarus(country,start,end)
     if country["iso2"]=="EE": return discover_estonia(country,start,end)
+    if country["iso2"]=="RS": return discover_serbia(country,start,end)
     raise NotImplementedError("Date-complete official-news adapter is not yet verified for this source")
 
 
 def article_text(item):
+    if item["country_code"]=="RS":
+        _,body=fetch(item["url"])
+        page=body.decode("utf-8","replace")
+        parts=[]
+        for name in ("article-text","text-content"):
+            parser=ClassText(name); parser.feed(page); parts.extend(parser.parts)
+        article=re.sub(r"\s+"," "," ".join(parts)).strip()
+        if len(article)<40: raise RuntimeError("Serbian government statement has no article text")
+        return article
     if item["country_code"]=="EE":
         _,body=fetch(item["url"])
         published,text=estonia_article(body)
@@ -467,7 +523,10 @@ def main():
                 sources_status.append({"country_code":source["iso2"],"country":source["name"],"official_home":final,"status":"discovered","candidate_count":len(entries)})
                 for item in entries:
                     pub=date_value(item.get("published_at"))
-                    if pub and not(start<=pub<=end): continue
+                    if pub and item.get("publication_precision")=="day":
+                        day=pub.astimezone(BELGRADE).date()
+                        if not start.astimezone(BELGRADE).date()<=day<=end.astimezone(BELGRADE).date(): continue
+                    elif pub and not(start<=pub<=end): continue
                     if not pub: continue
                     item["published_at"]=(pub or end).isoformat(); item["id"]=hashlib.sha256(item["url"].encode()).hexdigest()[:20]
                     discovered_links[item["id"]]={key:item[key] for key in ("id","url","country_code","published_at")}
