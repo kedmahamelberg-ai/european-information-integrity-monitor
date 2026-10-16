@@ -459,7 +459,7 @@ def main():
                 print(f"Discovered {source['name']}: {len(entries)} candidate links",flush=True)
             except Exception as e:
                 sources_status.append({"country_code":source["iso2"],"country":source["name"],"official_home":source["url"],"status":"source_unavailable","error":type(e).__name__})
-                print(f"Unavailable {source['name']}: {type(e).__name__}",flush=True)
+                print(f"Unavailable {source['name']}: {type(e).__name__}: {e}",flush=True)
     if args.discovery_only:
         print(json.dumps({"window_start":start.isoformat(),"window_end":end.isoformat(),"sources":sources_status,"items":[{"country":x["country"],"url":x["url"],"title":x["title"],"published_at":x["published_at"]} for x in candidates]},ensure_ascii=False,indent=2))
         if any(x["status"]!="discovered" for x in sources_status): raise SystemExit("One or more selected official sources could not be verified for this window")
