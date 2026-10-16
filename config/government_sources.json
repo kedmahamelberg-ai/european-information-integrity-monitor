@@ -249,8 +249,9 @@
     {
       "iso2": "RU",
       "name": "Russia",
-      "url": "http://government.ru/news/",
-      "verification_status": "verified"
+      "url": "https://government.ru/news/",
+      "verification_status": "verified",
+      "scope_note": "Official government News archive; live access from this runner still needs verification."
     },
     {
       "iso2": "SM",
