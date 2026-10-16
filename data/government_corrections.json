@@ -199,5 +199,14 @@
     "viewpoints": [],
     "ticker_message": "Iceland plans to renovate a school building for teaching by 2030.",
     "review_decision": "correct_to_unrelated_and_tighten_prompt"
+  },
+  {
+    "id": "b992cbd9c51c73a195d7",
+    "source_title": "Ársfundur Jöfnunarsjóðs sveitarfélaga 7. október – dagskrá",
+    "source_summary": "Iceland announces the Municipal Equalization Fund annual meeting and review of its annual report.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "review_decision": "accept_unrelated"
   }
 ]
