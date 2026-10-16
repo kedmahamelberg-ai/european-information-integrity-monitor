@@ -241,6 +241,8 @@ window.addEventListener('hashchange',route);init();
 async function refreshSnapshot(){
   if(document.hidden||$('#source-dialog').open||$('#country-dialog').open||$('#camera-list-dialog').open)return;
   try{
+    const governmentResponse=await fetch(`government-data.json?refresh=${Date.now()}`,{cache:'no-store'});
+    if(governmentResponse.ok){const latestGovernment=await governmentResponse.json();if(latestGovernment.as_of!==governmentData.as_of){governmentData=latestGovernment;renderGovernment();renderMap();}}
     const response=await fetch(`data.json?refresh=${Date.now()}`,{cache:'no-store'});
     if(!response.ok)return;
     const updated=await response.json();
