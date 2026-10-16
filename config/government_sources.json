@@ -261,8 +261,9 @@
     {
       "iso2": "RS",
       "name": "Serbia",
-      "url": "https://www.srbija.gov.rs/vesti/329683",
-      "verification_status": "verified"
+      "url": "https://www.srbija.gov.rs/sekcija/249/saopstenja-vlade.php",
+      "verification_status": "verified",
+      "scope_note": "Official Government Statements; publication dates are given by day, without a time."
     },
     {
       "iso2": "SK",
