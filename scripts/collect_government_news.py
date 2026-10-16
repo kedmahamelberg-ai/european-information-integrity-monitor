@@ -41,6 +41,7 @@ SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Saraj
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "IS": REYKJAVIK,
                     "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
+COLLECTOR_READY_CODES = {"AD","AT","BA","BY","EE","GE","GR","IS","MD","NL","RS"}
 
 
 class Links(HTMLParser):
@@ -726,13 +727,17 @@ def main():
     ap=argparse.ArgumentParser(); ap.add_argument("--since",default=""); ap.add_argument("--until",default=""); ap.add_argument("--countries",default="",help="Comma-separated ISO country codes for an isolated source check"); ap.add_argument("--discovery-only",action="store_true"); args=ap.parse_args()
     now=dt.datetime.now(dt.timezone.utc).replace(microsecond=0)
     state=json.loads(STATE.read_text()) if STATE.exists() else {"last_successful_collection_end":None,"items":[]}
-    start=date_value(args.since) or date_value(state.get("last_successful_collection_end")) or dt.datetime(2026,10,1,tzinfo=dt.timezone.utc)
+    initial_start=dt.datetime(2026,10,1,tzinfo=AMSTERDAM).astimezone(dt.timezone.utc)
+    requested_start=date_value(args.since)
     end=date_value(args.until) or now
     if args.until and re.fullmatch(r"\d{4}-\d{2}-\d{2}", args.until):
         end=dt.datetime.combine(dt.date.fromisoformat(args.until)+dt.timedelta(days=1),dt.time.min,AMSTERDAM).astimezone(dt.timezone.utc)-dt.timedelta(microseconds=1)
     selected_codes={code.strip().upper() for code in args.countries.split(",") if code.strip()}
-    selected_sources=[source for source in SOURCES if source.get("verification_status")=="verified" and (not selected_codes or source["iso2"] in selected_codes)]
+    selected_sources=[source for source in SOURCES if source.get("verification_status")=="verified" and (source["iso2"] in selected_codes if selected_codes else source["iso2"] in COLLECTOR_READY_CODES)]
     if selected_codes-{source["iso2"] for source in selected_sources}: raise SystemExit("Country selection contains missing or unverified codes")
+    source_cursors=dict(state.get("source_cursors") or {})
+    starts_by_code={source["iso2"]:requested_start or date_value(source_cursors.get(source["iso2"])) or initial_start for source in selected_sources}
+    start=min(starts_by_code.values(),default=requested_start or initial_start)
     existing={x["id"]:x for x in state.get("items",[])}; sources_status=[]; candidates=[]; discovered_links={}
     corrections=json.loads(CORRECTIONS.read_text()) if CORRECTIONS.exists() else []
     correction_map={x["id"]:x for x in corrections if x.get("id")}
@@ -761,12 +766,13 @@ def main():
     # Discover the official sources concurrently and log each completion.
     # With bounded request timeouts, slow sites cannot stall the whole batch.
     with ThreadPoolExecutor(max_workers=16) as pool:
-        futures={pool.submit(discover,source,start,end):source for source in selected_sources}
+        futures={pool.submit(discover,source,starts_by_code[source["iso2"]],end):source for source in selected_sources}
         for future in as_completed(futures):
             source=futures[future]
             try:
                 entries, final=future.result()
                 sources_status.append({"country_code":source["iso2"],"country":source["name"],"official_home":final,"status":"discovered","candidate_count":len(entries)})
+                source_start=starts_by_code[source["iso2"]]
                 for item in entries:
                     pub=date_value(item.get("published_at"))
                     if pub and item.get("publication_precision")=="day":
@@ -774,8 +780,8 @@ def main():
                         day=dt.date.fromisoformat(item["published_date"]) if item.get("published_date") else pub.astimezone(source_tz).date()
                         # A date-only source cannot distinguish posts on either side
                         # of 08:00. Revisit both touched local dates and dedupe by URL.
-                        if not start.astimezone(source_tz).date()<=day<=end.astimezone(source_tz).date(): continue
-                    elif pub and not(start<=pub<=end): continue
+                        if not source_start.astimezone(source_tz).date()<=day<=end.astimezone(source_tz).date(): continue
+                    elif pub and not(source_start<=pub<=end): continue
                     if not pub: continue
                     item["published_at"]=(pub or end).isoformat(); item["id"]=hashlib.sha256(item["url"].encode()).hexdigest()[:20]
                     discovered_links[item["id"]]={key:item[key] for key in ("id","url","country_code","published_at")}
@@ -801,6 +807,19 @@ def main():
             if result.get("accepted")!=len(links[offset:offset+100]):
                 raise RuntimeError("Supabase did not confirm the complete government link batch")
         print(f"Saved {len(links)} official news links to Supabase",flush=True)
+    # A completed source advances independently. Save all newly discovered
+    # items as pending before advancing, so a later model failure cannot lose
+    # them from the checkpoint or skip them on the next morning's window.
+    for item in candidates:
+        if item["id"] not in existing:
+            existing[item["id"]]={**item,"classification_status":"pending_classification"}
+    for status in sources_status:
+        if status["status"]=="discovered":
+            code=status["country_code"]
+            prior=date_value(source_cursors.get(code))
+            if prior is None or end>prior: source_cursors[code]=end.isoformat()
+    STATE.parent.mkdir(exist_ok=True)
+    STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
     if not args.discovery_only:
         # The first tenth of a backfill is a calibration tranche. It is published
         # for researcher review; the workflow keeps subsequent items queued until
@@ -825,9 +844,9 @@ def main():
             if not valid:
                 item.update(labels); item["classification_status"]="needs_review"; item["classification_error"]="inconsistent_relevance_topics_roles"; item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item
                 print(f"Needs review: {item['country_code']} {item['id']} inconsistent relevance/topics/roles",flush=True)
-                STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
+                STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
                 continue
-            item.update(labels); item["related"]=labels["relevance"]=="related"; item["primary_narrative"]=(labels["topics"] or ["none_unclear"])[0]; item["secondary_narratives"]=labels["topics"][1:]; item["classification_status"]="provisional"; item["classifier_prompt_version"]=CLASSIFIER_PROMPT_VERSION; item["review_sample"]=(int(item["id"][:8],16)%100<3); item["calibration_item"]=bool(calibrating and not calibration_ids); item["source_text_chars"]=len(text); item["translated_text_chars"]=len(item["english_translation"]); item["translation_complete"]=True; item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item; STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
+            item.update(labels); item["related"]=labels["relevance"]=="related"; item["primary_narrative"]=(labels["topics"] or ["none_unclear"])[0]; item["secondary_narratives"]=labels["topics"][1:]; item["classification_status"]="provisional"; item["classifier_prompt_version"]=CLASSIFIER_PROMPT_VERSION; item["review_sample"]=(int(item["id"][:8],16)%100<3); item["calibration_item"]=bool(calibrating and not calibration_ids); item["source_text_chars"]=len(text); item["translated_text_chars"]=len(item["english_translation"]); item["translation_complete"]=True; item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item; STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
             print(f"Classified {position}/{cap}: {item['country_code']} {item['id']} {labels['relevance']} {','.join(labels['topics'])}",flush=True)
         for item in candidates[cap:]: item["classification_status"]="awaiting_calibration" if calibrating else "pending_classification"; item.pop("text",None); existing[item["id"]]=item
     calibration_ids={x["id"] for x in existing.values() if x.get("calibration_item")}
@@ -835,7 +854,7 @@ def main():
     out={"as_of":end.isoformat(),"window_start":start.isoformat(),"window_end":end.isoformat(),"taxonomy_version":HYBRID["version"],"sources":sources_status,"items":sorted(existing.values(),key=lambda x:x.get("published_at",""),reverse=True),"review":{"routine_sample_percent":3,"calibration_tranche_percent":10,"calibration_ready":calibration_complete}}
     collection_complete=not selected_codes and len(sources_status)==len(selected_sources) and all(x["status"]=="discovered" for x in sources_status)
     cursor=end.isoformat() if collection_complete else state.get("last_successful_collection_end")
-    STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":cursor,"calibration_complete":calibration_complete,"items":out["items"]},ensure_ascii=False,indent=2)+"\n")
+    STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":cursor,"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":out["items"]},ensure_ascii=False,indent=2)+"\n")
     PUBLIC.parent.mkdir(exist_ok=True)
     public={**out,"items":[{k:v for k,v in item.items() if k!="english_translation"} for item in out["items"]]}
     PUBLIC.write_text(json.dumps(public,ensure_ascii=False,indent=2)+"\n")
@@ -843,6 +862,9 @@ def main():
     REVIEW_QUEUE.write_text(json.dumps({"instructions":"Review every calibration_item before calibration is complete, every needs_review conflict, and thereafter the 3% routine sample. Return corrections as a JSON array with id, relevance, topics, roles and viewpoints where changed. Corrections calibrate later batches.","items":[{k:v for k,v in item.items() if k in {"id","country","country_code","url","title","published_at","english_summary","relevance","topics","evidence_status","evidence_quote","roles","viewpoint_structure","viewpoints","ticker_message","short_rationale","calibration_item","review_sample","classification_status","classification_error"}} for item in out["items"] if (item.get("calibration_item") and not item.get("human_reviewed")) or item.get("classification_status")=="needs_review" or (item.get("classification_status")=="provisional" and item.get("review_sample") and not item.get("human_reviewed"))]},ensure_ascii=False,indent=2)+"\n")
     ok=sum(x["status"]=="discovered" for x in sources_status)
     print(json.dumps({"window_start":out["window_start"],"window_end":out["window_end"],"sources_ok":ok,"sources_unavailable":sum(x["status"]!="discovered" for x in sources_status),"batch_items":len(candidates),"classified_this_run":sum(x.get("classification_status")=="provisional" for x in candidates[:cap]),"stored_items":len(existing),"awaiting_calibration":sum(x.get("classification_status")=="awaiting_calibration" for x in out["items"]),"pending_classification":sum(x.get("classification_status")=="pending_classification" for x in out["items"]),"calibration_review_items":sum(bool(x.get("calibration_item") and not x.get("human_reviewed")) for x in out["items"]),"routine_review_items":sum(bool(x.get("review_sample") is True and not x.get("human_reviewed")) for x in out["items"]),"needs_review":sum(x.get("classification_status")=="needs_review" for x in out["items"])}))
-    if ok!=len(selected_sources): raise SystemExit("One or more official news sections failed; the collection window is incomplete.")
+    if selected_codes and ok!=len(selected_sources):
+        raise SystemExit("One or more selected official news sections failed; inspect the saved checkpoint before retrying.")
+    if not selected_codes and ok==0:
+        raise SystemExit("Every ready official news section failed; no source cursor advanced.")
 
 if __name__ == "__main__": main()
