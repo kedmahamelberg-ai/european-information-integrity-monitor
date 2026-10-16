@@ -40,11 +40,12 @@ ATHENS = ZoneInfo("Europe/Athens")
 REYKJAVIK = ZoneInfo("Atlantic/Reykjavik")
 CHISINAU = ZoneInfo("Europe/Chisinau")
 ZAGREB = ZoneInfo("Europe/Zagreb")
-SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BY": ZoneInfo("Europe/Minsk"),
+SOFIA = ZoneInfo("Europe/Sofia")
+SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK,
                     "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BY","EE","GE","GR","HR","IS","MD","NL","RS"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","EE","GE","GR","HR","IS","MD","NL","RS"}
 
 
 class Links(HTMLParser):
@@ -88,6 +89,7 @@ class ClassText(HTMLParser):
         elif self.depth and tag not in {"area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"}: self.depth+=1
         if self.depth and tag in {"script","style","nav","aside","footer"}: self.skip_depth+=1
     def handle_endtag(self, tag):
+        if tag in {"area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"}: return
         if self.depth and tag in {"script","style","nav","aside","footer"}: self.skip_depth=max(0,self.skip_depth-1)
         if self.depth: self.depth-=1
     def handle_data(self, data):
@@ -598,6 +600,39 @@ def discover_moldova(country,start,end):
     return entries,country["url"]
 
 
+def discover_bulgaria(country,start,end):
+    """Page only the Bulgarian Council of Ministers' dated News archive."""
+    first,last=start.astimezone(SOFIA).date(),end.astimezone(SOFIA).date()
+    entries=[]; seen=set()
+    for page_number in range(1,21):
+        url=country["url"] if page_number==1 else f'{country["url"]}?page={page_number}'
+        _,body=fetch(url)
+        page=body.decode("utf-8","replace")
+        if 'id="pagination"' not in page: raise RuntimeError("Bulgarian government news pagination is missing")
+        cards=re.split(r'<div\s+class=["\']item no-padding["\']>',page)[1:]
+        if not cards: raise RuntimeError("Bulgarian government news page has no dated cards")
+        oldest=None
+        for card in cards:
+            card=card.split('<ul id="pagination"',1)[0]
+            match=re.search(r'<a\s+href=["\'](https://www\.gov\.bg/bg/prestsentar/novini/[^"\']+)["\']\s+title=["\']([^"\']+)',card,re.I)
+            dated=re.search(r'<div\s+class=["\']pub-date["\']>(\d{2}\.\d{2}\.20\d{2})</div>',card,re.I)
+            if not match or not dated: raise RuntimeError("Bulgarian government news card lacks title or publication date")
+            day=dt.datetime.strptime(dated.group(1),"%d.%m.%Y").date()
+            oldest=day if oldest is None or day<oldest else oldest
+            if not first<=day<=last: continue
+            article_url=html.unescape(match.group(1))
+            if article_url in seen: continue
+            seen.add(article_url)
+            title=html.unescape(match.group(2)).strip()
+            published=dt.datetime.combine(day,dt.time.min,SOFIA).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":"BG","url":article_url,"title":title,
+                            "published_at":published.isoformat(),"published_date":day.isoformat(),
+                            "publication_precision":"day","text":""})
+        if oldest is not None and oldest<first: break
+    else: raise RuntimeError("Bulgarian government news pagination exceeded 20 pages")
+    return entries,country["url"]
+
+
 def discover_croatia(country,start,end):
     """Use the Croatian cabinet's own dated news filter, never site-wide links."""
     first,last=start.astimezone(ZAGREB).date(),end.astimezone(ZAGREB).date()
@@ -631,6 +666,7 @@ def discover_croatia(country,start,end):
 
 
 def discover(country,start,end):
+    if country["iso2"]=="BG": return discover_bulgaria(country,start,end)
     if country["iso2"]=="HR": return discover_croatia(country,start,end)
     if country["iso2"]=="MD": return discover_moldova(country,start,end)
     if country["iso2"]=="BA": return discover_bosnia(country,start,end)
@@ -647,6 +683,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="BG":
+        _,body=fetch(item["url"])
+        parser=ClassText("view"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r'\s+',' ',' '.join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Bulgarian government article has no usable text")
+        return article
     if item["country_code"]=="HR":
         _,body=fetch(item["url"])
         parser=ClassText("article-content"); parser.feed(body.decode("utf-8","replace"))
