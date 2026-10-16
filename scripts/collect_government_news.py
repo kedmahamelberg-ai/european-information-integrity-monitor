@@ -36,9 +36,10 @@ BELGRADE = ZoneInfo("Europe/Belgrade")
 ANDORRA = ZoneInfo("Europe/Andorra")
 ATHENS = ZoneInfo("Europe/Athens")
 REYKJAVIK = ZoneInfo("Atlantic/Reykjavik")
+CHISINAU = ZoneInfo("Europe/Chisinau")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "IS": REYKJAVIK,
-                    "NL": AMSTERDAM, "RS": BELGRADE}
+                    "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
 
 
@@ -551,7 +552,41 @@ def discover_bosnia(country,start,end):
     return entries,country["url"]
 
 
+def discover_moldova(country,start,end):
+    """Page through the official cabinet press releases with exact timestamps."""
+    first=start.astimezone(CHISINAU).date()
+    entries=[]; seen=set(); page_number=0
+    while True:
+        listing=country["url"] if page_number==0 else f'{country["url"]}?page={page_number}'
+        _,body=fetch(listing)
+        page=body.decode("utf-8","replace")
+        cards=re.findall(r'<article\b[^>]*class=["\']item post[^"\']*["\'][^>]*>(.*?)</article>',page,re.I|re.S)
+        if not cards: raise RuntimeError("Moldovan government press page has no dated cards")
+        oldest=None
+        for card in cards:
+            title_match=re.search(r'<h2\b[^>]*class=["\']post-title[^"\']*["\'][^>]*>\s*<a\b[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>',card,re.I|re.S)
+            date_match=re.search(r'<time\b[^>]*datetime=["\']([^"\']+)["\']',card,re.I)
+            if not title_match or not date_match: raise RuntimeError("Moldovan government press card lacks title or timestamp")
+            published=dt.datetime.fromisoformat(date_match.group(1)).astimezone(dt.timezone.utc)
+            day=published.astimezone(CHISINAU).date()
+            oldest=day if oldest is None or day<oldest else oldest
+            if not start<=published<=end: continue
+            article_url=urllib.parse.urljoin(country["url"],html.unescape(title_match.group(1)))
+            if not re.fullmatch(r'https://gov\.md/(?:index\.php/)?ro/comunicate-de-presa/[a-z0-9-]+',article_url):
+                raise RuntimeError(f"Unexpected Moldovan government press URL: {article_url}")
+            if article_url in seen: continue
+            seen.add(article_url)
+            title=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',title_match.group(2)))).strip()
+            entries.append({"country":country["name"],"country_code":country["iso2"],"url":article_url,
+                            "title":title,"published_at":published.isoformat(),"text":""})
+        if oldest is not None and oldest<first: break
+        if page_number>=60: raise RuntimeError("Moldovan government press pagination did not reach requested date")
+        page_number+=1
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="MD": return discover_moldova(country,start,end)
     if country["iso2"]=="BA": return discover_bosnia(country,start,end)
     if country["iso2"]=="AD": return discover_andorra(country,start,end)
     if country["iso2"]=="GR": return discover_greece(country,start,end)
@@ -566,6 +601,15 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="MD":
+        _,body=fetch(item["url"])
+        page=body.decode("utf-8","replace")
+        full_title=re.search(r'<span\b[^>]*class=["\'][^"\']*\bfield--name-title\b[^"\']*["\'][^>]*>(.*?)</span>',page,re.I|re.S)
+        if full_title: item["title"]=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',full_title.group(1)))).strip()
+        parser=ClassText("news-post"); parser.feed(page)
+        article=re.sub(r'\s+',' ',' '.join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Moldovan government statement has no article text")
+        return article
     if item["country_code"]=="IS":
         _,body=fetch(item["url"])
         article=official_article_text(body)
