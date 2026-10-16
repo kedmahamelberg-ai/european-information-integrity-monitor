@@ -187,5 +187,17 @@
     "source_title": "მაკა ბოჭორიშვილი ეუთო-ს მოქმედ თავმჯდომარეს, შვეიცარიის კონფედერაციის ვიცე-პრეზიდენტს, საგარეო საქმეთა ფედერალური დეპარტამენტის ხელმძღვანელს იგნასიო კასისს შეხვდა",
     "source_summary": "Georgia's Foreign Minister met with the OSCE Chair, Swiss Vice President Ignazio Cassis, discussing bilateral ties, regional security, Geneva talks, economic cooperation, and Georgia's 2027 OSCE chairmanship bid, reaffirming commitment to deepening OSCE collaboration.",
     "review_decision": "accept_model_labels_and_wording"
+  },
+  {
+    "id": "d650f0a11f7c8238eb91",
+    "source_title": "Casa Christi í MR opni að nýju til kennslu haustið 2030",
+    "source_summary": "Iceland plans to renovate the Casa Christi school building for teaching by 2030.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [],
+    "ticker_message": "Iceland plans to renovate a school building for teaching by 2030.",
+    "review_decision": "correct_to_unrelated_and_tighten_prompt"
   }
 ]
