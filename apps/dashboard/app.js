@@ -21,7 +21,7 @@ const human = (s) =>
       ? "Unavailable"
       : Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 });
 let feedQueue=[], feedIndex=0, feedPaused=matchMedia("(prefers-reduced-motion: reduce)").matches;
-let data = {videos:[], inventory:[], batches:[], collection:{}}, countries=[], inventory=[], zoom=1;
+let data = {videos:[], inventory:[], batches:[], collection:{}}, governmentData={items:[]}, countries=[], inventory=[], zoom=1;
 const roles=["readiness","projecting_power","under_pressure"], colors={coverage:"#b9ee74", related:"#b9ee74", readiness:"#61d7bc", projecting_power:"#efb85b", under_pressure:"#f17a69"}, icons={readiness:"🛡", projecting_power:"⚔", under_pressure:"🎯"};
 function project(lon, lat) {
   const my = (v) => Math.log(Math.tan(Math.PI / 4 + (v * Math.PI) / 360));
@@ -95,6 +95,7 @@ function render(){
  $("#topics").innerHTML=topics.slice(0,7).map(([k,n,count])=>`<button class="topic-button" data-topic="${esc(k)}"><span>${esc(n)}</span><b>${count}</b></button>`).join("") || '<p class="small">No coded topics for these filters.</p>';
  const lead=topics[0];
  $('#situation-brief').innerHTML=`<strong>WEEK AT A GLANCE</strong><span>${lead?`Most observed topic: <b>${esc(lead[1])}</b> · ${lead[2]} security-related sources`:'No classified topic for this selection'}</span><span><b>${selectedResponses.total}</b> comments analysed for message alignment and sentiment · ${selectedResponses.human_reviewed} human reviewed</span>`;
+ renderGovernment();
  const health={saved:selectedSaved,blocked:selectedInventory.filter(x=>x.caption_state==='blocked').length,unavailable:selectedInventory.filter(x=>x.caption_state==='unavailable').length,unverified:selectedInventory.filter(x=>x.caption_state==='unverified').length}, saved=selectedSaved;
  const selectedComments=MonitorMap.latest(rows()).reduce((n,x)=>n+(x.retained_comments||0),0);
  const recovery=data.caption_recovery||[], audio=recovery.some(x=>x.audio_configured);
@@ -152,7 +153,17 @@ function renderMap(){
  }).join('');
  const r=MonitorMap.responses(rows());
  $('#map-key').innerHTML=(layer==='comments'?'':'<span class="video-key">● Classified videos · size follows views</span>')+(layer==='videos'?'':Object.entries(r[field]).filter(([key,n])=>n>0&&MonitorMap.mapCategories[field].includes(key)).map(([key,n])=>{const style=responseStyles[key]||responseStyles.unclear;return `<span><b style="color:${style.color}">${style.shape}</b> ${esc(human(key))} ${num(n)}</span>`}).join(''));
+ const govVisible=$('#government-map-toggle')?.checked!==false;
+ const govByCountry=new Map();for(const item of governmentData.items||[]){if(item.related&&item.classification_status!=='awaiting_calibration')govByCountry.set(item.country_code,(govByCountry.get(item.country_code)||0)+1);}
+ $('#government-markers').innerHTML=govVisible?countries.filter(c=>govByCountry.has(c.iso2)).map(c=>{const [x,y]=project(c.longitude,c.latitude),n=govByCountry.get(c.iso2);return `<g class="government-marker" transform="translate(${x},${y})" aria-label="${esc(c.country_name)}: ${n} classified government communications"><title>${esc(c.country_name)} · ${n} government communications</title><text x="9" y="-8">★</text></g>`}).join(''):'';
  $('#response-metric').disabled=layer==='videos';
+}
+function renderGovernment(){
+ const items=governmentData.items||[], related=items.filter(x=>x.related===true&&x.classification_status!=='awaiting_calibration');
+ $('#government-ticker').innerHTML=related.length?'<span class="ticker-label">GOVERNMENT WATCH · '+related.length+' RELATED</span><div class="ticker-window"><div class="ticker-track">'+[...related,...related].map(x=>'<a href="#government" title="'+esc(x.country)+' · '+esc(x.title)+'"><b>'+esc(x.country)+'</b> '+esc(x.ticker_message||x.english_summary||x.title)+'</a>').join('')+'</div></div>':'<span class="ticker-label">GOVERNMENT WATCH</span><span class="ticker-empty">No classified related government communications in this collection window.</span>';
+ const country=$('#government-country')?.value||'all', narrative=$('#government-narrative')?.value||'all', review=$('#government-review')?.value||'all';
+ const filtered=items.filter(x=>(country==='all'||x.country_code===country)&&(narrative==='all'||[x.primary_narrative,...(x.secondary_narratives||[])].includes(narrative))&&(review==='all'||x.classification_status===review));
+ if($('#government-source-list'))$('#government-source-list').innerHTML='<p class="panel-note">'+filtered.length+' communications · '+(governmentData.window_start?esc(governmentData.window_start.slice(0,10))+' to '+esc(governmentData.window_end?.slice(0,10)||''):'No collection yet')+' · routine human audit sample: 3%.</p>'+filtered.map(x=>'<article class="government-item"><div class="government-item-head"><span>'+esc(x.country)+' · '+esc(x.published_at||'date unavailable')+'</span><span class="source-state '+(x.classification_status==='human_reviewed'?'':'pending')+'">'+esc(human(x.classification_status||'unclassified'))+'</span></div><h2><a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.title)+' ↗</a></h2><p>'+esc(x.english_summary||x.ticker_message||'Awaiting English translation and classification.')+'</p>'+(x.primary_narrative?'<div class="government-label"><b>'+esc(human(x.primary_narrative))+'</b>'+(x.secondary_narratives||[]).map(n=>'<span>'+esc(human(n))+'</span>').join('')+'<small>'+Math.round((x.confidence||0)*100)+'% confidence · '+esc(x.short_rationale||'')+'</small></div>':'')+'<details><summary>Classification rationale and source</summary><p>'+esc(x.short_rationale||'Translation is applied before classification; the source translation is not republished.')+'</p><p class="small">Official source: <a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.url)+'</a></p></details></article>').join('')||'<p class="empty">No government communications match these filters.</p>';
 }
 function renderRanking(){
  const alignment=$('#rank-alignment').value, sentiment=$('#rank-sentiment').value;
@@ -194,19 +205,22 @@ function showSource(key){const v=inventory.find(x=>x.batch+'|'+x.id===key);if(!v
  $("#source-detail").innerHTML=`<span class="source-state">${esc(state(v))}</span><h2>${esc(v.title)}</h2><iframe title="${esc(v.title)}" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.id)}" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe><p class="small">${esc(v.channel)} · ${esc(v.countries.join(' / '))} · original language: ${esc(v.original_language||'und')}</p>${v.transcript_method==='faster-whisper'?'<p class="small">Evidence was automatically transcribed from public audio using Whisper. Translation and speech recognition can contain errors.</p>':''}${v.label?`<p>${esc(human(v.label.relevance))} · ${esc(v.label.topics.map(t=>data.topic_labels?.[t]||human(t)).join(' / '))}</p>${v.label.roles.map(r=>`<span class="tag">${icons[r.role]||''} ${esc(r.entity)} · ${esc(data.role_labels?.[r.role]||human(r.role))}</span>`).join('')}`:'<p class="small">Content labels require a successfully saved English transcript. This source is visible as part of the sampled inventory.</p>'}<p><a href="https://www.youtube.com/watch?v=${encodeURIComponent(v.id)}" target="_blank" rel="noopener">Open original video ↗</a></p>`;
  $("#source-dialog").showModal();
 }
-function route(){const r=['evidence','methodology'].includes(location.hash.slice(1))?location.hash.slice(1):'monitor';for(const id of ['monitor','evidence','methodology'])$('#'+id).hidden=id!==r;document.querySelectorAll('nav a').forEach(a=>a.setAttribute('aria-current',a.hash==='#'+r?'page':'false'));}
+function route(){const r=['evidence','government','methodology'].includes(location.hash.slice(1))?location.hash.slice(1):'monitor';for(const id of ['monitor','evidence','government','methodology'])$('#'+id).hidden=id!==r;document.querySelectorAll('nav a').forEach(a=>a.setAttribute('aria-current',a.hash==='#'+r?'page':'false'));}
 async function init(){try{
- const rev=document.documentElement.dataset.build||Date.now();const result=await Promise.all(['data.json','countries.json','assets/world.json','methodology.html'].map(async p=>{const r=await fetch(`${p}?v=${rev}`);if(!r.ok)throw Error('Snapshot unavailable');return p.endsWith('.html')?r.text():r.json()}));
- [data,countries]=result;countries=countries.countries||countries;
+ const rev=document.documentElement.dataset.build||Date.now();const result=await Promise.all(['data.json','countries.json','assets/world.json','methodology.html','government-data.json'].map(async p=>{const r=await fetch(`${p}?v=${rev}`);if(!r.ok&&p==='government-data.json')return {items:[]};if(!r.ok)throw Error('Snapshot unavailable');return p.endsWith('.html')?r.text():r.json()}));
+ data=result[0];countries=result[1];governmentData=result[4];countries=countries.countries||countries;
  const coded=new Map(data.videos.map(v=>[v.batch+'|'+v.id,v]));inventory=(data.inventory||data.videos).map(v=>({...v,...coded.get(v.batch+'|'+v.id)}));
  $('#methodology').innerHTML=result[3];$('#geography').innerHTML=result[2].features.map(f=>`<path d="${geometry(f.geometry)}"/>`).join('');
  $('#country').insertAdjacentHTML('beforeend',countries.map(c=>`<option value="${esc(c.iso2)}">${esc(c.country_name)}</option>`).join(''));
  $('#batch').insertAdjacentHTML('beforeend',data.batches.map(b=>`<option value="${esc(b.id)}">${esc(b.id)}</option>`).join(''));
  $('#topic').insertAdjacentHTML('beforeend',Object.entries(data.topic_labels||{}).map(([c,n])=>`<option value="${esc(c)}">${esc(n)}</option>`).join(''));
+ $('#government-country').insertAdjacentHTML('beforeend',countries.map(c=>`<option value="${esc(c.iso2)}">${esc(c.country_name)}</option>`).join(''));
+ const governmentLabels=[...new Set((governmentData.items||[]).flatMap(x=>[x.primary_narrative,...(x.secondary_narratives||[])].filter(Boolean)))];$('#government-narrative').insertAdjacentHTML('beforeend',governmentLabels.map(n=>`<option value="${esc(n)}">${esc(human(n))}</option>`).join(''));
  configureDateInputs();
  render();route();
  }catch(e){$('#data-status').textContent='Snapshot unavailable. Please refresh or check the publishing workflow.';console.error(e);}}
 for(const id of ['batch','country','topic','metric','response-metric'])$('#'+id).onchange=render;
+ $('#government-map-toggle').onchange=renderMap;for(const id of ['government-country','government-narrative','government-review'])$('#'+id).onchange=renderGovernment;
 $('#date-range').onchange=()=>{$('#custom-dates').hidden=$('#date-range').value!=='custom';if($('#date-range').value==='custom')configureDateInputs();render();};
 for(const id of ['date-from','date-to'])$('#'+id).onchange=render;
 for(const id of ['rank-alignment','rank-sentiment'])$('#'+id).onchange=renderRanking;
