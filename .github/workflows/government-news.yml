@@ -13,6 +13,10 @@ on:
         description: Inclusive end date for bounded backfill (YYYY-MM-DD)
         required: false
         type: string
+      countries:
+        description: Comma-separated ISO codes for an isolated pilot (for example NL,AT)
+        required: false
+        type: string
 permissions:
   contents: write
   pages: write
@@ -30,6 +34,7 @@ jobs:
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
       COLLECTION_SINCE: ${{ inputs.since }}
       COLLECTION_UNTIL: ${{ inputs.until }}
+      COLLECTION_COUNTRIES: ${{ inputs.countries }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -44,20 +49,21 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: data/government_state.json
-          key: government-checkpoint-${{ github.ref_name }}-${{ github.run_id }}
-          restore-keys: government-checkpoint-${{ github.ref_name }}-
+          key: government-checkpoint-${{ github.ref_name }}-${{ inputs.countries || 'all' }}-${{ github.run_id }}
+          restore-keys: government-checkpoint-${{ github.ref_name }}-${{ inputs.countries || 'all' }}-
       - name: Collect, translate and classify official government news
         run: |
           args=()
           if [ -n "$COLLECTION_SINCE" ]; then args+=(--since "$COLLECTION_SINCE"); fi
           if [ -n "$COLLECTION_UNTIL" ]; then args+=(--until "$COLLECTION_UNTIL"); fi
+          if [ -n "$COLLECTION_COUNTRIES" ]; then args+=(--countries "$COLLECTION_COUNTRIES"); fi
           python scripts/collect_government_news.py "${args[@]}"
       - name: Save collection checkpoint
         if: always()
         uses: actions/cache/save@v4
         with:
           path: data/government_state.json
-          key: government-checkpoint-${{ github.ref_name }}-${{ github.run_id }}
+          key: government-checkpoint-${{ github.ref_name }}-${{ inputs.countries || 'all' }}-${{ github.run_id }}
       - name: Build public dashboard
         run: python scripts/build_site.py
       - uses: actions/upload-artifact@v4
