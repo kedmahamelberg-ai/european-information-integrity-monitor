@@ -36,6 +36,9 @@ BELGRADE = ZoneInfo("Europe/Belgrade")
 ANDORRA = ZoneInfo("Europe/Andorra")
 ATHENS = ZoneInfo("Europe/Athens")
 REYKJAVIK = ZoneInfo("Atlantic/Reykjavik")
+SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BY": ZoneInfo("Europe/Minsk"),
+                    "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "IS": REYKJAVIK,
+                    "NL": AMSTERDAM, "RS": BELGRADE}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-3"
 
 
@@ -689,8 +692,11 @@ def main():
                 for item in entries:
                     pub=date_value(item.get("published_at"))
                     if pub and item.get("publication_precision")=="day":
-                        day=pub.astimezone(BELGRADE).date()
-                        if not start.astimezone(BELGRADE).date()<=day<=end.astimezone(BELGRADE).date(): continue
+                        source_tz=SOURCE_TIMEZONES.get(item["country_code"],AMSTERDAM)
+                        day=dt.date.fromisoformat(item["published_date"]) if item.get("published_date") else pub.astimezone(source_tz).date()
+                        # A date-only source cannot distinguish posts on either side
+                        # of 08:00. Revisit both touched local dates and dedupe by URL.
+                        if not start.astimezone(source_tz).date()<=day<=end.astimezone(source_tz).date(): continue
                     elif pub and not(start<=pub<=end): continue
                     if not pub: continue
                     item["published_at"]=(pub or end).isoformat(); item["id"]=hashlib.sha256(item["url"].encode()).hexdigest()[:20]
