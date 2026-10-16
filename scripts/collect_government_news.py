@@ -34,6 +34,7 @@ TBILISI = ZoneInfo("Asia/Tbilisi")
 TALLINN = ZoneInfo("Europe/Tallinn")
 BELGRADE = ZoneInfo("Europe/Belgrade")
 ANDORRA = ZoneInfo("Europe/Andorra")
+ATHENS = ZoneInfo("Europe/Athens")
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-3"
 
 
@@ -424,8 +425,58 @@ def discover_andorra(country,start,end):
     return entries,country["url"]
 
 
+GREEK_MONTHS = {"ιανουαρίου":1,"φεβρουαρίου":2,"μαρτίου":3,"απριλίου":4,"μαΐου":5,
+                "ιουνίου":6,"ιουλίου":7,"αυγούστου":8,"σεπτεμβρίου":9,"οκτωβρίου":10,
+                "νοεμβρίου":11,"δεκεμβρίου":12}
+
+
+def greek_press_date(value):
+    match=re.search(r"(\d{1,2})\s+([α-ωάέήίόύώΐΰϊϋ]+)\s+(20\d{2})",value.lower())
+    if not match or match.group(2) not in GREEK_MONTHS:
+        raise RuntimeError(f"Greek government press card has no readable date: {value[:80]}")
+    return dt.date(int(match.group(3)),GREEK_MONTHS[match.group(2)],int(match.group(1)))
+
+
+def discover_greece(country,start,end):
+    """Read only dated government-spokesperson press cards, to the requested date."""
+    first,last=start.astimezone(ATHENS).date(),end.astimezone(ATHENS).date()
+    entries=[]; seen=set(); page_number=1
+    while True:
+        listing=country["url"] if page_number==1 else f'{country["url"]}page/{page_number}/'
+        _,body=fetch(listing)
+        page=body.decode("utf-8","replace")
+        cards=re.findall(r'<div\b[^>]*class=["\']post style1 ggee [^"\']*\bcategory-deltia-typou\b[^"\']*["\'][^>]*>(.*?)(?=<div\b[^>]*class=["\']post style1 ggee|<div\b[^>]*class=["\']pagination|$)',page,re.I|re.S)
+        if not cards: raise RuntimeError("Greek official press page has no dated cards")
+        oldest=None
+        for card in cards:
+            title_match=re.search(r'<div\b[^>]*class=["\']post-title["\'][^>]*>\s*<h5>\s*<a\b[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>',card,re.I|re.S)
+            date_match=re.search(r'<li\b[^>]*class=["\']post-date["\'][^>]*>(.*?)</li>',card,re.I|re.S)
+            if not title_match or not date_match: raise RuntimeError("Greek official press card lacks title or date")
+            day=greek_press_date(re.sub(r'<[^>]+>',' ',date_match.group(1)))
+            oldest=day if oldest is None or day<oldest else oldest
+            if not first<=day<=last: continue
+            article_url=html.unescape(title_match.group(1))
+            if not re.fullmatch(r'https://media\.gov\.gr/[^/?#]+/',article_url):
+                raise RuntimeError(f"Unexpected Greek official press URL: {article_url}")
+            if article_url in seen: continue
+            seen.add(article_url)
+            _,article=fetch(article_url)
+            published=publication_date(article,article_url)
+            if not published or published.astimezone(ATHENS).date()!=day:
+                raise RuntimeError(f"Greek press article date differs from official card: {article_url}")
+            if not start<=published<=end: continue
+            title=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',title_match.group(2)))).strip()
+            entries.append({"country":country["name"],"country_code":country["iso2"],"url":article_url,
+                            "title":title,"published_at":published.isoformat(),"text":""})
+        if oldest is not None and oldest<first: break
+        if page_number>=127: raise RuntimeError("Greek official press pagination did not reach the requested date")
+        page_number+=1
+    return entries,country["url"]
+
+
 def discover(country,start,end):
     if country["iso2"]=="AD": return discover_andorra(country,start,end)
+    if country["iso2"]=="GR": return discover_greece(country,start,end)
     if country["iso2"]=="NL": return discover_netherlands(country,start,end)
     if country["iso2"]=="AT": return discover_austria(country,start,end)
     if country["iso2"]=="GE": return discover_georgia(country,start,end)
@@ -436,6 +487,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="GR":
+        _,body=fetch(item["url"])
+        parser=ClassText("entry-content"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r'\s+',' ',' '.join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Greek official press article has no usable text")
+        return article
     if item["country_code"]=="AD":
         _,body=fetch(item["url"])
         page=body.decode("utf-8","replace")
