@@ -497,7 +497,7 @@ def discover_greece(country,start,end):
 
 def discover_iceland(country,start,end):
     """Page through the ministry-wide official Fréttir archive with dated URLs."""
-    first,last=start.astimezone(REYKJAVIK).date(),end.astimezone(REYKJAVIK).date()
+    first,last=max(dt.date(2026,10,1),start.astimezone(REYKJAVIK).date()),end.astimezone(REYKJAVIK).date()
     entries=[]; seen=set(); page_number=0
     while True:
         listing=country["url"] if page_number==0 else f'{country["url"]}?index={page_number}'
@@ -957,7 +957,7 @@ def main():
         candidates.sort(key=lambda x: hashlib.sha256(x["id"].encode()).hexdigest())
         # Limit each run to a small checkpointed tranche; a slow article cannot
         # turn a short discovery window into an hour-long classification job.
-        cap=max(1,(len(candidates)+9)//10) if calibrating and not calibration_ids else (0 if calibrating else min(10,len(candidates)))
+        cap=max(1,(len(candidates)+9)//10) if calibrating and not calibration_ids else (0 if calibrating else min(10 if selected_codes else 30,len(candidates)))
         for position,item in enumerate(candidates[:cap],1):
             print(f"Classifying {position}/{cap}: {item['country_code']} {item['id']}",flush=True)
             text=article_text(item)
