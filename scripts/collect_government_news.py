@@ -8,6 +8,8 @@ import html
 import json
 import os
 import re
+import ssl
+import subprocess
 import sys
 import time
 import urllib.error
@@ -37,11 +39,12 @@ ANDORRA = ZoneInfo("Europe/Andorra")
 ATHENS = ZoneInfo("Europe/Athens")
 REYKJAVIK = ZoneInfo("Atlantic/Reykjavik")
 CHISINAU = ZoneInfo("Europe/Chisinau")
+ZAGREB = ZoneInfo("Europe/Zagreb")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BY": ZoneInfo("Europe/Minsk"),
-                    "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "IS": REYKJAVIK,
+                    "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK,
                     "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BY","EE","GE","GR","IS","MD","NL","RS"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BY","EE","GE","GR","HR","IS","MD","NL","RS"}
 
 
 class Links(HTMLParser):
@@ -121,9 +124,18 @@ def official_article_text(body):
 
 def fetch(url, limit=2_000_000):
     req=urllib.request.Request(url, headers={"User-Agent":UA,"Accept":"text/html,application/rss+xml,application/atom+xml,application/xml,*/*"})
-    with urllib.request.urlopen(req, timeout=8) as r:
-        if r.status >= 400: raise RuntimeError(f"HTTP {r.status}")
-        return r.geturl(), r.read(limit)
+    try:
+        with urllib.request.urlopen(req, timeout=8) as r:
+            if r.status >= 400: raise RuntimeError(f"HTTP {r.status}")
+            return r.geturl(), r.read(limit)
+    except urllib.error.URLError as error:
+        # Some official servers omit a chain that Python's CA bundle needs,
+        # while the runner's curl trust store validates it. Keep TLS enabled.
+        if not isinstance(error.reason,ssl.SSLCertVerificationError): raise
+        response=subprocess.run(["curl","-fsSL","--max-time","8","--max-filesize",str(limit),
+                                 "-A",UA,url],capture_output=True,timeout=10)
+        if response.returncode: raise RuntimeError(f"Verified curl fetch failed: {response.stderr.decode('utf-8','replace')[:180]}") from error
+        return url,response.stdout
 
 
 def date_value(value):
@@ -586,7 +598,40 @@ def discover_moldova(country,start,end):
     return entries,country["url"]
 
 
+def discover_croatia(country,start,end):
+    """Use the Croatian cabinet's own dated news filter, never site-wide links."""
+    first,last=start.astimezone(ZAGREB).date(),end.astimezone(ZAGREB).date()
+    entries=[]; seen=set()
+    for page_number in range(1,21):
+        query=urllib.parse.urlencode({"datumOd":first.strftime("%d.%m.%Y"),"datumDo":last.strftime("%d.%m.%Y"),"page":page_number})
+        _,body=fetch(f'{country["url"]}?{query}')
+        page=body.decode("utf-8","replace")
+        if 'class="news-list-wrapper"' not in page: raise RuntimeError("Croatian government news listing is missing")
+        cards=re.split(r'<div\s+class=["\']news-list-item["\']>',page)[1:]
+        if not cards: break
+        count=0
+        for card in cards:
+            card=card.split('<div class="pagination-wrapper">',1)[0]
+            match=re.search(r'<a\s+href=["\'](/[^"\']+/\d+)["\']\s*>\s*<h2>(.*?)</h2>',card,re.I|re.S)
+            dated=re.search(r'<div\s+class=["\']date-list[^"\']*["\']>\s*(\d{2}\.\d{2}\.20\d{2})\.',card,re.I)
+            if not match or not dated: raise RuntimeError("Croatian government news card lacks an official title or date")
+            day=dt.datetime.strptime(dated.group(1),"%d.%m.%Y").date()
+            if not first<=day<=last: raise RuntimeError("Croatian government date filter returned an out-of-window card")
+            url=urllib.parse.urljoin(country["url"],html.unescape(match.group(1)))
+            if url in seen: continue
+            seen.add(url); count+=1
+            title=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',match.group(2)))).strip()
+            published=dt.datetime.combine(day,dt.time.min,ZAGREB).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":"HR","url":url,"title":title,
+                            "published_at":published.isoformat(),"published_date":day.isoformat(),
+                            "publication_precision":"day","text":""})
+        if count==0 or not re.search(r'page=' + str(page_number+1) + r'(?:["\']|&)',page): break
+    else: raise RuntimeError("Croatian government news filter exceeded 20 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="HR": return discover_croatia(country,start,end)
     if country["iso2"]=="MD": return discover_moldova(country,start,end)
     if country["iso2"]=="BA": return discover_bosnia(country,start,end)
     if country["iso2"]=="AD": return discover_andorra(country,start,end)
@@ -602,6 +647,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="HR":
+        _,body=fetch(item["url"])
+        parser=ClassText("article-content"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r'\s+',' ',' '.join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Croatian government article has no usable text")
+        return article
     if item["country_code"]=="MD":
         _,body=fetch(item["url"])
         page=body.decode("utf-8","replace")
