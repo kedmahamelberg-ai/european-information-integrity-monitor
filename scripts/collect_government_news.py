@@ -262,24 +262,30 @@ def discover_georgia(country,start,end):
 
 
 def discover_belarus(country,start,end):
-    """Follow the official Events archive until it passes the requested dates."""
-    entries=[]; previous=[]; offset=0
+    """Page through the official Events archive's dated search response."""
+    entries=[]; offset=0; reported_total=None; previous_oldest=None
     while True:
-        url=country["url"] if not offset else f'{country["url"]}?offset={offset}'
-        _,body=fetch(url)
-        parser=BelarusCards(); parser.feed(body.decode("utf-8","replace")); cards=parser.cards
-        if cards[:len(previous)]!=previous: raise RuntimeError("Belarusian event pagination changed during collection")
-        if len(cards)==len(previous): break
-        for card in cards[len(previous):]:
-            if not card["url"].startswith("https://president.gov.by/ru/events/"): raise RuntimeError("Unexpected Belarusian event URL")
-            published=date_value(card["published_at"])
-            if not published: raise RuntimeError("Belarusian event has invalid publication date")
+        endpoint=f"https://search.president.gov.by/ru/search/show-more-category/event/{offset}/12"
+        request=urllib.request.Request(endpoint,data=b"",headers={"User-Agent":UA,"Accept":"application/json","Content-Type":"application/x-www-form-urlencoded","Referer":country["url"]})
+        with urllib.request.urlopen(request,timeout=12) as response: result=json.load(response)
+        total=int(result["total_results"])
+        if reported_total is None: reported_total=total
+        elif total!=reported_total: raise RuntimeError("Belarusian Events total changed during pagination")
+        rows=result["index"]
+        if not rows and offset<total: raise RuntimeError("Belarusian Events archive ended before its reported total")
+        oldest=None
+        for row in rows:
+            url=urllib.parse.urljoin(country["url"],row["url"])
+            if not url.startswith("https://president.gov.by/ru/events/"): raise RuntimeError("Unexpected Belarusian event URL")
+            published=dt.datetime.fromtimestamp(int(row["date"]),dt.timezone.utc)
+            oldest=published if oldest is None or published<oldest else oldest
             if start<=published<=end:
-                entries.append({"country":country["name"],"country_code":country["iso2"],"url":card["url"],"title":card["title"],"published_at":published.isoformat(),"text":""})
-        previous=cards
-        oldest=date_value(cards[-1]["published_at"])
-        if oldest<start: break
-        offset+=12
+                entries.append({"country":country["name"],"country_code":country["iso2"],"url":url,"title":row["title"],"published_at":published.isoformat(),"text":""})
+        if previous_oldest is not None and oldest is not None and oldest>previous_oldest: raise RuntimeError("Belarusian Events order changed")
+        if oldest is not None and oldest<start: break
+        previous_oldest=oldest
+        offset+=len(rows)
+        if offset>=total: break
     return entries,country["url"]
 
 
