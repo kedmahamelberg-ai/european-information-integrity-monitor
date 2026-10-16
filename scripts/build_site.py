@@ -14,6 +14,13 @@ for p in source.rglob("*"):
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(p, dst)
 (out / ".nojekyll").write_text("")
+gov_state = ROOT / "data" / "government_state.json"
+gov_public = out / "government-data.json"
+if gov_state.exists() and not gov_public.exists():
+    snapshot = json.loads(gov_state.read_text())
+    gov_public.write_text(json.dumps({"as_of": snapshot.get("last_successful_collection_end"), "items": [{k: v for k, v in item.items() if k != "english_translation"} for item in snapshot.get("items", [])]}, ensure_ascii=False, indent=2) + "\n")
+elif not gov_public.exists():
+    gov_public.write_text('{"items":[]}\n')
 if "--live" in sys.argv:
     sys.path.insert(0, str(ROOT / "src"))
     from eiim.hybrid_public import export_public
@@ -47,7 +54,7 @@ from check_public_counts import check
 check(json.loads((out / "data.json").read_text()))
 # Bind code, styles and the data snapshot to one deployment revision.
 revision = hashlib.sha256(
-    b"".join((out / name).read_bytes() for name in ["map-data.js", "app.js", "live.js", "style.css", "data.json", "cameras.json"])
+    b"".join((out / name).read_bytes() for name in ["map-data.js", "app.js", "live.js", "style.css", "data.json", "cameras.json", "government-data.json"])
 ).hexdigest()[:16]
 page = out / "index.html"
 html = page.read_text().replace(
