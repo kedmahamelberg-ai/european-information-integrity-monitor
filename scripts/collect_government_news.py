@@ -261,7 +261,7 @@ def main():
                 if key in correction: existing[ident][key]=correction[key]
             existing[ident].update({"related":existing[ident].get("relevance")=="related","primary_narrative":(existing[ident].get("topics") or ["none_unclear"])[0],"secondary_narratives":(existing[ident].get("topics") or [])[1:],"classification_status":"human_reviewed","human_reviewed":True})
     if calibration_complete:
-        candidates.extend(x for x in existing.values() if x.get("classification_status")=="awaiting_calibration")
+        candidates.extend(x for x in existing.values() if x.get("classification_status") in {"awaiting_calibration", "pending_classification"})
     # Discover the official sources concurrently and log each completion.
     # With bounded request timeouts, slow sites cannot stall the whole batch.
     with ThreadPoolExecutor(max_workers=16) as pool:
@@ -291,7 +291,9 @@ def main():
         # GOVERNMENT_CALIBRATION_READY is explicitly enabled after corrections.
         calibrating=not calibration_complete
         candidates.sort(key=lambda x: hashlib.sha256(x["id"].encode()).hexdigest())
-        cap=max(1,(len(candidates)+9)//10) if calibrating and not calibration_ids else (0 if calibrating else len(candidates))
+        # Limit each run to a small checkpointed tranche; a slow article cannot
+        # turn a short discovery window into an hour-long classification job.
+        cap=max(1,(len(candidates)+9)//10) if calibrating and not calibration_ids else (0 if calibrating else min(10,len(candidates)))
         for item in candidates[:cap]:
             text=article_text(item)
             if not text: item["classification_status"]="no_text"; existing[item["id"]]=item; continue
@@ -301,7 +303,7 @@ def main():
             if labels["relevance"]=="related" and not labels["topics"]: raise RuntimeError("Related government communication has no hybrid topic")
             if labels["relevance"]!="related" and (labels["topics"] or labels["roles"]): raise RuntimeError("Unrelated government communication has topic or actor roles")
             item.update(labels); item["related"]=labels["relevance"]=="related"; item["primary_narrative"]=(labels["topics"] or ["none_unclear"])[0]; item["secondary_narratives"]=labels["topics"][1:]; item["classification_status"]="provisional"; item["review_sample"]=(int(item["id"][:8],16)%100<3); item["calibration_item"]=bool(calibrating and not calibration_ids); item["source_text_chars"]=len(text); item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item; STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
-        for item in candidates[cap:]: item["classification_status"]="awaiting_calibration"; item.pop("text",None); existing[item["id"]]=item
+        for item in candidates[cap:]: item["classification_status"]="awaiting_calibration" if calibrating else "pending_classification"; item.pop("text",None); existing[item["id"]]=item
     calibration_ids={x["id"] for x in existing.values() if x.get("calibration_item")}
     calibration_complete=bool(state.get("calibration_complete")) or bool(calibration_ids and calibration_ids.issubset(correction_map))
     out={"as_of":end.isoformat(),"window_start":start.isoformat(),"window_end":end.isoformat(),"taxonomy_version":HYBRID["version"],"sources":sources_status,"items":sorted(existing.values(),key=lambda x:x.get("published_at",""),reverse=True),"review":{"routine_sample_percent":3,"calibration_tranche_percent":10,"calibration_ready":calibration_complete}}
