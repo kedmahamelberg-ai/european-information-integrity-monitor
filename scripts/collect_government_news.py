@@ -42,11 +42,12 @@ CHISINAU = ZoneInfo("Europe/Chisinau")
 ZAGREB = ZoneInfo("Europe/Zagreb")
 SOFIA = ZoneInfo("Europe/Sofia")
 LONDON = ZoneInfo("Europe/London")
+ROME = ZoneInfo("Europe/Rome")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
-                    "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK,
+                    "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
                     "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","EE","GB","GE","GR","HR","IS","MD","NL","RS"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","EE","GB","GE","GR","HR","IS","IT","MD","NL","RS"}
 
 
 class Links(HTMLParser):
@@ -601,6 +602,44 @@ def discover_moldova(country,start,end):
     return entries,country["url"]
 
 
+def discover_italy(country,start,end):
+    """Page the official Palazzo Chigi news cards back to the requested date."""
+    first,last=start.astimezone(ROME).date(),end.astimezone(ROME).date()
+    months={"gennaio":1,"febbraio":2,"marzo":3,"aprile":4,"maggio":5,"giugno":6,
+            "luglio":7,"agosto":8,"settembre":9,"ottobre":10,"novembre":11,"dicembre":12}
+    entries=[]; seen=set()
+    for page_number in range(25):
+        url=country["url"] if page_number==0 else f'{country["url"]}?page={page_number}'
+        _,body=fetch(url)
+        page=body.decode("utf-8","replace")
+        if '<h1>Notizie da Palazzo Chigi</h1>' not in page: raise RuntimeError("Italian cabinet news archive is missing")
+        cards=re.split(r'<div\s+class=["\']box_text box_text_small clearfix["\']>',page)[1:]
+        if not cards: raise RuntimeError("Italian cabinet news archive has no dated cards")
+        oldest=None
+        for card in cards:
+            match=re.search(r'<a\s+class=["\']box_text_anchor["\']\s+href=["\']([^"\']+)["\']>\s*<h2[^>]*>(.*?)</h2>',card,re.I|re.S)
+            dated=re.search(r'<div\s+class=["\']h6 clearfix dataleft["\']>\s*(\d{1,2})\s+([A-Za-z]+)\s+(20\d{2})',card,re.I)
+            if not match or not dated: raise RuntimeError("Italian cabinet news card lacks title or date")
+            month=months.get(dated.group(2).lower())
+            if not month: raise RuntimeError("Italian cabinet news card has unknown month")
+            day=dt.date(int(dated.group(3)),month,int(dated.group(1)))
+            oldest=day if oldest is None or day<oldest else oldest
+            if not first<=day<=last: continue
+            article_url=urllib.parse.urljoin(country["url"],html.unescape(match.group(1)))
+            if not re.fullmatch(r'https://www\.governo\.it/it/articolo/[a-z0-9-]+(?:/\d+)?',article_url):
+                raise RuntimeError(f"Unexpected Italian cabinet news URL: {article_url}")
+            if article_url in seen: continue
+            seen.add(article_url)
+            title=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',match.group(2)))).strip()
+            published=dt.datetime.combine(day,dt.time.min,ROME).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":"IT","url":article_url,"title":title,
+                            "published_at":published.isoformat(),"published_date":day.isoformat(),
+                            "publication_precision":"day","text":""})
+        if oldest is not None and oldest<first: break
+    else: raise RuntimeError("Italian cabinet news archive exceeded 25 pages")
+    return entries,country["url"]
+
+
 def discover_united_kingdom(country,start,end):
     """Page the PM Office's official Atom feed; verify original publication dates."""
     base="https://www.gov.uk/search/news-and-communications.atom?organisations%5B%5D=prime-ministers-office-10-downing-street"
@@ -695,6 +734,7 @@ def discover_croatia(country,start,end):
 
 
 def discover(country,start,end):
+    if country["iso2"]=="IT": return discover_italy(country,start,end)
     if country["iso2"]=="GB": return discover_united_kingdom(country,start,end)
     if country["iso2"]=="BG": return discover_bulgaria(country,start,end)
     if country["iso2"]=="HR": return discover_croatia(country,start,end)
@@ -713,6 +753,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="IT":
+        _,body=fetch(item["url"])
+        parser=ClassText("field-name-body"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r'\s+',' ',' '.join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Italian cabinet news article has no usable text")
+        return article
     if item["country_code"]=="GB":
         _,body=fetch(item["url"])
         parser=ClassText("govspeak"); parser.feed(body.decode("utf-8","replace"))
