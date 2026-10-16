@@ -138,5 +138,28 @@
     "source_title": "Усвојен Закључак о санационом плану за подручје Делиблатске пешчаре",
     "source_summary": "Serbia's government approved a 50 million dinar remediation plan for the Deliblato Sands Nature Reserve to address fire damage, involving coordinated expert action. It also initiated preparatory steps to establish a national \"One Health\" framework for inter-agency collaboration without new bureaucracy.",
     "review_decision": "accept_model_labels_and_wording"
+  },
+  {
+    "id": "d891f248b4806c2ad451",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Zurab Darchiashvili",
+        "summary": "Wished the Ambassador success in his future activities following presentation of credentials.",
+        "target": "Ambassador Nguyen Than Lem and diplomatic cooperation",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "Zurab Darchiashvili wished the Ambassador success in his future activities."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The newly appointed Vietnamese Ambassador to Georgia (resident in Astana), Nguyen Than Lem, presented copies of his credentials ... the parties discussed prospects for cooperation and a planned visit.",
+    "short_rationale": "Diplomatic credential presentation and discussion of cooperation are routine diplomatic activities without direct national security relevance.",
+    "ticker_message": "Vietnamese Ambassador to Georgia presents credentials and discusses bilateral cooperation.",
+    "source_title": "ვიეტნამის ახლადდანიშნულმა ელჩმა საქართველოში რწმუნებათა სიგელების ასლები გადასცა საქართველოს საგარეო საქმეთა სამინისტროს დიპლომატიური პროტოკოლის დირექტორატის დირექტორს, ზურაბ დარჩიაშვილს",
+    "source_summary": "Vietnam's new ambassador to Georgia presented credentials and discussed bilateral cooperation and an upcoming Vietnamese Vice President visit; Georgia's MFA wished him success.",
+    "review_decision": "accept_unrelated"
   }
 ]
