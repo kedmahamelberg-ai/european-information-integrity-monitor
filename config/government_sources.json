@@ -1,5 +1,5 @@
 {
-  "version": "government-sources-1.2",
+  "version": "government-sources-1.3",
   "scope": "Official national executive news or press release sections only. A source marked unverified is not eligible for collection. Section URLs are maintained explicitly; the collector must not discover arbitrary government-site pages.",
   "directory_sources": [
     "https://portal.gov.cz/kam-dal/cesky-egovernment/jednotna-statni-doména-gov-cz",
@@ -40,9 +40,9 @@
     {
       "iso2": "BY",
       "name": "Belarus",
-      "url": "https://government.by/ru/",
-      "verification_status": "unverified",
-      "scope_note": "Official executive site identified; exact communication archive could not be independently verified or accessed."
+      "url": "https://president.gov.by/ru/events",
+      "verification_status": "verified",
+      "scope_note": "Official Russian-language Events archive of the Belarusian presidency, supplied by the researcher. Covers presidential communications rather than the Council of Ministers."
     },
     {
       "iso2": "BE",
@@ -108,9 +108,9 @@
     {
       "iso2": "GE",
       "name": "Georgia",
-      "url": "https://www.gov.ge/",
-      "verification_status": "unverified",
-      "scope_note": "Official executive site identified; exact communication archive could not be independently verified or accessed."
+      "url": "https://mfa.gov.ge/ka/news",
+      "verification_status": "verified",
+      "scope_note": "Official Georgian-language News archive of the Ministry of Foreign Affairs, supplied by the researcher. Covers ministry communications rather than the central cabinet."
     },
     {
       "iso2": "DE",
