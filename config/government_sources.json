@@ -49,13 +49,14 @@
       "name": "Belgium",
       "url": "https://news.belgium.be/nl/zoek-een-nieuwsbericht",
       "verification_status": "verified",
-      "scope_note": "Federal Council of Ministers press archive; the Belgium.be English portal news is not the cabinet archive."
+      "scope_note": "Official federal news search across the Council of Ministers, ministers, and federal institutions; filter to executive communications during collection."
     },
     {
       "iso2": "BA",
       "name": "Bosnia and Herzegovina",
-      "url": "https://vijeceministara.gov.ba/bs/portal/saopstenja?category=saopstenja&categorySlug=saopstenja",
-      "verification_status": "verified"
+      "url": "https://www.vijeceministara.gov.ba/bs/portal/arhiva-priopcenja-sa-sjednica",
+      "verification_status": "verified",
+      "scope_note": "Official current Council of Ministers session statements; the separate chairperson statements category is stale as of October 2026."
     },
     {
       "iso2": "BG",
