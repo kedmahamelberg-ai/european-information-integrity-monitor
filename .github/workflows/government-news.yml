@@ -45,12 +45,21 @@ jobs:
           test -n "$OPENAI_API_KEY" || { echo '::error::OPENAI_API_KEY is required'; exit 1; }
           test -n "$SUPABASE_URL" || { echo '::error::SUPABASE_URL is required'; exit 1; }
           test -n "$SUPABASE_SECRET_KEY" || { echo '::error::SUPABASE_SECRET_KEY is required'; exit 1; }
+      - name: Prepare isolated cache scope
+        id: cache_scope
+        run: |
+          if [ -n "$COLLECTION_COUNTRIES" ]; then
+            [[ "$COLLECTION_COUNTRIES" =~ ^[A-Z]{2}(,[A-Z]{2})*$ ]] || { echo '::error::countries must be comma-separated ISO codes'; exit 1; }
+            echo "scope=${COLLECTION_COUNTRIES//,/-}" >> "$GITHUB_OUTPUT"
+          else
+            echo 'scope=all' >> "$GITHUB_OUTPUT"
+          fi
       - name: Restore collection checkpoint
         uses: actions/cache/restore@v4
         with:
           path: data/government_state.json
-          key: government-checkpoint-${{ github.ref_name }}-${{ inputs.countries || 'all' }}-${{ github.run_id }}
-          restore-keys: government-checkpoint-${{ github.ref_name }}-${{ inputs.countries || 'all' }}-
+          key: government-checkpoint-${{ github.ref_name }}-${{ steps.cache_scope.outputs.scope }}-${{ github.run_id }}
+          restore-keys: government-checkpoint-${{ github.ref_name }}-${{ steps.cache_scope.outputs.scope }}-
       - name: Collect, translate and classify official government news
         run: |
           args=()
@@ -63,7 +72,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: data/government_state.json
-          key: government-checkpoint-${{ github.ref_name }}-${{ inputs.countries || 'all' }}-${{ github.run_id }}
+          key: government-checkpoint-${{ github.ref_name }}-${{ steps.cache_scope.outputs.scope }}-${{ github.run_id }}
       - name: Build public dashboard
         run: python scripts/build_site.py
       - uses: actions/upload-artifact@v4
