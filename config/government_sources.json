@@ -102,8 +102,9 @@
     {
       "iso2": "FR",
       "name": "France",
-      "url": "https://www.info.gouv.fr/toute-l-actualite",
-      "verification_status": "verified"
+      "url": "https://www.info.gouv.fr/espace-presse",
+      "verification_status": "verified",
+      "scope_note": "Official government press communications; excludes general explanatory news articles."
     },
     {
       "iso2": "GE",
