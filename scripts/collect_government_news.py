@@ -307,35 +307,25 @@ def estonia_article(body):
 
 
 def discover_estonia(country,start,end):
-    """Page the dated search API behind the government's Uudis section."""
-    entries=[]; page_number=1; previous_oldest=None; seen=set(); reported_total=None
-    while True:
-        params=urllib.parse.urlencode({"filters[type]":"Uudis","sort_by":"created","page":page_number,"langcode":"et","limit":10})
-        endpoint="https://search.service.eu-live.vportal.ee/v1/search/valitsus?"+params
-        request=urllib.request.Request(endpoint,headers={"User-Agent":UA,"Accept":"application/json","Referer":country["url"]})
-        with urllib.request.urlopen(request,timeout=12) as response: result=json.load(response)["response"]
-        total=int(result["numFound"])
-        if reported_total is None: reported_total=total
-        elif total!=reported_total: raise RuntimeError("Estonian news total changed during pagination")
-        if int(result["start"])!=(page_number-1)*10: raise RuntimeError("Estonian news pagination changed")
-        rows=result["docs"]
-        if not rows and result["start"]<total: raise RuntimeError("Estonian news ended before its reported total")
-        oldest=None
-        for row in rows:
-            if row.get("content_type")!="news" or row.get("langcode")!="et" or not row.get("uri","").startswith("/uudised/"): raise RuntimeError("Unexpected Estonian search result")
-            link=urllib.parse.urljoin(country["url"],row["uri"])
-            if link in seen: raise RuntimeError("Estonian news pagination repeated an article")
-            seen.add(link)
-            published=date_value(row.get("created"))
-            if not published: raise RuntimeError("Estonian news has no publication time")
-            oldest=published if oldest is None or published<oldest else oldest
-            if start<=published<=end:
-                entries.append({"country":country["name"],"country_code":country["iso2"],"url":link,"title":row["title"],"published_at":published.isoformat(),"text":""})
-        if previous_oldest is not None and oldest is not None and oldest>previous_oldest: raise RuntimeError("Estonian news ordering changed")
-        if oldest is not None and oldest<start: break
-        previous_oldest=oldest
-        page_number+=1
-    return entries,country["url"]
+    """Use the government's dated Uudis RSS feed; fail if its 100-item edge is reached."""
+    _,body=fetch("https://www.valitsus.ee/rss-feeds/rss.xml")
+    entries=parse_feed(body,country["url"],country)
+    if not entries: raise RuntimeError("Estonian government news RSS returned no items")
+    dated=[]; seen=set(); previous=None
+    for item in entries:
+        parsed=urllib.parse.urlparse(item["url"])
+        if parsed.netloc not in {"valitsus.ee","www.valitsus.ee"} or not parsed.path.startswith("/uudised/"):
+            raise RuntimeError("Estonian news RSS contains an out-of-section link")
+        if item["url"] in seen: raise RuntimeError("Estonian news RSS repeated an article")
+        seen.add(item["url"])
+        published=date_value(item["published_at"])
+        if not published: raise RuntimeError("Estonian news RSS item has no publication date")
+        if previous is not None and published>previous: raise RuntimeError("Estonian news RSS order changed")
+        previous=published
+        if start<=published<=end:
+            item["published_at"]=published.isoformat(); item["text"]=""; dated.append(item)
+    if previous>=start: raise RuntimeError("Estonian news RSS does not reach the requested start; a deeper archive is required")
+    return dated,country["url"]
 
 
 def discover(country,start,end):
