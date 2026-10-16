@@ -29,7 +29,7 @@ UA = "EuropeanSecurityMonitor/1.0 (public research; contact: monitor@hamelberg-a
 AMSTERDAM = ZoneInfo("Europe/Amsterdam")
 TBILISI = ZoneInfo("Asia/Tbilisi")
 TALLINN = ZoneInfo("Europe/Tallinn")
-CLASSIFIER_PROMPT_VERSION = "government-hybrid-2"
+CLASSIFIER_PROMPT_VERSION = "government-hybrid-3"
 
 
 class Links(HTMLParser):
@@ -104,7 +104,7 @@ class BelarusCards(HTMLParser):
 def official_article_text(body):
     parser=MainText(); parser.feed(body.decode("utf-8","replace"))
     if not parser.found_main: raise RuntimeError("Official article has no main content element")
-    return re.sub(r"\s+"," "," ".join(parser.parts))[:18000]
+    return re.sub(r"\s+"," "," ".join(parser.parts))
 
 
 def fetch(url, limit=2_000_000):
@@ -348,14 +348,14 @@ def article_text(item):
         parser=ClassText("wysiwyg"); parser.feed(body.decode("utf-8","replace"))
         text=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
         if not text: raise RuntimeError("Belarusian official communication has no article body")
-        return text[:18000]
+        return text
     if item["country_code"]=="GE":
         _,body=fetch(item["url"])
         description=georgia_page(body).get("description") or ""
         text=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",description))).strip()
         if not text: raise RuntimeError("Georgian official communication has no article body")
-        return text[:18000]
-    if item.get("text") and len(item["text"])>250: return item["text"][:18000]
+        return text
+    if item.get("text") and len(item["text"])>250: return item["text"]
     _, body=fetch(item["url"])
     return official_article_text(body)
 
@@ -396,6 +396,28 @@ def ask_openai(text, classification=True, examples=None, validation_note=""):
     raise RuntimeError(f"OpenAI response could not be parsed after 3 attempts: {last_problem}")
     out=result.get("output_text") or "".join(x.get("text","") for o in result.get("output",[]) for x in o.get("content",[]) if x.get("type")=="output_text")
     return json.loads(out)
+
+
+def translate_document(source_text):
+    """Translate every character in bounded calls, then summarize the whole document."""
+    chunks=[]; position=0
+    while position<len(source_text):
+        end=min(len(source_text),position+12000)
+        if end<len(source_text):
+            boundary=source_text.rfind(" ",position+6000,end)
+            if boundary>position: end=boundary
+        chunks.append(source_text[position:end].strip())
+        position=end
+    translated=[]; summaries=[]
+    for index,chunk in enumerate(chunks,1):
+        print(f"Translating chunk {index}/{len(chunks)} ({len(chunk)} source characters)",flush=True)
+        result=ask_openai(chunk,False)
+        if not result.get("english_translation","").strip():
+            raise RuntimeError(f"English translation is empty for chunk {index}/{len(chunks)}")
+        translated.append(result["english_translation"].strip())
+        summaries.append(result["short_english_summary"].strip())
+    summary=summaries[0] if len(summaries)==1 else ask_openai("\n".join(summaries),False)["short_english_summary"]
+    return "\n".join(translated),summary
 
 
 def main():
@@ -467,7 +489,7 @@ def main():
             print(f"Classifying {position}/{cap}: {item['country_code']} {item['id']}",flush=True)
             text=article_text(item)
             if not text: item["classification_status"]="no_text"; existing[item["id"]]=item; continue
-            translated=ask_openai(text,False); item["english_translation"]=translated["english_translation"][:18000]; item["english_summary"]=translated["short_english_summary"]
+            item["english_translation"],item["english_summary"]=translate_document(text)
             examples=[{**correction,"title":correction.get("source_title") or existing.get(ident,{}).get("title"),"summary":correction.get("source_summary") or existing.get(ident,{}).get("english_summary")} for ident,correction in correction_map.items()]
             validation_note=""
             for validation_attempt in range(2):
@@ -480,7 +502,7 @@ def main():
                 print(f"Needs review: {item['country_code']} {item['id']} inconsistent relevance/topics/roles",flush=True)
                 STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
                 continue
-            item.update(labels); item["related"]=labels["relevance"]=="related"; item["primary_narrative"]=(labels["topics"] or ["none_unclear"])[0]; item["secondary_narratives"]=labels["topics"][1:]; item["classification_status"]="provisional"; item["classifier_prompt_version"]=CLASSIFIER_PROMPT_VERSION; item["review_sample"]=(int(item["id"][:8],16)%100<3); item["calibration_item"]=bool(calibrating and not calibration_ids); item["source_text_chars"]=len(text); item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item; STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
+            item.update(labels); item["related"]=labels["relevance"]=="related"; item["primary_narrative"]=(labels["topics"] or ["none_unclear"])[0]; item["secondary_narratives"]=labels["topics"][1:]; item["classification_status"]="provisional"; item["classifier_prompt_version"]=CLASSIFIER_PROMPT_VERSION; item["review_sample"]=(int(item["id"][:8],16)%100<3); item["calibration_item"]=bool(calibrating and not calibration_ids); item["source_text_chars"]=len(text); item["translated_text_chars"]=len(item["english_translation"]); item["translation_complete"]=True; item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item; STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
             print(f"Classified {position}/{cap}: {item['country_code']} {item['id']} {labels['relevance']} {','.join(labels['topics'])}",flush=True)
         for item in candidates[cap:]: item["classification_status"]="awaiting_calibration" if calibrating else "pending_classification"; item.pop("text",None); existing[item["id"]]=item
     calibration_ids={x["id"] for x in existing.values() if x.get("calibration_item")}
@@ -496,6 +518,6 @@ def main():
     REVIEW_QUEUE.write_text(json.dumps({"instructions":"Review every calibration_item before calibration is complete, every needs_review conflict, and thereafter the 3% routine sample. Return corrections as a JSON array with id, relevance, topics, roles and viewpoints where changed. Corrections calibrate later batches.","items":[{k:v for k,v in item.items() if k in {"id","country","country_code","url","title","published_at","english_summary","relevance","topics","evidence_status","evidence_quote","roles","viewpoint_structure","viewpoints","ticker_message","short_rationale","calibration_item","review_sample","classification_status","classification_error"}} for item in out["items"] if (item.get("calibration_item") and not item.get("human_reviewed")) or item.get("classification_status")=="needs_review" or (item.get("classification_status")=="provisional" and item.get("review_sample") and not item.get("human_reviewed"))]},ensure_ascii=False,indent=2)+"\n")
     ok=sum(x["status"]=="discovered" for x in sources_status)
     print(json.dumps({"window_start":out["window_start"],"window_end":out["window_end"],"sources_ok":ok,"sources_unavailable":sum(x["status"]!="discovered" for x in sources_status),"batch_items":len(candidates),"classified_this_run":sum(x.get("classification_status")=="provisional" for x in candidates[:cap]),"stored_items":len(existing),"awaiting_calibration":sum(x.get("classification_status")=="awaiting_calibration" for x in out["items"]),"pending_classification":sum(x.get("classification_status")=="pending_classification" for x in out["items"]),"calibration_review_items":sum(bool(x.get("calibration_item") and not x.get("human_reviewed")) for x in out["items"]),"routine_review_items":sum(bool(x.get("review_sample") is True and not x.get("human_reviewed")) for x in out["items"]),"needs_review":sum(x.get("classification_status")=="needs_review" for x in out["items"])}))
-    if not ok: raise SystemExit("No verified official news sections were reachable.")
+    if ok!=len(selected_sources): raise SystemExit("One or more official news sections failed; the collection window is incomplete.")
 
 if __name__ == "__main__": main()
