@@ -4,7 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       since:
-        description: Start date for initial backfill (defaults to 2026-10-01 or the saved collection cursor)
+        description: Start date for bounded backfill (YYYY-MM-DD)
+        required: false
+        type: string
+      until:
+        description: Inclusive end date for bounded backfill (YYYY-MM-DD)
         required: false
         type: string
 permissions:
@@ -23,21 +27,26 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
       COLLECTION_SINCE: ${{ inputs.since }}
+      COLLECTION_UNTIL: ${{ inputs.until }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Validate classifier configuration
-        run: test -n "$OPENAI_API_KEY" || { echo '::error::OPENAI_API_KEY is required'; exit 1; }
+      - name: Validate classifier and Supabase configuration
+        run: |
+          test -n "$OPENAI_API_KEY" || { echo '::error::OPENAI_API_KEY is required'; exit 1; }
+          test -n "$SUPABASE_URL" || { echo '::error::SUPABASE_URL is required'; exit 1; }
+          test -n "$SUPABASE_SECRET_KEY" || { echo '::error::SUPABASE_SECRET_KEY is required'; exit 1; }
       - name: Collect, translate and classify official government news
         run: |
-          if [ -n "$COLLECTION_SINCE" ]; then
-            python scripts/collect_government_news.py --since "$COLLECTION_SINCE" || { git checkout -- data/government_state.json; exit 1; }
-          else
-            python scripts/collect_government_news.py || { git checkout -- data/government_state.json; exit 1; }
-          fi
+          args=()
+          if [ -n "$COLLECTION_SINCE" ]; then args+=(--since "$COLLECTION_SINCE"); fi
+          if [ -n "$COLLECTION_UNTIL" ]; then args+=(--until "$COLLECTION_UNTIL"); fi
+          python scripts/collect_government_news.py "${args[@]}"
       - name: Build public dashboard
         run: python scripts/build_site.py
       - uses: actions/upload-artifact@v4
