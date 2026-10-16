@@ -370,7 +370,8 @@ def discover_serbia(country,start,end):
             title=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',title_match.group(2)))).strip()
             published=dt.datetime.combine(day,dt.time.min,BELGRADE).astimezone(dt.timezone.utc)
             entries.append({"country":country["name"],"country_code":country["iso2"],"url":article_url,
-                            "title":title,"published_at":published.isoformat(),"publication_precision":"day","text":""})
+                            "title":title,"published_at":published.isoformat(),"published_date":day.isoformat(),
+                            "publication_precision":"day","text":""})
         if oldest is not None and oldest<first: break
         if page_number>=119: raise RuntimeError("Serbian Government Statements pagination did not reach the requested date")
         page_number+=1
