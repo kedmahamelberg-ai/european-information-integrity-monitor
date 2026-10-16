@@ -46,5 +46,22 @@
     "topics": ["food_security"],
     "roles": [],
     "ticker_message": "Belarus says farm mechanization cooperation will support Nigeria's food security."
+  },
+  {
+    "id": "ee66ea75ec960f47ce3b",
+    "source_title": "Dutch minister proposes a law on obstructing return after an asylum refusal",
+    "source_summary": "The Netherlands proposes criminal penalties for people without a right to stay who actively frustrate return after other efforts fail.",
+    "relevance": "related",
+    "topics": ["migration_displacement", "political_institutions"],
+    "roles": [],
+    "ticker_message": "The Netherlands proposes penalties for obstructing return after an asylum refusal."
+  },
+  {
+    "id": "e26a2dfa2e8005671362",
+    "source_title": "Dutch cabinet presents strategy to protect children online",
+    "source_summary": "The strategy addresses children's online safety, service rules and social media age limits.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": []
   }
 ]
