@@ -15,6 +15,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from html.parser import HTMLParser
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = json.loads((ROOT / "config/government_sources.json").read_text())["sources"]
@@ -24,6 +25,7 @@ PUBLIC = ROOT / "build/government-data.json"
 CORRECTIONS = ROOT / "data/government_corrections.json"
 REVIEW_QUEUE = ROOT / "build/government-review-queue.json"
 UA = "EuropeanSecurityMonitor/1.0 (public research; contact: monitor@hamelberg-ai.com)"
+AMSTERDAM = ZoneInfo("Europe/Amsterdam")
 
 
 class Links(HTMLParser):
@@ -40,6 +42,29 @@ class Links(HTMLParser):
         if data.strip(): self.text.append(data.strip())
 
 
+class MainText(HTMLParser):
+    """Read the official communication body, excluding site navigation and scripts."""
+    def __init__(self):
+        super().__init__(); self.main_depth=0; self.skip_depth=0; self.parts=[]; self.found_main=False
+    def handle_starttag(self, tag, attrs):
+        if tag == "main":
+            self.main_depth += 1; self.found_main=True
+        elif self.main_depth and tag in {"script", "style", "nav", "aside", "footer"}:
+            self.skip_depth += 1
+    def handle_endtag(self, tag):
+        if tag == "main": self.main_depth=max(0,self.main_depth-1)
+        elif self.main_depth and tag in {"script", "style", "nav", "aside", "footer"}:
+            self.skip_depth=max(0,self.skip_depth-1)
+    def handle_data(self, data):
+        if self.main_depth and not self.skip_depth and data.strip(): self.parts.append(data.strip())
+
+
+def official_article_text(body):
+    parser=MainText(); parser.feed(body.decode("utf-8","replace"))
+    if not parser.found_main: raise RuntimeError("Official article has no main content element")
+    return re.sub(r"\s+"," "," ".join(parser.parts))[:18000]
+
+
 def fetch(url, limit=2_000_000):
     req=urllib.request.Request(url, headers={"User-Agent":UA,"Accept":"text/html,application/rss+xml,application/atom+xml,application/xml,*/*"})
     with urllib.request.urlopen(req, timeout=8) as r:
@@ -49,6 +74,8 @@ def fetch(url, limit=2_000_000):
 
 def date_value(value):
     if not value: return None
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+        return dt.datetime.combine(dt.date.fromisoformat(value), dt.time.min, AMSTERDAM).astimezone(dt.timezone.utc)
     try: return dt.datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(dt.timezone.utc)
     except ValueError:
         try: return email.utils.parsedate_to_datetime(value).astimezone(dt.timezone.utc)
@@ -94,44 +121,83 @@ def publication_date(body, url):
     return None
 
 
-def discover(country):
-    # Fetch only the registered executive news or press section. Never follow
-    # generic homepage feeds or discover an unrelated section automatically.
-    final, page = fetch(country["url"])
-    base = urllib.parse.urlparse(final)
-    body = page.decode("utf-8", "replace")
-    links = []
-    seen = set()
-    for match in re.finditer(r'<a\b[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>', body, re.I | re.S):
-        link = urllib.parse.urljoin(final, html.unescape(match.group(1)))
-        parsed = urllib.parse.urlparse(link)
-        title = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', match.group(2)))).strip()
-        if parsed.netloc.lower() != base.netloc.lower() or len(title) < 18 or len(title) > 240: continue
-        if parsed.scheme not in ('http', 'https') or re.search(r'\.(?:pdf|jpg|jpeg|png|webp|svg|zip)$', parsed.path, re.I): continue
-        clean = urllib.parse.urlunparse(parsed._replace(fragment=''))
-        if clean == final or clean in seen: continue
-        if parsed.path.rstrip('/') in ('', '/', base.path.rstrip('/')): continue
-        seen.add(clean)
-        links.append((clean, title))
-        if len(links) >= 32: break
+def discover_netherlands(country, start, end):
+    """Use the dated search powering the official Dutch Nieuws section."""
+    first, last = start.astimezone(AMSTERDAM).date(), end.astimezone(AMSTERDAM).date()
+    from_value = dt.datetime.combine(first, dt.time.min, AMSTERDAM).isoformat()
+    to_value = dt.datetime.combine(last, dt.time(23, 59, 59), AMSTERDAM).isoformat()
+    date_filter = {"field":"sort_date","values":[{"from":from_value,"name":"specificPeriodFrom"},{"to":to_value,"name":"specificPeriodTo"}],"type":"all"}
+    content_filter = {"field":"content_type","values":["pro:newsDocument"],"type":"all"}
+    fields = {key:{"raw":{}} for key in ("author","url","page_title","sort_date","information_type","activity_start_date","activity_end_date","activity_type","activity_location_title","activity_location_description","activity_organiser","activity_show_time","image_url","edition_summary")}
+    fields["meta_description"] = {"raw":{},"snippet":{"size":140,"fallback":True}}
+    range_start = start.astimezone(dt.timezone.utc).isoformat()
+    range_end = end.astimezone(dt.timezone.utc).isoformat()
+    facets = {key:{"type":"value","size":100} for key in ("ministry","information_type","activity_type")}
+    facets["sort_date"] = {"type":"range","ranges":[{"from":range_start,"to":range_end,"name":name} for name in ("past007Days","past030Days","past365Days")]}
+    facets["activity_start_date"] = {"type":"range","ranges":[{"to":range_start,"name":"allPastPeriod"},{"from":range_start,"name":"allFuturePeriod"}]}
+    query = {"filters":[content_filter],"result_fields":fields,"disjunctiveFacets":["information_type","activity_type","ministry"],"facets":facets,"sortList":[{"field":"sort_date","direction":"desc"}]}
     entries = []
-    for link, title in links:
-        try:
-            _, article = fetch(link)
-            published = publication_date(article, link)
-            if not published: continue
-            p = Links(); p.feed(article.decode('utf-8', 'replace'))
-            entries.append({'country': country['name'], 'country_code': country['iso2'], 'url': link, 'title': title, 'published_at': published.isoformat(), 'text': re.sub(r'\s+', ' ', ' '.join(p.text))[:18000]})
-        except Exception: continue
-    return entries, final
+    page_number, total_pages, reported_total = 1, None, None
+    while total_pages is None or page_number <= total_pages:
+        request_state = {"current":page_number,"filters":[date_filter,content_filter],"resultsPerPage":100,"searchTerm":"","sortDirection":"","sortField":"","sortList":[]}
+        payload = json.dumps({"requestState":request_state,"queryConfig":query}).encode()
+        request = urllib.request.Request("https://www.rijksoverheid.nl/api/search?hash=government-news",data=payload,headers={"User-Agent":UA,"Content-Type":"application/json","Accept":"application/json","Referer":country["url"]})
+        with urllib.request.urlopen(request,timeout=20) as response: result=json.load(response)
+        raw=result["rawResponse"]
+        meta=raw["rawInfo"]["meta"]["page"]
+        if total_pages is None:
+            total_pages=int(meta["total_pages"])
+            reported_total=int(meta["total_results"])
+        if int(meta["current"])!=page_number or int(meta["total_pages"])!=total_pages: raise RuntimeError("Dutch search pagination changed during collection")
+        for row in raw["rawResults"]:
+            url=urllib.parse.urljoin(country["url"],row["url"]["raw"])
+            if not re.match(r"^https://www\.rijksoverheid\.nl/actueel/nieuws/20\d{2}/\d{2}/\d{2}/",url): raise RuntimeError(f"Unexpected Dutch news URL: {url}")
+            entries.append({"country":country["name"],"country_code":country["iso2"],"url":url,"title":row["page_title"]["raw"],"published_at":row["sort_date"]["raw"],"text":row.get("meta_description",{}).get("raw","")})
+        page_number+=1
+    if len(entries)!=reported_total: raise RuntimeError(f"Dutch search returned {len(entries)} of {reported_total} results")
+    return entries,country["url"]
+
+
+def discover_austria(country, start, end):
+    """Select dated news cards from the Austrian federal chancellery archive."""
+    first, last = start.astimezone(AMSTERDAM).date(), end.astimezone(AMSTERDAM).date()
+    entries=[]
+    for year in range(first.year,last.year+1):
+        archive=re.sub(r"/20\d{2}\.html$",f"/{year}.html",country["url"])
+        final,page=fetch(archive)
+        body=page.decode("utf-8","replace")
+        seen=set()
+        for match in re.finditer(r'<a\b[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>',body,re.I|re.S):
+            url=urllib.parse.urljoin(final,html.unescape(match.group(1)))
+            if not re.match(rf"^https://www\.bundeskanzleramt\.gv\.at/bundeskanzleramt/nachrichten-der-bundesregierung/{year}/\d{{2}}/[^/]+\.html$",url): continue
+            if url in seen: continue
+            seen.add(url)
+            card=match.group(2)
+            card_date=re.search(r'class=["\']card-date["\'][^>]*>\s*(\d{1,2})\.\s+\w+\s+(20\d{2})',card,re.I)
+            if not card_date: raise RuntimeError(f"Austrian news card has no date: {url}")
+            month=int(re.search(rf'/{year}/(\d{{2}})/',url).group(1))
+            day=dt.date(year,month,int(card_date.group(1)))
+            if not first<=day<=last: continue
+            title_match=re.search(r'<h2[^>]*>(.*?)</h2>',card,re.I|re.S)
+            if not title_match: raise RuntimeError(f"Austrian news card has no title: {url}")
+            title=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',title_match.group(1)))).strip()
+            _,article=fetch(url)
+            published=publication_date(article,url)
+            if not published: raise RuntimeError(f"Austrian article has no publication date: {url}")
+            entries.append({"country":country["name"],"country_code":country["iso2"],"url":url,"title":title,"published_at":published.isoformat(),"text":official_article_text(article)})
+    return entries,country["url"]
+
+
+def discover(country,start,end):
+    if country["iso2"]=="NL": return discover_netherlands(country,start,end)
+    if country["iso2"]=="AT": return discover_austria(country,start,end)
+    raise NotImplementedError("Date-complete official-news adapter is not yet verified for this source")
 
 
 def article_text(item):
     if item.get("text") and len(item["text"])>250: return item["text"][:18000]
-    try:
-        _, body=fetch(item["url"]); p=Links(); p.feed(body.decode("utf-8","replace"))
-        return re.sub(r"\s+"," "," ".join(p.text))[:18000]
-    except Exception: return item.get("text","")[:18000]
+    _, body=fetch(item["url"])
+    return official_article_text(body)
 
 
 def ask_openai(text, classification=True, examples=None):
@@ -161,13 +227,16 @@ def ask_openai(text, classification=True, examples=None):
 
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument("--since",default=""); ap.add_argument("--until",default=""); ap.add_argument("--discovery-only",action="store_true"); args=ap.parse_args()
+    ap=argparse.ArgumentParser(); ap.add_argument("--since",default=""); ap.add_argument("--until",default=""); ap.add_argument("--countries",default="",help="Comma-separated ISO country codes for an isolated source check"); ap.add_argument("--discovery-only",action="store_true"); args=ap.parse_args()
     now=dt.datetime.now(dt.timezone.utc).replace(microsecond=0)
     state=json.loads(STATE.read_text()) if STATE.exists() else {"last_successful_collection_end":None,"items":[]}
     start=date_value(args.since) or date_value(state.get("last_successful_collection_end")) or dt.datetime(2026,10,1,tzinfo=dt.timezone.utc)
     end=date_value(args.until) or now
     if args.until and re.fullmatch(r"\d{4}-\d{2}-\d{2}", args.until):
-        end=end+dt.timedelta(days=1)-dt.timedelta(microseconds=1)
+        end=dt.datetime.combine(dt.date.fromisoformat(args.until)+dt.timedelta(days=1),dt.time.min,AMSTERDAM).astimezone(dt.timezone.utc)-dt.timedelta(microseconds=1)
+    selected_codes={code.strip().upper() for code in args.countries.split(",") if code.strip()}
+    selected_sources=[source for source in SOURCES if source.get("verification_status")=="verified" and (not selected_codes or source["iso2"] in selected_codes)]
+    if selected_codes-{source["iso2"] for source in selected_sources}: raise SystemExit("Country selection contains missing or unverified codes")
     existing={x["id"]:x for x in state.get("items",[])}; sources_status=[]; candidates=[]
     corrections=json.loads(CORRECTIONS.read_text()) if CORRECTIONS.exists() else []
     correction_map={x["id"]:x for x in corrections if x.get("id")}
@@ -181,7 +250,7 @@ def main():
     # Discover the official sources concurrently and log each completion.
     # With bounded request timeouts, slow sites cannot stall the whole batch.
     with ThreadPoolExecutor(max_workers=16) as pool:
-        futures={pool.submit(discover,source):source for source in SOURCES if source.get("verification_status") == "verified"}
+        futures={pool.submit(discover,source,start,end):source for source in selected_sources}
         for future in as_completed(futures):
             source=futures[future]
             try:
@@ -197,6 +266,10 @@ def main():
             except Exception as e:
                 sources_status.append({"country_code":source["iso2"],"country":source["name"],"official_home":source["url"],"status":"source_unavailable","error":type(e).__name__})
                 print(f"Unavailable {source['name']}: {type(e).__name__}",flush=True)
+    if args.discovery_only:
+        print(json.dumps({"window_start":start.isoformat(),"window_end":end.isoformat(),"sources":sources_status,"items":[{"country":x["country"],"url":x["url"],"title":x["title"],"published_at":x["published_at"]} for x in candidates]},ensure_ascii=False,indent=2))
+        if any(x["status"]!="discovered" for x in sources_status): raise SystemExit("One or more selected official sources could not be verified for this window")
+        return
     if not args.discovery_only:
         # The first tenth of a backfill is a calibration tranche. It is published
         # for researcher review; the workflow keeps subsequent items queued until
@@ -214,7 +287,9 @@ def main():
     calibration_ids={x["id"] for x in existing.values() if x.get("calibration_item")}
     calibration_complete=bool(state.get("calibration_complete")) or bool(calibration_ids and calibration_ids.issubset(correction_map))
     out={"as_of":end.isoformat(),"window_start":start.isoformat(),"window_end":end.isoformat(),"taxonomy_version":json.loads((ROOT/"config/narratives.json").read_text())["version"],"sources":sources_status,"items":sorted(existing.values(),key=lambda x:x.get("published_at",""),reverse=True),"review":{"routine_sample_percent":3,"calibration_tranche_percent":10,"calibration_ready":calibration_complete}}
-    STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":end.isoformat(),"calibration_complete":calibration_complete,"items":out["items"]},ensure_ascii=False,indent=2)+"\n")
+    collection_complete=not selected_codes and len(sources_status)==len(selected_sources) and all(x["status"]=="discovered" for x in sources_status)
+    cursor=end.isoformat() if collection_complete else state.get("last_successful_collection_end")
+    STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":cursor,"calibration_complete":calibration_complete,"items":out["items"]},ensure_ascii=False,indent=2)+"\n")
     PUBLIC.parent.mkdir(exist_ok=True)
     public={**out,"items":[{k:v for k,v in item.items() if k!="english_translation"} for item in out["items"]]}
     PUBLIC.write_text(json.dumps(public,ensure_ascii=False,indent=2)+"\n")
