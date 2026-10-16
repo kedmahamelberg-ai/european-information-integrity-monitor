@@ -184,8 +184,9 @@
     {
       "iso2": "LU",
       "name": "Luxembourg",
-      "url": "https://gouvernement.lu/fr/actualites.html",
-      "verification_status": "verified"
+      "url": "https://gouvernement.lu/fr/actualites/toutes_actualites/communiques.html",
+      "verification_status": "verified",
+      "scope_note": "Official government communiqués section; archive navigation is required for older items."
     },
     {
       "iso2": "MT",
