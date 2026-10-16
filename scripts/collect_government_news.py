@@ -423,7 +423,7 @@ def main():
             text=article_text(item)
             if not text: item["classification_status"]="no_text"; existing[item["id"]]=item; continue
             translated=ask_openai(text,False); item["english_translation"]=translated["english_translation"][:18000]; item["english_summary"]=translated["short_english_summary"]
-            examples=[{**correction,"title":existing[ident].get("title"),"summary":existing[ident].get("english_summary")} for ident,correction in correction_map.items() if ident in existing]
+            examples=[{**correction,"title":correction.get("source_title") or existing.get(ident,{}).get("title"),"summary":correction.get("source_summary") or existing.get(ident,{}).get("english_summary")} for ident,correction in correction_map.items()]
             validation_note=""
             for validation_attempt in range(2):
                 labels=ask_openai(item["english_translation"],True,examples,validation_note)
