@@ -1,8 +1,6 @@
 name: Daily government communications
 on:
-  schedule:
-    - cron: "0 8 * * *"
-      timezone: "Europe/Amsterdam"
+  # Scheduled runs resume after the source register and staged review workflow are approved.
   workflow_dispatch:
     inputs:
       since:
