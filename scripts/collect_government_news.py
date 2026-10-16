@@ -385,7 +385,7 @@ CATALAN_MONTHS = {"gener":1,"febrer":2,"març":3,"abril":4,"maig":5,"juny":6,
 
 
 def andorra_news_date(value):
-    match=re.search(r"(\d{1,2})\s+d[’']?\s*([a-zà-ÿ]+)\s+(20\d{2})",value.lower())
+    match=re.search(r"(\d{1,2})\s+d(?:e|[’'])\s*([a-zà-ÿ]+)\s+(20\d{2})",value.lower())
     if not match or match.group(2) not in CATALAN_MONTHS:
         raise RuntimeError(f"Andorran government news has no readable date: {value[:80]}")
     return dt.date(int(match.group(3)),CATALAN_MONTHS[match.group(2)],int(match.group(1)))
