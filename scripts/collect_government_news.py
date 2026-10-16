@@ -534,7 +534,10 @@ def main():
                     if not pub: continue
                     item["published_at"]=(pub or end).isoformat(); item["id"]=hashlib.sha256(item["url"].encode()).hexdigest()[:20]
                     discovered_links[item["id"]]={key:item[key] for key in ("id","url","country_code","published_at")}
-                    if item["id"] not in existing: candidates.append(item)
+                    if item["id"] in existing:
+                        for key in ("published_date","publication_precision"):
+                            if key in item: existing[item["id"]][key]=item[key]
+                    else: candidates.append(item)
                 print(f"Discovered {source['name']}: {len(entries)} candidate links",flush=True)
             except Exception as e:
                 sources_status.append({"country_code":source["iso2"],"country":source["name"],"official_home":source["url"],"status":"source_unavailable","error":type(e).__name__})
