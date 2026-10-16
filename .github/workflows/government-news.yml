@@ -36,9 +36,9 @@ jobs:
       - name: Collect, translate and classify official government news
         run: |
           if [ -n "$COLLECTION_SINCE" ]; then
-            python scripts/collect_government_news.py --since "$COLLECTION_SINCE"
+            python scripts/collect_government_news.py --since "$COLLECTION_SINCE" || { git checkout -- data/government_state.json; exit 1; }
           else
-            python scripts/collect_government_news.py
+            python scripts/collect_government_news.py || { git checkout -- data/government_state.json; exit 1; }
           fi
       - name: Build public dashboard
         run: python scripts/build_site.py
