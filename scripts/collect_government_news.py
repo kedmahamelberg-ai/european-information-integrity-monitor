@@ -76,37 +76,52 @@ def parse_feed(body, base, country):
     return entries
 
 
+def publication_date(body, url):
+    page = body.decode("utf-8", "replace")
+    patterns = [
+        r'<meta[^>]+(?:property|name)=["\'](?:article:published_time|datePublished|pubdate|date)["\'][^>]+content=["\']([^"\']+)',
+        r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+(?:property|name)=["\'](?:article:published_time|datePublished|pubdate|date)["\']',
+        r'<time[^>]+datetime=["\']([^"\']+)',
+        r'["\']datePublished["\']\s*:\s*["\']([^"\']+)',
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, page, re.I)
+        if match:
+            parsed = date_value(match.group(1))
+            if parsed: return parsed
+    match = re.search(r'/((?:20\d{2})/(?:0?[1-9]|1[0-2])/(?:0?[1-9]|[12]\d|3[01]))(?:/|$)', urllib.parse.urlparse(url).path)
+    if match: return date_value(match.group(1).replace('/', '-'))
+    return None
+
+
 def discover(country):
-    final, page=fetch(country["url"])
-    parser=Links(); parser.feed(page.decode("utf-8","replace"))
-    feeds=[]
-    for href, typ in parser.links:
-        u=urllib.parse.urljoin(final,href)
-        if "rss" in typ.lower() or "atom" in typ.lower() or re.search(r"(rss|feed|atom)(\.xml)?/?$",u,re.I): feeds.append(u)
-    feeds += [urllib.parse.urljoin(final,p) for p in ("news/rss.xml","news.rss","news.atom","rss.xml","rss","feed","news/feed/")]
-    seen=set(); entries=[]
-    for feed in feeds[:4]:
-        if feed in seen: continue
-        seen.add(feed)
+    # Fetch only the registered executive news or press section. Never follow
+    # generic homepage feeds or discover an unrelated section automatically.
+    final, page = fetch(country["url"])
+    base = urllib.parse.urlparse(final)
+    body = page.decode("utf-8", "replace")
+    links = []
+    seen = set()
+    for match in re.finditer(r'<a\b[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>', body, re.I | re.S):
+        link = urllib.parse.urljoin(final, html.unescape(match.group(1)))
+        parsed = urllib.parse.urlparse(link)
+        title = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', match.group(2)))).strip()
+        if parsed.netloc.lower() != base.netloc.lower() or len(title) < 18 or len(title) > 240: continue
+        if parsed.scheme not in ('http', 'https') or re.search(r'\.(?:pdf|jpg|jpeg|png|webp|svg|zip)$', parsed.path, re.I): continue
+        clean = urllib.parse.urlunparse(parsed._replace(fragment=''))
+        if clean == final or clean in seen: continue
+        if parsed.path.rstrip('/') in ('', '/', base.path.rstrip('/')): continue
+        seen.add(clean)
+        links.append((clean, title))
+        if len(links) >= 32: break
+    entries = []
+    for link, title in links:
         try:
-            _, body=fetch(feed, 4_000_000); parsed=parse_feed(body,feed,country)
-            if parsed: return parsed, final
-        except Exception: continue
-    # The official homepage is still the authoritative source. Crawl only its
-    # own links whose path or anchor suggests the national news/press room.
-    candidates=[]
-    for href,_ in parser.links:
-        u=urllib.parse.urljoin(final,href)
-        if urllib.parse.urlparse(u).netloc != urllib.parse.urlparse(final).netloc: continue
-        if re.search(r"news|actualit|press|nieuws|notizie|nachricht|comunic|medij|vijest|presse|novosti|nyheter|uutis|prensa|novità",u,re.I): candidates.append(u)
-    for page_url in dict.fromkeys(candidates[:2]):
-        try:
-            _, body=fetch(page_url); p=Links(); p.feed(body.decode("utf-8","replace"))
-            for href,_ in p.links:
-                u=urllib.parse.urljoin(page_url,href)
-                title=urllib.parse.urlparse(u).path.rstrip("/").split("/")[-1].replace("-"," ")
-                if urllib.parse.urlparse(u).netloc==urllib.parse.urlparse(final).netloc and len(title)>16:
-                    entries.append({"country":country["name"],"country_code":country["iso2"],"url":u,"title":title,"published_at":"","text":""})
+            _, article = fetch(link)
+            published = publication_date(article, link)
+            if not published: continue
+            p = Links(); p.feed(article.decode('utf-8', 'replace'))
+            entries.append({'country': country['name'], 'country_code': country['iso2'], 'url': link, 'title': title, 'published_at': published.isoformat(), 'text': re.sub(r'\s+', ' ', ' '.join(p.text))[:18000]})
         except Exception: continue
     return entries, final
 
@@ -151,6 +166,8 @@ def main():
     state=json.loads(STATE.read_text()) if STATE.exists() else {"last_successful_collection_end":None,"items":[]}
     start=date_value(args.since) or date_value(state.get("last_successful_collection_end")) or dt.datetime(2026,10,1,tzinfo=dt.timezone.utc)
     end=date_value(args.until) or now
+    if args.until and re.fullmatch(r"\d{4}-\d{2}-\d{2}", args.until):
+        end=end+dt.timedelta(days=1)-dt.timedelta(microseconds=1)
     existing={x["id"]:x for x in state.get("items",[])}; sources_status=[]; candidates=[]
     corrections=json.loads(CORRECTIONS.read_text()) if CORRECTIONS.exists() else []
     correction_map={x["id"]:x for x in corrections if x.get("id")}
@@ -163,8 +180,8 @@ def main():
         candidates.extend(x for x in existing.values() if x.get("classification_status")=="awaiting_calibration")
     # Discover the official sources concurrently and log each completion.
     # With bounded request timeouts, slow sites cannot stall the whole batch.
-    with ThreadPoolExecutor(max_workers=12) as pool:
-        futures={pool.submit(discover,source):source for source in SOURCES}
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        futures={pool.submit(discover,source):source for source in SOURCES if source.get("verification_status") == "verified"}
         for future in as_completed(futures):
             source=futures[future]
             try:
@@ -173,7 +190,7 @@ def main():
                 for item in entries:
                     pub=date_value(item.get("published_at"))
                     if pub and not(start<=pub<=end): continue
-                    if not pub and not args.since and state.get("last_successful_collection_end"): continue
+                    if not pub: continue
                     item["published_at"]=(pub or end).isoformat(); item["id"]=hashlib.sha256(item["url"].encode()).hexdigest()[:20]
                     if item["id"] not in existing: candidates.append(item)
                 print(f"Discovered {source['name']}: {len(entries)} candidate links",flush=True)
@@ -205,6 +222,6 @@ def main():
     REVIEW_QUEUE.write_text(json.dumps({"instructions":"Review every calibration_item before calibration is complete. Thereafter review the 3% routine sample. Return corrections as a JSON array with id, related, primary_narrative, secondary_narratives.","items":[{k:v for k,v in item.items() if k in {"id","country","country_code","url","title","published_at","english_summary","related","primary_narrative","secondary_narratives","short_rationale","calibration_item","review_sample"}} for item in out["items"] if item.get("calibration_item") or (item.get("review_sample") and not item.get("human_reviewed"))]},ensure_ascii=False,indent=2)+"\n")
     ok=sum(x["status"]=="discovered" for x in sources_status)
     print(json.dumps({"window_start":out["window_start"],"window_end":out["window_end"],"sources_ok":ok,"sources_unavailable":sum(x["status"]!="discovered" for x in sources_status),"new_items":len(candidates),"stored_items":len(existing),"awaiting_calibration":sum(x.get("classification_status")=="awaiting_calibration" for x in out["items"]),"review_items":sum(x.get("review_sample") is True for x in out["items"])}))
-    if ok < 40: raise SystemExit("Fewer than 40 official news sources were reachable; collection cursor was not advanced safely.")
+    if not ok: raise SystemExit("No verified official news sections were reachable.")
 
 if __name__ == "__main__": main()
