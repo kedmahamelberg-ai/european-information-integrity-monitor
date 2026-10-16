@@ -2,7 +2,28 @@
   {
     "id": "a3c89d924af13b0b995f",
     "relevance": "related",
-    "topics": ["energy", "economic_financial_security", "diplomacy_alliances"],
+    "topics": [
+      "energy",
+      "economic_financial_security",
+      "diplomacy_alliances"
+    ],
     "ticker_message": "The Netherlands releases oil reserves with IEA countries to stabilize energy markets."
+  },
+  {
+    "id": "5e12c92b69847a5754a4",
+    "relevance": "related",
+    "topics": ["sovereignty_borders"],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Georgian Deputy Foreign Minister Lasha Darsalia",
+        "summary": "The ministry reports cooperation with UNICEF and raises the situation in Russian-occupied regions.",
+        "target": "UNICEF cooperation and the occupied regions",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "Attention was drawn to the situation in the Russian-occupied regions of Abkhazia and South Ossetia."
+      }
+    ],
+    "ticker_message": "Georgia's foreign ministry and UNICEF discuss cooperation and occupied regions."
   }
 ]
