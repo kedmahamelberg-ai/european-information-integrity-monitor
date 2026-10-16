@@ -217,5 +217,14 @@
     "topics": [],
     "roles": [],
     "review_decision": "correct_to_unrelated"
+  },
+  {
+    "id": "3661c2b60669b3a752e0",
+    "source_title": "Il Presidente Meloni all'80° Anniversario della CNA",
+    "source_summary": "Italy's prime minister spoke at a small-business association anniversary.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "review_decision": "accept_unrelated"
   }
 ]
