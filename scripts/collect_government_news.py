@@ -35,6 +35,7 @@ TALLINN = ZoneInfo("Europe/Tallinn")
 BELGRADE = ZoneInfo("Europe/Belgrade")
 ANDORRA = ZoneInfo("Europe/Andorra")
 ATHENS = ZoneInfo("Europe/Athens")
+REYKJAVIK = ZoneInfo("Atlantic/Reykjavik")
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-3"
 
 
@@ -474,9 +475,50 @@ def discover_greece(country,start,end):
     return entries,country["url"]
 
 
+def discover_iceland(country,start,end):
+    """Page through the ministry-wide official Fréttir archive with dated URLs."""
+    first,last=start.astimezone(REYKJAVIK).date(),end.astimezone(REYKJAVIK).date()
+    entries=[]; seen=set(); page_number=0
+    while True:
+        listing=country["url"] if page_number==0 else f'{country["url"]}?index={page_number}'
+        _,body=fetch(listing)
+        page=body.decode("utf-8","replace")
+        cards=re.findall(r'<article\b[^>]*class=["\']search-result-card["\'][^>]*>(.*?)</article>',page,re.I|re.S)
+        if not cards: raise RuntimeError("Icelandic government Fréttir page has no news cards")
+        oldest=None
+        for card in cards:
+            link=re.search(r'<a\b[^>]*href=["\']([^"\']+)["\'][^>]*class=["\']search-result-card-link["\']',card,re.I)
+            title_match=re.search(r'<h3\b[^>]*class=["\']search-result-card-title title["\'][^>]*>(.*?)</h3>',card,re.I|re.S)
+            date_match=re.search(r'<span\b[^>]*class=["\']search-result-card-date["\'][^>]*>(.*?)</span>',card,re.I|re.S)
+            if not link or not title_match or not date_match: raise RuntimeError("Icelandic news card lacks link, title or date")
+            article_url=urllib.parse.urljoin(country["url"],html.unescape(link.group(1)))
+            url_date=re.fullmatch(r'https://www\.stjornarradid\.is/efst-a-baugi/frettir/stok-frett/(20\d{2}-\d{2}-\d{2})(?:-[a-z0-9-]+)?',article_url)
+            if not url_date: raise RuntimeError(f"Unexpected Icelandic official news URL: {article_url}")
+            displayed=html.unescape(re.sub(r'<[^>]+>',' ',date_match.group(1))).strip()
+            icelandic_months={"janúar":1,"febrúar":2,"mars":3,"apríl":4,"maí":5,"júní":6,
+                              "júlí":7,"ágúst":8,"september":9,"október":10,"nóvember":11,"desember":12}
+            dated=re.fullmatch(r'(\d{1,2})\.\s+([a-záðéíóúýþæö]+)\s+(20\d{2})',displayed.lower())
+            if not dated or dated.group(2) not in icelandic_months: raise RuntimeError("Icelandic news card has no readable date")
+            day=dt.date(int(dated.group(3)),icelandic_months[dated.group(2)],int(dated.group(1)))
+            oldest=day if oldest is None or day<oldest else oldest
+            if not first<=day<=last: continue
+            if article_url in seen: raise RuntimeError("Icelandic news archive repeats an article")
+            seen.add(article_url)
+            title=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',title_match.group(1)))).strip()
+            published=dt.datetime.combine(day,dt.time.min,REYKJAVIK).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":country["iso2"],"url":article_url,
+                            "title":title,"published_at":published.isoformat(),"published_date":day.isoformat(),
+                            "publication_precision":"day","text":""})
+        if oldest is not None and oldest<first: break
+        if page_number>=87: raise RuntimeError("Icelandic government pagination did not reach requested date")
+        page_number+=1
+    return entries,country["url"]
+
+
 def discover(country,start,end):
     if country["iso2"]=="AD": return discover_andorra(country,start,end)
     if country["iso2"]=="GR": return discover_greece(country,start,end)
+    if country["iso2"]=="IS": return discover_iceland(country,start,end)
     if country["iso2"]=="NL": return discover_netherlands(country,start,end)
     if country["iso2"]=="AT": return discover_austria(country,start,end)
     if country["iso2"]=="GE": return discover_georgia(country,start,end)
@@ -487,6 +529,11 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="IS":
+        _,body=fetch(item["url"])
+        article=official_article_text(body)
+        if len(article)<40: raise RuntimeError("Icelandic government article has no usable text")
+        return article
     if item["country_code"]=="GR":
         _,body=fetch(item["url"])
         parser=ClassText("entry-content"); parser.feed(body.decode("utf-8","replace"))
