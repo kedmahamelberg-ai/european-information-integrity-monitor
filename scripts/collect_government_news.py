@@ -41,11 +41,12 @@ REYKJAVIK = ZoneInfo("Atlantic/Reykjavik")
 CHISINAU = ZoneInfo("Europe/Chisinau")
 ZAGREB = ZoneInfo("Europe/Zagreb")
 SOFIA = ZoneInfo("Europe/Sofia")
+LONDON = ZoneInfo("Europe/London")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK,
-                    "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","EE","GE","GR","HR","IS","MD","NL","RS"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","EE","GB","GE","GR","HR","IS","MD","NL","RS"}
 
 
 class Links(HTMLParser):
@@ -176,8 +177,8 @@ def publication_date(body, url):
     patterns = [
         r'<meta[^>]+(?:property|name)=["\'](?:article:published_time|datePublished|pubdate|date)["\'][^>]+content=["\']([^"\']+)',
         r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+(?:property|name)=["\'](?:article:published_time|datePublished|pubdate|date)["\']',
-        r'<time[^>]+datetime=["\']([^"\']+)',
         r'["\']datePublished["\']\s*:\s*["\']([^"\']+)',
+        r'<time[^>]+datetime=["\']([^"\']+)',
     ]
     for pattern in patterns:
         match = re.search(pattern, page, re.I)
@@ -600,6 +601,34 @@ def discover_moldova(country,start,end):
     return entries,country["url"]
 
 
+def discover_united_kingdom(country,start,end):
+    """Page the PM Office's official Atom feed; verify original publication dates."""
+    base="https://www.gov.uk/search/news-and-communications.atom?organisations%5B%5D=prime-ministers-office-10-downing-street"
+    entries=[]; seen=set()
+    for page_number in range(1,21):
+        url=base if page_number==1 else f"{base}&page={page_number}"
+        _,body=fetch(url)
+        cards=parse_feed(body,url,country)
+        if not cards: raise RuntimeError("UK Prime Minister's Office Atom page is empty")
+        dated=[(card,date_value(card.get("published_at"))) for card in cards]
+        if any(timestamp is None for _,timestamp in dated): raise RuntimeError("UK Prime Minister's Office feed lacks update times")
+        relevant=[card for card,timestamp in dated if timestamp>=start]
+        def verify(card):
+            if not re.fullmatch(r'https://www\.gov\.uk/government/[a-z-]+/[a-z0-9-]+',card["url"]):
+                raise RuntimeError(f"Unexpected UK government communication URL: {card['url']}")
+            _,article=fetch(card["url"])
+            published=publication_date(article,card["url"])
+            if not published: raise RuntimeError("UK government communication has no original publication date")
+            return card,published
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            for card,published in pool.map(verify,relevant):
+                if not start<=published<=end or card["url"] in seen: continue
+                seen.add(card["url"]); card["published_at"]=published.isoformat(); card["text"]=""; entries.append(card)
+        if min(timestamp for _,timestamp in dated)<start: break
+    else: raise RuntimeError("UK Prime Minister's Office feed exceeded 20 pages")
+    return entries,country["url"]
+
+
 def discover_bulgaria(country,start,end):
     """Page only the Bulgarian Council of Ministers' dated News archive."""
     first,last=start.astimezone(SOFIA).date(),end.astimezone(SOFIA).date()
@@ -666,6 +695,7 @@ def discover_croatia(country,start,end):
 
 
 def discover(country,start,end):
+    if country["iso2"]=="GB": return discover_united_kingdom(country,start,end)
     if country["iso2"]=="BG": return discover_bulgaria(country,start,end)
     if country["iso2"]=="HR": return discover_croatia(country,start,end)
     if country["iso2"]=="MD": return discover_moldova(country,start,end)
@@ -683,6 +713,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="GB":
+        _,body=fetch(item["url"])
+        parser=ClassText("govspeak"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r'\s+',' ',' '.join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("UK government communication has no usable body text")
+        return article
     if item["country_code"]=="BG":
         _,body=fetch(item["url"])
         parser=ClassText("view"); parser.feed(body.decode("utf-8","replace"))
