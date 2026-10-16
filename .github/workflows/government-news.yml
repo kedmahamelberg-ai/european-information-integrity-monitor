@@ -1,6 +1,8 @@
 name: Daily government communications
 on:
-  # Scheduled runs resume after the source register and staged review workflow are approved.
+  schedule:
+    - cron: "0 8 * * *"
+      timezone: "Europe/Amsterdam"
   workflow_dispatch:
     inputs:
       since:
@@ -38,15 +40,28 @@ jobs:
           test -n "$OPENAI_API_KEY" || { echo '::error::OPENAI_API_KEY is required'; exit 1; }
           test -n "$SUPABASE_URL" || { echo '::error::SUPABASE_URL is required'; exit 1; }
           test -n "$SUPABASE_SECRET_KEY" || { echo '::error::SUPABASE_SECRET_KEY is required'; exit 1; }
+      - name: Restore collection checkpoint
+        uses: actions/cache/restore@v4
+        with:
+          path: data/government_state.json
+          key: government-checkpoint-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: government-checkpoint-${{ github.ref_name }}-
       - name: Collect, translate and classify official government news
         run: |
           args=()
           if [ -n "$COLLECTION_SINCE" ]; then args+=(--since "$COLLECTION_SINCE"); fi
           if [ -n "$COLLECTION_UNTIL" ]; then args+=(--until "$COLLECTION_UNTIL"); fi
           python scripts/collect_government_news.py "${args[@]}"
+      - name: Save collection checkpoint
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/government_state.json
+          key: government-checkpoint-${{ github.ref_name }}-${{ github.run_id }}
       - name: Build public dashboard
         run: python scripts/build_site.py
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: government-human-review-queue
           path: |
