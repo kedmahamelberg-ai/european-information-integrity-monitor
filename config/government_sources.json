@@ -47,9 +47,9 @@
     {
       "iso2": "BE",
       "name": "Belgium",
-      "url": "https://news.belgium.be/nl/zoek-een-nieuwsbericht",
+      "url": "https://news.belgium.be/nl/ministerraad",
       "verification_status": "verified",
-      "scope_note": "Official federal news search across the Council of Ministers, ministers, and federal institutions; filter to executive communications during collection."
+      "scope_note": "Official federal Council of Ministers archive. Each meeting links its individual cabinet decisions; unrelated federal-agency announcements are excluded. The archive is verified, but automated extraction is pending because direct requests are denied."
     },
     {
       "iso2": "BA",
