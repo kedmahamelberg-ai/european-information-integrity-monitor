@@ -33,6 +33,7 @@ AMSTERDAM = ZoneInfo("Europe/Amsterdam")
 TBILISI = ZoneInfo("Asia/Tbilisi")
 TALLINN = ZoneInfo("Europe/Tallinn")
 BELGRADE = ZoneInfo("Europe/Belgrade")
+ANDORRA = ZoneInfo("Europe/Andorra")
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-3"
 
 
@@ -378,7 +379,53 @@ def discover_serbia(country,start,end):
     return entries,country["url"]
 
 
+CATALAN_MONTHS = {"gener":1,"febrer":2,"març":3,"abril":4,"maig":5,"juny":6,
+                  "juliol":7,"agost":8,"setembre":9,"octubre":10,"novembre":11,"desembre":12}
+
+
+def andorra_news_date(value):
+    match=re.search(r"(\d{1,2})\s+d[’']?\s*([a-zà-ÿ]+)\s+(20\d{2})",value.lower())
+    if not match or match.group(2) not in CATALAN_MONTHS:
+        raise RuntimeError(f"Andorran government news has no readable date: {value[:80]}")
+    return dt.date(int(match.group(3)),CATALAN_MONTHS[match.group(2)],int(match.group(1)))
+
+
+def discover_andorra(country,start,end):
+    """Page through dated cards in the government's Actualitat news section."""
+    first,last=start.astimezone(ANDORRA).date(),end.astimezone(ANDORRA).date()
+    entries=[]; seen=set(); page_number=1
+    while True:
+        url=country["url"] if page_number==1 else f'{country["url"]}?start={page_number}'
+        _,body=fetch(url)
+        page=body.decode("utf-8","replace")
+        cards=re.findall(r'<li\b[^>]*class=["\'][^"\']*\bcard_gac\b[^"\']*["\'][^>]*>(.*?)</li>',page,re.I|re.S)
+        if not cards: raise RuntimeError("Andorran Actualitat page has no news cards")
+        oldest=None
+        for card in cards:
+            title_match=re.search(r'<p\b[^>]*class=["\'][^"\']*\bcard-title\b[^"\']*["\'][^>]*>\s*<a\b[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>',card,re.I|re.S)
+            date_match=re.search(r'<span\b[^>]*class=["\'][^"\']*\bicon-calendar\b[^"\']*["\'][^>]*></span>\s*([^<]+)',card,re.I|re.S)
+            if not title_match or not date_match: raise RuntimeError("Andorran Actualitat card lacks title or date")
+            day=andorra_news_date(html.unescape(date_match.group(1)).strip())
+            oldest=day if oldest is None or day<oldest else oldest
+            if not first<=day<=last: continue
+            article_url=urllib.parse.urljoin(country["url"],html.unescape(title_match.group(1)))
+            if not re.fullmatch(r'https://www\.govern\.ad/ca/w/[a-z0-9-]+',article_url):
+                raise RuntimeError(f"Unexpected Andorran news URL: {article_url}")
+            if article_url in seen: continue
+            seen.add(article_url)
+            title=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',title_match.group(2)))).strip()
+            published=dt.datetime.combine(day,dt.time.min,ANDORRA).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":country["iso2"],"url":article_url,
+                            "title":title,"published_at":published.isoformat(),"published_date":day.isoformat(),
+                            "publication_precision":"day","text":""})
+        if oldest is not None and oldest<first: break
+        if page_number>=527: raise RuntimeError("Andorran Actualitat pagination did not reach the requested date")
+        page_number+=1
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="AD": return discover_andorra(country,start,end)
     if country["iso2"]=="NL": return discover_netherlands(country,start,end)
     if country["iso2"]=="AT": return discover_austria(country,start,end)
     if country["iso2"]=="GE": return discover_georgia(country,start,end)
@@ -389,6 +436,16 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="AD":
+        _,body=fetch(item["url"])
+        page=body.decode("utf-8","replace")
+        match=re.search(r'<div\b[^>]*class=["\'][^"\']*\bfloat-left\b[^"\']*["\'][^>]*>(.*?)(?:<style>|<script\s+type=["\']application/ld\+json)',page,re.I|re.S)
+        if not match: raise RuntimeError("Andorran government article body is missing")
+        parts=[re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',part))).strip()
+               for part in re.findall(r'<p\b[^>]*>(.*?)</p>',match.group(1),re.I|re.S)]
+        article=' '.join(part for part in parts if part)
+        if len(article)<40: raise RuntimeError("Andorran government article has no usable text")
+        return article
     if item["country_code"]=="RS":
         _,body=fetch(item["url"])
         page=body.decode("utf-8","replace")
