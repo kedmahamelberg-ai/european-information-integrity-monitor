@@ -127,8 +127,20 @@ def ask_openai(text, classification=True, examples=None):
         example_text="\nResearcher corrections from earlier source reviews (use as calibration examples):\n"+json.dumps(examples[-30:],ensure_ascii=False)
     req={"model":os.getenv("GOVERNMENT_MODEL","gpt-4.1-mini"),"input":[{"role":"system","content":task+"\nNarrative labels: "+", ".join(LABELS)+example_text},{"role":"user","content":text}],"text":{"format":{"type":"json_schema","name":"government_item","strict":True,"schema":schema}}}
     http=urllib.request.Request("https://api.openai.com/v1/responses",data=json.dumps(req).encode(),headers={"Authorization":"Bearer "+os.environ["OPENAI_API_KEY"],"Content-Type":"application/json"})
-    with urllib.request.urlopen(http,timeout=90) as r: result=json.load(r)
-    out="".join(x.get("text","") for o in result.get("output",[]) for x in o.get("content",[]) if x.get("type")=="output_text")
+    last_problem="empty response"
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(http,timeout=90) as r: result=json.load(r)
+            out=result.get("output_text") or "".join(x.get("text","") for o in result.get("output",[]) for x in o.get("content",[]) if x.get("type")=="output_text")
+            if out.strip():
+                try: return json.loads(out)
+                except json.JSONDecodeError as exc: last_problem=f"invalid JSON at character {exc.pos}"
+            else: last_problem=f"empty response (status={result.get('status')}, incomplete={result.get('incomplete_details')}, error={result.get('error')})"
+        except (urllib.error.URLError,TimeoutError) as exc:
+            last_problem=f"{type(exc).__name__}: {exc}"
+        if attempt<2: time.sleep(2**attempt)
+    raise RuntimeError(f"OpenAI response could not be parsed after 3 attempts: {last_problem}")
+    out=result.get("output_text") or "".join(x.get("text","") for o in result.get("output",[]) for x in o.get("content",[]) if x.get("type")=="output_text")
     return json.loads(out)
 
 
@@ -171,7 +183,7 @@ def main():
             if not text: item["classification_status"]="no_text"; existing[item["id"]]=item; continue
             translated=ask_openai(text,False); item["english_translation"]=translated["english_translation"][:18000]; item["english_summary"]=translated["short_english_summary"]
             examples=[{**correction,"title":existing[ident].get("title"),"summary":existing[ident].get("english_summary")} for ident,correction in correction_map.items() if ident in existing]
-            labels=ask_openai(item["english_translation"],True,examples); item.update(labels); item["classification_status"]="provisional"; item["review_sample"]=(int(item["id"][:8],16)%100<3); item["calibration_item"]=bool(calibrating and not calibration_ids); item["source_text_chars"]=len(text); item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item
+            labels=ask_openai(item["english_translation"],True,examples); item.update(labels); item["classification_status"]="provisional"; item["review_sample"]=(int(item["id"][:8],16)%100<3); item["calibration_item"]=bool(calibrating and not calibration_ids); item["source_text_chars"]=len(text); item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item; STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
         for item in candidates[cap:]: item["classification_status"]="awaiting_calibration"; item.pop("text",None); existing[item["id"]]=item
     calibration_ids={x["id"] for x in existing.values() if x.get("calibration_item")}
     calibration_complete=bool(state.get("calibration_complete")) or bool(calibration_ids and calibration_ids.issubset(correction_map))
