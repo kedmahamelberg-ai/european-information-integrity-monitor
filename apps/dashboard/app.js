@@ -22,6 +22,7 @@ const human = (s) =>
       : Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 });
 let feedQueue=[], feedIndex=0, feedPaused=matchMedia("(prefers-reduced-motion: reduce)").matches;
 let data = {videos:[], inventory:[], batches:[], collection:{}}, governmentData={items:[]}, governmentSourceDirectory={sources:[]}, countries=[], inventory=[], zoom=1;
+const hiddenTrendTopics=new Set();
 const roles=["readiness","projecting_power","under_pressure"], colors={coverage:"#b9ee74", related:"#b9ee74", readiness:"#61d7bc", projecting_power:"#efb85b", under_pressure:"#f17a69"}, icons={readiness:"🛡", projecting_power:"⚔", under_pressure:"🎯"};
 function project(lon, lat) {
   const my = (v) => Math.log(Math.tan(Math.PI / 4 + (v * Math.PI) / 360));
@@ -160,7 +161,56 @@ function renderMap(){
  if(govVisible)$('#map-key').insertAdjacentHTML('beforeend',`<span><b class="gov-star">★</b> Related government communications · size follows count · ${num([...govByCountry.values()].reduce((a,b)=>a+b,0))}</span>`);
  $('#response-metric').disabled=layer==='videos'||layer==='government';
 }
+function governmentTopicCodes(item){
+ return [...new Set((item.topics?.length?item.topics:[item.primary_narrative,...(item.secondary_narratives||[])]).filter(Boolean))];
+}
+function updateTrendCountries(){
+ const available=new Set((governmentData.items||[]).filter(x=>x.related===true&&['provisional','human_reviewed'].includes(x.classification_status)).map(x=>x.country_code));
+ const options=countries.filter(c=>available.has(c.iso2)).sort((a,b)=>a.country_name.localeCompare(b.country_name));
+ for(const id of ['trend-country-1','trend-country-2','trend-country-3']){
+  const select=$('#'+id),previous=select.value,initial=id==='trend-country-1'?'<option value="all">Europe · all countries</option>':'<option value="none">No comparison</option>';
+  select.innerHTML=initial+options.map(c=>`<option value="${esc(c.iso2)}">${esc(c.country_name)}</option>`).join('');
+  if([...select.options].some(o=>o.value===previous))select.value=previous;
+ }
+}
+function renderGovernmentTrends(){
+ const coded=(governmentData.items||[]).filter(x=>x.related===true&&['provisional','human_reviewed'].includes(x.classification_status)&&governmentTopicCodes(x).length);
+ const dated=coded.map(x=>({...x,chartDate:(x.published_date||x.published_at||'').slice(0,10)})).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x.chartDate));
+ const chartHost=$('#government-trend-charts'),legend=$('#government-trend-legend'),note=$('#government-trend-note');
+ if(!dated.length){chartHost.innerHTML='<p class="empty">Narrative dynamics will appear when related government communications are classified.</p>';legend.innerHTML='';note.textContent='';return;}
+ const allDates=dated.map(x=>x.chartDate).sort(),first=allDates[0],last=allDates.at(-1),range=$('#trend-range').value;
+ let from=first,to=last;
+ if(range==='7'||range==='30')from=new Date(Date.parse(last+'T00:00:00Z')-(Number(range)-1)*86400000).toISOString().slice(0,10);
+ if(range==='custom'){from=$('#trend-from').value||first;to=$('#trend-to').value||last;}
+ from=from<first?first:from;to=to>last?last:to;
+ if(from>to){chartHost.innerHTML='<p class="empty">Choose a start date on or before the end date.</p>';legend.innerHTML='';note.textContent='';return;}
+ const days=[];for(let d=Date.parse(from+'T00:00:00Z'),end=Date.parse(to+'T00:00:00Z');d<=end;d+=86400000)days.push(new Date(d).toISOString().slice(0,10));
+ const selected=dated.filter(x=>x.chartDate>=from&&x.chartDate<=to),topics=[...new Set(selected.flatMap(governmentTopicCodes))].sort();
+ const selectedCountries=[...new Set(['trend-country-1','trend-country-2','trend-country-3'].map(id=>$('#'+id).value).filter(x=>x!=='none'))];
+ const colorFor=(topic)=>{const index=Object.keys(data.topic_labels||{}).sort().indexOf(topic);return `hsl(${Math.round(((index<0?topic.split('').reduce((n,c)=>n+c.charCodeAt(0),0):index)*137.508)%360)} 78% 68%)`;};
+ const countryName=code=>code==='all'?'Europe · all collected countries':countries.find(c=>c.iso2===code)?.country_name||code;
+ const panels=selectedCountries.map(code=>{
+  const items=selected.filter(x=>code==='all'||x.country_code===code),daily=new Map(days.map(day=>[day,[]]));
+  for(const item of items)daily.get(item.chartDate).push(...governmentTopicCodes(item));
+  const counts=new Map(),series=new Map(topics.map(t=>[t,[]]));let total=0;
+  for(const day of days){for(const topic of daily.get(day)){counts.set(topic,(counts.get(topic)||0)+1);total++;}for(const topic of topics)series.get(topic).push(total?100*(counts.get(topic)||0)/total:null);}
+  const w=1000,h=270,left=54,right=24,top=22,bottom=46,plotW=w-left-right,plotH=h-top-bottom;
+  const x=i=>left+(days.length===1?plotW/2:i*plotW/(days.length-1)),y=value=>top+plotH*(1-value/100);
+  const grid=[0,25,50,75,100].map(v=>`<line x1="${left}" y1="${y(v)}" x2="${w-right}" y2="${y(v)}" class="trend-grid"/><text x="${left-10}" y="${y(v)+4}" text-anchor="end" class="trend-axis">${v}%</text>`).join('');
+  const step=Math.max(1,Math.ceil(days.length/7)),tickIndexes=[...new Set([...days.keys()].filter(i=>i%step===0).concat(days.length-1))];
+  const ticks=tickIndexes.map(i=>`<text x="${x(i)}" y="${h-13}" text-anchor="middle" class="trend-axis">${esc(days[i].slice(5))}</text>`).join('');
+  const paths=topics.filter(t=>!hiddenTrendTopics.has(t)&&(counts.get(t)||0)>0).map(t=>{
+   const values=series.get(t),points=values.map((v,i)=>v===null?null:[i,v]).filter(Boolean),path=points.map(([i,v],j)=>`${j?'L':'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' '),lastValue=values.at(-1);
+   return `<path d="${path}" fill="none" stroke="${colorFor(t)}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".88"><title>${esc(countryName(code))} · ${esc(data.topic_labels?.[t]||human(t))} · ${lastValue.toFixed(1)}% (${counts.get(t)} labels)</title></path><circle cx="${x(days.length-1)}" cy="${y(lastValue)}" r="2.5" fill="${colorFor(t)}"><title>${esc(data.topic_labels?.[t]||human(t))}: ${lastValue.toFixed(1)}%</title></circle>`;
+  }).join('');
+  return `<div class="trend-panel"><div class="trend-panel-title"><strong>${esc(countryName(code))}</strong><span>${num(items.length)} related communications · ${num(total)} topic labels</span></div>${total?`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Daily cumulative narrative shares for ${esc(countryName(code))}, ${esc(from)} to ${esc(to)}">${grid}${ticks}${paths}</svg>`:'<p class="empty">No related communications in this period.</p>'}</div>`;
+ });
+ chartHost.innerHTML=panels.join('');
+ legend.innerHTML=topics.map(t=>`<button type="button" data-trend-topic="${esc(t)}" aria-pressed="${!hiddenTrendTopics.has(t)}" class="${hiddenTrendTopics.has(t)?'trend-off':''}"><i style="background:${colorFor(t)}"></i>${esc(data.topic_labels?.[t]||human(t))}</button>`).join('');
+ note.textContent=`${from} to ${to} · Cumulative from the start of this selected period. Daily values use publication dates; each related topic label contributes once to the denominator. Tap a narrative in the legend to show or hide it. Updated with each published collection.`;
+}
 function renderGovernment(){
+ updateTrendCountries();renderGovernmentTrends();
  const items=(governmentData.items||[]).filter(x=>['provisional','human_reviewed'].includes(x.classification_status)), related=items.filter(x=>x.related===true);
  const pendingSources=(governmentSourceDirectory.sources||[]).filter(x=>x.collection_status==='pending');
  $('#government-pending').innerHTML=pendingSources.length?'<h2>Pending collection · '+pendingSources.length+' countries</h2><p>Official news sections are recorded, but automatic retrieval is not yet reliable. Missing communications here do not mean these governments published nothing.</p><div class="pending-country-grid">'+pendingSources.map(x=>'<a href="'+esc(x.url)+'" target="_blank" rel="noopener"><b>'+esc(x.name)+'</b><span>Pending ↗</span></a>').join('')+'</div>':'';
@@ -227,6 +277,9 @@ async function init(){try{
  }catch(e){$('#data-status').textContent='Snapshot unavailable. Please refresh or check the publishing workflow.';console.error(e);}}
 for(const id of ['batch','country','topic','metric','response-metric'])$('#'+id).onchange=render;
  for(const id of ['government-country','government-narrative','government-review'])$('#'+id).onchange=renderGovernment;
+ $('#trend-range').onchange=()=>{document.querySelectorAll('.trend-custom-date').forEach(el=>el.hidden=$('#trend-range').value!=='custom');renderGovernmentTrends();};
+ for(const id of ['trend-from','trend-to','trend-country-1','trend-country-2','trend-country-3'])$('#'+id).onchange=renderGovernmentTrends;
+ $('#government-trend-legend').onclick=e=>{const button=e.target.closest('[data-trend-topic]');if(!button)return;const topic=button.dataset.trendTopic;if(hiddenTrendTopics.has(topic))hiddenTrendTopics.delete(topic);else hiddenTrendTopics.add(topic);renderGovernmentTrends();};
 $('#date-range').onchange=()=>{$('#custom-dates').hidden=$('#date-range').value!=='custom';if($('#date-range').value==='custom')configureDateInputs();render();};
 for(const id of ['date-from','date-to'])$('#'+id).onchange=render;
 for(const id of ['rank-alignment','rank-sentiment'])$('#'+id).onchange=renderRanking;
