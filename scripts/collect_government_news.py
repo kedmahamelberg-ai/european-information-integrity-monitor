@@ -58,11 +58,12 @@ BUCHAREST = ZoneInfo("Europe/Bucharest")
 MONACO = ZoneInfo("Europe/Monaco")
 PODGORICA = ZoneInfo("Europe/Podgorica")
 LUXEMBOURG = ZoneInfo("Europe/Luxembourg")
+BAKU = ZoneInfo("Asia/Baku")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","VA"}
+COLLECTOR_READY_CODES = {"AD","AT","AZ","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","VA"}
 
 
 class Links(HTMLParser):
@@ -1374,7 +1375,45 @@ def discover_luxembourg(country,start,end):
     return entries,country["url"]
 
 
+AZERI_MONTHS={name:number for number,name in enumerate(
+    ("Yanvar","Fevral","Mart","Aprel","May","İyun","İyul","Avqust","Sentyabr","Oktyabr","Noyabr","Dekabr"),1)}
+
+
+def discover_azerbaijan(country,start,end):
+    """Page the Cabinet press office's dated statement list, excluding other sections."""
+    entries=[]; seen=set()
+    for page_number in range(100):
+        url=country["url"]+(f"?page={page_number}" if page_number else "")
+        _,body=fetch(url,timeout=20)
+        page=body.decode("utf-8","replace")
+        if 'id="news-items"' not in page or '<nav class="news-page-nav' not in page:
+            raise RuntimeError("Azerbaijan Cabinet press office archive has no dated results")
+        cards=re.split(r'<div class="[^"]*\bnews-item\b[^"]*">',page.split('id="news-items"',1)[1].split('<nav class="news-page-nav',1)[0])[1:]
+        if not cards: raise RuntimeError("Azerbaijan Cabinet press office page is empty")
+        older=False
+        for card in cards:
+            dated=re.search(r'date-time-line">\s*(\d{1,2})\s+([\wƏəİıĞğŞşÇçÖöÜü]+)\s+(20\d{2})\s*-\s*(\d{2}):(\d{2})',card)
+            title_match=re.search(r'<p class="card-text[^>]*>(.*?)</p>',card,re.S)
+            link_match=re.search(r'<a href="(/az/xeberler/matbuat-xidmatinin-malumati/[^"?#]+)"',card)
+            if not dated or not title_match or not link_match: raise RuntimeError("Azerbaijan press statement lacks date, title, or link")
+            month=AZERI_MONTHS.get(dated.group(2))
+            if not month: raise RuntimeError("Unexpected Azerbaijani publication month")
+            published=dt.datetime(int(dated.group(3)),month,int(dated.group(1)),int(dated.group(4)),int(dated.group(5)),tzinfo=BAKU).astimezone(dt.timezone.utc)
+            if published<start: older=True; continue
+            if published>end: continue
+            article_url=urllib.parse.urljoin("https://nk.gov.az",link_match.group(1))
+            if article_url in seen: raise RuntimeError("Azerbaijan press office repeated a statement")
+            seen.add(article_url)
+            title=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",title_match.group(1)))).strip()
+            entries.append({"country":country["name"],"country_code":"AZ","url":article_url,
+                            "title":title,"published_at":published.isoformat(),"text":""})
+        if older: break
+    else: raise RuntimeError("Azerbaijan press office archive exceeded 100 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="AZ": return discover_azerbaijan(country,start,end)
     if country["iso2"]=="LU": return discover_luxembourg(country,start,end)
     if country["iso2"]=="VA": return discover_vatican(country,start,end)
     if country["iso2"]=="ME": return discover_montenegro(country,start,end)
@@ -1411,6 +1450,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="AZ":
+        _,body=fetch(item["url"],timeout=20)
+        parser=ClassText("page-content"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Azerbaijan Cabinet statement has no usable body text")
+        return article
     if item["country_code"]=="LU":
         _,body=fetch(item["url"],timeout=20)
         parser=ClassText("cmp-text"); parser.feed(body.decode("utf-8","replace"))
