@@ -213,7 +213,9 @@ function renderGovernment(){
  updateTrendCountries();renderGovernmentTrends();
  const items=(governmentData.items||[]).filter(x=>['provisional','human_reviewed'].includes(x.classification_status)), related=items.filter(x=>x.related===true);
  const pendingSources=(governmentSourceDirectory.sources||[]).filter(x=>x.collection_status==='pending');
- $('#government-pending').innerHTML=pendingSources.length?'<h2>Pending collection · '+pendingSources.length+' countries</h2><p>Official news sections are recorded, but automatic retrieval is not yet reliable. Missing communications here do not mean these governments published nothing.</p><div class="pending-country-grid">'+pendingSources.map(x=>'<a href="'+esc(x.url)+'" target="_blank" rel="noopener"><b>'+esc(x.name)+'</b><span>Pending ↗</span></a>').join('')+'</div>':'';
+ $('#government-pending').innerHTML=pendingSources.length?'<button type="button" id="government-pending-open" aria-haspopup="dialog" aria-controls="government-pending-dialog"><span>Pending collection <b>'+pendingSources.length+' countries</b></span><span>View sources ↗</span></button>':'';
+ $('#government-pending-list').innerHTML=pendingSources.map(x=>'<a href="'+esc(x.url)+'" target="_blank" rel="noopener"><b>'+esc(x.name)+'</b><span>Pending ↗</span></a>').join('');
+ if(pendingSources.length)$('#government-pending-open').onclick=()=>$('#government-pending-dialog').showModal();
  const latestByCountry=new Map(); for(const item of related.slice().sort((a,b)=>(b.published_at||'').localeCompare(a.published_at||''))){if(!latestByCountry.has(item.country_code))latestByCountry.set(item.country_code,item);} const highlights=[...latestByCountry.values()];
  $('#government-ticker').innerHTML=highlights.length?'<span class="ticker-label">GOVERNMENT WATCH · '+highlights.length+' COUNTRIES</span><div class="ticker-window"><div class="ticker-track">'+[...highlights,...highlights].map(x=>'<a href="'+esc(x.url)+'" target="_blank" rel="noopener" title="'+esc(x.country)+' · '+esc(x.title)+'"><b>'+esc(x.country)+'</b> '+esc(x.ticker_message||x.english_summary||x.title)+'</a>').join('')+'</div></div>':'<span class="ticker-label">GOVERNMENT WATCH</span><span class="ticker-empty">No classified related government communications in this collection window.</span>';
  const tickerTrack=$('#government-ticker .ticker-track');if(tickerTrack)tickerTrack.style.animationDuration=Math.max(120,Math.ceil(tickerTrack.scrollWidth/2/28))+'s';
@@ -292,6 +294,7 @@ $('#markers').onclick=e=>{const el=e.target.closest('[data-country]');if(el){sho
 $('#markers').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));}};
 for(const id of ['source-feed','evidence-table'])$('#'+id).onclick=e=>{const b=e.target.closest('[data-source]');if(b)showSource(b.dataset.source);};
 $('#close-country').onclick=()=>$('#country-dialog').close();
+$('#government-pending-close').onclick=()=>$('#government-pending-dialog').close();
 $('#close-source').onclick=()=>$('#source-dialog').close();$('#source-dialog').addEventListener('close',()=>$('#source-detail').innerHTML='');
 function setZoom(){const w=960/zoom,h=650/zoom;$('#map').setAttribute('viewBox',`${(960-w)/2} ${(650-h)/2} ${w} ${h}`);}
 $('#zoom-in').onclick=()=>{zoom=Math.min(3,zoom+.25);setZoom();};$('#zoom-out').onclick=()=>{zoom=Math.max(1,zoom-.25);setZoom();};$('#zoom-reset').onclick=()=>{zoom=1;setZoom();};
