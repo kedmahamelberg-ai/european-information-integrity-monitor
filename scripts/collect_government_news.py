@@ -49,11 +49,12 @@ LJUBLJANA = ZoneInfo("Europe/Ljubljana")
 BRATISLAVA = ZoneInfo("Europe/Bratislava")
 WARSAW = ZoneInfo("Europe/Warsaw")
 PRAGUE = ZoneInfo("Europe/Prague")
+BUDAPEST = ZoneInfo("Europe/Budapest")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","IS","IT","MD","NL","PL","RS","SE","SI","SK"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","MD","NL","PL","RS","SE","SI","SK"}
 
 
 class Links(HTMLParser):
@@ -992,7 +993,42 @@ def discover_czechia(country,start,end):
     return entries,country["url"]
 
 
+def discover_hungary(country,start,end):
+    """Page the official Hungarian cabinet news API by publication date."""
+    first,last=start.astimezone(BUDAPEST).date(),end.astimezone(BUDAPEST).date()
+    entries=[]; seen=set(); total=None
+    for page_number in range(1,101):
+        query=urllib.parse.urlencode({"filter":json.dumps({"type":"article","orderBy":{"publicationDate":"desc"}},separators=(",",":")),
+            "pagination":json.dumps({"page":page_number,"itemsPerPage":12},separators=(",",":"))})
+        _,body=fetch("https://kormany.hu/application/pages?"+query)
+        result=json.loads(body)
+        pagination=result["meta"]["pagination"]
+        if int(pagination["page"])!=page_number: raise RuntimeError("Hungarian cabinet news pagination did not advance")
+        count=int(pagination["itemsTotal"])
+        if total is None: total=count
+        elif count!=total: raise RuntimeError("Hungarian cabinet news total changed during pagination")
+        rows=result["data"]
+        if not rows: raise RuntimeError("Hungarian cabinet news ended before its reported total")
+        older=False
+        for row in rows:
+            if row.get("ministry") is not None: raise RuntimeError("Unexpected ministry article in central Hungarian news archive")
+            day=dt.date.fromisoformat(row["date"][:10])
+            if day<first: older=True; continue
+            if day>last: continue
+            article_url=urllib.parse.urljoin(country["url"],"/hirek/"+row["slug"])
+            if article_url in seen: raise RuntimeError("Hungarian cabinet news repeated an article")
+            seen.add(article_url)
+            published=dt.datetime.combine(day,dt.time.min,BUDAPEST).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":"HU","url":article_url,
+                "title":row["name"].strip(),"published_at":published.isoformat(),
+                "published_date":day.isoformat(),"publication_precision":"day","text":""})
+        if older or page_number*12>=total: break
+    else: raise RuntimeError("Hungarian cabinet news archive exceeded 100 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="HU": return discover_hungary(country,start,end)
     if country["iso2"]=="CZ": return discover_czechia(country,start,end)
     if country["iso2"]=="PL": return discover_poland(country,start,end)
     if country["iso2"]=="SK": return discover_slovakia(country,start,end)
@@ -1019,6 +1055,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="HU":
+        _,body=fetch(item["url"])
+        parser=MainText(); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r'\s+',' ',' '.join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Hungarian cabinet news item has no usable body text")
+        return article
     if item["country_code"]=="CZ":
         _,body=fetch(item["url"])
         parser=ClassText("article"); parser.feed(body.decode("utf-8","replace"))
