@@ -1,7 +1,7 @@
 name: Daily government communications
 on:
   schedule:
-    - cron: "0 8 * * *"
+    - cron: "0 10 * * *"
       timezone: "Europe/Amsterdam"
   workflow_dispatch:
     inputs:
