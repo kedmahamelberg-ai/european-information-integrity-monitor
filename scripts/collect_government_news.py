@@ -72,7 +72,7 @@ SOURCE_TIMEZONES = {"AD": ANDORRA, "AM": YEREVAN, "AT": AMSTERDAM, "BA": ZoneInf
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
                     "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "NO": OSLO, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE, "ES": MADRID, "TR": ISTANBUL, "UA": KYIV, "CH": ZURICH}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AM","AT","AZ","BA","BE","BG","BY","CH","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","SM","TR","VA","XK"}
+COLLECTOR_READY_CODES = {"AD","AM","AT","AZ","BA","BE","BG","BY","CH","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RS","SE","SI","SK","SM","TR","VA","XK"}
 
 
 class Links(HTMLParser):
@@ -2381,4 +2381,5 @@ def main():
         raise SystemExit("Every ready official news section failed; no source cursor advanced.")
 
 if __name__ == "__main__": main()
+
 
