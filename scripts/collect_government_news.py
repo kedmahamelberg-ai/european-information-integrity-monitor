@@ -32,6 +32,7 @@ CORRECTIONS = ROOT / "data/government_corrections.json"
 REVIEW_QUEUE = ROOT / "build/government-review-queue.json"
 UA = "EuropeanSecurityMonitor/1.0 (public research; contact: monitor@hamelberg-ai.com)"
 AMSTERDAM = ZoneInfo("Europe/Amsterdam")
+YEREVAN = ZoneInfo("Asia/Yerevan")
 BRUSSELS = ZoneInfo("Europe/Brussels")
 TBILISI = ZoneInfo("Asia/Tbilisi")
 TALLINN = ZoneInfo("Europe/Tallinn")
@@ -65,11 +66,11 @@ ISTANBUL = ZoneInfo("Europe/Istanbul")
 KYIV = ZoneInfo("Europe/Kyiv")
 ZURICH = ZoneInfo("Europe/Zurich")
 OSLO = ZoneInfo("Europe/Oslo")
-SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BE": BRUSSELS, "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
+SOURCE_TIMEZONES = {"AD": ANDORRA, "AM": YEREVAN, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BE": BRUSSELS, "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
                     "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "NO": OSLO, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE, "ES": MADRID, "TR": ISTANBUL, "UA": KYIV, "CH": ZURICH}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","AZ","BA","BE","BG","BY","CH","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","SM","TR","VA","XK"}
+COLLECTOR_READY_CODES = {"AD","AM","AT","AZ","BA","BE","BG","BY","CH","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","SM","TR","VA","XK"}
 
 
 class Links(HTMLParser):
@@ -304,6 +305,39 @@ def discover_belgium(country, start, end):
                             "publication_precision": "day", "text": ""})
         if older: break
     else: raise RuntimeError("Belgian ministry news archive exceeded 100 pages")
+    return entries, country["url"]
+
+
+def discover_armenia(country, start, end):
+    """Read the prime minister's English press releases, page by dated page."""
+    first, last = start.astimezone(YEREVAN).date(), end.astimezone(YEREVAN).date()
+    entries = []; seen = set()
+    for page_number in range(1, 101):
+        url = country["url"] if page_number == 1 else f"https://www.primeminister.am/en/press-release/page/{page_number}/"
+        _, body = fetch(url, timeout=20)
+        page = body.decode("utf-8", "replace")
+        cards = re.findall(r'<li\b[^>]*class="[^"]*search__item\b[^"]*"[^>]*>(.*?)</li>', page, re.S)
+        if not cards: raise RuntimeError("Armenian prime minister archive has no press-release cards")
+        older = False
+        for card in cards:
+            dated = re.search(r'<div\b[^>]*class="[^"]*search__date\b[^"]*"[^>]*>\s*(\d{1,2})\.(\d{1,2})\.(20\d{2})\s*</div>', card)
+            link = re.search(r'<a\b[^>]*class="[^"]*search__result-title\b[^"]*"[^>]*href="([^"]+)"[^>]*>(.*?)</a>', card, re.S)
+            if not dated or not link: raise RuntimeError("Armenian prime minister card lacks date or article URL")
+            day = dt.date(int(dated.group(3)), int(dated.group(2)), int(dated.group(1)))
+            if day < first: older = True; continue
+            if day > last: continue
+            article_url = urllib.parse.urljoin(country["url"], html.unescape(link.group(1)))
+            if not re.fullmatch(r'https://www\.primeminister\.am/en/press-release/item/20\d{2}/\d{2}/\d{2}/[^/?#]+/', article_url):
+                raise RuntimeError("Armenian prime minister archive linked outside its press releases")
+            if article_url in seen: raise RuntimeError("Armenian prime minister archive repeated an article")
+            seen.add(article_url)
+            title = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", link.group(2)))).strip()
+            published = dt.datetime.combine(day, dt.time.min, YEREVAN).astimezone(dt.timezone.utc)
+            entries.append({"country": country["name"], "country_code": "AM", "url": article_url,
+                            "title": title, "published_at": published.isoformat(), "published_date": day.isoformat(),
+                            "publication_precision": "day", "text": ""})
+        if older: break
+    else: raise RuntimeError("Armenian prime minister archive exceeded 100 pages")
     return entries, country["url"]
 
 
@@ -1750,6 +1784,7 @@ def discover_norway(country,start,end):
 
 
 def discover(country,start,end):
+    if country["iso2"]=="AM": return discover_armenia(country,start,end)
     if country["iso2"]=="BE": return discover_belgium(country,start,end)
     if country["iso2"]=="NO": return discover_norway(country,start,end)
     if country["iso2"]=="SM": return discover_san_marino(country,start,end)
@@ -1795,6 +1830,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="AM":
+        _, body = fetch(item["url"], timeout=20)
+        parser = ClassText("news-text"); parser.feed(body.decode("utf-8", "replace"))
+        article = re.sub(r"\s+", " ", " ".join(parser.parts)).strip()
+        if len(article) < 40: raise RuntimeError("Armenian prime minister release has no usable article body")
+        return article
     if item["country_code"]=="BE":
         _, body = fetch_ipv4(item["url"], timeout=20)
         parser = ClassText("wysiwyg__content"); parser.feed(body.decode("utf-8", "replace"))
