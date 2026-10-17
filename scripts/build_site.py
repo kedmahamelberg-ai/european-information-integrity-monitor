@@ -16,9 +16,18 @@ for p in source.rglob("*"):
 (out / ".nojekyll").write_text("")
 gov_state = ROOT / "data" / "government_state.json"
 gov_public = out / "government-data.json"
+if not gov_public.exists():
+    # A normal site rebuild must publish the committed government checkpoint.
+    # Keep a newer live snapshot when the daily collector has advanced beyond it.
+    snapshot = None
+    if gov_state.exists():
+        state = json.loads(gov_state.read_text())
+        snapshot = {
+            "as_of": state.get("last_successful_collection_end"),
+            "items": [{k: v for k, v in item.items() if k != "english_translation"}
+                      for item in state.get("items", [])],
+        }
 if not gov_public.exists() and ("--live" in sys.argv or "--camera-only" in sys.argv):
-    # Other publication jobs must carry forward the latest government snapshot.
-    # Its live checkpoint is in the daily workflow cache, not an unsigned commit.
     request = urllib.request.Request(
         f"https://monitor.hamelberg-ai.com/government-data.json?preserve={int(datetime.now(timezone.utc).timestamp())}",
         headers={"Cache-Control": "no-cache", "User-Agent": "EIIM-government-snapshot/1.0"},
@@ -27,17 +36,15 @@ if not gov_public.exists() and ("--live" in sys.argv or "--camera-only" in sys.a
         with urllib.request.urlopen(request, timeout=20) as response:
             payload=response.read(10_000_001)
         if len(payload)>10_000_000: raise RuntimeError("Published government snapshot exceeds camera refresh limit")
-        snapshot=json.loads(payload)
-        if not isinstance(snapshot,dict) or not isinstance(snapshot.get("items"),list):
+        published=json.loads(payload)
+        if not isinstance(published,dict) or not isinstance(published.get("items"),list):
             raise RuntimeError("Published government snapshot is invalid")
-        gov_public.write_bytes(payload)
+        if snapshot is None or len(published["items"]) > len(snapshot["items"]):
+            snapshot = published
     except urllib.error.HTTPError as error:
         if error.code!=404 or "--camera-only" in sys.argv: raise
-if gov_state.exists() and not gov_public.exists():
-    snapshot = json.loads(gov_state.read_text())
-    gov_public.write_text(json.dumps({"as_of": snapshot.get("last_successful_collection_end"), "items": [{k: v for k, v in item.items() if k != "english_translation"} for item in snapshot.get("items", [])]}, ensure_ascii=False, indent=2) + "\n")
-elif not gov_public.exists():
-    gov_public.write_text('{"items":[]}\n')
+if not gov_public.exists():
+    gov_public.write_text(json.dumps(snapshot or {"items": []}, ensure_ascii=False, indent=2) + "\n")
 if "--live" in sys.argv:
     sys.path.insert(0, str(ROOT / "src"))
     from eiim.hybrid_public import export_public
