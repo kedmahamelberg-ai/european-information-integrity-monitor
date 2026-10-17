@@ -22,6 +22,11 @@ on:
         required: false
         default: false
         type: boolean
+      discovery_only:
+        description: Check official source archives without calling the classifier
+        required: false
+        default: false
+        type: boolean
 permissions:
   contents: write
   pages: write
@@ -42,6 +47,7 @@ jobs:
       COLLECTION_UNTIL: ${{ inputs.until }}
       COLLECTION_COUNTRIES: ${{ inputs.countries }}
       CLASSIFY_ONLY: ${{ inputs.classify_only }}
+      DISCOVERY_ONLY: ${{ inputs.discovery_only }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -76,6 +82,7 @@ jobs:
           if [ -n "$COLLECTION_UNTIL" ]; then args+=(--until "$COLLECTION_UNTIL"); fi
           if [ -n "$COLLECTION_COUNTRIES" ]; then args+=(--countries "$COLLECTION_COUNTRIES"); fi
           if [ "$CLASSIFY_ONLY" = "true" ]; then args+=(--classify-only); fi
+          if [ "$DISCOVERY_ONLY" = "true" ]; then args+=(--discovery-only); fi
           python scripts/collect_government_news.py "${args[@]}"
       - name: Save collection checkpoint
         if: always()
