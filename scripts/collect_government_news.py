@@ -47,7 +47,7 @@ SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Saraj
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
                     "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","EE","GB","GE","GR","HR","IS","IT","MD","NL","RS"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","EE","GB","GE","GR","HR","IS","IT","MD","NL","RS","SE"}
 
 
 class Links(HTMLParser):
@@ -733,7 +733,44 @@ def discover_croatia(country,start,end):
     return entries,country["url"]
 
 
+def discover_sweden(country,start,end):
+    """Query the official press-release filter, checking its total and every dated page."""
+    first,last=start.astimezone(AMSTERDAM).date(),end.astimezone(AMSTERDAM).date()
+    entries=[]; seen=set(); total=None
+    for page_number in range(1,101):
+        query=urllib.parse.urlencode({"lang":"sv","filterType":"Taxonomy",
+            "filterByType":"FilterablePageBase","preFilteredCategories":"1334",
+            "rootPageReference":"0","page":page_number,"displayLimited":"True",
+            "fromDate":first.isoformat(),"toDate":last.isoformat(),
+            "sortAlphabetically":"False","filterFromToday":"False"})
+        _,payload=fetch("https://www.regeringen.se/Filter/GetFilteredItems?"+query)
+        result=json.loads(payload)
+        reported=int(result["TotalCount"])
+        if total is None: total=reported
+        elif reported!=total: raise RuntimeError("Swedish press-release total changed during pagination")
+        markup=result["Message"]
+        cards=re.findall(r'<div class="sortcompact">\s*<a href="([^"]+)">(.*?)</a>.*?<time datetime="(20\d{2}-\d{2}-\d{2})"',markup,re.I|re.S)
+        if not cards and len(entries)<total: raise RuntimeError("Swedish press-release filter ended before its reported total")
+        for path,raw_title,raw_day in cards:
+            url=urllib.parse.urljoin(country["url"],html.unescape(path))
+            if not re.fullmatch(r'https://www\.regeringen\.se/pressmeddelanden/20\d{2}/\d{2}/[^/]+/',url):
+                raise RuntimeError(f"Unexpected Swedish press-release URL: {url}")
+            day=dt.date.fromisoformat(raw_day)
+            if not first<=day<=last: raise RuntimeError("Swedish press-release filter returned an out-of-window card")
+            if url in seen: raise RuntimeError("Swedish press-release filter repeated an article")
+            seen.add(url)
+            title=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',raw_title))).strip()
+            published=dt.datetime.combine(day,dt.time.min,AMSTERDAM).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":"SE","url":url,"title":title,
+                            "published_at":published.isoformat(),"published_date":day.isoformat(),
+                            "publication_precision":"day","text":""})
+        if len(entries)==total: break
+    else: raise RuntimeError("Swedish press-release filter exceeded 100 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="SE": return discover_sweden(country,start,end)
     if country["iso2"]=="IT": return discover_italy(country,start,end)
     if country["iso2"]=="GB": return discover_united_kingdom(country,start,end)
     if country["iso2"]=="BG": return discover_bulgaria(country,start,end)
@@ -753,6 +790,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="SE":
+        _,body=fetch(item["url"])
+        parser=ClassText("has-wordExplanation"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r'\s+',' ',' '.join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Swedish press release has no usable body text")
+        return article
     if item["country_code"]=="IT":
         _,body=fetch(item["url"])
         parser=ClassText("field-name-body"); parser.feed(body.decode("utf-8","replace"))
