@@ -1,24 +1,26 @@
 # Daily government communications
 
-`config/government_sources.json` follows the 51-country scope in `config/countries.json`. It lists a central national-government or head-of-government site for each country. The collector checks each site's own RSS/Atom declarations and newsroom links; `official_home` and source reachability are recorded per run. Feed endpoints can change, so the published source directory must be checked against the recorded discoveries.
+`config/government_sources.json` is the reviewed directory of exact official communication sections for the 51 countries in `config/countries.json`. The directory URL identifies the publication section; it is not a general government homepage. Finland uses only [Valtioneuvoston uutiset](https://valtioneuvosto.fi/ajankohtaista/uutiset), whose dated entries are marked `Uutinen`. The separate `Tiedotteet` press-release feed is outside the Finland scope. The researcher-supplied Belarus and Georgia sections are retained.
 
-The scheduled GitHub Actions workflow runs at 08:00 in `Europe/Amsterdam`. Its first run starts at 2026-10-01; later runs start at the end timestamp saved by the previous successful run. A manual dispatch can override `since` for a backfill.
+## Collection and schedule
 
-The collector uses RSS/Atom first and then a conservative same-domain newsroom crawl. It deduplicates by source URL, fetches public article text, translates it to English, then classifies the translation against `config/narratives.json`. Communication mode and audience comments are not coded. Only related items appear in the moving government ticker. Gold stars show countries with classified government communications and can be toggled on the map.
+`.github/workflows/government-news.yml` runs daily at **15:00 Europe/Amsterdam**. The October backfill begins on 2026-10-01. Each enabled source has its own saved end timestamp; a later run starts from that source's checkpoint. Date-only sources revisit both touched dates and deduplicate by official article URL. A failed source does not advance its checkpoint. Manual dispatch accepts `since`, `until`, `countries`, and `classify_only` inputs for bounded pilots and classification batches.
 
-The initial calibration tranche classifies a deterministic 10% of discovered items and places them in the downloadable `government-human-review-queue` workflow artifact. The remaining items wait. When the correction array in `data/government_corrections.json` covers every calibration item, the next run classifies the waiting items and includes the reviewed labels as examples. Thereafter, a deterministic 3% sample is included in each run's review artifact. Each correction has the shape:
+Source URL verification and automated collector readiness are separate. As of 2026-10-17, 38 country collectors are enabled. Albania, Armenia, Belgium, Cyprus, Finland, France, Ireland, Latvia, Lithuania, Malta, Norway, Russia, and Ukraine remain disabled while their full dated archives or article bodies cannot be retrieved reliably from the GitHub runner. A blocked collector is **not** treated as a day with zero publications. The exact URLs remain in the directory for review. The enabled-code set is `COLLECTOR_READY_CODES` in `scripts/collect_government_news.py`.
+
+The collector reads only dated communications from the reviewed sections, retrieves their full article text, translates it to English, and applies the same `hybrid-framing-1.6` relevance, topic, actor-role, and viewpoint rules used for creator videos. It does not code video delivery/execution or audience comments for government text. Only `id`, official `url`, `country_code`, and `published_at` are sent to the private Supabase `eiim.government_news_links` table. Article text, full translations, and model labels are not stored there. The public site provides official links, English summaries, labels, rationale, and short plain-English Government Watch lines.
+
+Classification is checkpointed in small runs (at most 30 pending items for an all-country run). The first deterministic 10% calibration tranche is held for researcher corrections before the rest is classified. Those corrections in `data/government_corrections.json` are used as examples for later batches. A deterministic 3% sample of classified items enters the `government-human-review-queue` workflow artifact for the researcher's review. Automated review must not be marked as human review. A correction can contain the fields actually changed, for example:
 
 ```json
 [
   {
     "id": "item-id-from-review-queue",
-    "related": true,
-    "primary_narrative": "national_sovereignty",
-    "secondary_narratives": ["security_terrorism"]
+    "relevance": "not_related",
+    "topics": [],
+    "roles": []
   }
 ]
 ```
 
-To enable scheduled operation, merge this workflow to the repository default branch and ensure `OPENAI_API_KEY` is available as a repository or environment secret. GitHub Pages must already be configured as the repository's deployment target. The workflow refuses to advance the saved collection cursor if fewer than 40 country sites are reachable, preserving the prior cursor for retry.
-
-Public data contain the original source URL, title, short English summary, narrative labels, and rationale. Full article text and full machine translation are used for classification but are not committed or published.
+The site displays related government communications in the Government Narratives tab and the moving Government Watch bar. The map offers a government-only source filter and light-blue stars sized by the number of related communications. The separate YouTube and live-camera displays remain part of the Situation Room.
