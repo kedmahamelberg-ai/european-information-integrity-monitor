@@ -75,8 +75,9 @@
     {
       "iso2": "CY",
       "name": "Cyprus",
-      "url": "https://www.gov.cy/news/",
-      "verification_status": "verified"
+      "url": "https://www.gov.cy/en/news/?q_topic&q_content_type=post&time_period&sort_by=newest",
+      "verification_status": "verified",
+      "scope_note": "Official English government news posts, newest first; automated archive requests currently return HTTP 403, so collection is disabled."
     },
     {
       "iso2": "CZ",
