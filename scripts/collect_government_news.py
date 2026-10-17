@@ -44,11 +44,12 @@ SOFIA = ZoneInfo("Europe/Sofia")
 LONDON = ZoneInfo("Europe/London")
 ROME = ZoneInfo("Europe/Rome")
 BERLIN = ZoneInfo("Europe/Berlin")
+COPENHAGEN = ZoneInfo("Europe/Copenhagen")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","DE","EE","GB","GE","GR","HR","IS","IT","MD","NL","RS","SE"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","DE","DK","EE","GB","GE","GR","HR","IS","IT","MD","NL","RS","SE"}
 
 
 class Links(HTMLParser):
@@ -808,7 +809,51 @@ def discover_germany(country,start,end):
     return entries,country["url"]
 
 
+def discover_denmark(country,start,end):
+    """Query the Danish prime minister's press-release list with its own date filter."""
+    first,last=start.astimezone(COPENHAGEN).date(),end.astimezone(COPENHAGEN).date()
+    endpoint="https://stm.dk/umbraco/api/DynamicListSearchApi/search"
+    entries=[]; seen=set(); total=None
+    for page_number in range(1,101):
+        payload=json.dumps({"SearchTerm":"","currentpageid":20075,
+            "ModuleId":"025c2a58-448d-435e-8fd0-e00773716420","GlobalPageId":None,
+            "Culture":"da","DateFormat":"d","From":first.strftime("%Y/%m/%d"),
+            "To":last.strftime("%Y/%m/%d"),"Page":str(page_number)}).encode()
+        request=urllib.request.Request(endpoint,data=payload,headers={"User-Agent":UA,
+            "Content-Type":"application/json","Accept":"application/json","Referer":country["url"]})
+        try:
+            with urllib.request.urlopen(request,timeout=12) as response: result=json.load(response)
+        except urllib.error.URLError as error:
+            if not isinstance(error.reason,ssl.SSLCertVerificationError): raise
+            response=subprocess.run(["curl","-fsSL","--max-time","12","-A",UA,
+                "-H","Content-Type: application/json","--data-binary","@-",endpoint],
+                input=payload,capture_output=True,timeout=14)
+            if response.returncode: raise RuntimeError("Verified Danish press-list request failed") from error
+            result=json.loads(response.stdout)
+        count=int(result["totalCount"])
+        if total is None: total=count
+        elif count!=total: raise RuntimeError("Danish press-release count changed during pagination")
+        if total==0: break
+        rows=result["items"]
+        if not rows: raise RuntimeError("Danish press-release pagination ended early")
+        for row in rows:
+            url=row["link"]
+            if not url.startswith(country["url"]+"20"): raise RuntimeError("Unexpected Danish press-release URL")
+            if url in seen: raise RuntimeError("Danish press archive repeated an article")
+            seen.add(url)
+            day=dt.date.fromisoformat(row["date"][:10])
+            if not first<=day<=last: raise RuntimeError("Danish press archive returned an out-of-window article")
+            published=dt.datetime.combine(day,dt.time.min,COPENHAGEN).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":"DK","url":url,
+                "title":row["title"].strip(),"published_at":published.isoformat(),
+                "published_date":day.isoformat(),"publication_precision":"day","text":""})
+        if len(entries)==total: break
+    else: raise RuntimeError("Danish press archive exceeded 100 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="DK": return discover_denmark(country,start,end)
     if country["iso2"]=="DE": return discover_germany(country,start,end)
     if country["iso2"]=="SE": return discover_sweden(country,start,end)
     if country["iso2"]=="IT": return discover_italy(country,start,end)
@@ -830,6 +875,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="DK":
+        _,body=fetch(item["url"])
+        parser=ClassText("content-rte"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r'\s+',' ',' '.join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Danish press release has no usable body text")
+        return article
     if item["country_code"]=="DE":
         _,body=fetch(item["url"])
         page=body.decode("utf-8","replace")
