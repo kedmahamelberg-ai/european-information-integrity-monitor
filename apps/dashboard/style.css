@@ -66,10 +66,22 @@ footer nav{display:flex;flex-wrap:wrap;gap:12px 20px;letter-spacing:0;text-trans
 .trend-panel svg{display:block;width:100%;height:auto;min-height:190px;margin-top:7px}
 .trend-grid{stroke:#34413e;stroke-width:1;stroke-dasharray:3 5}
 .trend-axis{font:11px var(--mono);fill:#a6b7af}
-.trend-legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:15px}
-.trend-legend button{display:inline-flex;align-items:center;gap:7px;border:0;background:transparent;padding:4px 2px;color:#c6d3ca;font:10px var(--mono);text-align:left}
-.trend-legend button:hover{color:#fff}
-.trend-legend button.trend-off{opacity:.42;text-decoration:line-through}
-.trend-legend i{display:block;width:20px;height:3px;border-radius:2px;flex:none}
+.trend-hit{fill:none;stroke:transparent;stroke-width:16px;pointer-events:stroke;cursor:pointer}
+.trend-hit:focus-visible{stroke:#ffffff55;stroke-width:14px;outline:none}
+.trend-panel svg circle{pointer-events:none}
+.trend-legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.trend-legend button{display:inline-flex;align-items:center;gap:8px;border:1px solid #35443f;background:#111b1d;padding:7px 9px;color:#dbe6dd;font:10px var(--mono);text-align:left}
+.trend-legend button:hover,.trend-legend button[aria-pressed="true"]{border-color:#b9ee74;background:#1c2926}
+.trend-legend button b{color:#fff;margin-left:3px;font-weight:700}
+.trend-legend i{display:block;width:22px;height:4px;border-radius:2px;flex:none}
+.trend-focus{display:flex;flex-wrap:wrap;align-items:center;gap:9px 16px;border-left:3px solid var(--green);background:#192722;padding:11px 14px;font:11px var(--mono)}
+.trend-focus strong{color:#fff}.trend-focus b{color:var(--green);font-size:17px}.trend-focus span{color:#b7c8bb}
+.trend-hint{color:var(--muted);font:10px var(--mono);padding:8px 4px;margin:0}
+.trend-compare-bars{border-top:1px solid var(--line);margin-top:18px;padding-top:12px}
+.trend-compare-bars h3{font:700 11px var(--mono);margin:0 0 12px;color:#dbe6dd}
+.trend-bar-row{display:grid;grid-template-columns:minmax(110px,190px) minmax(100px,1fr) 65px 65px;gap:10px;align-items:center;margin:8px 0;font:10px var(--mono)}
+.trend-bar-row span{color:#dce9e0}.trend-bar-row b{text-align:right}.trend-bar-row small{color:var(--muted);text-align:right}
+.trend-bar-track{height:9px;background:#25302d;border-radius:5px;overflow:hidden}.trend-bar-track i{display:block;height:100%;border-radius:5px}
+.trend-compare-bars p{font:9px/1.5 var(--mono);color:var(--muted);margin:10px 0 0}
 .trend-note{color:var(--muted);font:9px/1.6 var(--mono);margin:16px 0 0}
-@media(max-width:700px){.government-trends{padding:12px}.trend-controls label{width:calc(50% - 5px);min-width:0}.trend-panel{padding:9px}.trend-panel-title{align-items:start;flex-direction:column;gap:4px}.trend-panel svg{min-height:150px}.trend-axis{font-size:14px}}
+@media(max-width:700px){.government-trends{padding:12px}.trend-controls label{width:calc(50% - 5px);min-width:0}.trend-panel{padding:9px}.trend-panel-title{align-items:start;flex-direction:column;gap:4px}.trend-panel svg{min-height:150px}.trend-axis{font-size:14px}.trend-bar-row{grid-template-columns:85px minmax(60px,1fr) 48px;gap:6px;font-size:9px}.trend-bar-row small{display:none}.trend-legend button{font-size:9px}}
