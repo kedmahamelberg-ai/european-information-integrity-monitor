@@ -59,11 +59,12 @@ MONACO = ZoneInfo("Europe/Monaco")
 PODGORICA = ZoneInfo("Europe/Podgorica")
 LUXEMBOURG = ZoneInfo("Europe/Luxembourg")
 BAKU = ZoneInfo("Asia/Baku")
+MADRID = ZoneInfo("Europe/Madrid")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE, "ES": MADRID}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","AZ","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","VA","XK"}
+COLLECTOR_READY_CODES = {"AD","AT","AZ","BA","BG","BY","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","VA","XK"}
 
 
 class Links(HTMLParser):
@@ -134,6 +135,15 @@ class BelarusCards(HTMLParser):
             if not self.depth:
                 if not all(self.current.get(key) for key in ("url","title","published_at")): raise RuntimeError("Belarusian event card has missing metadata")
                 self.cards.append(self.current); self.current=None
+
+
+class HiddenFormInputs(HTMLParser):
+    def __init__(self): super().__init__(); self.values={}
+    def handle_starttag(self,tag,attrs):
+        if tag!="input": return
+        item=dict(attrs)
+        if item.get("name") and item.get("type", "hidden") in {"hidden","text"}:
+            self.values[item["name"]]=item.get("value", "")
 
 
 def official_article_text(body):
@@ -1444,7 +1454,75 @@ def discover_kosovo(country,start,end):
     return entries,country["url"]
 
 
+def spain_post(url,fields):
+    payload=urllib.parse.urlencode(fields).encode()
+    response=subprocess.run(["curl","-fsSL","--max-time","25","--data-binary","@-",
+                             "-H","Content-Type: application/x-www-form-urlencoded; charset=UTF-8",
+                             "-A",UA,url],input=payload,capture_output=True,timeout=30)
+    if response.returncode or not response.stdout:
+        raise RuntimeError(f"Spanish government archive callback failed: {response.stderr.decode('utf-8','replace')[:180]}")
+    return response.stdout.decode("utf-8","replace")
+
+
+def spain_form(page):
+    parser=HiddenFormInputs(); parser.feed(page)
+    if "__VIEWSTATE" not in parser.values or "__EVENTVALIDATION" not in parser.values:
+        raise RuntimeError("Spanish government archive has no valid paging form")
+    return parser.values
+
+
+def discover_spain(country,start,end):
+    """Traverse the official monthly government press-release archive, not site-wide news."""
+    first,last=start.astimezone(MADRID).date(),end.astimezone(MADRID).date()
+    _,initial_body=fetch(country["url"],timeout=25)
+    initial=initial_body.decode("utf-8","replace")
+    entries=[]; seen=set(); current=first.replace(day=1)
+    while current<=last:
+        page=initial
+        month_key=current.strftime("%Y%m")
+        if not re.search(r'id="[^" ]*hdnFilterDate"[^>]*value="'+month_key+r'"',page):
+            fields=spain_form(initial)
+            prefix="ctl00$PlaceHolderMain$DisplayMode$sumarioPaginado$SummarySearchByDate$EditModePanel$"
+            fields[prefix+"ddlMonth"]=str(current.month)
+            fields[prefix+"ddlYear"]=str(current.year)
+            fields[prefix+"btnSearch"]="Buscar"
+            page=spain_post(country["url"],fields)
+        if not re.search(r'id="[^" ]*hdnFilterDate"[^>]*value="'+month_key+r'"',page):
+            raise RuntimeError("Spanish government archive returned the wrong month")
+        count_match=re.search(r'id="[^" ]*hdnResultsCount"[^>]*value="(\d+)"',page)
+        if not count_match: raise RuntimeError("Spanish government archive has no result count")
+        count=int(count_match.group(1))
+        pages=(count+4)//5
+        form=spain_form(page)
+        for number in range(1,pages+1):
+            listing=page
+            if number>1:
+                fields=dict(form)
+                fields["__CALLBACKID"]="ctl00$PlaceHolderMain$DisplayMode$sumarioPaginado$ctl00"
+                fields["__CALLBACKPARAM"]=f"1;{number}"
+                listing=spain_post(country["url"],fields)
+            cards=re.findall(r'<li\b[^>]*class="advanced-new"[^>]*>(.*?)</li>',listing,re.S)
+            if not cards: raise RuntimeError("Spanish government archive page has no dated press releases")
+            for card in cards:
+                link=re.search(r'<p class="title-advanced-news"><a href="([^"]+)"[^>]*>(.*?)</a>',card,re.S)
+                date=re.search(r'<span class="date">\s*(\d{1,2})\.(\d{1,2})\.(20\d{2})\s*</span>',card)
+                if not link or not date: raise RuntimeError("Spanish press release lacks date, title, or URL")
+                day=dt.date(int(date.group(3)),int(date.group(2)),int(date.group(1)))
+                if not first<=day<=last: continue
+                article_url=urllib.parse.urljoin(country["url"],html.unescape(link.group(1)))
+                if article_url in seen: raise RuntimeError("Spanish archive repeated a press release")
+                seen.add(article_url)
+                title=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",link.group(2)))).strip()
+                published=dt.datetime.combine(day,dt.time.min,MADRID).astimezone(dt.timezone.utc)
+                entries.append({"country":country["name"],"country_code":"ES","url":article_url,
+                                "title":title,"published_at":published.isoformat(),"published_date":day.isoformat(),
+                                "publication_precision":"day","text":""})
+        current=(current.replace(day=28)+dt.timedelta(days=4)).replace(day=1)
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="ES": return discover_spain(country,start,end)
     if country["iso2"]=="XK": return discover_kosovo(country,start,end)
     if country["iso2"]=="AZ": return discover_azerbaijan(country,start,end)
     if country["iso2"]=="LU": return discover_luxembourg(country,start,end)
@@ -1483,6 +1561,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="ES":
+        _,body=fetch(item["url"],timeout=25)
+        parser=ClassText("contentArticleBody"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Spanish press release has no usable body text")
+        return article
     if item["country_code"]=="XK":
         _,body=fetch(item["url"],timeout=20)
         parser=ClassText("elementor-widget-theme-post-content"); parser.feed(body.decode("utf-8","replace"))
