@@ -43,11 +43,12 @@ ZAGREB = ZoneInfo("Europe/Zagreb")
 SOFIA = ZoneInfo("Europe/Sofia")
 LONDON = ZoneInfo("Europe/London")
 ROME = ZoneInfo("Europe/Rome")
+BERLIN = ZoneInfo("Europe/Berlin")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","EE","GB","GE","GR","HR","IS","IT","MD","NL","RS","SE"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","DE","EE","GB","GE","GR","HR","IS","IT","MD","NL","RS","SE"}
 
 
 class Links(HTMLParser):
@@ -769,7 +770,46 @@ def discover_sweden(country,start,end):
     return entries,country["url"]
 
 
+def discover_germany(country,start,end):
+    """Read only dated federal press releases from the cabinet press archive."""
+    entries=[]; seen=set()
+    first,last=start.astimezone(BERLIN).date(),end.astimezone(BERLIN).date()
+    for page_number in range(100):
+        url=country["url"] + (f"?page={page_number}" if page_number else "")
+        _,body=fetch(url)
+        page=body.decode("utf-8","replace")
+        match=re.search(r"BPA\.initialSearchResultsJson\s*=\s*",page)
+        if not match: raise RuntimeError("German press archive has no dated search results")
+        result=json.JSONDecoder().raw_decode(page[match.end():])[0]["result"]
+        if int(result["page"])!=page_number+1: raise RuntimeError("German press archive pagination did not advance")
+        items=result["items"]
+        if not items: raise RuntimeError("German press archive returned an empty page")
+        older=False
+        for row in items:
+            card=row["payload"]
+            link=re.search(r'<a\s+href="([^"]+)"',card)
+            title_match=re.search(r'<span class="bpa-teaser-title-text-inner">\s*(.*?)\s*</span>',card,re.S)
+            published_match=re.search(r'<time\s+datetime="([^"]+)"',card)
+            if not link or not title_match or not published_match: raise RuntimeError("German press-release card lacks link, title or date")
+            article_url=html.unescape(link.group(1))
+            if not article_url.startswith(country["url"]+"/"): raise RuntimeError("Unexpected German press-release URL")
+            published=dt.datetime.fromisoformat(published_match.group(1).replace("Z","+00:00"))
+            day=published.astimezone(BERLIN).date()
+            if day<first: older=True; continue
+            if day>last: continue
+            if article_url in seen: raise RuntimeError("German press archive repeated an article")
+            seen.add(article_url)
+            title=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',title_match.group(1)))).strip()
+            entries.append({"country":country["name"],"country_code":"DE","url":article_url,"title":title,
+                            "published_at":published.isoformat(),"published_date":day.isoformat(),
+                            "publication_precision":"instant","text":""})
+        if older or page_number+1>=int(result["pageCount"]): break
+    else: raise RuntimeError("German press archive exceeded 100 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="DE": return discover_germany(country,start,end)
     if country["iso2"]=="SE": return discover_sweden(country,start,end)
     if country["iso2"]=="IT": return discover_italy(country,start,end)
     if country["iso2"]=="GB": return discover_united_kingdom(country,start,end)
@@ -790,6 +830,15 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="DE":
+        _,body=fetch(item["url"])
+        page=body.decode("utf-8","replace")
+        marker=page.find('id="rs_reading_area_content"')
+        if marker<0: raise RuntimeError("German press release has no article content")
+        parser=ClassText("bpa-richtext"); parser.feed(page[marker:])
+        article=re.sub(r'\s+',' ',' '.join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("German press release has no usable body text")
+        return article
     if item["country_code"]=="SE":
         _,body=fetch(item["url"])
         parser=ClassText("has-wordExplanation"); parser.feed(body.decode("utf-8","replace"))
