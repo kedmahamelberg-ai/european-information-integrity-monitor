@@ -1046,7 +1046,7 @@ def main():
         candidates.sort(key=lambda x: hashlib.sha256(x["id"].encode()).hexdigest())
         # Limit each run to a small checkpointed tranche; a slow article cannot
         # turn a short discovery window into an hour-long classification job.
-        cap=max(1,(len(candidates)+9)//10) if calibrating and not calibration_ids else (0 if calibrating else min(10 if selected_codes else 30,len(candidates)))
+        cap=max(1,(len(candidates)+9)//10) if calibrating and not calibration_ids else (0 if calibrating else min(20 if selected_codes else 30,len(candidates)))
         for position,item in enumerate(candidates[:cap],1):
             print(f"Classifying {position}/{cap}: {item['country_code']} {item['id']}",flush=True)
             text=article_text(item)
