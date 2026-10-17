@@ -42,6 +42,7 @@ class Store:
             "eiim_read_pipeline_public",
             "eiim_progress",
             "eiim_write",
+            "upsert_government_news_links",
         } else 1
         for attempt in range(attempts):
             try:

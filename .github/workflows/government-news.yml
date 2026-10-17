@@ -6,7 +6,15 @@ on:
   workflow_dispatch:
     inputs:
       since:
-        description: Start date for initial backfill (defaults to 2026-10-01 or the saved collection cursor)
+        description: Start date for bounded backfill (YYYY-MM-DD)
+        required: false
+        type: string
+      until:
+        description: Inclusive end date for bounded backfill (YYYY-MM-DD)
+        required: false
+        type: string
+      countries:
+        description: Comma-separated ISO codes for an isolated pilot (for example NL,AT)
         required: false
         type: string
 permissions:
@@ -19,45 +27,70 @@ concurrency:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    timeout-minutes: 60
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
       COLLECTION_SINCE: ${{ inputs.since }}
+      COLLECTION_UNTIL: ${{ inputs.until }}
+      COLLECTION_COUNTRIES: ${{ inputs.countries }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Validate classifier configuration
-        run: test -n "$OPENAI_API_KEY" || { echo '::error::OPENAI_API_KEY is required'; exit 1; }
+      - name: Validate classifier and Supabase configuration
+        run: |
+          test -n "$OPENAI_API_KEY" || { echo '::error::OPENAI_API_KEY is required'; exit 1; }
+          test -n "$SUPABASE_URL" || { echo '::error::SUPABASE_URL is required'; exit 1; }
+          test -n "$SUPABASE_SECRET_KEY" || { echo '::error::SUPABASE_SECRET_KEY is required'; exit 1; }
+      - name: Prepare isolated cache scope
+        id: cache_scope
+        run: |
+          if [ -n "$COLLECTION_COUNTRIES" ]; then
+            [[ "$COLLECTION_COUNTRIES" =~ ^[A-Z]{2}(,[A-Z]{2})*$ ]] || { echo '::error::countries must be comma-separated ISO codes'; exit 1; }
+            echo "scope=${COLLECTION_COUNTRIES//,/-}" >> "$GITHUB_OUTPUT"
+          else
+            echo 'scope=all' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Restore collection checkpoint
+        uses: actions/cache/restore@v4
+        with:
+          path: data/government_state.json
+          key: government-checkpoint-hybrid-v2-${{ github.ref_name }}-${{ steps.cache_scope.outputs.scope }}-${{ github.run_id }}
+          restore-keys: government-checkpoint-hybrid-v2-${{ github.ref_name }}-${{ steps.cache_scope.outputs.scope }}-
       - name: Collect, translate and classify official government news
         run: |
-          if [ -n "$COLLECTION_SINCE" ]; then
-            python scripts/collect_government_news.py --since "$COLLECTION_SINCE" || { git checkout -- data/government_state.json; exit 1; }
-          else
-            python scripts/collect_government_news.py || { git checkout -- data/government_state.json; exit 1; }
-          fi
+          args=()
+          if [ -n "$COLLECTION_SINCE" ]; then args+=(--since "$COLLECTION_SINCE"); fi
+          if [ -n "$COLLECTION_UNTIL" ]; then args+=(--until "$COLLECTION_UNTIL"); fi
+          if [ -n "$COLLECTION_COUNTRIES" ]; then args+=(--countries "$COLLECTION_COUNTRIES"); fi
+          python scripts/collect_government_news.py "${args[@]}"
+      - name: Save collection checkpoint
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/government_state.json
+          key: government-checkpoint-hybrid-v2-${{ github.ref_name }}-${{ steps.cache_scope.outputs.scope }}-${{ github.run_id }}
       - name: Build public dashboard
         run: python scripts/build_site.py
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: government-human-review-queue
-          path: build/government-review-queue.json
+          path: |
+            build/government-review-queue.json
+            build/government-data.json
+            data/government_state.json
           retention-days: 30
       - uses: actions/configure-pages@v5
+        if: github.ref == 'refs/heads/main'
       - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main'
         with:
           path: build
       - name: Deploy updated monitor
         id: deployment
+        if: github.ref == 'refs/heads/main'
         uses: actions/deploy-pages@v4
-      - name: Save collection cursor and publish updated data
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/government_state.json
-          git commit -m "Update daily government communications" || true
-          git push

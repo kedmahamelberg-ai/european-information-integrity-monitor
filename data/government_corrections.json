@@ -1,1 +1,265 @@
-[]
+[
+  {
+    "id": "a3c89d924af13b0b995f",
+    "source_title": "Netherlands releases strategic oil reserves",
+    "source_summary": "The Netherlands released strategic oil reserves with 31 IEA countries to ease supply losses and prices.",
+    "relevance": "related",
+    "topics": [
+      "energy",
+      "economic_financial_security",
+      "diplomacy_alliances"
+    ],
+    "ticker_message": "The Netherlands releases oil reserves with IEA countries to stabilize energy markets."
+  },
+  {
+    "id": "5e12c92b69847a5754a4",
+    "source_title": "Georgia's foreign ministry meets UNICEF representative",
+    "source_summary": "The ministry discussed cooperation with UNICEF and the situation in Russian-occupied Abkhazia and South Ossetia.",
+    "relevance": "related",
+    "topics": [
+      "sovereignty_borders"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Georgian Deputy Foreign Minister Lasha Darsalia",
+        "summary": "The ministry reports cooperation with UNICEF and raises the situation in Russian-occupied regions.",
+        "target": "UNICEF cooperation and the occupied regions",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "Attention was drawn to the situation in the Russian-occupied regions of Abkhazia and South Ossetia."
+      }
+    ],
+    "ticker_message": "Georgia's foreign ministry and UNICEF discuss cooperation and occupied regions."
+  },
+  {
+    "id": "5fc8b338776232e507f9",
+    "source_title": "Belarusian president meets Kazakhstan's prime minister",
+    "source_summary": "The leaders discussed bilateral ties and routine economic cooperation.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": []
+  },
+  {
+    "id": "7ab05e638c457bc4d6c9",
+    "source_title": "Belarusian president sends Independence Day message to Nigeria",
+    "source_summary": "The message explicitly links agricultural mechanization cooperation to Nigeria's food security.",
+    "relevance": "related",
+    "topics": [
+      "food_security"
+    ],
+    "roles": [],
+    "ticker_message": "Belarus says farm mechanization cooperation will support Nigeria's food security."
+  },
+  {
+    "id": "ee66ea75ec960f47ce3b",
+    "source_title": "Dutch minister proposes a law on obstructing return after an asylum refusal",
+    "source_summary": "The Netherlands proposes criminal penalties for people without a right to stay who actively frustrate return after other efforts fail.",
+    "relevance": "related",
+    "topics": [
+      "migration_displacement",
+      "political_institutions"
+    ],
+    "roles": [],
+    "ticker_message": "The Netherlands proposes penalties for obstructing return after an asylum refusal."
+  },
+  {
+    "id": "e26a2dfa2e8005671362",
+    "source_title": "Dutch cabinet presents strategy to protect children online",
+    "source_summary": "The strategy addresses children's online safety, service rules and social media age limits.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": []
+  },
+  {
+    "id": "b8dd36d4ac270a076aaf",
+    "source_title": "Estonia approves a public broadcasting law update",
+    "source_summary": "Estonia approved changes to public broadcaster ERR's funding and media law.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": []
+  },
+  {
+    "id": "93ac0fd86690eb50d881",
+    "source_title": "Valitsuse pressikonverents, 8. oktoober 2026",
+    "source_summary": "Estonia's government discussed fuel market challenges, economic growth, EU budget support, defense procurement investigations, healthcare reforms, and sanctions on Russia. They emphasized transparency, support for Ukraine, balancing excise taxes with competitiveness, advancing clean energy, and managing complex sanctions impacts on the economy and security.",
+    "relevance": "related",
+    "topics": [
+      "energy",
+      "economic_financial_security",
+      "military_defence",
+      "food_security",
+      "political_institutions",
+      "civil_protection",
+      "critical_infrastructure"
+    ],
+    "roles": [
+      {
+        "entity": "Estonia",
+        "entity_code": "EST",
+        "role": "readiness",
+        "evidence_quote": "The Ministry of Defence is improving asset accounting and transparency, while continuing support to Ukraine with ammunition worth hundreds of millions of euros.",
+        "rationale": "Estonia is improving defence accountability and sustaining military aid, indicating preparedness and resilience."
+      },
+      {
+        "entity": "Estonia",
+        "entity_code": "EST",
+        "role": "readiness",
+        "evidence_quote": "Estonia opened South Estonia's largest solar park to move toward energy independence by reducing fossil fuel imports.",
+        "rationale": "Investment in domestic clean energy strengthens critical infrastructure and national resilience."
+      }
+    ],
+    "viewpoint_structure": "multiple_viewpoints",
+    "review_decision": "accept_model_labels"
+  },
+  {
+    "id": "c772e09fc4fdc2c1a422",
+    "relevance": "related",
+    "topics": [
+      "climate_environment",
+      "civil_protection",
+      "health_biosecurity"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Government of the Republic of Serbia",
+        "summary": "The government adopts a remediation plan for fire recovery in a nature reserve and begins establishing a 'One Health' framework for coordinated health and environmental risk management.",
+        "target": "Environmental remediation and integrated health-environment governance in Serbia",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "The remediation plan foresees ... preserving natural values and improving the protection system ... adoption of the national framework \"One Health\" ... aimed at enabling more efficient connection and joint action."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The Government of the Republic of Serbia in technical mandate adopted today the Conclusion on the adoption of the remediation plan for the area of the Special Nature Reserve \"Deliblato Sands\", for which 50 million dinars have been allocated. ... The goal is to remediate fire consequences based on expert assessments and established extent of damage, while preserving natural values and improving the protection system of the Special Nature Reserve \"Deliblato Sands\". ... Members of the Government also adopted a Conclusion of consent to initiate the preparatory phase for establishing and developing the national framework \"One Health\" in the Republic of Serbia, aimed at enabling more efficient connection and joint action of existing bodies without creating parallel administration or infringing on legally established competencies.",
+    "short_rationale": "The government action addresses restoration of a natural reserve after fire damage and initiates integrated health-environment governance, directly relating to climate, civil protection, and health security.",
+    "ticker_message": "Serbia adopts fire remediation plan for nature reserve and initiates One Health framework development.",
+    "source_title": "Усвојен Закључак о санационом плану за подручје Делиблатске пешчаре",
+    "source_summary": "Serbia's government approved a 50 million dinar remediation plan for the Deliblato Sands Nature Reserve to address fire damage, involving coordinated expert action. It also initiated preparatory steps to establish a national \"One Health\" framework for inter-agency collaboration without new bureaucracy.",
+    "review_decision": "accept_model_labels_and_wording"
+  },
+  {
+    "id": "d891f248b4806c2ad451",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Zurab Darchiashvili",
+        "summary": "Wished the Ambassador success in his future activities following presentation of credentials.",
+        "target": "Ambassador Nguyen Than Lem and diplomatic cooperation",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "Zurab Darchiashvili wished the Ambassador success in his future activities."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The newly appointed Vietnamese Ambassador to Georgia (resident in Astana), Nguyen Than Lem, presented copies of his credentials ... the parties discussed prospects for cooperation and a planned visit.",
+    "short_rationale": "Diplomatic credential presentation and discussion of cooperation are routine diplomatic activities without direct national security relevance.",
+    "ticker_message": "Vietnamese Ambassador to Georgia presents credentials and discusses bilateral cooperation.",
+    "source_title": "ვიეტნამის ახლადდანიშნულმა ელჩმა საქართველოში რწმუნებათა სიგელების ასლები გადასცა საქართველოს საგარეო საქმეთა სამინისტროს დიპლომატიური პროტოკოლის დირექტორატის დირექტორს, ზურაბ დარჩიაშვილს",
+    "source_summary": "Vietnam's new ambassador to Georgia presented credentials and discussed bilateral cooperation and an upcoming Vietnamese Vice President visit; Georgia's MFA wished him success.",
+    "review_decision": "accept_unrelated"
+  },
+  {
+    "id": "a390d9398d23d870c58e",
+    "relevance": "related",
+    "topics": [
+      "sovereignty_borders",
+      "diplomacy_alliances"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Maka Bochorishvili, Vice Prime Minister and Minister of Foreign Affairs of Georgia",
+        "summary": "Georgia values Switzerland's support for its sovereignty and territorial integrity and stresses the significance of Geneva International Discussions.",
+        "target": "Switzerland's OSCE chairmanship and international partners",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "Maka Bochorishvili expressed gratitude to Switzerland, as the OSCE chairing country, for supporting Georgia's sovereignty and territorial integrity within the organization."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "Maka Bochorishvili expressed gratitude to Switzerland, as the OSCE chairing country, for supporting Georgia's sovereignty and territorial integrity within the organization. Emphasis was placed on the importance of the Geneva International Discussions and the involvement of international partners, including the OSCE co-chairmanship.",
+    "short_rationale": "The meeting highlights Georgia's concerns about sovereignty and regional security with OSCE partners, emphasizing territorial integrity and diplomatic cooperation.",
+    "ticker_message": "Georgia and Switzerland discuss OSCE cooperation and support for Georgia's sovereignty and regional security.",
+    "source_title": "მაკა ბოჭორიშვილი ეუთო-ს მოქმედ თავმჯდომარეს, შვეიცარიის კონფედერაციის ვიცე-პრეზიდენტს, საგარეო საქმეთა ფედერალური დეპარტამენტის ხელმძღვანელს იგნასიო კასისს შეხვდა",
+    "source_summary": "Georgia's Foreign Minister met with the OSCE Chair, Swiss Vice President Ignazio Cassis, discussing bilateral ties, regional security, Geneva talks, economic cooperation, and Georgia's 2027 OSCE chairmanship bid, reaffirming commitment to deepening OSCE collaboration.",
+    "review_decision": "accept_model_labels_and_wording"
+  },
+  {
+    "id": "d650f0a11f7c8238eb91",
+    "source_title": "Casa Christi í MR opni að nýju til kennslu haustið 2030",
+    "source_summary": "Iceland plans to renovate the Casa Christi school building for teaching by 2030.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [],
+    "ticker_message": "Iceland plans to renovate a school building for teaching by 2030.",
+    "review_decision": "correct_to_unrelated_and_tighten_prompt"
+  },
+  {
+    "id": "b992cbd9c51c73a195d7",
+    "source_title": "Ársfundur Jöfnunarsjóðs sveitarfélaga 7. október – dagskrá",
+    "source_summary": "Iceland announces the Municipal Equalization Fund annual meeting and review of its annual report.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "review_decision": "accept_unrelated"
+  },
+  {
+    "id": "ca3210489d40b947668f",
+    "source_title": "Primării mai puternice, trei regiuni și un nou municipiu: Guvernul a prezentat Conceptul reorganizării administrației publice locale de nivelul II",
+    "source_summary": "Moldova proposes reorganizing districts and strengthening local administrative services.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "review_decision": "correct_to_unrelated"
+  },
+  {
+    "id": "3661c2b60669b3a752e0",
+    "source_title": "Il Presidente Meloni all'80° Anniversario della CNA",
+    "source_summary": "Italy's prime minister spoke at a small-business association anniversary.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "review_decision": "accept_unrelated"
+  },
+  {
+    "id": "3670772a8d40b0c3ad95",
+    "source_title": "Robert Fico: Aj v novom svetovom poriadku bude Slovensko pokračovať v suverénnej zahraničnej politike, na zabezpečenie stability a bezpečnosti potrebujeme schválený štátny rozpočet",
+    "source_summary": "Slovakia under PM Robert Fico will continue a sovereign foreign policy, diversify its international relations, and actively engage in EU policies. Approval of a comprehensive state budget is critical for Slovakia's stability, security, and ability to handle crises amid a changing global order.",
+    "relevance": "related",
+    "topics": [
+      "energy",
+      "economic_financial_security",
+      "sovereignty_borders"
+    ],
+    "roles": [
+      {
+        "entity": "Slovakia",
+        "entity_code": "SVK",
+        "role": "readiness",
+        "evidence_quote": "For Slovakia to continue to function effectively, the state budget needs to be approved... Approval of the budget in the National Council is a matter of Slovakia's stability, security, sovereignty and ability to respond to extremely serious events happening around us.",
+        "rationale": "The government's emphasis on budget approval relates directly to national stability and capacity to respond to energy and economic crises, demonstrating preparedness and resilience."
+      }
+    ],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Prime Minister Robert Fico",
+        "summary": "Slovakia will maintain sovereign foreign policy, actively diversify energy sources, and emphasizes that approving the state budget is crucial for national stability and crisis responsiveness, particularly regarding energy and economic challenges.",
+        "target": "Slovak government and National Council",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "We will continue the policy I call sovereign Slovak foreign policy... For Slovakia to continue to function effectively, the state budget needs to be approved... Approval of the budget in the National Council is a matter of Slovakia's stability, security, sovereignty and ability to respond to extremely serious events happening around us."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "Slovakia will take steps within its sovereignty... we filed a lawsuit against the European Commission's decision concerning the ban on Russian gas imports... For Slovakia to continue to function effectively, the state budget needs to be approved... Approval of the budget in the National Council is a matter of Slovakia's stability, security, sovereignty... adopting a balanced budget would mean cuts of 8 billion euros... Without a budget, we will not be able to address crisis situations... which other countries put us in by behaving as they do within the disintegrated world order.",
+    "short_rationale": "Slovakia's PM stresses sovereign foreign policy, energy diversification, and budget approval as vital for national stability and crisis response.",
+    "ticker_message": "Slovakia stresses sovereign policy, energy diversification, and urgent budget approval for stability and security.",
+    "review_decision": "accept_model_labels_and_wording"
+  }
+]
