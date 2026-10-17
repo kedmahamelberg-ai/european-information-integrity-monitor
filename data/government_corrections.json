@@ -261,5 +261,14 @@
     "short_rationale": "Slovakia's PM stresses sovereign foreign policy, energy diversification, and budget approval as vital for national stability and crisis response.",
     "ticker_message": "Slovakia stresses sovereign policy, energy diversification, and urgent budget approval for stability and security.",
     "review_decision": "accept_model_labels_and_wording"
+  },
+  {
+    "id": "cf1c86b0d2f80630388b",
+    "source_title": "Megszavazta a gyermekvédelmi törvénymódosításokat az Országgyűlés",
+    "source_summary": "Hungary's National Assembly passed stricter child protection laws barring harmful content in media and ads, including pornographic and violent materials. It bans damaging public advertisements and speeds up procedures for children unnecessarily kept in hospitals, ensuring their healthy development and swift protection measures.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "review_decision": "correct_to_unrelated"
   }
 ]
