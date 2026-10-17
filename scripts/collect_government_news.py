@@ -2150,7 +2150,7 @@ def ask_openai(text, classification=True, examples=None, validation_note=""):
                 try: retry_after=float(exc.headers.get("Retry-After", "0"))
                 except (TypeError, ValueError): retry_after=0
                 exc.close()
-                if error_code in {"insufficient_quota","billing_hard_limit_reached","billing_not_active"} or attempt==4:
+                if error_code in {"insufficient_quota","credit_balance_exhausted","billing_hard_limit_reached","billing_not_active"} or attempt==4:
                     raise ModelRateLimit(error_code) from None
                 if retry_after>60:
                     raise ModelRateLimit("retry_after_exceeds_run_budget") from None
