@@ -61,9 +61,9 @@ LUXEMBOURG = ZoneInfo("Europe/Luxembourg")
 BAKU = ZoneInfo("Asia/Baku")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","AZ","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","VA"}
+COLLECTOR_READY_CODES = {"AD","AT","AZ","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","VA","XK"}
 
 
 class Links(HTMLParser):
@@ -1412,7 +1412,40 @@ def discover_azerbaijan(country,start,end):
     return entries,country["url"]
 
 
+def discover_kosovo(country,start,end):
+    """Read the prime minister's own dated news archive, page by page."""
+    first,last=start.astimezone(BELGRADE).date(),end.astimezone(BELGRADE).date()
+    entries=[]; seen=set()
+    for page_number in range(1,101):
+        url=country["url"] if page_number==1 else country["url"].rstrip("/")+f"/page/{page_number}/"
+        _,body=fetch(url,timeout=20)
+        page=body.decode("utf-8","replace")
+        cards=re.split(r'<div class="ItemsFilter-item[^"<>]*">',page)[1:]
+        if not cards: raise RuntimeError("Kosovo prime minister news archive has no dated cards")
+        older=False
+        for card in cards:
+            link_match=re.search(r'<a href="(https://kryeministri\.rks-gov\.net/news/[^"?#]+)',card)
+            title_match=re.search(r'<div class="news-title">(.*?)</div>',card,re.S)
+            dated=re.search(r'<span class="news-date">\s*(\d{1,2})/(\d{1,2})/(20\d{2})\s*</span>',card)
+            if not link_match or not title_match or not dated: raise RuntimeError("Kosovo prime minister news card lacks link, title, or date")
+            day=dt.date(int(dated.group(3)),int(dated.group(2)),int(dated.group(1)))
+            if day<first: older=True; continue
+            if day>last: continue
+            article_url=link_match.group(1)
+            if article_url in seen: raise RuntimeError("Kosovo prime minister news repeated an article")
+            seen.add(article_url)
+            title=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",title_match.group(1)))).strip()
+            published=dt.datetime.combine(day,dt.time.min,BELGRADE).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":"XK","url":article_url,"title":title,
+                            "published_at":published.isoformat(),"published_date":day.isoformat(),
+                            "publication_precision":"day","text":""})
+        if older: break
+    else: raise RuntimeError("Kosovo prime minister news archive exceeded 100 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="XK": return discover_kosovo(country,start,end)
     if country["iso2"]=="AZ": return discover_azerbaijan(country,start,end)
     if country["iso2"]=="LU": return discover_luxembourg(country,start,end)
     if country["iso2"]=="VA": return discover_vatican(country,start,end)
@@ -1450,6 +1483,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="XK":
+        _,body=fetch(item["url"],timeout=20)
+        parser=ClassText("elementor-widget-theme-post-content"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Kosovo prime minister news has no usable body text")
+        return article
     if item["country_code"]=="AZ":
         _,body=fetch(item["url"],timeout=20)
         parser=ClassText("page-content"); parser.feed(body.decode("utf-8","replace"))
