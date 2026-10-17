@@ -173,6 +173,15 @@ def fetch(url, limit=2_000_000, timeout=8):
         return url,response.stdout
 
 
+def fetch_ipv4(url, limit=2_000_000, timeout=20):
+    """Reach official hosts whose IPv6 route is unavailable on GitHub runners."""
+    response=subprocess.run(["curl","-4","-fsSL","--max-time",str(timeout),"--max-filesize",str(limit),
+                             "-A",UA,url],capture_output=True,timeout=timeout+2)
+    if response.returncode:
+        raise RuntimeError(f"IPv4 fetch failed: {response.stderr.decode('utf-8','replace')[:180]}")
+    return url,response.stdout
+
+
 def date_value(value):
     if not value: return None
     if re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
@@ -269,7 +278,7 @@ def discover_belgium(country, start, end):
     entries = []; seen = set()
     for page_number in range(100):
         url = country["url"] if page_number == 0 else f"{country['url']}?page={page_number}"
-        _, body = fetch(url, timeout=20)
+        _, body = fetch_ipv4(url, timeout=20)
         page = body.decode("utf-8", "replace")
         cards = re.findall(r'<article\b[^>]*class="[^"]*overview-item\b[^"]*"[^>]*>(.*?)</article>', page, re.S)
         if not cards: raise RuntimeError("Belgian ministry news archive has no dated news cards")
@@ -1787,7 +1796,7 @@ def discover(country,start,end):
 
 def article_text(item):
     if item["country_code"]=="BE":
-        _, body = fetch(item["url"], timeout=20)
+        _, body = fetch_ipv4(item["url"], timeout=20)
         parser = ClassText("wysiwyg__content"); parser.feed(body.decode("utf-8", "replace"))
         article = re.sub(r"\s+", " ", " ".join(parser.parts)).strip()
         if len(article) < 40: raise RuntimeError("Belgian ministry news has no usable article body")
