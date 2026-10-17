@@ -1303,7 +1303,38 @@ ROMANIAN_MONTHS={name:number for number,name in enumerate(
 
 
 def discover_romania(country,start,end):
-    """Page through the Romanian cabinet's official dated Știri section."""
+    """Use the cabinet's own RSS feed of its dated Știri communications."""
+    first,last=start.astimezone(BUCHAREST).date(),end.astimezone(BUCHAREST).date()
+    entries=[]; seen=set()
+    _,body=fetch_ipv4("https://gov.ro/ro/rss",timeout=20)
+    feed=body.decode("utf-8","replace")
+    cards=re.findall(r"<item\b[^>]*>(.*?)</item>",feed,re.S|re.I)
+    if not cards: raise RuntimeError("Romanian cabinet RSS has no news items")
+    oldest=last
+    for card in cards:
+        dated=re.search(r"<titlubun>\s*Știri din (\d{1,2})\.(\d{1,2})\.(20\d{2})\s*</titlubun>",card,re.I)
+        title_match=re.search(r"<title>(.*?)</title>",card,re.S|re.I)
+        link=re.search(r"<link>\s*(https://gov\.ro/ro/stiri/[^<\s]+)",card,re.I)
+        if not dated or not title_match or not link: raise RuntimeError("Romanian cabinet RSS item lacks date, title or news URL")
+        day=dt.date(int(dated.group(3)),int(dated.group(2)),int(dated.group(1)))
+        oldest=min(oldest,day)
+        if not first<=day<=last: continue
+        article_url=html.unescape(link.group(1)).split("&page=",1)[0]
+        if article_url in seen: raise RuntimeError("Romanian cabinet RSS repeated an article")
+        seen.add(article_url)
+        title=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",title_match.group(1)))).strip()
+        description=re.search(r"<description>(.*?)</description>",card,re.S|re.I)
+        article_text=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",description.group(1)))).strip() if description else ""
+        published=dt.datetime.combine(day,dt.time.min,BUCHAREST).astimezone(dt.timezone.utc)
+        entries.append({"country":country["name"],"country_code":"RO","url":article_url,"title":title,
+                        "published_at":published.isoformat(),"published_date":day.isoformat(),
+                        "publication_precision":"day","text":article_text})
+    if oldest>first: return discover_romania_archive(country,start,end)
+    return entries,country["url"]
+
+
+def discover_romania_archive(country,start,end):
+    """Older paged archive retained for windows beyond the RSS feed."""
     first,last=start.astimezone(BUCHAREST).date(),end.astimezone(BUCHAREST).date()
     entries=[]; seen=set()
     for page_number in range(1,101):
