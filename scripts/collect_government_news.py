@@ -2068,6 +2068,10 @@ def article_text(item):
     return official_article_text(body)
 
 
+class ModelRateLimit(RuntimeError):
+    """The model's current rate window is exhausted; retain the item for a later run."""
+
+
 def ask_openai(text, classification=True, examples=None, validation_note=""):
     string={"type":"string"}
     def obj(fields): return {"type":"object","properties":fields,"required":list(fields),"additionalProperties":False}
@@ -2090,7 +2094,7 @@ def ask_openai(text, classification=True, examples=None, validation_note=""):
     req={"model":os.getenv("GOVERNMENT_MODEL","gpt-4.1-mini"),"input":[{"role":"system","content":task+"\nTopic codes and meanings: "+json.dumps(HYBRID["topic_labels"],ensure_ascii=False)+example_text+validation_note},{"role":"user","content":text}],"text":{"format":{"type":"json_schema","name":"government_item","strict":True,"schema":schema}}}
     http=urllib.request.Request("https://api.openai.com/v1/responses",data=json.dumps(req).encode(),headers={"Authorization":"Bearer "+os.environ["OPENAI_API_KEY"],"Content-Type":"application/json"})
     last_problem="empty response"
-    for attempt in range(3):
+    for attempt in range(5):
         try:
             with urllib.request.urlopen(http,timeout=90) as r: result=json.load(r)
             out=result.get("output_text") or "".join(x.get("text","") for o in result.get("output",[]) for x in o.get("content",[]) if x.get("type")=="output_text")
@@ -2098,10 +2102,20 @@ def ask_openai(text, classification=True, examples=None, validation_note=""):
                 try: return json.loads(out)
                 except json.JSONDecodeError as exc: last_problem=f"invalid JSON at character {exc.pos}"
             else: last_problem=f"empty response (status={result.get('status')}, incomplete={result.get('incomplete_details')}, error={result.get('error')})"
+        except urllib.error.HTTPError as exc:
+            if exc.code==429:
+                try: retry_after=float(exc.headers.get("Retry-After", "0"))
+                except (TypeError, ValueError): retry_after=0
+                exc.close()
+                if attempt==4: raise ModelRateLimit("OpenAI rate limit persisted after five attempts") from None
+                time.sleep(min(60,max(retry_after,5*(2**attempt))))
+                continue
+            last_problem=f"HTTP Error {exc.code}"
+            exc.close()
         except (urllib.error.URLError,TimeoutError) as exc:
             last_problem=f"{type(exc).__name__}: {exc}"
-        if attempt<2: time.sleep(2**attempt)
-    raise RuntimeError(f"OpenAI response could not be parsed after 3 attempts: {last_problem}")
+        if attempt<4: time.sleep(2**attempt)
+    raise RuntimeError(f"OpenAI response could not be parsed after 5 attempts: {last_problem}")
     out=result.get("output_text") or "".join(x.get("text","") for o in result.get("output",[]) for x in o.get("content",[]) if x.get("type")=="output_text")
     return json.loads(out)
 
@@ -2193,11 +2207,12 @@ def main():
                     elif pub and not(source_start<=pub<=end): continue
                     if not pub: continue
                     item["published_at"]=(pub or end).isoformat(); item["id"]=hashlib.sha256(item["url"].encode()).hexdigest()[:20]
-                    discovered_links[item["id"]]={key:item[key] for key in ("id","url","country_code","published_at")}
                     if item["id"] in existing:
                         for key in ("published_date","publication_precision"):
                             if key in item: existing[item["id"]][key]=item[key]
-                    else: candidates.append(item)
+                    else:
+                        discovered_links[item["id"]]={key:item[key] for key in ("id","url","country_code","published_at")}
+                        candidates.append(item)
                 print(f"Discovered {source['name']}: {len(entries)} candidate links",flush=True)
             except Exception as e:
                 sources_status.append({"country_code":source["iso2"],"country":source["name"],"official_home":source["url"],"status":"source_unavailable","error":type(e).__name__})
@@ -2252,14 +2267,23 @@ def main():
                 continue
             item.pop("classification_error",None)
             if not text: item["classification_status"]="no_text"; existing[item["id"]]=item; continue
-            item["english_translation"],item["english_summary"]=translate_document(text)
-            examples=[{**correction,"title":correction.get("source_title") or existing.get(ident,{}).get("title"),"summary":correction.get("source_summary") or existing.get(ident,{}).get("english_summary")} for ident,correction in correction_map.items()]
-            validation_note=""
-            for validation_attempt in range(2):
-                labels=ask_openai(item["english_translation"],True,examples,validation_note)
-                valid=(labels["relevance"]=="related" and bool(labels["topics"])) or (labels["relevance"]!="related" and not labels["topics"] and not labels["roles"])
-                if valid: break
-                validation_note="\nThe previous classification was internally inconsistent. Re-evaluate the source: related requires one or more directly supported topics; not_related/unclear require empty topics and roles. Do not remove a supported security topic merely to satisfy the schema."
+            try:
+                item["english_translation"],item["english_summary"]=translate_document(text)
+                examples=[{**correction,"title":correction.get("source_title") or existing.get(ident,{}).get("title"),"summary":correction.get("source_summary") or existing.get(ident,{}).get("english_summary")} for ident,correction in correction_map.items()]
+                validation_note=""
+                for validation_attempt in range(2):
+                    labels=ask_openai(item["english_translation"],True,examples,validation_note)
+                    valid=(labels["relevance"]=="related" and bool(labels["topics"])) or (labels["relevance"]!="related" and not labels["topics"] and not labels["roles"])
+                    if valid: break
+                    validation_note="\nThe previous classification was internally inconsistent. Re-evaluate the source: related requires one or more directly supported topics; not_related/unclear require empty topics and roles. Do not remove a supported security topic merely to satisfy the schema."
+            except ModelRateLimit:
+                item["classification_status"]="pending_classification"
+                item["classification_error"]="model_rate_limit"
+                item.pop("text",None)
+                existing[item["id"]]=item
+                STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
+                print(f"Model rate limit reached; {item['country_code']} {item['id']} and later items remain pending",flush=True)
+                break
             if not valid:
                 item.update(labels); item["classification_status"]="needs_review"; item["classification_error"]="inconsistent_relevance_topics_roles"; item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item
                 print(f"Needs review: {item['country_code']} {item['id']} inconsistent relevance/topics/roles",flush=True)
@@ -2275,7 +2299,7 @@ def main():
     cursor=end.isoformat() if collection_complete else state.get("last_successful_collection_end")
     STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":cursor,"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":out["items"]},ensure_ascii=False,indent=2)+"\n")
     PUBLIC.parent.mkdir(exist_ok=True)
-    public={**out,"items":[{k:v for k,v in item.items() if k!="english_translation"} for item in out["items"]]}
+    public={**out,"items":[{k:v for k,v in item.items() if k not in {"text","english_translation"}} for item in out["items"]]}
     PUBLIC.write_text(json.dumps(public,ensure_ascii=False,indent=2)+"\n")
     REVIEW_QUEUE.parent.mkdir(exist_ok=True)
     REVIEW_QUEUE.write_text(json.dumps({"instructions":"Review every calibration_item before calibration is complete, every needs_review conflict, and thereafter the 3% routine sample. Return corrections as a JSON array with id, relevance, topics, roles and viewpoints where changed. Corrections calibrate later batches.","items":[{k:v for k,v in item.items() if k in {"id","country","country_code","url","title","published_at","english_summary","relevance","topics","evidence_status","evidence_quote","roles","viewpoint_structure","viewpoints","ticker_message","short_rationale","calibration_item","review_sample","classification_status","classification_error"}} for item in out["items"] if (item.get("calibration_item") and not item.get("human_reviewed")) or item.get("classification_status")=="needs_review" or (item.get("classification_status")=="provisional" and item.get("review_sample") and not item.get("human_reviewed"))]},ensure_ascii=False,indent=2)+"\n")
