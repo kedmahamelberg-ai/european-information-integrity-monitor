@@ -22,8 +22,9 @@
     {
       "iso2": "AM",
       "name": "Armenia",
-      "url": "https://gov.am/%D5%AC%D6%80%D5%A1%D5%B0%D5%B8%D5%BD",
-      "verification_status": "verified"
+      "url": "https://www.primeminister.am/en/press-release/",
+      "verification_status": "verified",
+      "scope_note": "Researcher-supplied English-language press releases from the Prime Minister's official office, rather than the broader government newsflow."
     },
     {
       "iso2": "AT",
