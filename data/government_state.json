@@ -321,7 +321,54 @@
       "title": "Duidelijkheid over locatie Lelystad, Breezanddijk en Petten in definitief NPRD",
       "published_at": "2026-10-16T12:00:00+00:00",
       "id": "aa08c7a33bb07082cbf6",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "The National Program Space for Defense finalized decisions including expanding Lelystad Airport by 240 hectares for F-35 operations, designating Breezanddijk for increased weapons testing, and pausing expansions at Petten. Impacted residents were notified, and further permits and studies are pending before projects proceed.",
+      "relevance": "related",
+      "topics": [
+        "military_defence",
+        "critical_infrastructure",
+        "sovereignty_borders",
+        "civil_protection",
+        "climate_environment"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "With the National Program Space for Defense, we create the necessary space for the growth of Defense... Our decisions result from careful consideration of military necessity and environmental interests.",
+      "roles": [
+        {
+          "entity": "Netherlands Ministry of Defense",
+          "entity_code": "NLD-DOD",
+          "role": "readiness",
+          "evidence_quote": "We create the necessary space for the growth of Defense... Our decisions result from careful consideration of military necessity and environmental interests.",
+          "rationale": "The Ministry is preparing defense infrastructure expansion for F-35 operations and weapons testing, indicating increased defense readiness and resilience."
+        }
+      ],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "State Secretary Boswijk of Defense",
+          "summary": "The National Program Space for Defense aims to expand defense infrastructure needed for F-35 operations and weapons testing, balancing military necessity with environmental impacts and societal concerns.",
+          "target": "General public and stakeholders near defense facilities",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "With the National Program Space for Defense, we create the necessary space for the growth of Defense. In a densely populated country, this has a major impact on society. Our decisions result from careful consideration of military necessity and environmental interests."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The report details defense infrastructure expansion for F-35 operations and weapons testing with explicit military and environmental security implications.",
+      "ticker_message": "Netherlands finalizes national defense space program, expanding military infrastructure for F-35 and weapons testing.",
+      "related": true,
+      "primary_narrative": "military_defence",
+      "secondary_narratives": [
+        "critical_infrastructure",
+        "sovereignty_borders",
+        "civil_protection",
+        "climate_environment"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 2930,
+      "translated_text_chars": 2630,
+      "translation_complete": true
     },
     {
       "country": "Netherlands",
@@ -330,7 +377,40 @@
       "title": "Nieuw perspectief voor Lelylijn",
       "published_at": "2026-10-16T12:00:00+00:00",
       "id": "fb984a6314f0582a1515",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "The Dutch cabinet is researching how to advance the Lelylijn rail project in Northern Netherlands within a broader regional development framework. An advisory committee will investigate financing options, spatial-economic strategies, and alternatives, aiming to deliver recommendations by summer 2027. Funding is reserved but not yet allocated annually.",
+      "relevance": "related",
+      "topics": [
+        "critical_infrastructure",
+        "economic_financial_security"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The Lelylijn requires a very large investment (around 15 billion euros). The cabinet finds it important to carefully investigate options to make the project feasible while maintaining financial discipline.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "State Secretary Bertram of Public Transport & Rail",
+          "summary": "The Lelylijn is important for connecting Northern Netherlands and is considered within a broad spatial-economic development, with emphasis on financing feasibility.",
+          "target": "Northern Netherlands development and rail infrastructure project",
+          "speaker_sentiment": "positive",
+          "evidence_quote": "The Lelylijn is a deeply cherished wish in Northern Netherlands. I understand this well. The Lelylijn presents an opportunity to better connect the northern part of our country with other parts of the Netherlands and possibly with Germany."
+        }
+      ],
+      "confidence": 0.9,
+      "short_rationale": "The cabinet explores a major rail infrastructure project linking Northern Netherlands as part of economic and spatial development, involving significant financing and critical infrastructure planning.",
+      "ticker_message": "Dutch cabinet explores financing and development of Lelylijn rail to boost Northern Netherlands connectivity.",
+      "related": true,
+      "primary_narrative": "critical_infrastructure",
+      "secondary_narratives": [
+        "economic_financial_security"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 4233,
+      "translated_text_chars": 3816,
+      "translation_complete": true
     },
     {
       "country": "Netherlands",
@@ -339,7 +419,44 @@
       "title": "Extra investering van 18 miljard euro naar onderhoud en vernieuwing, grootste verbouwing van de Nederlandse infrastructuur ooit",
       "published_at": "2026-10-16T12:00:00+00:00",
       "id": "20a9114b259fe7b2fed9",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "The Dutch cabinet is investing an extra €18 billion through 2034 to renew aging infrastructure—roads, bridges, railways, and waterworks. With tough choices prioritizing maintenance and safety, funds will also support regional accessibility and resilience amid budget constraints and geopolitical challenges.",
+      "relevance": "related",
+      "topics": [
+        "critical_infrastructure",
+        "energy",
+        "economic_financial_security",
+        "civil_protection"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The cabinet is investing an additional €18 billion in the maintenance and renewal of roads, bridges, railways, and waterworks. This aims to restore the foundation of our infrastructure... the cabinet is allocating an additional €18 billion for substantial renewal of roads, bridges, waterways, and railways in the coming years... The rollout of the European Train Control System (ERTMS) will be intensified to ensure safe and reliable rail use even after 2040... the IJmuiden pumping station (which keeps the feet dry for 4 million people)",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Dutch Cabinet Ministers Karremans and Bertram",
+          "summary": "The cabinet highlights urgent national infrastructure renewal investment to maintain safety, accessibility, economic resilience, and water protection amid aging infrastructure and geopolitical pressures.",
+          "target": "Dutch national infrastructure system and users",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "Our infrastructure is aging, which we notice more and more... we allocate funds where they are most needed: maintenance and renewal of roads, bridges, and waterworks. This ensures the Netherlands remains protected from water, accessible, and economically strong... With this package, we can truly move forward... Given the geopolitical situation, we are also strengthening the resilience of the railways."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The cabinet's large-scale funding and prioritization of critical infrastructure renewal addresses national resilience, safety, and economic security risks explicitly.",
+      "ticker_message": "The Netherlands commits €18 billion to renew critical infrastructure ensuring safety, accessibility, and resilience.",
+      "related": true,
+      "primary_narrative": "critical_infrastructure",
+      "secondary_narratives": [
+        "energy",
+        "economic_financial_security",
+        "civil_protection"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 6228,
+      "translated_text_chars": 5246,
+      "translation_complete": true
     },
     {
       "country": "Netherlands",
@@ -348,7 +465,40 @@
       "title": "Voorstel voor lagere energieprestatievergoeding naar Raad van State",
       "published_at": "2026-10-16T12:00:00+00:00",
       "id": "81ef4b1284d33f5f200d",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "The Dutch cabinet approved adjustments to the Energy Performance Fee to soften the impact of abolishing net metering on tenants. Revised tariffs, effective January 2027, limit rent increases for solar-powered homes. Housing corporations face income effects, mitigated by government investment measures.",
+      "relevance": "related",
+      "topics": [
+        "energy",
+        "economic_financial_security"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The amendment largely mitigates the effects of the abolition of the net metering scheme for tenants paying an EPV... Without the EPV adjustment, tenants paying the maximum EPV tariff would pay an estimated €42 to €75 more per month... This increase is reduced by the recalibration to about €8 to €13 per month.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Council of Ministers",
+          "summary": "The Council approved amendments to the Energy Performance Fee decree to reduce the cost impact on tenants from abolishing net metering, aiming to maintain affordable sustainable energy homes.",
+          "target": "tenants and housing corporations affected by EPV and net metering abolition",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "The amendment largely mitigates the effects of the abolition of the net metering scheme for tenants paying an EPV... The recalibration dampens the effects of net metering abolition for tenants substantially."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The government adjusts energy fees to lessen cost increases for tenants after ending net metering, protecting energy affordability and economic security.",
+      "ticker_message": "Government revises energy fees to reduce tenant costs following net metering abolition starting 2027.",
+      "related": true,
+      "primary_narrative": "energy",
+      "secondary_narratives": [
+        "economic_financial_security"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 2180,
+      "translated_text_chars": 1770,
+      "translation_complete": true
     },
     {
       "country": "Netherlands",
@@ -357,7 +507,37 @@
       "title": "Backpay-regeling voor Indische en Molukse weduwen vanaf februari aan te vragen",
       "published_at": "2026-10-16T12:00:00+00:00",
       "id": "bde7b88c3b96121dc2bc",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "From February 1, 2027, widows and widowers of WWII civil servants and military in the Dutch East Indies may apply for the Backpay scheme. The complex program offers partial redress for unpaid wartime salaries, administered by the Social Insurance Bank. It excludes heirs and requires individual archival verification.",
+      "relevance": "related",
+      "topics": [
+        "economic_financial_security"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "From February 1, 2027, widows and widowers of former civil servants and military personnel who served during World War II in the Dutch East Indies government can apply for the so-called Backpay scheme for widows.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Minister Sterk of Long-Term Care, Youth, and Sports",
+          "summary": "Minister Sterk acknowledges the scheme offers legal redress but recognizes full justice for widows and widowers cannot be achieved.",
+          "target": "Widows and widowers of Dutch East Indies civil servants and military personnel",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "I am fully aware that complete legal redress for these widows and widowers can never be offered."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The Backpay scheme provides financial redress addressing historical economic injustice linked to wartime unpaid salaries, impacting financial security.",
+      "ticker_message": "The Dutch government launches Backpay scheme to compensate widows of WWII-era civil and military personnel.",
+      "related": true,
+      "primary_narrative": "economic_financial_security",
+      "secondary_narratives": [],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 3101,
+      "translated_text_chars": 2608,
+      "translation_complete": true
     },
     {
       "country": "Netherlands",
@@ -427,7 +607,7 @@
       "published_at": "2026-10-16T12:00:00+00:00",
       "id": "4cb97ab5eada48f7d038",
       "classification_status": "provisional",
-      "english_summary": "The Dutch cabinet adopted a Vision on National Procurement to modernize government purchasing, aiming to enhance digital independence, sustainability, and security while reducing bureaucracy. The strategy emphasizes efficient organization, risk management, and promoting innovation through large government contracts over a five-year horizon, excluding Defense.",
+      "english_summary": "The Dutch government has adopted a Vision on National Procurement to modernize purchasing processes, focusing on efficiency, digital independence, sustainability, and security. It aims to reduce bureaucracy, enhance innovation through large-scale buying power, and manage risks to national security with new compliance requirements effective 2026.",
       "relevance": "related",
       "topics": [
         "economic_financial_security",
@@ -436,29 +616,21 @@
         "cyber"
       ],
       "evidence_status": "reported",
-      "evidence_quote": "Dependence on certain countries and multinationals makes us vulnerable. The urgency to procure securely increases. There is a growing need for digital sovereignty, guarantees for the continuity of (ICT) services, and access to critical raw materials. National procurement serves as an important lever here.",
-      "roles": [
-        {
-          "entity": "Netherlands",
-          "entity_code": "NLD",
-          "role": "readiness",
-          "evidence_quote": "Procurement and tendering contribute to strengthening digital autonomy and security. The government does this by embedding these aspects more firmly in contracts, mapping risks before signing a contract, and monitoring them during the delivery period.",
-          "rationale": "The Netherlands government is enhancing procurement practices to boost digital sovereignty, security, and reduce dependency, showing preparedness and resilience."
-        }
-      ],
+      "evidence_quote": "The urgency to procure securely is increasing. There is a growing need for digital sovereignty, guarantees for the continuity of (ICT) services, and access to critical raw materials. National procurement acts as an important lever in this.",
+      "roles": [],
       "viewpoint_structure": "single_viewpoint",
       "viewpoints": [
         {
-          "speaker": "State Secretary Van der Burg of Kingdom Relations and Agile Government",
-          "summary": "National procurement is being modernized to reduce bureaucracy, enhance efficiency, support digital autonomy, and secure access to critical resources, thus improving economic and security resilience.",
-          "target": "National procurement modernization in the Netherlands",
+          "speaker": "State Secretary Van der Burg",
+          "summary": "The Dutch government adopts a vision to modernize procurement to enhance digital independence, security, sustainability, and economic innovation, reducing bureaucracy and vulnerabilities.",
+          "target": "National procurement system and stakeholders",
           "speaker_sentiment": "positive",
-          "evidence_quote": "With this vision, we make procurement more efficient... Procurement must contribute to digital independence, sustainability, and security... Procurement and tendering contribute to strengthening digital autonomy and security."
+          "evidence_quote": "With this vision, we make procurement more efficient. This avoids duplicate costs and work, improves quality, and allows work with fewer people... Procurement must contribute to digital independence, sustainability, and security, thereby also supporting the economy and innovation."
         }
       ],
       "confidence": 0.95,
-      "short_rationale": "The government's procurement vision explicitly addresses reducing vulnerabilities through enhanced digital sovereignty, security measures, and supply resilience.",
-      "ticker_message": "Netherlands modernizes national procurement to enhance digital sovereignty, security, and critical resource resilience.",
+      "short_rationale": "The government frames procurement as a strategic tool for enhancing digital sovereignty, security, supply chain resilience, and economic innovation, addressing dependencies and risks.",
+      "ticker_message": "Netherlands adopts vision to use government procurement for digital sovereignty, security, and economic resilience.",
       "related": true,
       "primary_narrative": "economic_financial_security",
       "secondary_narratives": [
@@ -470,7 +642,7 @@
       "review_sample": false,
       "calibration_item": false,
       "source_text_chars": 4378,
-      "translated_text_chars": 4287,
+      "translated_text_chars": 4116,
       "translation_complete": true
     },
     {
@@ -901,7 +1073,57 @@
       "published_date": "2026-10-16",
       "publication_precision": "day",
       "id": "33a3e6478185820db54e",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "At the 15–16 October 2026 European Council summit, leaders addressed high energy prices, pushing the European Commission to reassess ETS2 impacts and propose solutions. They also discussed the EU's 2028–2034 budget priorities, opposed new EU own resources from tobacco and ETS revenues, and reviewed trade ties with China and migration policy.",
+      "relevance": "related",
+      "topics": [
+        "energy",
+        "economic_financial_security",
+        "diplomacy_alliances"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The Czech Republic and others secured a mandate for the Commission to reassess all impacts of ETS2 and propose measures to tackle high energy prices, noting uneven situations among member states, with some facing much higher prices. European institutions must rapidly find ways to reduce ETS allowance price volatility through adjusting the Market Stability Reserve, as price swings create uncertainty, increase energy costs, and jeopardize industry. The Council stressed that a competitive European industry is a priority, urging maximal efforts in the ETS1 revision to reduce carbon price volatility and its impact on electricity prices, added PM Babiš.",
+      "roles": [
+        {
+          "entity": "Czech Republic",
+          "entity_code": "CZE",
+          "role": "readiness",
+          "evidence_quote": "The Czech Republic and others secured a mandate for the Commission to reassess all impacts of ETS2 and propose measures to tackle high energy prices, noting uneven situations among member states, with some facing much higher prices.",
+          "rationale": "The Czech Republic is actively engaged in securing policy measures aimed at reducing energy price volatility and protecting industry competitiveness, indicating preparedness and resilience efforts regarding energy security."
+        }
+      ],
+      "viewpoint_structure": "multiple_viewpoints",
+      "viewpoints": [
+        {
+          "speaker": "Prime Minister Andrej Babiš",
+          "summary": "PM Babiš highlighted that the ETS1 system damages European industry and that the planned ETS2 would reduce refinery capacity and increase fuel and heating costs, emphasizing the need to address high energy prices and carbon price volatility to protect competitiveness.",
+          "target": "European institutions and ETS regulations",
+          "speaker_sentiment": "negative",
+          "evidence_quote": "PM Babiš reiterated that ETS1 damages European industry, while the planned ETS2 would reduce refinery capacity and raise fuel and heating costs."
+        },
+        {
+          "speaker": "European Council",
+          "summary": "The Council stressed the priority of maintaining a competitive European industry and urged maximal efforts in revising ETS1 to reduce carbon price volatility and its impact on electricity prices, reflecting concern about energy cost impacts on industry.",
+          "target": "European industry and ETS policy",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "The Council stressed that a competitive European industry is a priority, urging maximal efforts in the ETS1 revision to reduce carbon price volatility and its impact on electricity prices."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The Czech Republic and European Council actively seek to mitigate high energy prices and carbon market volatility impacting industrial competitiveness, demonstrating energy security relevance.",
+      "ticker_message": "EU leaders address high energy prices and carbon market reforms to protect industry competitiveness.",
+      "related": true,
+      "primary_narrative": "energy",
+      "secondary_narratives": [
+        "economic_financial_security",
+        "diplomacy_alliances"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 3754,
+      "translated_text_chars": 3122,
+      "translation_complete": true
     },
     {
       "country": "Hungary",
@@ -1054,7 +1276,59 @@
       "title": "Koning brengt werkbezoek aan Liverpool",
       "published_at": "2026-10-15T14:45:00+00:00",
       "id": "698cd8e9c3d8be2ff370",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "His Majesty the King will visit Liverpool on November 3 with Dutch ministers, highlighting Dutch-British cooperation in maritime and aerospace innovation, sustainable aviation, defense collaboration, and local community initiatives, alongside an economic mission and cultural visits.",
+      "relevance": "related",
+      "topics": [
+        "energy",
+        "critical_infrastructure",
+        "military_defence",
+        "diplomacy_alliances"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The Netherlands and the United Kingdom are North Sea neighbors and allies with deep-rooted ties. Both countries are maritime trading nations with open, export-oriented economies and are committed to multilateral security cooperation. There are also similar strategies in innovation, defense, and industry.",
+      "roles": [
+        {
+          "entity": "The Netherlands",
+          "entity_code": "NLD",
+          "role": "projecting_power",
+          "evidence_quote": "The Dutch navy ship HNLMS Johan de Witt is docked at Liverpool Cruise Terminal. A partnership document on British-Dutch defense cooperation will be signed. Dutch companies will present developments and potential applications of photonic sensors, maritime automation systems, and autonomous flying systems.",
+          "rationale": "The Dutch navy’s deployment and defense cooperation signing demonstrate projecting military and technological power."
+        }
+      ],
+      "viewpoint_structure": "multiple_viewpoints",
+      "viewpoints": [
+        {
+          "speaker": "King of the Netherlands",
+          "summary": "Emphasized strong bilateral cooperation in maritime manufacturing, sustainable aviation, defense, and community resilience.",
+          "target": "United Kingdom and Liverpool region",
+          "speaker_sentiment": "positive",
+          "evidence_quote": "The King will engage in conversations with maritime sector companies, witness sustainable aviation initiatives, and visit community and defense cooperation sites."
+        },
+        {
+          "speaker": "Minister Yeşilgöz-Zegerius, Dutch Minister of Defence",
+          "summary": "Highlighted British-Dutch defense cooperation and unveiled advanced naval unmanned systems.",
+          "target": "British defense counterparts and regional partners",
+          "speaker_sentiment": "positive",
+          "evidence_quote": "Minister Yeşilgöz-Zegerius gave a speech and signed partnership documents on defense cooperation."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The visit highlights deep bilateral defense, maritime industry, sustainable energy, and strategic economic cooperation between the Netherlands and the UK, involving defense deployments and innovation partnerships reinforcing collective security and resilience.",
+      "ticker_message": "King visits UK highlighting Dutch-British cooperation in defense, maritime industry, and sustainable aviation.",
+      "related": true,
+      "primary_narrative": "energy",
+      "secondary_narratives": [
+        "critical_infrastructure",
+        "military_defence",
+        "diplomacy_alliances"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 6265,
+      "translated_text_chars": 5362,
+      "translation_complete": true
     },
     {
       "country": "Moldova",
@@ -2237,7 +2511,37 @@
       "published_date": "2026-10-15",
       "publication_precision": "day",
       "id": "1a016213dd11bbc0a887",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "Hungary's government will expand the KATA tax system from January 1, 2027, allowing more entrepreneurs—including retirees, students, and part-timers—to benefit. The annual revenue limit rises to 22 million HUF, social security improves, and KATA taxpayers can invoice companies again. Monthly tax varies by status, with added protections and simplified taxation.",
+      "relevance": "related",
+      "topics": [
+        "economic_financial_security"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The government is broadening the group eligible to pay lump-sum tax under the small taxpayers’ itemized tax (KATA)... More than one hundred thousand small taxpayers may enjoy more favorable taxation... KATA will again be available to non-primary occupation entrepreneurs... KATA taxpayers will also be able to invoice companies and organizations again, and will receive greater social security... From 2027, full-time KATA taxpayers pay a monthly flat tax of 100,000 forints; those invoicing only individuals will pay 75,000 forints monthly next year, rising to 100,000 in 2028.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Government of Hungary",
+          "summary": "The government expanded the KATA tax system to support over 100,000 small taxpayers by offering more favorable taxation and improved social security, aiding part-time workers, retirees, students, and full-time professionals.",
+          "target": "small taxpayers and entrepreneurs in Hungary",
+          "speaker_sentiment": "positive",
+          "evidence_quote": "The new KATA will be a crucial pillar of a sustainable and fair tax system... More than one hundred thousand small taxpayers may enjoy more favorable taxation... Part-time KATA taxpayers will pay a monthly tax of 50,000 forints... KATA taxpayers will also be able to invoice companies and organizations again, and will receive greater social security."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "Hungary broadens the KATA tax system, improving economic security and social protection for small taxpayers and entrepreneurs.",
+      "ticker_message": "Hungary expands KATA tax system, benefiting over 100,000 small taxpayers with better taxation and social security.",
+      "related": true,
+      "primary_narrative": "economic_financial_security",
+      "secondary_narratives": [],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 4465,
+      "translated_text_chars": 4044,
+      "translation_complete": true
     },
     {
       "country": "United Kingdom",
@@ -2611,7 +2915,40 @@
       "title": "Campagne helpt jongeren met geldzorgen",
       "published_at": "2026-10-14T14:30:00+00:00",
       "id": "00054e8a53e5a3b627ea",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "The Dutch Ministry of Social Affairs launches the Money Stress campaign targeting young people aged 18-27, encouraging them to use free, anonymous Geldfit services for financial help amid rising money struggles. The campaign uses online channels and influencers to increase outreach and reduce stigma.",
+      "relevance": "related",
+      "topics": [
+        "economic_financial_security",
+        "health_biosecurity"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The Ministry of Social Affairs and Employment wants to ensure that young people with financial worries seek help more often... Seeking help in time prevents small problems from becoming large ones... Geldfit can inform young people about arrangements they are entitled to and offers reliable help.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Hans Vijlbrief, Minister of Social Affairs and Employment",
+          "summary": "Young people face new financial responsibilities at 18 which can quickly lead to serious debt, so early help through Geldfit is crucial to prevent worsening problems.",
+          "target": "Young people with financial worries and the public",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "By promptly texting, chatting, or calling Geldfit, young people can quickly find solutions and know their entitlements."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The campaign addresses young people's increasing financial vulnerability and promotes timely assistance to prevent escalation, indicating a national collective financial security concern.",
+      "ticker_message": "Netherlands launches Money Stress campaign to help young people manage financial worries early.",
+      "related": true,
+      "primary_narrative": "economic_financial_security",
+      "secondary_narratives": [
+        "health_biosecurity"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 2704,
+      "translated_text_chars": 2609,
+      "translation_complete": true
     },
     {
       "country": "Estonia",
@@ -3747,7 +4084,49 @@
       "title": "100 miljoen extra voor natuurbeheer in 2027",
       "published_at": "2026-10-13T12:26:00+00:00",
       "id": "6bf0753d6d71febeae72",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "The Dutch government and provinces will provide €100 million in 2027 for nature management to support restoration and restart permitting. This investment aids maintenance activities and leads towards a new Nature Pact with structural agreements on nature policy and financing.",
+      "relevance": "related",
+      "topics": [
+        "climate_environment",
+        "critical_infrastructure",
+        "economic_financial_security"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "Extra funds for nature management are necessary to realize nature restoration and are also a crucial link to restarting the permitting process in the Netherlands. Good nature management is the foundation for nature restoration. Without proper management, restoration measures only have a temporary effect.",
+      "roles": [],
+      "viewpoint_structure": "multiple_viewpoints",
+      "viewpoints": [
+        {
+          "speaker": "Minister Jaimi van Essen (LVVN)",
+          "summary": "Emphasizes the importance of good nature management as the foundation for nature restoration and enabling permitting processes.",
+          "target": "Nature restoration and permitting process in the Netherlands",
+          "speaker_sentiment": "positive",
+          "evidence_quote": "I am pleased that the provinces support my proposal. When we care for nature, nature cares for us. Good nature management is the foundation for nature restoration."
+        },
+        {
+          "speaker": "Deputy Matthijs de Vries (IPO portfolio holder nature)",
+          "summary": "Highlights provincial responsibility and commitment to contribute financially and pursue structural agreements in a new Nature Pact.",
+          "target": "Provincial contribution and Nature Pact",
+          "speaker_sentiment": "positive",
+          "evidence_quote": "We provinces also take our responsibility. I'm glad we can deliver this contribution together for 2027. Ultimately, we want to make structural agreements with the national government on nature management in a new Nature Pact."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The government and provinces commit funding to nature management as essential for restoration and restarting permitting, addressing environmental and systemic infrastructure needs.",
+      "ticker_message": "Netherlands allocates €100M for nature management to support restoration and restart permitting processes.",
+      "related": true,
+      "primary_narrative": "climate_environment",
+      "secondary_narratives": [
+        "critical_infrastructure",
+        "economic_financial_security"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 2460,
+      "translated_text_chars": 2177,
+      "translation_complete": true
     },
     {
       "country": "Germany",
@@ -4386,7 +4765,44 @@
       "published_date": "2026-10-13",
       "publication_precision": "day",
       "id": "dfcdaa07e65074e914cf",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "Czech and Israeli experts met to discuss online child protection, focusing on Israel's Unit 105 model addressing cyber threats to children. The Czech government plans to implement a similar integrated system by 2028, featuring a 24/7 hotline and coordinated services adapted for the Czech environment.",
+      "relevance": "related",
+      "topics": [
+        "cyber",
+        "health_biosecurity",
+        "civil_protection",
+        "artificial_intelligence"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The main topic was the introduction of the Israeli Office for Child Protection in the Online Environment, Unit 105, a specialized body focusing on prevention and addressing cyber threats to children and youths...participants discussed increasing risks associated with the digital environment, particularly cyberbullying, online extortion, sexual harassment of children, dissemination of harmful content, and new threats related to the use of artificial intelligence...The Ministry of the Interior...is preparing a procedural proposal for establishing a system that would link existing services and institutions dealing with child protection, crime prevention, crisis intervention, and victim assistance to ensure child protection online.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Prime Minister Andrej Babiš",
+          "summary": "The government prioritizes child safety online and is adopting a state structure inspired by Israeli experience for 24/7 protection.",
+          "target": "Czech government and public",
+          "speaker_sentiment": "positive",
+          "evidence_quote": "For our government, the safety of our children on social networks is a priority...We decided to implement the project; it is essentially underway, and I look forward to our children having a similar opportunity from 2028. If they feel threatened or have any problems, they will know whom to call, and there will be a state structure ready 24/7 to address their problems."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The Czech government is establishing a new child protection system addressing online and AI-related cyber threats using Israeli expertise, reflecting collective resilience and civil protection.",
+      "ticker_message": "Czech Republic plans a new 24/7 child online protection system against cyber and AI threats by 2028.",
+      "related": true,
+      "primary_narrative": "cyber",
+      "secondary_narratives": [
+        "health_biosecurity",
+        "civil_protection",
+        "artificial_intelligence"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 2617,
+      "translated_text_chars": 2782,
+      "translation_complete": true
     },
     {
       "country": "Hungary",
@@ -4397,7 +4813,40 @@
       "published_date": "2026-10-13",
       "publication_precision": "day",
       "id": "5e8302bf160883f1215e",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "The EU has released 4.2 billion euros in funds to Hungary by ending the rule of law conditionality procedure after Hungary took significant anti-corruption and transparency steps. Erasmus+ and Horizon Europe programs will resume, and Hungary will join the European Public Prosecutor's Office.",
+      "relevance": "related",
+      "topics": [
+        "economic_financial_security",
+        "political_institutions"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "More than 1500 billion forints of EU funds have become accessible after the Council of the European Union approved the Commission's proposal to close the rule of law conditionality procedure. ... Since the European Commission and the Council of the European Union considered that Hungary has recently taken significant steps to address rule of law concerns, the procedure was terminated.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Government of Hungary",
+          "summary": "Hungary has taken significant steps to address rule of law concerns, resulting in the lifting of EU fund suspensions and resumption of major EU programs.",
+          "target": "European Union rule of law conditionality and EU funds",
+          "speaker_sentiment": "positive",
+          "evidence_quote": "Since the European Commission and the Council of the European Union considered that Hungary has recently taken significant steps to address rule of law concerns, the procedure was terminated."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The article reports that Hungary's compliance on rule of law issues led to resumption of suspended multi-billion euro EU funds and educational programs, directly concerning economic and political institutional security.",
+      "ticker_message": "Hungary regains access to 4.2 billion euros of EU funds after rule of law concerns are addressed.",
+      "related": true,
+      "primary_narrative": "economic_financial_security",
+      "secondary_narratives": [
+        "political_institutions"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 2799,
+      "translated_text_chars": 2544,
+      "translation_complete": true
     },
     {
       "country": "Hungary",
@@ -4452,7 +4901,36 @@
       "published_date": "2026-10-13",
       "publication_precision": "day",
       "id": "cf1c86b0d2f80630388b",
-      "classification_status": "pending_classification"
+      "classification_status": "human_reviewed",
+      "english_summary": "Hungary's National Assembly passed stricter child protection laws barring harmful content in media and ads, including pornographic and violent materials. It bans damaging public advertisements and speeds up procedures for children unnecessarily kept in hospitals, ensuring their healthy development and swift protection measures.",
+      "relevance": "not_related",
+      "topics": [],
+      "evidence_status": "reported",
+      "evidence_quote": "The National Assembly approved amendments to the child protection law aimed at ensuring the healthy physical, intellectual, emotional, and moral development of children. Proposed by the government in September, the changes introduce stricter regulations in both traditional and digital environments. Prohibited content for children includes pornographic material, age-inappropriate sexual content, and depictions that promote sexual violence, exploitation, or other sexual crimes. Media providers must apply stricter age ratings... Advertisements harmful to children's development... are banned from public spaces. Political and commercial ads that negatively impact children’s development cannot be displayed in public places without restriction... Another amendment prevents the use of political advertisements during campaign periods that could harm children's emotional and psychological development.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "National Assembly",
+          "summary": "The Assembly enacted stricter child protection laws to safeguard children's healthy development in traditional and digital media, and regulate harmful advertisements including political ads that negatively affect children’s emotional well-being.",
+          "target": "Child protection in media and political advertisement",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "The National Assembly approved amendments to the child protection law aimed at ensuring the healthy physical, intellectual, emotional, and moral development of children... Political and commercial ads that negatively impact children’s development cannot be displayed in public places without restriction."
+        }
+      ],
+      "confidence": 0.9,
+      "short_rationale": "The law explicitly addresses protection of children's development from harmful content and political advertisements, implicating health biosecurity, information influence, and political institutions.",
+      "ticker_message": "National Assembly tightens child protection laws restricting harmful content and political ads affecting children's development.",
+      "related": false,
+      "primary_narrative": "none_unclear",
+      "secondary_narratives": [],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": true,
+      "calibration_item": false,
+      "source_text_chars": 2990,
+      "translated_text_chars": 1449,
+      "translation_complete": true,
+      "human_reviewed": true
     },
     {
       "country": "United Kingdom",
@@ -4930,38 +5408,38 @@
       "published_at": "2026-10-12T07:30:00+00:00",
       "id": "62523bac29c53fc9ee6a",
       "classification_status": "provisional",
-      "english_summary": "The Dutch ministry plans to reform zoo licensing to remove administrative burdens, encourage innovation among leading zoos, and enforce improvements for laggards. Licenses will no longer be indefinite, enabling enforcement actions including penalties or license revocation to improve animal welfare and modernize zoos.",
+      "english_summary": "The Dutch Ministry of Agriculture is overhauling the zoo permit system to reduce administrative burdens, encourage innovation in leading zoos, and hold lagging zoos accountable. The changes aim to improve animal welfare by facilitating updates and enabling enforcement actions if zoos fail to modernize.",
       "relevance": "related",
       "topics": [
         "food_security",
         "civil_protection"
       ],
       "evidence_status": "reported",
-      "evidence_quote": "Zoos that lag behind development will be addressed. If under the new system they refuse to implement improvements, enforcement can take place, for example via an order with penalty to force improvement.",
+      "evidence_quote": "It is therefore important that zoos keep pace with the times. Current rules often hinder that progress. That is why I want to remove unnecessary regulatory burdens and change the permitting system, so there is room for zoos that are leaders and to guide laggards.",
       "roles": [],
       "viewpoint_structure": "single_viewpoint",
       "viewpoints": [
         {
           "speaker": "State Secretary Silvio Erkens",
-          "summary": "The licensing system for zoos will be revised to enable innovation and enforce improvements, ensuring animal welfare and sector modernization.",
-          "target": "zoos and licensing system",
-          "speaker_sentiment": "positive",
-          "evidence_quote": "That is why I want to remove unnecessary regulatory burdens and change the licensing system so that there is space for leading zoos and laggards can be guided."
+          "summary": "The permit system for zoos will be overhauled to encourage innovation, improve animal welfare, and address zoos that lag behind with enforcement measures.",
+          "target": "Zoos and regulatory framework",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "Zoos that lead the way should be given space to innovate, while zoos that lag behind will be encouraged to develop... Enforcement can take place via an enforcement order with a penalty to compel improvement."
         }
       ],
-      "confidence": 0.95,
-      "short_rationale": "The report details reforms to the zoo licensing system to improve animal welfare and enforce compliance, affecting sector resilience and regulation enforcement.",
-      "ticker_message": "Netherlands revises zoo licenses to encourage innovation and enforce animal welfare improvements.",
+      "confidence": 0.9,
+      "short_rationale": "The new permit system aims to improve animal welfare in zoos by incentivizing innovation and enforcing standards, which is important for collective resilience and protection of essential ecosystems, linking to food security and civil protection.",
+      "ticker_message": "Dutch government reforms zoo permits to enhance animal welfare and encourage innovation through enforcement.",
       "related": true,
       "primary_narrative": "food_security",
       "secondary_narratives": [
         "civil_protection"
       ],
-      "classifier_prompt_version": "government-hybrid-3",
+      "classifier_prompt_version": "government-hybrid-4",
       "review_sample": false,
       "calibration_item": false,
       "source_text_chars": 2573,
-      "translated_text_chars": 2145,
+      "translated_text_chars": 2284,
       "translation_complete": true
     },
     {
@@ -4971,51 +5449,43 @@
       "title": "Nieuwe Denk vooruit campagne om extra aandacht te vragen om voor te bereiden op noodsituatie",
       "published_at": "2026-10-12T06:00:00+00:00",
       "id": "2184c085c62cd8a91a14",
-      "english_summary": "The Dutch government launched a new \"Think Ahead\" campaign encouraging citizens to prepare for emergencies by assembling emergency kits, making plans, and discussing needs with family and neighbors. This follows increased public concern and recent incidents like wildfires and sabotage attempts affecting vital services.",
+      "english_summary": "The Dutch government launched the \"Think Ahead\" campaign to improve citizen preparedness for emergencies like power outages. It encourages assembling emergency kits, making plans with family and neighbors, and discussing readiness to strengthen collective resilience. Over 40% of Dutch have taken preparatory actions.",
       "classification_status": "provisional",
-      "classifier_prompt_version": "government-hybrid-3",
+      "classifier_prompt_version": "government-hybrid-4",
       "calibration_item": false,
       "source_text_chars": 4013,
       "relevance": "related",
       "topics": [
-        "water",
-        "energy",
+        "civil_protection",
         "critical_infrastructure",
-        "civil_protection"
+        "water",
+        "energy"
       ],
       "evidence_status": "reported",
-      "evidence_quote": "More than half of the Dutch are concerned about the failure of vital processes, such as electricity, water, or internet... the Dutch government, together with partners, today launches a new \"Think Ahead\" campaign... By talking this autumn and thinking about things you have not arranged yet, we stand stronger together during an emergency.",
-      "roles": [
-        {
-          "entity": "Netherlands",
-          "entity_code": "NLD",
-          "role": "readiness",
-          "evidence_quote": "More than 4 in 10 Dutch people have taken action to be better prepared for 72 hours without power, water, and internet... the Dutch government, together with partners, today launches a new \"Think Ahead\" campaign.",
-          "rationale": "The Netherlands is actively promoting public preparedness and resilience for emergencies involving vital infrastructure outages."
-        }
-      ],
+      "evidence_quote": "More than half of the Dutch are worried about the failure of vital processes such as electricity, water, or internet. To prepare for outages and other emergencies, more and more Dutch citizens are taking action. The Dutch government today launches a new \"Think Ahead\" campaign together with partners.",
+      "roles": [],
       "viewpoint_structure": "single_viewpoint",
       "viewpoints": [
         {
           "speaker": "Minister Van Weel of Justice and Security",
-          "summary": "Emphasizes the importance of public preparation for emergencies through small steps and coordinated planning to increase resilience.",
-          "target": "Dutch public and emergency preparedness",
+          "summary": "The new campaign encourages people to prepare in more diverse and practical ways for emergencies, strengthening community resilience through simple steps.",
+          "target": "Dutch public",
           "speaker_sentiment": "positive",
-          "evidence_quote": "Never before have so many Dutch prepared for risks and threats... By talking this autumn and thinking about things you have not arranged yet, we stand stronger together during an emergency."
+          "evidence_quote": "The emergency kit and making agreements are a good foundation, but the new campaign encourages considering additional aspects in small steps, such as cash withdrawal for emergencies or setting radios to the correct emergency channel."
         }
       ],
       "confidence": 0.95,
-      "short_rationale": "The Dutch government actively promotes public preparedness for vital infrastructure failures, highlighting civil protection and resilience.",
-      "ticker_message": "Netherlands launches campaign to boost public preparedness for infrastructure outages and emergencies.",
+      "short_rationale": "The Dutch government warns about disruptions of critical infrastructure and promotes a comprehensive emergency preparedness campaign for public resilience.",
+      "ticker_message": "Dutch government launches 'Think Ahead' campaign promoting emergency preparedness for infrastructure disruptions.",
       "related": true,
-      "primary_narrative": "water",
+      "primary_narrative": "civil_protection",
       "secondary_narratives": [
-        "energy",
         "critical_infrastructure",
-        "civil_protection"
+        "water",
+        "energy"
       ],
       "review_sample": false,
-      "translated_text_chars": 3322,
+      "translated_text_chars": 2480,
       "translation_complete": true
     },
     {
@@ -5540,7 +6010,44 @@
       "published_date": "2026-10-12",
       "publication_precision": "day",
       "id": "04c1df495ebc0a8a6e54",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "The Czech government held a National Coalition meeting on October 12, 2026, discussing drought management. Plans include legislative changes, strategic water projects, reservoir construction, and wastewater treatment upgrades to ensure water security and improve resilience against drought and floods.",
+      "relevance": "related",
+      "topics": [
+        "water",
+        "climate_environment",
+        "civil_protection",
+        "critical_infrastructure"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "Prime Minister Andrej Babiš convened another meeting of the National Coalition to Combat Drought... discussed the current hydrological situation... status of planned measures... further steps to strengthen long-term protection of water resources and increase the country's resilience to drought impacts... preparing a special legislative amendment to allow faster preparation and implementation of strategic water management constructions... priorities include building new water reservoirs, connecting water supply systems, drought countermeasures, wastewater treatment plant modernization... coalition also evaluated experiences from previous floods... detailed analysis of flood impacts, existing flood protection effectiveness and identification of projects still needed.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Prime Minister Andrej Babiš",
+          "summary": "The government prioritizes extensive investments and legislative action to secure water resources and infrastructure, ensuring readiness for drought and flood impacts.",
+          "target": "National Coalition to Combat Drought and Czech government water policy",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "The issue of drought and water management is among the main priorities of our government... We must plan decades ahead and ensure that the Czech Republic has enough drinking water and water for the landscape, agriculture, and industry... Therefore, we want to prepare a complete overview of all strategic projects and simultaneously seek ways to expedite their preparation and implementation."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The Czech government leads coordinated efforts and legislative reforms to protect water resources and enhance resilience against drought and floods, addressing critical water security and infrastructure.",
+      "ticker_message": "Czech Republic advances legislative and investment plans to combat drought and protect water resources.",
+      "related": true,
+      "primary_narrative": "water",
+      "secondary_narratives": [
+        "climate_environment",
+        "civil_protection",
+        "critical_infrastructure"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 3355,
+      "translated_text_chars": 3603,
+      "translation_complete": true
     },
     {
       "country": "Czechia",
@@ -5701,7 +6208,50 @@
       "published_date": "2026-10-12",
       "publication_precision": "day",
       "id": "6dc35878e7fb5dc0ca98",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "Hungary will temporarily reduce excise tax by 25 forints per litre on diesel for heavy vehicles until end of 2026 to support domestic carriers. Enhanced toll enforcement and possible easing of transit, weight restrictions and truck ban rules are also planned to improve competitiveness and compliance.",
+      "relevance": "related",
+      "topics": [
+        "energy",
+        "economic_financial_security",
+        "critical_infrastructure"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "Therefore, the government decided that until the end of 2026, the excise tax on diesel for vehicles over 7.5 tons and buses will be temporarily reduced by 25 forints per litre... Additionally, as part of a comprehensive package of measures, road toll enforcement will be tightened... The carriers’ associations agree with this because domestic and foreign freight operators who cheat on road tolls gain unfair advantages over those who comply with the rules.",
+      "roles": [
+        {
+          "entity": "Hungary",
+          "entity_code": "HUN",
+          "role": "readiness",
+          "evidence_quote": "the government decided that until the end of 2026, the excise tax on diesel for vehicles over 7.5 tons and buses will be temporarily reduced by 25 forints per litre... road toll enforcement will be tightened... coordinating the work of the ministry, Hungarian Public Road Nonprofit, NAV, and the police in this field.",
+          "rationale": "Hungary is implementing fiscal and enforcement measures to support domestic freight carriers facing economic challenges and to ensure fair competition, indicating efforts to strengthen economic and infrastructure resilience."
+        }
+      ],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Government of Hungary (István Kapitány, András Kármán, Dávid Vitézy)",
+          "summary": "The government is providing temporary tax relief and enhancing road toll enforcement to address economic difficulties of domestic carriers and unfair competition from foreign companies.",
+          "target": "Domestic freight carriers and policy measures",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "The government decided that until the end of 2026, the excise tax on diesel... will be temporarily reduced... road toll enforcement will be tightened... The carriers’ associations agree with this because domestic and foreign freight operators who cheat gain unfair advantages."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "Hungary's temporary diesel tax relief and stricter toll enforcement support domestic freight carriers amid fuel costs and competitive pressures.",
+      "ticker_message": "Hungary grants temporary diesel tax relief and tightens road toll enforcement to aid domestic freight carriers.",
+      "related": true,
+      "primary_narrative": "energy",
+      "secondary_narratives": [
+        "economic_financial_security",
+        "critical_infrastructure"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 2296,
+      "translated_text_chars": 2160,
+      "translation_complete": true
     },
     {
       "country": "Moldova",
@@ -5753,33 +6303,33 @@
       "published_at": "2026-10-10T22:00:00+00:00",
       "id": "1d53b3864fee5e5fd8b1",
       "classification_status": "provisional",
-      "english_summary": "The Digital Austria Service Center reopens focusing on seniors, offering personal support for ID Austria and digital government services through special October action days. This is part of the Digi-Senior Package to enhance older adults' digital skills and participation, with a new service number established due to high demand.",
+      "english_summary": "The Digital Austria Service Point reopens with a focus on seniors, offering personal support for ID Austria and digital government services. Special October action days and new service hotline address rising digital needs among older Austrians, as part of the Digi-Senior Package promoting digital inclusion.",
       "relevance": "not_related",
       "topics": [],
       "evidence_status": "reported",
-      "evidence_quote": "The Digital Austria Service Center is reopening with a special focus on seniors providing personal assistance with ID Austria and digital government services.",
+      "evidence_quote": "The Digital Austria Service Point reopens its doors with a special focus on seniors... Citizens receive personal support in registering, setting up, and using ID Austria... The Digi-Senior Package targets this by conveying digital administrative services in an understandable way and reducing usage barriers.",
       "roles": [],
       "viewpoint_structure": "single_viewpoint",
       "viewpoints": [
         {
-          "speaker": "Secretary of State for Digitalization Alexander Pröll",
-          "summary": "Personal support is needed along with good digital services to enable secure independent use by all generations.",
-          "target": "Digital Austria Service Center and senior digital inclusion",
+          "speaker": "Digitalization State Secretary Alexander Pröll",
+          "summary": "The Digital Austria Service Point provides personal support to citizens, especially seniors, to safely and independently use ID Austria and digital administrative services.",
+          "target": "Austrian citizens, particularly seniors",
           "speaker_sentiment": "positive",
-          "evidence_quote": "The Digital Austria Service Center has proven itself as a personal contact point for citizens. High demand shows that besides good digital services, personal support is needed."
+          "evidence_quote": "The Digital Austria Service Point has proven to be a personal contact point for citizens... Our goal is that all generations can safely and independently use ID Austria and digital administrative services."
         }
       ],
-      "confidence": 0.95,
-      "short_rationale": "The text discusses digital inclusion and personal support for government digital services, not relating to collective security or sovereignty.",
-      "ticker_message": "Austria reopens Digital Service Center focusing on seniors' digital inclusion and support.",
+      "confidence": 0.9,
+      "short_rationale": "The article describes digital inclusion initiatives and support services for seniors without explicit security implications.",
+      "ticker_message": "Austria offers personal digital support to seniors for ID Austria and administrative services.",
       "related": false,
       "primary_narrative": "none_unclear",
       "secondary_narratives": [],
-      "classifier_prompt_version": "government-hybrid-3",
+      "classifier_prompt_version": "government-hybrid-4",
       "review_sample": false,
       "calibration_item": false,
       "source_text_chars": 3987,
-      "translated_text_chars": 3216,
+      "translated_text_chars": 3409,
       "translation_complete": true
     },
     {
@@ -6128,7 +6678,37 @@
       "published_date": "2026-10-10",
       "publication_precision": "day",
       "id": "1330b5830b0884f10188",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "Hungary is conducting public consultation on a proposed wealth tax taxing assets over 1 billion forints at 1%, rising to 1.5% above 100 billion. It covers domestic and foreign assets of residents, includes asset managers, and aims to ensure fairer public contribution, with rules preventing evasion and options for payment deferral.",
+      "relevance": "related",
+      "topics": [
+        "economic_financial_security"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The plan to introduce a wealth tax aims at a fairer public burden sharing... The wealth tax will be payable by domestic individuals on both domestic and foreign assets... Those with payment difficulties may request deferral or installment payments from the National Tax and Customs Administration.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Government of Hungary",
+          "summary": "The government proposes a wealth tax on high-value personal assets to ensure fair public burden sharing and prevent tax evasion, with mechanisms to support payers facing difficulties.",
+          "target": "Hungarian taxpayers with high wealth",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "The plan to introduce a wealth tax aims at a fairer public burden sharing... The wealth tax will be payable by domestic individuals on both domestic and foreign assets... Those with payment difficulties may request deferral or installment payments from the National Tax and Customs Administration."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "Hungary's wealth tax proposal targets high-value assets to enhance fiscal fairness and economic security through progressive taxation.",
+      "ticker_message": "Hungary consults on wealth tax targeting high net worth individuals to ensure fair public funding.",
+      "related": true,
+      "primary_narrative": "economic_financial_security",
+      "secondary_narratives": [],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 3355,
+      "translated_text_chars": 2819,
+      "translation_complete": true
     },
     {
       "country": "United Kingdom",
@@ -6255,41 +6835,47 @@
       "title": "EU wijst 4 Nederlandse projecten aan als strategisch voor kritieke grondstoffen",
       "published_at": "2026-10-09T14:30:00+00:00",
       "id": "1e112ff14099b5d98ada",
-      "english_summary": "The EU Commission designated four Dutch projects as strategic under the Critical Raw Materials Act, enhancing supply security through advanced recycling and recovery of critical materials. These projects receive priority support and funding to reduce Europe's dependence on raw material imports and foster innovation in sustainable raw material processing.",
+      "english_summary": "The European Commission designated four Dutch projects as strategic to enhance Europe's critical raw materials supply security. These projects, supported under the EU Critical Raw Materials Act, aim to recycle and refine metals, reducing dependency and boosting Dutch contributions to EU industrial and energy needs.",
       "classification_status": "provisional",
       "calibration_item": false,
       "source_text_chars": 3134,
       "relevance": "related",
       "topics": [
         "critical_minerals_resources",
-        "economic_financial_security",
-        "technology_supply_chains"
+        "economic_financial_security"
       ],
       "evidence_status": "reported",
-      "evidence_quote": "The European Commission has designated 4 Dutch projects as strategic for strengthening the supply security of critical raw materials in Europe... This designation ensures these companies receive extra support in permitting and better access to European financing.",
-      "roles": [],
+      "evidence_quote": "The European Commission has designated 4 Dutch projects as strategic for strengthening the supply security of critical raw materials in Europe... The availability of critical raw materials and semi-finished products for Dutch and European industry is... essential for our security, the energy transition, and digitalization.",
+      "roles": [
+        {
+          "entity": "Netherlands",
+          "entity_code": "NLD",
+          "role": "readiness",
+          "evidence_quote": "The designation ensures these companies receive additional guidance in permitting and better access to European financing.",
+          "rationale": "Dutch projects are supported to strengthen critical raw materials supply security, enhancing national and EU resilience."
+        }
+      ],
       "viewpoint_structure": "single_viewpoint",
       "viewpoints": [
         {
           "speaker": "Minister Heleen Herbert (Economic Affairs and Climate)",
-          "summary": "Dutch projects contribute significantly to strengthening Europe's supply security of critical raw materials, reducing strategic dependence.",
-          "target": "Dutch critical raw materials projects",
+          "summary": "Dutch projects in critical raw materials and recycling reduce strategic dependency and have potential for large-scale applications.",
+          "target": "Dutch industry and EU critical raw materials supply security",
           "speaker_sentiment": "positive",
-          "evidence_quote": "Dutch entrepreneurs can make an important contribution to strengthening the supply security of critical raw materials in Europe. This reduces our strategic dependence."
+          "evidence_quote": "The choice for these projects is good news... reduces our strategic dependency... Dutch industry in critical raw materials and advanced recycling has the potential to convert knowledge and innovation into large-scale market applications."
         }
       ],
       "confidence": 0.95,
-      "short_rationale": "The EU's CRMA designates Dutch projects as critical to secure raw materials supply, underpinning economic and technological security.",
-      "ticker_message": "EU labels 4 Dutch projects strategic to secure critical raw materials supply for Europe.",
+      "short_rationale": "The designation of Dutch projects as strategic supports EU and Dutch supply security of critical minerals, crucial for security and economy.",
+      "ticker_message": "EU names 4 Dutch projects strategic to secure critical raw materials supply for energy and digital security.",
       "related": true,
       "primary_narrative": "critical_minerals_resources",
       "secondary_narratives": [
-        "economic_financial_security",
-        "technology_supply_chains"
+        "economic_financial_security"
       ],
-      "classifier_prompt_version": "government-hybrid-3",
+      "classifier_prompt_version": "government-hybrid-4",
       "review_sample": false,
-      "translated_text_chars": 2931,
+      "translated_text_chars": 2937,
       "translation_complete": true
     },
     {
@@ -6502,34 +7088,34 @@
       "title": "Kabinet zet volgende stap op weg naar beter cultuurbestel",
       "published_at": "2026-10-09T12:30:00+00:00",
       "id": "439c63f768d2168dc0b9",
-      "english_summary": "The Dutch government plans to reform the cultural subsidy system for better access, simplification, and future-proofing. Minister Letschert aims for longer subsidies, stronger cultural funds, and broad consultation, with new measures starting January 2029 to support creators and institutions nationwide.",
+      "english_summary": "The Dutch government, led by Minister Letschert, plans reforms to make cultural funding simpler, more accessible, and future-proof, enhancing access nationwide, extending subsidy terms to eight years, strengthening cultural funds' roles, and safeguarding artistic freedom. Changes will be finalized by mid-2027 and take effect in 2029.",
       "classification_status": "provisional",
       "calibration_item": false,
       "source_text_chars": 3187,
       "relevance": "not_related",
       "topics": [],
       "evidence_status": "reported",
-      "evidence_quote": "The Council of Ministers has adopted a plan to adjust the cultural system to make it more accessible, simpler, and future-proof.",
+      "evidence_quote": "The Council of Ministers has adopted a plan on the proposal of Minister Letschert of Education, Culture and Science to adjust the cultural system with goals of good access, fewer requirements, and future-proof national cultural funds.",
       "roles": [],
       "viewpoint_structure": "single_viewpoint",
       "viewpoints": [
         {
           "speaker": "Minister Letschert of Education, Culture and Science",
-          "summary": "The minister proposes adjusting the cultural system to improve access, simplify subsidies, and make funding future-proof.",
-          "target": "Dutch cultural system and funding",
-          "speaker_sentiment": "positive",
-          "evidence_quote": "Minister Letschert has three goals: good access, simpler and more certainty, future-proof system."
+          "summary": "The minister proposes to simplify and improve access to culture across the country, strengthen national cultural funds, and safeguard artistic freedom while reducing political interference.",
+          "target": "National cultural system and cultural institutions in the Netherlands",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "Minister Letschert has three objectives: Good access... Simpler and more certainty... Future-proof system... She aims for stronger national cultural funds, with greater responsibility, more oversight, and less overlap."
         }
       ],
       "confidence": 0.95,
-      "short_rationale": "The report discusses cultural policy reform without connection to security, sovereignty, or critical resources.",
-      "ticker_message": "Dutch government plans reforms to improve access and funding for cultural institutions.",
+      "short_rationale": "The article focuses on cultural system reforms without stating any national or collective security, sovereignty, essential resources or systems risks; thus it is not related to national security narratives.",
+      "ticker_message": "Dutch government plans cultural system reforms focusing on access, simplification, and future-proofing national funds.",
       "related": false,
       "primary_narrative": "none_unclear",
       "secondary_narratives": [],
-      "classifier_prompt_version": "government-hybrid-3",
+      "classifier_prompt_version": "government-hybrid-4",
       "review_sample": false,
-      "translated_text_chars": 3033,
+      "translated_text_chars": 3046,
       "translation_complete": true
     },
     {
@@ -7962,7 +8548,7 @@
       "title": "Werkbezoek Staatssecretaris Eric van der Burg aan Benedenwindse eilanden",
       "published_at": "2026-10-08T08:13:00+00:00",
       "id": "8e527d336af94785bb8d",
-      "english_summary": "State Secretary Eric van der Burg will visit Aruba, Bonaire, and Curaçao from October 12-17, 2026. The visit includes meetings with local officials, discussions on labor, youth programs, tourism, border control, digital services, and security. He will also tour various institutions and attend a navy event.",
+      "english_summary": "State Secretary Eric van der Burg visits Aruba, Bonaire, and Curaçao from October 12 to 17, engaging with local governments and organizations on political, social, and security matters, including labor integration, border control, tourism, governance, and justice systems.",
       "classification_status": "provisional",
       "calibration_item": false,
       "source_text_chars": 3472,
@@ -7970,48 +8556,41 @@
       "relevance": "related",
       "topics": [
         "sovereignty_borders",
-        "civil_protection",
-        "critical_infrastructure"
+        "critical_infrastructure",
+        "civil_protection"
       ],
       "evidence_status": "reported",
-      "evidence_quote": "He visits the Marine Barracks in Savonet, he learns about the work of the marines on Aruba and the Social Development Program for youth... He starts at Reina Beatrix International Airport, informed about airport work related to the 'strengthening border control' project... discussions at the Chamber of Commerce on the business climate... receiving updates on topics including secure borders and neighborhood development... attends the navy's sailing day organized by Royal Navy and other armed forces units.",
+      "evidence_quote": "Tuesday, October 13 starts at Reina Beatrix International Airport, where he is informed about airport activities related to the 'strengthening border control' project. ... On Thursday, October 15, the state secretary has an audience with Governor Mauritsz de Kort and political talks with, among others, Prime Minister Pisas and the Curaçao cabinet. He is updated on various topics, including secure borders and neighborhood development.",
       "roles": [
         {
           "entity": "Netherlands",
           "entity_code": "NLD",
           "role": "readiness",
-          "evidence_quote": "He visits the Marine Barracks in Savonet, learns about the work of the marines on Aruba; attends the navy's sailing day organized by the Royal Navy and other armed forces units.",
-          "rationale": "Demonstrates military presence and engagement in Dutch constituent countries, promoting defense readiness."
-        },
-        {
-          "entity": "Netherlands",
-          "entity_code": "NLD",
-          "role": "readiness",
-          "evidence_quote": "Informed about airport work related to the 'strengthening border control' project... discussions focused on political administrative situation including secure borders.",
-          "rationale": "Border control strengthening and administrative talks underline readiness and civil protection in the Caribbean Netherlands."
+          "evidence_quote": "He is informed about airport activities related to the 'strengthening border control' project... political talks... updated on secure borders.",
+          "rationale": "The visits and discussions focus on strengthening border control and secure borders, indicating readiness in sovereign border management and critical infrastructure security."
         }
       ],
       "viewpoint_structure": "single_viewpoint",
       "viewpoints": [
         {
           "speaker": "Dutch State Secretary Eric van der Burg",
-          "summary": "The visit focuses on administrative cooperation, security measures including border control, support for military presence, and social development programs in Dutch Caribbean territories.",
-          "target": "Dutch Caribbean stakeholders and Dutch government",
+          "summary": "Van der Burg's visit aims to strengthen border control, governance, and infrastructure resilience in the Caribbean Netherlands.",
+          "target": "Caribbean Netherlands governance and security sectors",
           "speaker_sentiment": "neutral",
-          "evidence_quote": "He visits military and border control facilities, holds discussions with local leaders on secure borders and neighborhood development, and attends navy events."
+          "evidence_quote": "He is informed about airport activities related to the 'strengthening border control' project... He is updated on various topics, including secure borders and neighborhood development."
         }
       ],
       "confidence": 0.95,
-      "short_rationale": "The visit emphasizes readiness and security in Dutch Caribbean territories through military, border control, and administrative cooperation.",
-      "ticker_message": "Dutch State Secretary visits Caribbean Netherlands to advance security, border control, and military cooperation.",
+      "short_rationale": "The State Secretary’s visit emphasizes strengthening border control and secure borders in the Caribbean Netherlands, directly relating to sovereignty and critical infrastructure security.",
+      "ticker_message": "Dutch State Secretary visits Caribbean Netherlands to strengthen border security and governance.",
       "related": true,
       "primary_narrative": "sovereignty_borders",
       "secondary_narratives": [
-        "civil_protection",
-        "critical_infrastructure"
+        "critical_infrastructure",
+        "civil_protection"
       ],
       "review_sample": false,
-      "translated_text_chars": 2767,
+      "translated_text_chars": 2916,
       "translation_complete": true
     },
     {
@@ -8311,7 +8890,7 @@
       "published_at": "2026-10-07T22:00:00+00:00",
       "id": "04d742c3ae8b90993965",
       "classification_status": "provisional",
-      "english_summary": "Austria rejects the EU's current Digital Omnibus compromise, demanding stronger legal certainty and innovation support in data laws. It calls for balanced trade secret protections, proportionate cloud switching rules, and eased non-personal data use for AI, emphasizing technical sovereignty and SME relief.",
+      "english_summary": "Austria rejects the European Commission's current Digital Omnibus Package proposal, urging greater ambition to ensure legal certainty, protect technical sovereignty, ease data service switching, and facilitate AI data use, aiming to support SMEs and innovation while safeguarding trade secrets and personal data.",
       "relevance": "related",
       "topics": [
         "technology_supply_chains",
@@ -8319,32 +8898,32 @@
         "artificial_intelligence"
       ],
       "evidence_status": "reported",
-      "evidence_quote": "Austria demands a more ambitious simplification of EU digital legislation that noticeably relieves SMEs and start-ups... Austria demands targeted facilitation so that manufacturers can use non-personal product data for AI development... current proposal lacks concrete rules to secure technical sovereignty and clear regulations for data access requests linked to trade secrets.",
+      "evidence_quote": "Austria presented the paper 'Food for Thought on Simplification of the Digital Regulatory Framework'... From Austria's perspective, the current proposal lacks concrete regulations to ensure technical sovereignty... Austria demands targeted facilitation so that manufacturers can use non-personal product data for AI development... We need a modern, forward-looking legal framework that protects without hindering innovation, to strengthen Europe's technological sovereignty in the long term.",
       "roles": [],
       "viewpoint_structure": "single_viewpoint",
       "viewpoints": [
         {
-          "speaker": "Austria Secretary of State Alexander Pröll",
-          "summary": "Austria calls for a more ambitious EU digital legal framework that protects innovation and strengthens technological sovereignty, specifically easing regulations for SMEs and facilitating AI development while securing trade secrets and data access.",
-          "target": "European Commission's Digital Omnibus Package",
-          "speaker_sentiment": "positive",
-          "evidence_quote": "We need a modern, future-oriented legal framework that protects without hindering innovation. Only by combining both can we strengthen Europe's technological sovereignty in the long term."
+          "speaker": "State Secretary Alexander Pröll",
+          "summary": "Austria calls for a more ambitious simplification of EU digital legislation to protect trade secrets and ensure technical sovereignty, while facilitating AI development and innovation, especially benefiting SMEs and start-ups.",
+          "target": "European Union digital regulatory framework and Omnibus Package",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "We need a modern, forward-looking legal framework that protects without hindering innovation. Only by combining both can we strengthen Europe's technological sovereignty in the long term. For this reason, we call for a more ambitious simplification of EU digital legislation, which noticeably relieves SMEs and start-ups."
         }
       ],
       "confidence": 0.95,
-      "short_rationale": "Austria critiques EU digital law's insufficiency on technical sovereignty and AI facilitation, linking to technology security and innovation.",
-      "ticker_message": "Austria urges stronger EU digital laws to boost technological sovereignty and AI innovation.",
+      "short_rationale": "Austria demands stronger legal clarity and sovereignty in EU digital laws to support innovation and AI development, framing this as a technological sovereignty issue linked to economic and supply chain security.",
+      "ticker_message": "Austria calls for stronger EU digital laws to safeguard technological sovereignty and boost AI innovation.",
       "related": true,
       "primary_narrative": "technology_supply_chains",
       "secondary_narratives": [
         "economic_financial_security",
         "artificial_intelligence"
       ],
-      "classifier_prompt_version": "government-hybrid-3",
+      "classifier_prompt_version": "government-hybrid-4",
       "review_sample": false,
       "calibration_item": false,
       "source_text_chars": 2974,
-      "translated_text_chars": 2564,
+      "translated_text_chars": 2590,
       "translation_complete": true
     },
     {
@@ -8823,7 +9402,42 @@
       "published_date": "2026-10-08",
       "publication_precision": "day",
       "id": "cbd261a3c27901435326",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "János Vásárhelyi, director of the Bicske children’s home, sexually abused youths for decades, exploiting trust and manipulating authorities to avoid consequences. Multiple reports were ignored or dismissed, emphasizing institutional reputation over children’s welfare. Public exposure in 2016 led to his prosecution and conviction.",
+      "relevance": "related",
+      "topics": [
+        "health_biosecurity",
+        "political_institutions",
+        "civil_protection"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "For decades, János Vásárhelyi sexually abused several youths at the Bicske children’s home... children’s reports received no response from authorities... the institution’s reputation was prioritized over children’s interests... The government established a one-billion forint Compensation Fund for those abused within the child protection system.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Government’s child rights and protection department",
+          "summary": "The report details systemic abuse and institutional failure to protect children in the Bicske children’s home, revealing manipulation of trust and lack of effective response by authorities.",
+          "target": "Bicske children’s home and child protection system",
+          "speaker_sentiment": "negative",
+          "evidence_quote": "The investigation revealed how the director constructed a system of manipulation and abuse of children’s trust... The institution’s interest in its reputation consistently outweighed children’s welfare, preventing serious responses... The government established a one-billion forint Compensation Fund for those abused within the child protection system."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The report documents systemic child sexual abuse and institutional failures, highlighting serious biosecurity and political institutional risks and government compensation measures.",
+      "ticker_message": "Report exposes systemic abuse at Bicske children’s home; government acts with compensation fund.",
+      "related": true,
+      "primary_narrative": "health_biosecurity",
+      "secondary_narratives": [
+        "political_institutions",
+        "civil_protection"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 7854,
+      "translated_text_chars": 3631,
+      "translation_complete": true
     },
     {
       "country": "Hungary",
@@ -8878,7 +9492,42 @@
       "published_date": "2026-10-08",
       "publication_precision": "day",
       "id": "1569367d4d6956cafbd3",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "A detailed investigation uncovered nearly 20 years of child abuse at Bicske children's home under director Vásárhelyi. Despite early complaints and multiple inspections, systemic failures allowed abuse to continue until criminal prosecution and convictions occurred. The government later provided compensation and support for victims.",
+      "relevance": "related",
+      "topics": [
+        "health_biosecurity",
+        "political_institutions",
+        "civil_protection"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The report revealing the abuses at the children's home in Bicske details how complaints against the director went unnoticed for so long...government established a one-billion-forint Reparation Fund for those abused in the child protection system.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Child Rights and Child Protection State Secretariat",
+          "summary": "They report extensive abuse and systemic failures in the Bicske children's home spanning decades, leading to government reparations.",
+          "target": "Hungarian child protection system and public",
+          "speaker_sentiment": "negative",
+          "evidence_quote": "The report... shows how the director manipulated children, authorities, and his environment. The government established a one-billion-forint Reparation Fund for those abused."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The report exposes long-term institutional child abuse and systemic protection failures, prompting government reparations.",
+      "ticker_message": "Hungary uncovers decades-long child abuse in Bicske home; government launches reparations fund.",
+      "related": true,
+      "primary_narrative": "health_biosecurity",
+      "secondary_narratives": [
+        "political_institutions",
+        "civil_protection"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 8885,
+      "translated_text_chars": 4425,
+      "translation_complete": true
     },
     {
       "country": "Estonia",
@@ -9234,40 +9883,44 @@
       "published_at": "2026-10-07T06:00:00+00:00",
       "id": "da4cd56c56b7735806ac",
       "classification_status": "provisional",
-      "english_summary": "From 2029, Dutch homeowners replacing central heating boilers must install smart hybrid heat pumps if not connected to a heat network, reducing gas use and CO₂ emissions. This measure supports affordable, accelerated transition to sustainable heating, aiming for gas-free homes by 2050.",
+      "english_summary": "The Dutch government plans from 2029 to require smart and hybrid heat pumps when replacing boilers in homes not connected to heat networks, aiming to reduce gas use and CO₂ emissions. This measure supports the transition to sustainable, gas-free heating by 2050, with subsidies and sector collaboration to ensure affordability and feasibility.",
       "relevance": "related",
       "topics": [
         "energy",
         "climate_environment",
-        "economic_financial_security"
+        "economic_financial_security",
+        "critical_infrastructure",
+        "civil_protection"
       ],
       "evidence_status": "reported",
-      "evidence_quote": "The cabinet wants homeowners to switch to a smart and hybrid heat pump from 2029 when replacing the central heating boiler... This way, we reduce gas consumption in homes, thereby lowering people's energy bills and accelerating the transition to sustainable heating.",
+      "evidence_quote": "The cabinet wants homeowners to switch to a smart and hybrid heat pump starting in 2029... This will reduce gas consumption in homes, lower energy bills, and accelerate the transition to sustainable heating.",
       "roles": [],
       "viewpoint_structure": "single_viewpoint",
       "viewpoints": [
         {
-          "speaker": "Minister Boekholt-O’Sullivan",
-          "summary": "The government aims to reduce gas consumption and energy bills by mandating smart and hybrid heat pumps, facilitating a sustainable heating transition.",
-          "target": "Homeowners and heating systems",
+          "speaker": "Minister Boekholt-O’Sullivan (Housing and Spatial Planning)",
+          "summary": "The minister emphasizes that smart and hybrid heat pumps reduce gas use and energy bills, making the transition easy and affordable.",
+          "target": "Homeowners and the House of Representatives",
           "speaker_sentiment": "positive",
-          "evidence_quote": "By heating your home with a smart and hybrid heat pump, you use less gas and have a lower energy bill. We are working hard to make this transition simple, affordable and feasible for people."
+          "evidence_quote": "Heating your home with a smart and hybrid heat pump uses less gas and results in a lower energy bill. We are working hard to ensure this transition is easy, affordable, and feasible for people."
         }
       ],
       "confidence": 0.95,
-      "short_rationale": "The government mandates hybrid heat pumps to reduce gas use and emissions, supporting energy security and climate goals.",
-      "ticker_message": "Government mandates smart hybrid heat pumps from 2029 to reduce gas use and lower energy bills.",
+      "short_rationale": "The cabinet's plan mandates smart hybrid heat pumps for home heating to reduce gas use and emissions, enhancing energy security and climate goals.",
+      "ticker_message": "Dutch cabinet mandates smart hybrid heat pumps by 2029 to reduce gas use and accelerate sustainable heating transition.",
       "related": true,
       "primary_narrative": "energy",
       "secondary_narratives": [
         "climate_environment",
-        "economic_financial_security"
+        "economic_financial_security",
+        "critical_infrastructure",
+        "civil_protection"
       ],
-      "classifier_prompt_version": "government-hybrid-3",
+      "classifier_prompt_version": "government-hybrid-4",
       "review_sample": false,
       "calibration_item": false,
       "source_text_chars": 3164,
-      "translated_text_chars": 2924,
+      "translated_text_chars": 2965,
       "translation_complete": true
     },
     {
@@ -9505,60 +10158,60 @@
       "published_at": "2026-10-06T22:00:00+00:00",
       "id": "b39a9ed7256a76514221",
       "classification_status": "provisional",
-      "english_summary": "Austria announces its largest military service reform in 20 years, introducing mandatory militia exercises, enhancing military and civilian service quality and fairness, increasing conscript pay, and aligning training with European standards. The reform aims to strengthen national security and resilience, effective January 2027.",
+      "english_summary": "The Austrian government announces its largest military service reform since 2006, aiming to enhance security and resilience by strengthening the militia, improving military and civilian service quality, and making them more attractive and fair. The reform includes extended militia exercises, higher conscript pay, and better integration with European standards, effective January 2027.",
       "relevance": "related",
       "topics": [
         "military_defence",
         "civil_protection"
       ],
       "evidence_status": "reported",
-      "evidence_quote": "The aim of the reform is to enhance Austria's security, make the country more crisis-resistant and resilient, and particularly strengthen the militia.",
+      "evidence_quote": "The reform aims to enhance Austria's security, make the country more crisis-resilient, and strengthen particularly the militia.",
       "roles": [
         {
           "entity": "Austria",
           "entity_code": "AUT",
           "role": "readiness",
-          "evidence_quote": "The aim of the reform is to enhance Austria's security, make the country more crisis-resistant and resilient, and particularly strengthen the militia.",
-          "rationale": "The reform aims to improve military service readiness and national resilience by strengthening the militia and crisis preparedness."
+          "evidence_quote": "The militia is a central component of effective national defense and crisis preparedness for Austria. Moreover, it is essential... that this army is attractive to young people.",
+          "rationale": "The reform strengthens militia and military service readiness, improves crisis resilience and operational capability."
         }
       ],
       "viewpoint_structure": "multiple_viewpoints",
       "viewpoints": [
         {
-          "speaker": "Group Leader Ernst Gödl",
-          "summary": "Military and civilian service are crucial for Austria's security; the reform increases service duration and quality to boost readiness and crisis-proof the country.",
+          "speaker": "Parliamentary Leader Ernst Gödl",
+          "summary": "Military and civilian services are pillars of Austria's security; the reform increases operational capability and crisis readiness by reintroducing militia exercises and improving fairness and predictability for youth.",
           "target": "Austrian military and civilian service reform",
           "speaker_sentiment": "positive",
-          "evidence_quote": "It's about using the time in both military and civilian service meaningfully, increasing readiness, and making Austria crisis-proof."
+          "evidence_quote": "It's about using the time meaningfully during both military and civilian service, increasing operational capability, and making Austria crisis-proof."
         },
         {
           "speaker": "State Secretary Jörg Leichtfried",
-          "summary": "The largest reform in 20 years aims at strengthening the Federal Army, especially the militia, and making military and civilian service more attractive, fair, and socially valuable.",
-          "target": "Military service reform",
+          "summary": "The reform aims to increase national security and crisis resilience by strengthening the militia and making military and civilian service more attractive and socially fair for young people.",
+          "target": "Austrian military and civilian service reform",
           "speaker_sentiment": "positive",
-          "evidence_quote": "Our common goal is to increase Austria's security and make our country more crisis-proof and resilient. We want to strengthen the Federal Army, especially the militia."
+          "evidence_quote": "We want to strengthen the Federal Army, especially the militia... military service system must become qualitatively better and socially fairer."
         },
         {
-          "speaker": "Group Leader Yannick Shetty",
-          "summary": "The reform improves training standards, raises conscript pay, aligns militia training with European standards, and promotes cooperation within a united Europe.",
-          "target": "Military service reform and European integration",
+          "speaker": "Parliamentary Leader Yannick Shetty",
+          "summary": "The reform modernizes training to European standards, increases military pay and benefits, opens conscription to women, and supports civilian service as essential for crisis preparedness within a united Europe.",
+          "target": "Austrian military and civilian service reform",
           "speaker_sentiment": "positive",
-          "evidence_quote": "We have emphasized aligning militia training standards with European international standards so that our soldiers can better cooperate with European partner countries."
+          "evidence_quote": "The militia's training standards align with European international standards... Austria is only strong in a united Europe."
         }
       ],
       "confidence": 0.95,
-      "short_rationale": "The reform explicitly aims to enhance national security and crisis resilience by strengthening military and civilian service and militia readiness.",
-      "ticker_message": "Austria reforms military and civilian service to boost security, crisis resilience, and militia strength.",
+      "short_rationale": "Austria's government plans a major reform to improve military readiness, crisis resilience, and social fairness of service.",
+      "ticker_message": "Austria launches major military service reform to strengthen security and crisis resilience.",
       "related": true,
       "primary_narrative": "military_defence",
       "secondary_narratives": [
         "civil_protection"
       ],
-      "classifier_prompt_version": "government-hybrid-3",
+      "classifier_prompt_version": "government-hybrid-4",
       "review_sample": false,
       "calibration_item": false,
       "source_text_chars": 5650,
-      "translated_text_chars": 5205,
+      "translated_text_chars": 5325,
       "translation_complete": true
     },
     {
@@ -11798,7 +12451,37 @@
       "published_date": "2026-10-06",
       "publication_precision": "day",
       "id": "de2a5bf543fbe0cb0d16",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "Hungary will introduce a 1% wealth tax on assets over 1 billion forints, reform the small taxpayers’ flat tax (kata) to widen eligibility, and make the simplified contribution scheme (ekho) fairer. The government seeks simpler, fairer tax rules and invites public consultation.",
+      "relevance": "related",
+      "topics": [
+        "economic_financial_security"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The tax will be one percent on wealth exceeding one billion forints... The government respects business successes but also enforces the principle of fair contribution... The goal is to create a tax system based on simpler rules, fair contribution, and fewer exceptions.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Government of Hungary",
+          "summary": "The government proposes a wealth tax on assets exceeding one billion forints to ensure fair contribution by the exceptionally wealthy and simplify tax rules.",
+          "target": "Hungarian taxpayers with significant wealth",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "The government respects business successes and job-creating companies... but also enforces the principle of fair contribution: those who grew wealthier thanks to the country’s opportunities must contribute more."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "Hungary introduces a wealth tax targeting the exceptionally wealthy to ensure fair tax contribution and simplify the tax system.",
+      "ticker_message": "Hungary plans wealth tax on billion-forint assets to ensure fair contributions from the very wealthy.",
+      "related": true,
+      "primary_narrative": "economic_financial_security",
+      "secondary_narratives": [],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 4361,
+      "translated_text_chars": 4015,
+      "translation_complete": true
     },
     {
       "country": "Hungary",
@@ -11809,7 +12492,44 @@
       "published_date": "2026-10-06",
       "publication_precision": "day",
       "id": "956f518ebb047acb3276",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "Hungary's leaders held a solemn ceremony marking the national day of mourning for the 1848-49 War of Independence martyrs. The event included flag rituals, wreath-laying, and remembrance of the executed officers and Prime Minister Batthyány on October 6, 1849.",
+      "relevance": "related",
+      "topics": [
+        "political_institutions",
+        "military_defence",
+        "armed_conflict",
+        "sovereignty_borders"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The national flag was solemnly raised and then lowered to half-mast in front of the Parliament on the memorial day of the martyrs of Arad. ... October 6 was declared a national day of mourning by Hungary in 2001. On October 6, 1849, thirteen Hungarian honvéd senior officers were executed in Arad ... Count Lajos Batthyány, Hungary's first responsible prime minister, was executed in Pest.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Government of Hungary",
+          "summary": "Hungary solemnly commemorates the martyrs of the 1848-49 War of Independence, underscoring national sovereignty and historical military sacrifice.",
+          "target": "Hungarian society and national memory",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "The commemorations began with a military salute at Kossuth Square ... several government members ... laid wreaths commemorating the martyrs of the 1848-49 revolution and war of independence."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The commemoration marks national remembrance of historic military sacrifice tied to Hungary's sovereignty and independence struggle.",
+      "ticker_message": "Hungary solemnly commemorates martyrs of 1848-49 War of Independence, emphasizing national sovereignty and sacrifice.",
+      "related": true,
+      "primary_narrative": "political_institutions",
+      "secondary_narratives": [
+        "military_defence",
+        "armed_conflict",
+        "sovereignty_borders"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 1485,
+      "translated_text_chars": 1501,
+      "translation_complete": true
     },
     {
       "country": "Hungary",
@@ -13305,7 +14025,42 @@
       "published_date": "2026-10-05",
       "publication_precision": "day",
       "id": "97fb7382bdc443d170be",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "On October 5, 2026, Prime Minister Babiš's government approved a state cultural policy for 2026–2029, the 2027 budget for the State Environmental Fund, a major Smíchov Station project, and compensation measures for farmers affected by fuel costs due to Middle East conflicts, combining EU and national funds.",
+      "relevance": "related",
+      "topics": [
+        "economic_financial_security",
+        "critical_infrastructure",
+        "food_security"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The government approved collaboration between Railway Administration and Prague authorities on the Smíchov Station redevelopment, improving transport infrastructure and generating cost and time efficiencies. The government also outlined compensation conditions for farmers affected by the Horn of Hormuz blockade following Middle East conflict, with EU funds of approximately 263.7 million CZK supplemented by nearly 792 million CZK national support, doubling EU aid to cover increased fuel and fertilizer costs.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Czech Government",
+          "summary": "The government aims to enhance national transport infrastructure and supports farmers facing increased costs from the Horn of Hormuz blockade via compensated aid, ensuring economic and food security.",
+          "target": "Farmers affected by fuel and fertilizer cost increases and national transport infrastructure",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "The government also outlined compensation conditions for farmers affected by the Horn of Hormuz blockade following Middle East conflict, with EU funds of approximately 263.7 million CZK supplemented by nearly 792 million CZK national support, doubling EU aid to cover increased fuel and fertilizer costs."
+        }
+      ],
+      "confidence": 0.9,
+      "short_rationale": "The government takes measures to support farmers' compensation amid fuel/fertilizer cost rises linked to a Middle East conflict and undertakes transport infrastructure improvements, affecting economic and food security.",
+      "ticker_message": "Czech government approves aid for farmers hit by Horn of Hormuz blockade and upgrades Smíchov transport hub.",
+      "related": true,
+      "primary_narrative": "economic_financial_security",
+      "secondary_narratives": [
+        "critical_infrastructure",
+        "food_security"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 3183,
+      "translated_text_chars": 1055,
+      "translation_complete": true
     },
     {
       "country": "Hungary",
@@ -15201,7 +15956,40 @@
       "published_date": "2026-10-02",
       "publication_precision": "day",
       "id": "c161798bb6cb594fde42",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "Prime Minister Babiš visited FN Olomouc to present a new child psychiatric care concept aiming to improve accessibility. The hospital expands care with a new building, increasing psychiatric beds from 64 to 120, including 30 for acute child care, aligning with advanced European mental health standards.",
+      "relevance": "related",
+      "topics": [
+        "health_biosecurity",
+        "critical_infrastructure"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The goal is primarily to increase its availability for children and adolescent patients at this healthcare facility... The new bed capacity will include 30 acute care beds for child patients... This significant advancement is part of a new concept of modern psychiatric care, enabled by the ongoing construction work, which will... increase the number of beds from the current 64 to 120.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Prime Minister Andrej Babiš",
+          "summary": "The government prioritizes accessible, modern, and humane child psychiatric care in line with advanced European standards.",
+          "target": "Czech healthcare and child psychiatric care system",
+          "speaker_sentiment": "positive",
+          "evidence_quote": "Mental health care is extremely important for our government; I personally have been committed to it for a long time... This is the psychiatry we want to provide—not only for adult patients but also for children and adolescents, simply for all who need help."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The government is expanding child psychiatric care infrastructure to enhance healthcare access and quality, a clear health security and critical infrastructure issue.",
+      "ticker_message": "Czech government expands child psychiatric care facilities to improve mental health access and services.",
+      "related": true,
+      "primary_narrative": "health_biosecurity",
+      "secondary_narratives": [
+        "critical_infrastructure"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 2738,
+      "translated_text_chars": 3058,
+      "translation_complete": true
     },
     {
       "country": "Hungary",
@@ -15574,35 +16362,38 @@
       "published_at": "2026-10-01T15:00:00+00:00",
       "id": "fe847e966f9c15fa570a",
       "classification_status": "provisional",
-      "english_summary": "The first Kingdom Summit will be held on 17-18 November 2026 in Sint Maarten, bringing together Aruba, Curaçao, the Netherlands, and Sint Maarten to enhance cooperation, address mutual challenges, and strengthen intergovernmental relations within the Kingdom.",
+      "english_summary": "On November 17-18, 2026, Aruba, Curaçao, the Netherlands, and Sint Maarten will hold the first Kingdom Summit in Sint Maarten to enhance cooperation among the autonomous countries, discuss achievements and challenges, and seek stronger, more sustainable collaboration for the Kingdom's future.",
       "relevance": "related",
       "topics": [
-        "political_institutions"
+        "political_institutions",
+        "diplomacy_alliances"
       ],
       "evidence_status": "reported",
-      "evidence_quote": "The summit focuses on strengthening cooperation among the four countries of the kingdom. Each country will present its own State of the Nation... highlighting policy areas where new or closer cooperation is possible.",
+      "evidence_quote": "The Kingdom Summit is an administrative consultation between the governments of the autonomous countries of the Kingdom... Cooperation is essential for a sustainable future for the kingdom.",
       "roles": [],
       "viewpoint_structure": "single_viewpoint",
       "viewpoints": [
         {
           "speaker": "Prime Minister of Sint Maarten, Dr. Luc Mercelina",
-          "summary": "Emphasizes the importance of collaboration and mutual respect to build a stronger and future-proof kingdom.",
-          "target": "Kingdom Summit and intergovernmental cooperation",
+          "summary": "Sint Maarten welcomes the Kingdom Summit as a way to build a stronger, future-proof kingdom through cooperation and mutual respect.",
+          "target": "Governments of Aruba, Curaçao, the Netherlands, and Sint Maarten",
           "speaker_sentiment": "positive",
-          "evidence_quote": "By working together while respecting our differences, we are building a stronger and future-proof kingdom."
+          "evidence_quote": "Sint Maarten looks forward to welcoming the governments... By working together while respecting our differences, we are building a stronger and future-proof kingdom."
         }
       ],
       "confidence": 0.9,
-      "short_rationale": "Kingdom Summit is a political-institutional event focusing on cooperation to strengthen the kingdom's collective governance and resilience.",
-      "ticker_message": "Aruba, Curaçao, Netherlands, and Sint Maarten hold first Kingdom Summit to strengthen cooperation.",
+      "short_rationale": "The Kingdom Summit aims to strengthen intergovernmental cooperation between autonomous countries to ensure political institutional stability and future resilience of the Kingdom.",
+      "ticker_message": "First Kingdom Summit aims to strengthen intergovernmental cooperation for a sustainable future of the Kingdom.",
       "related": true,
       "primary_narrative": "political_institutions",
-      "secondary_narratives": [],
-      "classifier_prompt_version": "government-hybrid-3",
+      "secondary_narratives": [
+        "diplomacy_alliances"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
       "review_sample": false,
       "calibration_item": false,
       "source_text_chars": 1475,
-      "translated_text_chars": 1347,
+      "translated_text_chars": 1386,
       "translation_complete": true
     },
     {
@@ -16292,33 +17083,33 @@
       "published_at": "2026-10-01T06:00:00+00:00",
       "id": "eb9dff1982b702f0938f",
       "classification_status": "provisional",
-      "english_summary": "The new Dutch Self-Employed Persons Act sets clear criteria for self-employed workers and clients, creating a 'safe haven' for genuine independent entrepreneurship, preventing disguised employment, and clarifying responsibilities. It aims to enter into force in January 2028 following public consultation.",
+      "english_summary": "The Dutch government proposes the Self-Employed Persons Act to establish clear pre-set rules for freelancers and clients, defining criteria for genuine self-employment to reduce uncertainty and prevent false self-employment. The law is open for public consultation until October 29, aiming to take effect in January 2028.",
       "calibration_item": false,
       "source_text_chars": 2867,
       "relevance": "not_related",
       "topics": [],
       "evidence_status": "reported",
-      "evidence_quote": "The Self-Employed Persons Act provides clear criteria for self-employed individuals and clients, aiming to create a safe haven for self-employed workers and break a 20-year discussion.",
+      "evidence_quote": "The Self-Employed Persons Act aims to create a safe harbor for independents and clarify rules for working as self-employed, without affecting employee rights.",
       "roles": [],
       "viewpoint_structure": "single_viewpoint",
       "viewpoints": [
         {
-          "speaker": "Minister Thierry Aartsen",
-          "summary": "The new law offers clarity and recognition for self-employed individuals, reducing client reluctance and providing clear criteria.",
-          "target": "Self-employed individuals and clients",
+          "speaker": "Minister Thierry Aartsen (Work and Participation)",
+          "summary": "The law will offer clarity and security for self-employed persons and clients, encouraging responsible entrepreneurship while preventing false self-employment.",
+          "target": "Self-employed persons and clients under the new Self-Employed Persons Act",
           "speaker_sentiment": "positive",
-          "evidence_quote": "Self-employed people are of great value to our economy... the new Self-Employed Persons Act will provide more calm and, above all, clarity among self-employed people and clients."
+          "evidence_quote": "Self-employed people are of great value to our economy... the new Self-Employed Persons Act should provide more peace of mind and especially clarity among independents and clients."
         }
       ],
-      "confidence": 0.95,
-      "short_rationale": "The legislation targets employment relationship clarity, not national security or collective resilience topics.",
-      "ticker_message": "Dutch government proposes clear rules to support and clarify self-employment arrangements.",
+      "confidence": 0.9,
+      "short_rationale": "The report details a new labor law providing clarity for self-employed arrangements, without citing collective security or critical system risks.",
+      "ticker_message": "Netherlands proposes law clarifying rules for self-employed persons, ensuring responsibility and market clarity.",
       "related": false,
       "primary_narrative": "none_unclear",
       "secondary_narratives": [],
-      "classifier_prompt_version": "government-hybrid-3",
+      "classifier_prompt_version": "government-hybrid-4",
       "review_sample": false,
-      "translated_text_chars": 3009,
+      "translated_text_chars": 2906,
       "translation_complete": true
     },
     {
@@ -17429,7 +18220,40 @@
       "published_date": "2026-10-01",
       "publication_precision": "day",
       "id": "a7f74700aaa0e5a18ff3",
-      "classification_status": "pending_classification"
+      "classification_status": "provisional",
+      "english_summary": "The Hungarian government published an interactive platform detailing National Cultural Fund (NKA) grants from 2021–2026 after investigations revealed misuse of over 17 billion forints, including suspected election campaign funding. The move aims to increase transparency and public oversight of cultural funding allocations.",
+      "relevance": "related",
+      "topics": [
+        "political_institutions",
+        "economic_financial_security"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The prosecutor suspects that part of this money funded the 2026 parliamentary election campaign and some applicants' personal expenses... The 2026 case highlighted the opacity of the NKA support system, which the prosecutor suspects was influenced by party politics.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Government of Hungary",
+          "summary": "The government aims to increase transparency of NKA grants given concerns about misuse and possible political influence in fund allocation.",
+          "target": "Cultural funding system and public",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "The Prime Minister’s Office now publishes previously available data of NKA grants from 2021 to 2026 on an interactive platform with maps and charts... The goal is to make public fund usage transparent and verifiable, ensuring transparency in governance, including the cultural sector."
+        }
+      ],
+      "confidence": 0.9,
+      "short_rationale": "The government reveals a major misuse investigation of cultural funds potentially linked to political campaign financing and responds with transparency measures.",
+      "ticker_message": "Hungary publishes transparency data on NKA grants amid investigation of possible political misuse.",
+      "related": true,
+      "primary_narrative": "political_institutions",
+      "secondary_narratives": [
+        "economic_financial_security"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 4034,
+      "translated_text_chars": 3405,
+      "translation_complete": true
     },
     {
       "country": "Hungary",
