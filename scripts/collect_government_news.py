@@ -63,9 +63,10 @@ MADRID = ZoneInfo("Europe/Madrid")
 ISTANBUL = ZoneInfo("Europe/Istanbul")
 KYIV = ZoneInfo("Europe/Kyiv")
 ZURICH = ZoneInfo("Europe/Zurich")
+OSLO = ZoneInfo("Europe/Oslo")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE, "ES": MADRID, "TR": ISTANBUL, "UA": KYIV, "CH": ZURICH}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "NO": OSLO, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE, "ES": MADRID, "TR": ISTANBUL, "UA": KYIV, "CH": ZURICH}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
 COLLECTOR_READY_CODES = {"AD","AT","AZ","BA","BG","BY","CH","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","SM","TR","VA","XK"}
 
@@ -1662,7 +1663,45 @@ def discover_san_marino(country,start,end):
     return entries,country["url"]
 
 
+NORWAY_MINISTRY_IDS=(875,165,298,810,750,216,380,421,463,668,504,545,586,627,709,791,833,-1)
+
+
+def discover_norway(country,start,end):
+    """Partition the official news RSS by publisher so its 100-item cap cannot hide October releases."""
+    def ministry_feed(owner):
+        url=f"https://www.regjeringen.no/no/rss/Rss/2581966/?documentType=aktuelt/nyheter&owner={owner}"
+        _,body=fetch(url,timeout=15)
+        rows=parse_feed(body,url,country)
+        if not rows: raise RuntimeError(f"Norway ministry {owner} feed has no news items")
+        dates=[date_value(row["published_at"]) for row in rows]
+        if any(value is None for value in dates): raise RuntimeError("Norway news feed has an undated item")
+        if len(rows)>=100 and min(dates)>start:
+            raise RuntimeError(f"Norway ministry {owner} feed cap hides part of the collection window")
+        return rows
+    entries=[]; seen=set()
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        for rows in pool.map(ministry_feed,NORWAY_MINISTRY_IDS):
+            for row in rows:
+                published=date_value(row["published_at"])
+                if not start<=published<=end: continue
+                parsed=urllib.parse.urlsplit(row["url"])
+                if parsed.hostname not in {"www.regjeringen.no","regjeringen.no"} or not re.search(r"/no/aktuelt/.+/id\d+/?$",parsed.path):
+                    raise RuntimeError("Norway feed contains a non-news article link")
+                row["url"]=urllib.parse.urlunsplit(("https","www.regjeringen.no",parsed.path,"",""))
+                if row["url"] in seen: continue
+                seen.add(row["url"])
+                row["published_at"]=published.isoformat()
+                row["text"]=""
+                entries.append(row)
+    if entries:
+        # A feed summary is truncated. Require a readable full article before
+        # advancing this source's checkpoint on the scheduled runner.
+        article_text(entries[0])
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="NO": return discover_norway(country,start,end)
     if country["iso2"]=="SM": return discover_san_marino(country,start,end)
     if country["iso2"]=="CH": return discover_switzerland(country,start,end)
     if country["iso2"]=="UA": return discover_ukraine(country,start,end)
@@ -1706,6 +1745,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="NO":
+        _,body=fetch(item["url"],timeout=15)
+        parser=ClassText("article-body"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Norway government news has no usable article body")
+        return article
     if item["country_code"]=="SM":
         body=item.get("text","")
         if len(body)<40: raise RuntimeError("San Marino official communication has no usable body text")
