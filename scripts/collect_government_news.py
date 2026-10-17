@@ -32,6 +32,7 @@ CORRECTIONS = ROOT / "data/government_corrections.json"
 REVIEW_QUEUE = ROOT / "build/government-review-queue.json"
 UA = "EuropeanSecurityMonitor/1.0 (public research; contact: monitor@hamelberg-ai.com)"
 AMSTERDAM = ZoneInfo("Europe/Amsterdam")
+BRUSSELS = ZoneInfo("Europe/Brussels")
 TBILISI = ZoneInfo("Asia/Tbilisi")
 TALLINN = ZoneInfo("Europe/Tallinn")
 BELGRADE = ZoneInfo("Europe/Belgrade")
@@ -64,11 +65,11 @@ ISTANBUL = ZoneInfo("Europe/Istanbul")
 KYIV = ZoneInfo("Europe/Kyiv")
 ZURICH = ZoneInfo("Europe/Zurich")
 OSLO = ZoneInfo("Europe/Oslo")
-SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
+SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BE": BRUSSELS, "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
                     "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "NO": OSLO, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE, "ES": MADRID, "TR": ISTANBUL, "UA": KYIV, "CH": ZURICH}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","AZ","BA","BG","BY","CH","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","SM","TR","VA","XK"}
+COLLECTOR_READY_CODES = {"AD","AT","AZ","BA","BE","BG","BY","CH","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","SM","TR","VA","XK"}
 
 
 class Links(HTMLParser):
@@ -256,6 +257,45 @@ def discover_netherlands(country, start, end):
         page_number+=1
     if len(entries)!=reported_total: raise RuntimeError(f"Dutch search returned {len(entries)} of {reported_total} results")
     return entries,country["url"]
+
+
+BELGIAN_DUTCH_MONTHS = {name: number for number, name in enumerate(
+    ("januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"), 1)}
+
+
+def discover_belgium(country, start, end):
+    """Page through the reachable Foreign Affairs ministry's dated news archive."""
+    first, last = start.astimezone(BRUSSELS).date(), end.astimezone(BRUSSELS).date()
+    entries = []; seen = set()
+    for page_number in range(100):
+        url = country["url"] if page_number == 0 else f"{country['url']}?page={page_number}"
+        _, body = fetch(url, timeout=20)
+        page = body.decode("utf-8", "replace")
+        cards = re.findall(r'<article\b[^>]*class="[^"]*overview-item\b[^"]*"[^>]*>(.*?)</article>', page, re.S)
+        if not cards: raise RuntimeError("Belgian ministry news archive has no dated news cards")
+        older = False
+        for card in cards:
+            link = re.search(r'<a\b[^>]*class="[^"]*overview-item__link\b[^"]*"[^>]*href="([^"]+)"[^>]*>(.*?)</a>', card, re.S)
+            dated = re.search(r'<time\b[^>]*class="[^"]*overview-item__timestamp\b[^"]*"[^>]*>\s*(\d{1,2})\s+([A-Za-z]+)\s+(20\d{2})\s*</time>', card, re.S)
+            if not link or not dated: raise RuntimeError("Belgian ministry news card lacks its article URL or publication date")
+            month = BELGIAN_DUTCH_MONTHS.get(dated.group(2).casefold())
+            if not month: raise RuntimeError("Belgian ministry news archive has an unknown publication month")
+            day = dt.date(int(dated.group(3)), month, int(dated.group(1)))
+            if day < first: older = True; continue
+            if day > last: continue
+            article_url = urllib.parse.urljoin(country["url"], html.unescape(link.group(1)))
+            if not article_url.startswith("https://diplomatie.belgium.be/nl/nieuws/"):
+                raise RuntimeError("Belgian ministry news archive linked outside its official news section")
+            if article_url in seen: raise RuntimeError("Belgian ministry news archive repeated an article")
+            seen.add(article_url)
+            title = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", link.group(2)))).strip()
+            published = dt.datetime.combine(day, dt.time.min, BRUSSELS).astimezone(dt.timezone.utc)
+            entries.append({"country": country["name"], "country_code": "BE", "url": article_url,
+                            "title": title, "published_at": published.isoformat(), "published_date": day.isoformat(),
+                            "publication_precision": "day", "text": ""})
+        if older: break
+    else: raise RuntimeError("Belgian ministry news archive exceeded 100 pages")
+    return entries, country["url"]
 
 
 def discover_austria(country, start, end):
@@ -1701,6 +1741,7 @@ def discover_norway(country,start,end):
 
 
 def discover(country,start,end):
+    if country["iso2"]=="BE": return discover_belgium(country,start,end)
     if country["iso2"]=="NO": return discover_norway(country,start,end)
     if country["iso2"]=="SM": return discover_san_marino(country,start,end)
     if country["iso2"]=="CH": return discover_switzerland(country,start,end)
@@ -1745,6 +1786,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="BE":
+        _, body = fetch(item["url"], timeout=20)
+        parser = ClassText("wysiwyg__content"); parser.feed(body.decode("utf-8", "replace"))
+        article = re.sub(r"\s+", " ", " ".join(parser.parts)).strip()
+        if len(article) < 40: raise RuntimeError("Belgian ministry news has no usable article body")
+        return article
     if item["country_code"]=="NO":
         _,body=fetch(item["url"],timeout=15)
         parser=ClassText("article-body"); parser.feed(body.decode("utf-8","replace"))
