@@ -47,11 +47,12 @@ BERLIN = ZoneInfo("Europe/Berlin")
 COPENHAGEN = ZoneInfo("Europe/Copenhagen")
 LJUBLJANA = ZoneInfo("Europe/Ljubljana")
 BRATISLAVA = ZoneInfo("Europe/Bratislava")
+WARSAW = ZoneInfo("Europe/Warsaw")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","DE","DK","EE","GB","GE","GR","HR","IS","IT","MD","NL","RS","SE","SI","SK"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","DE","DK","EE","GB","GE","GR","HR","IS","IT","MD","NL","PL","RS","SE","SI","SK"}
 
 
 class Links(HTMLParser):
@@ -922,7 +923,43 @@ def discover_slovakia(country,start,end):
     return entries,country["url"]
 
 
+def discover_poland(country,start,end):
+    """Read dated cabinet information-centre statements, not portal-wide news."""
+    first,last=start.astimezone(WARSAW).date(),end.astimezone(WARSAW).date()
+    entries=[]; seen=set()
+    for page_number in range(1,101):
+        query=urllib.parse.urlencode({"page":page_number,"size":10})
+        _,body=fetch(country["url"]+"?"+query)
+        page=body.decode("utf-8","replace")
+        match=re.search(r'<div class="art-prev art-prev--near-menu"[^>]*>.*?<ul>(.*?)</ul>',page,re.S)
+        if not match: raise RuntimeError("Polish cabinet communication listing is missing")
+        cards=re.findall(r'<li>(.*?)</li>',match.group(1),re.S)
+        if not cards: raise RuntimeError("Polish cabinet communication page has no dated cards")
+        older=False
+        for card in cards:
+            dated=re.search(r'<span class="date">\s*(\d{2}\.\d{2}\.20\d{2})',card)
+            link=re.search(r'<div class="title">\s*<a\s+href="([^"]+)">(.*?)</a>',card,re.S)
+            if not dated or not link: raise RuntimeError("Polish cabinet statement lacks date or title")
+            day=dt.datetime.strptime(dated.group(1),"%d.%m.%Y").date()
+            if day<first: older=True; continue
+            if day>last: continue
+            article_url=urllib.parse.urljoin(country["url"],html.unescape(link.group(1)))
+            if not article_url.startswith("https://www.gov.pl/web/premier/"):
+                raise RuntimeError("Unexpected Polish cabinet communication URL")
+            if article_url in seen: raise RuntimeError("Polish cabinet communication repeated an article")
+            seen.add(article_url)
+            title=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',link.group(2)))).strip()
+            published=dt.datetime.combine(day,dt.time.min,WARSAW).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":"PL","url":article_url,"title":title,
+                "published_at":published.isoformat(),"published_date":day.isoformat(),
+                "publication_precision":"day","text":""})
+        if older or not re.search(r'\?page='+str(page_number+1)+r'&amp;size=10',page): break
+    else: raise RuntimeError("Polish cabinet communication archive exceeded 100 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="PL": return discover_poland(country,start,end)
     if country["iso2"]=="SK": return discover_slovakia(country,start,end)
     if country["iso2"]=="SI": return discover_slovenia(country,start,end)
     if country["iso2"]=="DK": return discover_denmark(country,start,end)
@@ -947,6 +984,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="PL":
+        _,body=fetch(item["url"])
+        parser=ClassText("main-content"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r'\s+',' ',' '.join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Polish cabinet statement has no usable body text")
+        return article
     if item["country_code"]=="SK":
         _,body=fetch(item["url"])
         parser=ClassText("page-content"); parser.feed(body.decode("utf-8","replace"))
