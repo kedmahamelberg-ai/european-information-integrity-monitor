@@ -61,7 +61,7 @@ SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Saraj
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
                     "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","KZ","LI","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","KZ","LI","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","VA"}
 
 
 class Links(HTMLParser):
@@ -1312,7 +1312,33 @@ def discover_montenegro(country,start,end):
     return entries,country["url"]
 
 
+def discover_vatican(country,start,end):
+    """Use the Governorate's press-release RSS, whose oldest item predates the window."""
+    feed="https://vaticanstate.va/it/component/content/category/comunicato-stampa.feed?type=rss&Itemid=312"
+    _,body=fetch(feed,timeout=20)
+    root=ET.fromstring(body)
+    posts=root.findall("./channel/item")
+    if not posts: raise RuntimeError("Vatican Governorate press-release feed is empty")
+    entries=[]; seen=set(); oldest=None
+    for post in posts:
+        raw_date=post.findtext("pubDate")
+        article_url=post.findtext("link")
+        title=post.findtext("title")
+        if not raw_date or not article_url or not title: raise RuntimeError("Vatican press release lacks date, link, or title")
+        published=email.utils.parsedate_to_datetime(raw_date).astimezone(dt.timezone.utc)
+        oldest=published if oldest is None or published<oldest else oldest
+        if not start<=published<=end: continue
+        article_url=html.unescape(article_url)
+        if article_url in seen: raise RuntimeError("Vatican press-release feed repeated an article")
+        seen.add(article_url)
+        entries.append({"country":country["name"],"country_code":"VA","url":article_url,
+                        "title":html.unescape(title).strip(),"published_at":published.isoformat(),"text":""})
+    if oldest is None or oldest>=start: raise RuntimeError("Vatican press-release feed does not reach the requested start")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="VA": return discover_vatican(country,start,end)
     if country["iso2"]=="ME": return discover_montenegro(country,start,end)
     if country["iso2"]=="MC": return discover_monaco(country,start,end)
     if country["iso2"]=="RO": return discover_romania(country,start,end)
@@ -1347,6 +1373,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="VA":
+        _,body=fetch(item["url"],timeout=20)
+        match=re.search(r'<div itemprop="articleBody"[^>]*>(.*?)</div>',body.decode("utf-8","replace"),re.S)
+        article=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",match.group(1)))).strip() if match else ""
+        if len(article)<40: raise RuntimeError("Vatican Governorate press release has no usable body text")
+        return article
     if item["country_code"]=="ME":
         _,body=fetch(item["url"],timeout=20)
         parser=ClassText("ui-article"); parser.feed(body.decode("utf-8","replace"))
