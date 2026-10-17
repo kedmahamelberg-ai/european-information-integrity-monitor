@@ -3,14 +3,14 @@
   "source_cursors": {
     "NL": "2026-10-16T21:59:59.999999+00:00",
     "AT": "2026-10-16T21:59:59.999999+00:00",
-    "BY": "2026-10-06T21:59:59.999999+00:00",
+    "BY": "2026-10-16T21:59:59.999999+00:00",
     "EE": "2026-10-16T21:59:59.999999+00:00",
     "RS": "2026-10-16T21:59:59.999999+00:00",
     "GE": "2026-10-16T21:59:59.999999+00:00",
     "AD": "2026-10-06T21:59:59.999999+00:00",
     "GR": "2026-10-03T21:59:59.999999+00:00",
     "BA": "2026-10-16T21:59:59.999999+00:00",
-    "IS": "2026-10-06T21:59:59.999999+00:00",
+    "IS": "2026-10-16T21:59:59.999999+00:00",
     "MD": "2026-10-16T21:59:59.999999+00:00",
     "HR": "2026-10-16T21:59:59.999999+00:00",
     "BG": "2026-10-06T21:59:59.999999+00:00",
@@ -845,6 +845,15 @@
       "review_sample": false
     },
     {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/rabocaa-poezdka-v-vitebskuu-oblast-1792138079",
+      "title": "Рабочая поездка в Витебскую область",
+      "published_at": "2026-10-16T08:06:57+00:00",
+      "id": "30eed249e7e0fc350f7c",
+      "classification_status": "pending_classification"
+    },
+    {
       "country": "Georgia",
       "country_code": "GE",
       "url": "https://mfa.gov.ge/news/951511-maka-botchorishvili-euto-s-moqmed-tavmjdomares-shveitsariis-konphederatsiis-vitse-prezidents-sagareo",
@@ -886,6 +895,195 @@
       "translated_text_chars": 1396,
       "translation_complete": true,
       "human_reviewed": true
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-16-auglysing-um-rekstrarframlog-til-ad-starfraekja-framhaldsfraedslu",
+      "title": "Auglýsing um rekstrarframlög til að starfrækja framhaldsfræðslu",
+      "published_at": "2026-10-16T00:00:00+00:00",
+      "published_date": "2026-10-16",
+      "publication_precision": "day",
+      "id": "8d436420ac08e893f5b1",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-16-aukid-adgengi-ad-adgerdum-med-nyju-samkomulagi",
+      "title": "Aukið aðgengi að aðgerðum með nýju samkomulagi",
+      "published_at": "2026-10-16T00:00:00+00:00",
+      "published_date": "2026-10-16",
+      "publication_precision": "day",
+      "id": "11d763c2c68b46473efb",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-16-skrifudu-undir-viljayfirlysingu-um-thrju-bjorgunarskip",
+      "title": "Skrifuðu undir viljayfirlýsingu um þrjú björgunarskip",
+      "published_at": "2026-10-16T00:00:00+00:00",
+      "published_date": "2026-10-16",
+      "publication_precision": "day",
+      "id": "df31b6bb0ea13f2533d7",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-16-endurskodud-drog-ad-reglugerd-um-gagnsaei-og-hattsemi-a-heildsoluorkumarkadi-raforku-til-kynningar-i-samradsgatt",
+      "title": "Endurskoðuð drög að reglugerð um gagnsæi og háttsemi á heildsöluorkumarkaði raforku til kynningar í Samráðsgátt",
+      "published_at": "2026-10-16T00:00:00+00:00",
+      "published_date": "2026-10-16",
+      "publication_precision": "day",
+      "id": "6b63a64e44af126a1bae",
+      "classification_status": "provisional",
+      "english_summary": "The Ministry of Environment, Energy and Climate presents a revised draft regulation on transparency and conduct in the wholesale electricity market, incorporating feedback and aligning closely with the Electricity Act. Consultation is open until 27 October 2026, following recent legislative updates addressing insider trading and market abuse.",
+      "relevance": "related",
+      "topics": [
+        "energy",
+        "economic_financial_security",
+        "critical_infrastructure"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The draft regulation covers the implementation of Articles 20 a to 20 i of the Electricity Act no. 65/2003... including bans on insider fraud... and market abuse in wholesale electricity product transactions.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Ministry of Environment, Energy and Climate",
+          "summary": "The Ministry is revising regulations to improve transparency and prevent abuses in the wholesale electricity market, enhancing market security and integrity.",
+          "target": "Wholesale electricity market participants and regulators",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "The Ministry carefully reviewed comments and revised the draft accordingly... provisions on recognized market practices... prevention and analysis of market abuses... notifications of suspicious transactions."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The revised draft regulation aims to implement legal provisions to enhance transparency, prevent market abuse, and secure the electricity wholesale market, affecting critical infrastructure and economic security.",
+      "ticker_message": "Ministry consults revised draft regulation to enhance transparency and prevent abuses in wholesale electricity market.",
+      "related": true,
+      "primary_narrative": "energy",
+      "secondary_narratives": [
+        "economic_financial_security",
+        "critical_infrastructure"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 1911,
+      "translated_text_chars": 2158,
+      "translation_complete": true
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-16-faedingarorlof-foreldrar-sem-storfudu-i-odru-ees-riki-kunna-ad-eiga-rett-a-skadabotum",
+      "title": "Fæðingarorlof: Foreldrar sem störfuðu í öðru EES-ríki kunna að eiga rétt á skaðabótum",
+      "published_at": "2026-10-16T00:00:00+00:00",
+      "published_date": "2026-10-16",
+      "publication_precision": "day",
+      "id": "57872c0148e6922364db",
+      "classification_status": "provisional",
+      "english_summary": "The Icelandic Supreme Court ruled that parents who worked partially in another EEA country between September 2022 and June 2025, and who received parental leave payments, may be entitled to compensation due to incorrect calculation of average wages in parental leave benefits. Claims can be submitted to the Directorate of Labour.",
+      "relevance": "related",
+      "topics": [
+        "economic_financial_security",
+        "political_institutions"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "the Icelandic state was ordered to pay compensation to the plaintiff due to incorrect implementation of EEA Agreement rules relating to payments from the Parental Leave Fund... Parents who worked partially or fully during the 12-month reference period for parental leave in another EEA state and received parental leave payments between September 2022 and June 2025 may be entitled to compensation based on the ruling.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Ministry of Social Affairs and Housing",
+          "summary": "The Ministry highlights the Supreme Court ruling ordering compensation due to incorrect implementation of EEA parental leave payment rules, which affects parents working in another EEA country and receiving parental leave benefits in Iceland.",
+          "target": "Parents who worked in another EEA country and received parental leave payments in Iceland",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "Parents who worked partially or fully during the 12-month reference period for parental leave in another EEA state and received parental leave payments between September 2022 and June 2025 may be entitled to compensation based on the ruling."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The communication discusses a Supreme Court ruling on compensation for parental leave payment errors related to EEA cross-border labor, indicating an economic and institutional security issue affecting state compliance and individual benefits.",
+      "ticker_message": "Iceland ordered to compensate parents for incorrect parental leave payments due to EEA labor rules misapplication.",
+      "related": true,
+      "primary_narrative": "economic_financial_security",
+      "secondary_narratives": [
+        "political_institutions"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 2009,
+      "translated_text_chars": 2067,
+      "translation_complete": true
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-16-nidurstodur-konnunar-um-hagi-og-framtidarsyn-grindvikinga",
+      "title": "Niðurstöður könnunar um hagi og framtíðarsýn Grindvíkinga",
+      "published_at": "2026-10-16T00:00:00+00:00",
+      "published_date": "2026-10-16",
+      "publication_precision": "day",
+      "id": "d1436e6a9ad1258ca1c9",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-16-ny-vidmid-fyrir-raestingautbod-rikisins",
+      "title": "Ný viðmið fyrir ræstingaútboð ríkisins",
+      "published_at": "2026-10-16T00:00:00+00:00",
+      "published_date": "2026-10-16",
+      "publication_precision": "day",
+      "id": "fbb53cc65482cd4c99f4",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-15-svidsmyndaaefing-um-mogulega-veikingu-veltihringrasar-atlantshafsins",
+      "title": "Sviðsmyndaæfing stjórnvalda um mögulega veikingu veltihringrásar Atlantshafsins",
+      "published_at": "2026-10-16T00:00:00+00:00",
+      "published_date": "2026-10-16",
+      "publication_precision": "day",
+      "id": "467c4c9becbd36c0c669",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-16-utanrikisradherra-endurnyjar-samstarfssamning-um-islensku-althjodabjorgunarsveitina",
+      "title": "Utanríkisráðherra endurnýjar samstarfssamning um Íslensku alþjóðabjörgunarsveitina",
+      "published_at": "2026-10-16T00:00:00+00:00",
+      "published_date": "2026-10-16",
+      "publication_precision": "day",
+      "id": "01299412bcf6481114b8",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-16-skyrsla-starfshops-um-faedingar-an-adkomu-heilbrigdisstarfsfolks",
+      "title": "Skýrsla starfshóps um fæðingar án aðkomu heilbrigðisstarfsfólks",
+      "published_at": "2026-10-16T00:00:00+00:00",
+      "published_date": "2026-10-16",
+      "publication_precision": "day",
+      "id": "40161fe66336d7c824eb",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-15-hver-minuta-skiptir-mali-skraum-oll-hjartastudtaeki-i-kortasja",
+      "title": "Hver mínúta skiptir máli: Skráum öll hjartastuðtæki í kortasjá",
+      "published_at": "2026-10-16T00:00:00+00:00",
+      "published_date": "2026-10-16",
+      "publication_precision": "day",
+      "id": "357654214f2b292b5eb3",
+      "classification_status": "pending_classification"
     },
     {
       "country": "Austria",
@@ -1226,6 +1424,15 @@
       "source_text_chars": 2175,
       "translated_text_chars": 1340,
       "translation_complete": true
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/soboleznovania-prezidentu-pakistana-asifu-ali-zardari-i-prem-er-ministru-sahbazu-sarifu-1792079039",
+      "title": "Соболезнования Президенту Пакистана Асифу Али Зардари и Премьер-министру Шахбазу Шарифу",
+      "published_at": "2026-10-15T15:43:18+00:00",
+      "id": "d1d0c482af3e1824a162",
+      "classification_status": "pending_classification"
     },
     {
       "country": "United Kingdom",
@@ -1656,6 +1863,15 @@
       "translation_complete": true
     },
     {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/rabocaa-poezdka-v-verhnedvinskij-rajon-vitebskoj-oblasti",
+      "title": "Рабочая поездка в Верхнедвинский район Витебской области",
+      "published_at": "2026-10-15T07:00:00+00:00",
+      "id": "fc8017d14ce6b6e099a3",
+      "classification_status": "pending_classification"
+    },
+    {
       "country": "Georgia",
       "country_code": "GE",
       "url": "https://mfa.gov.ge/news/587305-saqartvelosa-da-keniis-respublikas-shoris-politikuri-konsultatsiebi-gaimarta",
@@ -1707,6 +1923,15 @@
       "translation_complete": true
     },
     {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/pozdravlenie-rabotnikam-farmacevticeskoj-i-mikrobiologiceskoj-promyslennosti-1791979138",
+      "title": "Поздравление работникам фармацевтической и микробиологической промышленности",
+      "published_at": "2026-10-15T03:00:00+00:00",
+      "id": "953be01d26b8e4c62b31",
+      "classification_status": "pending_classification"
+    },
+    {
       "country": "Georgia",
       "country_code": "GE",
       "url": "https://mfa.gov.ge/news/674894-maka-botchorishvilma-monatsileoba-miigho-arabta-gaertianebul-saamiroebshi-gamartul-saertashoriso-kon",
@@ -1749,6 +1974,116 @@
       "source_text_chars": 1295,
       "translated_text_chars": 1089,
       "translation_complete": true
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-15-adgerdaaaetlun-um-liffraedilega-fjolbreytni-gefin-ut",
+      "title": "Aðgerðaáætlun um líffræðilega fjölbreytni gefin út",
+      "published_at": "2026-10-15T00:00:00+00:00",
+      "published_date": "2026-10-15",
+      "publication_precision": "day",
+      "id": "67fcf5b71740100030fb",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-15-mikilvaegt-er-ad-sannreyna-stafraen-okuskirteini",
+      "title": "Mikilvægt að sannreyna stafræn ökuskírteini",
+      "published_at": "2026-10-15T00:00:00+00:00",
+      "published_date": "2026-10-15",
+      "publication_precision": "day",
+      "id": "a2e13275e7d66103d86e",
+      "english_summary": "The Icelandic Ministry of Finance and Economic Affairs advises verifying digital driver's licenses due to counterfeit sales. The Iceland.is app offers a secure scanner for validation, and only the official free app from app stores should be used. Traditional licenses are available if doubts arise.",
+      "relevance": "related",
+      "topics": [
+        "critical_infrastructure",
+        "cyber"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The Police Department of the Capital Area reported yesterday an investigation into the sale of counterfeit digital identity documents to young people. In response, Digital Iceland issued a statement on how to verify digital driver's licenses using the scanner in the Iceland.is app.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Digital Iceland",
+          "summary": "Digital Iceland provides a secure verification tool for digital driver's licenses to combat counterfeit documents and ensure trust in digital identity systems.",
+          "target": "General public and app users",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "Digital Iceland issued a statement on how to verify digital driver's licenses using the scanner in the Iceland.is app."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The communication reveals a national security risk through counterfeit digital IDs and describes a specific technical measure to protect identity infrastructure and prevent fraud.",
+      "ticker_message": "Iceland promotes use of national app to verify digital driver licenses against counterfeit threats.",
+      "related": true,
+      "primary_narrative": "critical_infrastructure",
+      "secondary_narratives": [
+        "cyber"
+      ],
+      "classification_status": "provisional",
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 958,
+      "translated_text_chars": 1112,
+      "translation_complete": true
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-15-forvorn-vid-rs-veiru-hja-ungbornum-fest-i-sessi",
+      "title": "Forvörn við RS-veiru hjá ungbörnum fest í sessi",
+      "published_at": "2026-10-15T00:00:00+00:00",
+      "published_date": "2026-10-15",
+      "publication_precision": "day",
+      "id": "75c39fb0960edd81e6f8",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-15-ny-skyrsla-synir-leidir-ad-30-vernd-lands-og-ferskvatns-a-islandi",
+      "title": "Ný skýrsla sýnir leiðir að 30% vernd lands og ferskvatns á Íslandi",
+      "published_at": "2026-10-15T00:00:00+00:00",
+      "published_date": "2026-10-15",
+      "publication_precision": "day",
+      "id": "b5e6578ba7930fc184d2",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-15-nordurlond-eystrasaltsrikin-og-ukraina-efla-samstarf-um-menningu-og-gervigreind",
+      "title": "Norðurlönd, Eystrasaltsríkin og Úkraína efla samstarf um menningu og gervigreind",
+      "published_at": "2026-10-15T00:00:00+00:00",
+      "published_date": "2026-10-15",
+      "publication_precision": "day",
+      "id": "748096ce065aed7e9845",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-15-ny-namsleid-i-afengis-og-vimuefnaradgjof-vid-haskolann-a-akureyri",
+      "title": "Ný námsleið í áfengis- og vímuefnaráðgjöf við Háskólann á Akureyri",
+      "published_at": "2026-10-15T00:00:00+00:00",
+      "published_date": "2026-10-15",
+      "publication_precision": "day",
+      "id": "3609b4c8da4f0b2c0c74",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-08-embaetti-forstjora-midstodvar-um-oryggisradstafanir-laust-til-umsoknar",
+      "title": "Embætti forstjóra Miðstöðvar um öryggisráðstafanir laust til umsóknar",
+      "published_at": "2026-10-15T00:00:00+00:00",
+      "published_date": "2026-10-15",
+      "publication_precision": "day",
+      "id": "3bc8f9ba875950b13812",
+      "classification_status": "pending_classification"
     },
     {
       "country": "United Kingdom",
@@ -2654,6 +2989,15 @@
       "translation_complete": true
     },
     {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/aleksandr-lukasenko-proizvel-kadrovye-naznacenia-v-rukovodstve-ministerstva-oborony-i-vooruzennyh-sil",
+      "title": "Александр Лукашенко произвел кадровые назначения в руководстве Министерства обороны и Вооруженных Сил",
+      "published_at": "2026-10-14T16:14:54+00:00",
+      "id": "0dd1ac56f94f1d7058ec",
+      "classification_status": "pending_classification"
+    },
+    {
       "country": "United Kingdom",
       "country_code": "GB",
       "url": "https://www.gov.uk/government/news/brain-cancer-patients-to-see-faster-development-of-new-treatments",
@@ -2745,6 +3089,15 @@
       "source_text_chars": 686,
       "translated_text_chars": 728,
       "translation_complete": true
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/odobren-proekt-mezpravsoglasenia-s-mal-divami-o-vozdusnom-soobsenii",
+      "title": "Одобрен проект межправсоглашения с Мальдивами о воздушном сообщении",
+      "published_at": "2026-10-14T15:22:49+00:00",
+      "id": "2e69ff215cb168f35c01",
+      "classification_status": "pending_classification"
     },
     {
       "country": "United Kingdom",
@@ -3161,6 +3514,15 @@
       "translation_complete": true
     },
     {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/pozdravlenie-s-dnem-materi-1791892460",
+      "title": "Поздравление с Днем матери",
+      "published_at": "2026-10-14T03:00:00+00:00",
+      "id": "613a304efd6373b85d63",
+      "classification_status": "pending_classification"
+    },
+    {
       "country": "Georgia",
       "country_code": "GE",
       "url": "https://mfa.gov.ge/news/994779-maka-botchorishvili-abu-dabishi-konpherentsiashi-raisina-middle-east-miighebs-monatsileobas",
@@ -3195,6 +3557,100 @@
       "calibration_item": false,
       "source_text_chars": 629,
       "translated_text_chars": 654,
+      "translation_complete": true
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-14-rafbilavaeding-studd-med-markvissari-haetti",
+      "title": "Ný reglugerð um Loftslags- og orkusjóð og breyttar viðmiðunarfjárhæðir",
+      "published_at": "2026-10-14T00:00:00+00:00",
+      "published_date": "2026-10-14",
+      "publication_precision": "day",
+      "id": "11ed21501821feb6d460",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-14-plastmengun-ognar-vistkerfum-sjavar-heimskautanna-a-milli",
+      "title": "Plastmengun ógnar vistkerfum sjávar heimskautanna á milli",
+      "published_at": "2026-10-14T00:00:00+00:00",
+      "published_date": "2026-10-14",
+      "publication_precision": "day",
+      "id": "462cbbcf3b570079d72b",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-14-frumvarp-til-nyrra-loftslagslaga-lagt-fram-a-althingi",
+      "title": "Frumvarp til nýrra loftslagslaga lagt fram á Alþingi",
+      "published_at": "2026-10-14T00:00:00+00:00",
+      "published_date": "2026-10-14",
+      "publication_precision": "day",
+      "id": "a8116cb8843b592c8ca9",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-14-utanrikisradherra-leidir-vidskiptasendinefnd-islands-til-bandarikjanna",
+      "title": "Utanríkisráðherra leiðir viðskiptasendinefnd Íslands til Bandaríkjanna",
+      "published_at": "2026-10-14T00:00:00+00:00",
+      "published_date": "2026-10-14",
+      "publication_precision": "day",
+      "id": "5e58821b193b1eabeabb",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-14-styrkjum-uthlutad-til-stadbundinna-fjolmidla",
+      "title": "Styrkjum úthlutað til staðbundinna fjölmiðla",
+      "published_at": "2026-10-14T00:00:00+00:00",
+      "published_date": "2026-10-14",
+      "publication_precision": "day",
+      "id": "b36a6f7117c7709b691b",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-14-auglyst-eftir-styrkumsoknum-i-sjodinn-thjodhatidargjof-nordmanna",
+      "title": "Auglýst eftir styrkumsóknum í sjóðinn Þjóðhátíðargjöf Norðmanna",
+      "published_at": "2026-10-14T00:00:00+00:00",
+      "published_date": "2026-10-14",
+      "publication_precision": "day",
+      "id": "1e626405b9cc197e14da",
+      "classification_status": "provisional",
+      "english_summary": "Norway's National Festival Gift Fund calls for 2026 grant applications to support Icelandic travel to Norway, emphasizing direct travel costs and projects linked to Henrik Ibsen's 200th anniversary. Total funding is 3 million ISK, with applications due by November 6, 2026.",
+      "relevance": "not_related",
+      "topics": [],
+      "evidence_status": "reported",
+      "evidence_quote": "The purpose of the fund is to facilitate Icelanders' travel to Norway... to promote interaction between the nations... grants should primarily cover direct travel expenses.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Norwegian National Festival Gift Board",
+          "summary": "The fund aims to support travel from Iceland to Norway to promote bilateral cultural and social interaction.",
+          "target": "Icelandic individuals and groups travelling to Norway",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "The purpose of the fund is to facilitate Icelanders' travel to Norway... participation in competitions, conferences, or cultural exchange trips conducted on a bilateral basis."
+        }
+      ],
+      "confidence": 0.9,
+      "short_rationale": "The communication describes a cultural travel grant without direct link to national security or sovereignty issues.",
+      "ticker_message": "Norway offers travel grants to Icelanders for cultural exchange and bilateral interaction.",
+      "related": false,
+      "primary_narrative": "none_unclear",
+      "secondary_narratives": [],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 1312,
+      "translated_text_chars": 1482,
       "translation_complete": true
     },
     {
@@ -3992,6 +4448,15 @@
       "translation_complete": true
     },
     {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/podpisan-ukaz-o-sozdanii-v-belarusi-edinogo-reestra-ekspeditorov",
+      "title": "Подписан Указ о создании в Беларуси единого реестра экспедиторов ",
+      "published_at": "2026-10-13T14:55:00+00:00",
+      "id": "f18db110013b877bffce",
+      "classification_status": "pending_classification"
+    },
+    {
       "country": "Netherlands",
       "country_code": "NL",
       "url": "https://www.rijksoverheid.nl/actueel/nieuws/2026/10/13/kabinet-voert-nadere-verkenning-uit-naar-privatiseringsmogelijkheden-van-nederlandse-loterij",
@@ -4185,12 +4650,169 @@
       "translation_complete": true
     },
     {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/sovesanie-po-itogam-proverki-boevoj-i-mobilizacionnoj-gotovnosti-7-j-otdel-noj-special-noj-milicejskoj-brigady-vnutrennih-vojsk-mvd",
+      "title": "Совещание по итогам проверки боевой и мобилизационной готовности 7-й отдельной специальной милицейской бригады внутренних войск МВД",
+      "published_at": "2026-10-13T08:12:34+00:00",
+      "id": "5ffe418406d32a2eeb6b",
+      "classification_status": "provisional",
+      "english_summary": "Belarusian President Lukashenko held a meeting on military readiness, denying aggressive intentions toward neighbors or creation of the Suwalki corridor. He stressed defensive preparedness, transparency in inspections, and criticized Western narratives and border fences while reaffirming Belarus's commitment to regional security and careful defense planning.",
+      "relevance": "related",
+      "topics": [
+        "military_defence",
+        "sovereignty_borders",
+        "civil_protection"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "Lukashenko addressed recent media narratives, stating there was no emergency but emphasized preparation for war to prevent it....He stressed the importance of wide-scale readiness checks, including surprise inspections of all armed forces, to ensure timely, adequate responses to security threats....He underscored clearly designated defense points along the western border, thorough preparation of reservists, and coordination among forces.",
+      "roles": [
+        {
+          "entity": "Belarus",
+          "entity_code": "BLR",
+          "role": "readiness",
+          "evidence_quote": "He stressed the importance of wide-scale readiness checks, including surprise inspections of all armed forces, to ensure timely, adequate responses to security threats.",
+          "rationale": "Belarus is conducting readiness checks and preparing forces to ensure capability to respond to security threats, indicating preparation and resilience."
+        }
+      ],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Alexander Lukashenko, President of Belarus",
+          "summary": "Belarus maintains no aggressive intent but emphasizes full military preparedness and readiness to prevent conflict, rejecting Western accusations as baseless.",
+          "target": "Western countries and neighboring states' accusations",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "He denied Western claims that Belarus plans to attack Baltic states or create the Suwalki corridor... assuring any military incursions would require his approval, which was never given."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "Belarus's president stresses no offensive plans but emphasizes military readiness and border defense amid regional tensions.",
+      "ticker_message": "Belarus denies attack plans but emphasizes wide military readiness and border defense amid regional tensions.",
+      "related": true,
+      "primary_narrative": "military_defence",
+      "secondary_narratives": [
+        "sovereignty_borders",
+        "civil_protection"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 10729,
+      "translated_text_chars": 1910,
+      "translation_complete": true
+    },
+    {
       "country": "Netherlands",
       "country_code": "NL",
       "url": "https://www.rijksoverheid.nl/actueel/nieuws/2026/10/13/nfbk-euro164-miljoen-beschikbaar-voor-nieuwe-starterswoningen",
       "title": "NFBK: € 164 miljoen beschikbaar voor nieuwe starterswoningen",
       "published_at": "2026-10-13T06:00:00+00:00",
       "id": "c9a5727d7777261646e4",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/pozdravlenie-predsedatelu-kollegii-evrazijskoj-ekonomiceskoj-komissii-bakytzanu-sagintaevu-1791806140",
+      "title": "Поздравление Председателю Коллегии Евразийской экономической комиссии Бакытжану Сагинтаеву",
+      "published_at": "2026-10-13T03:00:00+00:00",
+      "id": "eb3bebc6ce67fc002839",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-13-opid-fyrir-umsoknir-um-styrki-ur-nyskopunar-og-throunarsjodi-fjolmidla",
+      "title": "Opið fyrir umsóknir um styrki úr nýsköpunar- og þróunarsjóði fjölmiðla",
+      "published_at": "2026-10-13T00:00:00+00:00",
+      "published_date": "2026-10-13",
+      "publication_precision": "day",
+      "id": "403df73aa188f07120ab",
+      "classification_status": "provisional",
+      "english_summary": "The Ministry of Culture, Innovation and Higher Education opened applications for grants from the Innovation and Development Fund for Media to support innovation and technology in private media. ISK 40 million is available, with a deadline of November 16, 2026.",
+      "relevance": "not_related",
+      "topics": [],
+      "evidence_status": "reported",
+      "evidence_quote": "Applications have opened for grants from the Innovation and Development Fund for Media, which is part of the action plan for media affairs. The fund aims to provide grants for projects that promote innovation, technological development, and the development of new business strategies in private media.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Ministry of Culture, Innovation and Higher Education",
+          "summary": "The ministry announces the opening of applications for grants to support innovation and development in private media.",
+          "target": "Applicants for media innovation grants",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "Applications have opened for grants from the Innovation and Development Fund for Media, which is part of the action plan for media affairs."
+        }
+      ],
+      "confidence": 0.9,
+      "short_rationale": "The announcement concerns media innovation grant applications without stating a specific national security, sovereignty, or critical system risk or protection measure.",
+      "ticker_message": "Iceland opens applications for media innovation and development grants in 2026.",
+      "related": false,
+      "primary_narrative": "none_unclear",
+      "secondary_narratives": [],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 1042,
+      "translated_text_chars": 1084,
+      "translation_complete": true
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-13-utanrikisradherra-fundadi-med-framkvaemdastjora-afvopnunarmala-hja-sth",
+      "title": "Utanríkisráðherra fundaði með framkvæmdastjóra afvopnunarmála hjá SÞ",
+      "published_at": "2026-10-13T00:00:00+00:00",
+      "published_date": "2026-10-13",
+      "publication_precision": "day",
+      "id": "824ae51aacffe43f6836",
+      "classification_status": "provisional",
+      "english_summary": "Iceland's Foreign Minister Þorgerður Katrín Gunnarsdóttir met with UN Under-Secretary-General Izumi Nakamitsu to discuss global security threats, including nuclear risks and military AI. They emphasized rebuilding international trust and maintaining strong disarmament frameworks to ensure global security.",
+      "relevance": "related",
+      "topics": [
+        "nuclear_cbrn",
+        "artificial_intelligence",
+        "diplomacy_alliances"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The meeting discussed the security threats facing the world, including the escalating arms race and new challenges stemming from the use of artificial intelligence in military operations... Iceland will support the dialogue because a strong international regulatory framework in disarmament and arms control is one of the foundations of all our security.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Þorgerður Katrín Gunnarsdóttir, Minister for Foreign Affairs",
+          "summary": "Discussed serious nuclear threats and the need to rebuild trust and continue dialogue on disarmament and arms control, emphasizing cautious use of artificial intelligence in military contexts.",
+          "target": "International disarmament and arms control efforts",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "We face a very different environment than during the Cold War, so it is urgent to rebuild the trust that has been broken... We must not lose control of the developments currently underway... Iceland will support the dialogue because a strong international regulatory framework in disarmament and arms control is one of the foundations of all our security."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The Foreign Minister highlights nuclear threat, AI military risks, and supports international arms control dialogue as foundational to security.",
+      "ticker_message": "Iceland supports dialogue on nuclear threats and AI risks to strengthen disarmament and global security.",
+      "related": true,
+      "primary_narrative": "nuclear_cbrn",
+      "secondary_narratives": [
+        "artificial_intelligence",
+        "diplomacy_alliances"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 1471,
+      "translated_text_chars": 1416,
+      "translation_complete": true
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-13-framtid-throunarsamvinnu-til-umraedu-a-radherrafundi-esb-rikja-bretlands-kanada-noregs-og-islands",
+      "title": "Framtíð þróunarsamvinnu til umræðu á ráðherrafundi ESB-ríkja, Bretlands, Kanada, Noregs og Íslands",
+      "published_at": "2026-10-13T00:00:00+00:00",
+      "published_date": "2026-10-13",
+      "publication_precision": "day",
+      "id": "1738f24940f54bb963d1",
       "classification_status": "pending_classification"
     },
     {
@@ -5443,6 +6065,15 @@
       "translation_complete": true
     },
     {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/rabocaa-poezdka-v-minskij-rajon-1791787871",
+      "title": "Рабочая поездка в Минский район",
+      "published_at": "2026-10-12T06:45:00+00:00",
+      "id": "c3e601f20fed2c8614b7",
+      "classification_status": "pending_classification"
+    },
+    {
       "country": "Netherlands",
       "country_code": "NL",
       "url": "https://www.rijksoverheid.nl/actueel/nieuws/2026/10/12/nieuwe-denk-vooruit-campagne-om-extra-aandacht-te-vragen-om-voor-te-bereiden-op-noodsituatie",
@@ -5524,6 +6155,166 @@
       "source_text_chars": 496,
       "translated_text_chars": 529,
       "translation_complete": true
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/pozdravlenie-letciku-kosmonavtu-gerou-rossijskoj-federacii-olegu-novickomu",
+      "title": "Поздравление летчику-космонавту, Герою Российской Федерации Олегу Новицкому",
+      "published_at": "2026-10-12T03:00:00+00:00",
+      "id": "4e6824f69ab3920fc48e",
+      "classification_status": "provisional",
+      "english_summary": "Belarusian President Alexander Lukashenko congratulated cosmonaut Oleg Novitsky on his 55th birthday, praising his professionalism and contributions to space exploration, and commended his efforts to strengthen Belarus-Russia relations and scientific cooperation within the Union State.",
+      "relevance": "not_related",
+      "topics": [],
+      "evidence_status": "reported",
+      "evidence_quote": "The President emphasized that special recognition is deserved for Oleg Novitsky's active public work aimed at strengthening friendship and cooperation between the brotherly peoples of Belarus and Russia, as well as developing the scientific and technological potential of the Union State.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "President Alexander Lukashenko",
+          "summary": "He congratulated Oleg Novitsky, praising his professionalism and role in fostering Belarus-Russia cooperation in space fields.",
+          "target": "Oleg Novitsky",
+          "speaker_sentiment": "positive",
+          "evidence_quote": "With your diligence and determination, you have written bright pages in the history of space exploration... special recognition is deserved for Oleg Novitsky's active public work aimed at strengthening friendship and cooperation between the brotherly peoples of Belarus and Russia."
+        }
+      ],
+      "confidence": 0.9,
+      "short_rationale": "The message is a congratulatory statement praising a cosmonaut and highlighting Belarus-Russia cooperation, without citing concrete security risks or measures.",
+      "ticker_message": "Belarus President Lukashenko congratulates cosmonaut Novitsky, praising Belarus-Russia space cooperation.",
+      "related": false,
+      "primary_narrative": "none_unclear",
+      "secondary_narratives": [],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 849,
+      "translated_text_chars": 885,
+      "translation_complete": true
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/pozdravlenie-prezidentu-ekvatorial-noj-gvinei-teodoro-obiangu-ngeme-mbasogo-1791559054",
+      "title": "Поздравление Президенту Экваториальной Гвинеи Теодоро Обиангу Нгеме Мбасого",
+      "published_at": "2026-10-12T03:00:00+00:00",
+      "id": "3ab167a216e5f46ed22a",
+      "classification_status": "provisional",
+      "english_summary": "President Lukashenko congratulated Equatorial Guinea on its Independence Day, highlighting national unity and development. He expressed Belarus's commitment to strengthening bilateral relations and cooperation across multiple sectors, wishing health to the president and prosperity to the nation's people.",
+      "relevance": "not_related",
+      "topics": [],
+      "evidence_status": "reported",
+      "evidence_quote": "The President confirmed Belarus's interest in strengthening relations between the countries and readiness to activate dialogue at all levels.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "President Alexander Lukashenko",
+          "summary": "Belarus expresses interest in strengthening bilateral relations and activating dialogue, emphasizing cooperation and good wishes for Equatorial Guinea's development and well-being.",
+          "target": "Relations between Belarus and Equatorial Guinea",
+          "speaker_sentiment": "positive",
+          "evidence_quote": "The President confirmed Belarus's interest in strengthening relations between the countries and readiness to activate dialogue at all levels."
+        }
+      ],
+      "confidence": 0.9,
+      "short_rationale": "The message is a diplomatic congratulation and expression of cooperation interest with no direct mention of security risks or resilience measures.",
+      "ticker_message": "Belarus congratulates Equatorial Guinea's Independence Day and expresses interest in strengthening cooperation.",
+      "related": false,
+      "primary_narrative": "none_unclear",
+      "secondary_narratives": [],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 1035,
+      "translated_text_chars": 1047,
+      "translation_complete": true
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/pozdravlenie-narodu-ispanii",
+      "title": "Поздравление народу Испании",
+      "published_at": "2026-10-12T03:00:00+00:00",
+      "id": "e498803f19f1ab5683aa",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-12-utanrikisradherra-fundadi-med-mannrettindafulltrua-sameinudu-thjodanna",
+      "title": "Utanríkisráðherra fundaði með mannréttindafulltrúa Sameinuðu þjóðanna",
+      "published_at": "2026-10-12T00:00:00+00:00",
+      "published_date": "2026-10-12",
+      "publication_precision": "day",
+      "id": "89a007bc69c49ceedda8",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-12-domsmalaradherra-fundadi-med-volker-turk",
+      "title": "Dómsmálaráðherra fundaði með Volker Türk",
+      "published_at": "2026-10-12T00:00:00+00:00",
+      "published_date": "2026-10-12",
+      "publication_precision": "day",
+      "id": "f203cad97ab93c7ffd0e",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-12-mikill-ahugi-a-malstofu-um-amoc-a-arctic-circle",
+      "title": "Mikill áhugi á málstofu um AMOC á Arctic Circle",
+      "published_at": "2026-10-12T00:00:00+00:00",
+      "published_date": "2026-10-12",
+      "publication_precision": "day",
+      "id": "a44306eec77663e4e21d",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-12-fridur-krefst-hugrekkis-til-ad-imynda-ser-annan-heim",
+      "title": "Friður krefst hugrekkis til að ímynda sér annan heim",
+      "published_at": "2026-10-12T00:00:00+00:00",
+      "published_date": "2026-10-12",
+      "publication_precision": "day",
+      "id": "12c888a855982e8df86c",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-12-nyr-formadur-jafnrettissjods",
+      "title": "Nýr formaður Jafnréttissjóðs",
+      "published_at": "2026-10-12T00:00:00+00:00",
+      "published_date": "2026-10-12",
+      "publication_precision": "day",
+      "id": "09abe73c572a775172d2",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-12-vinnustofur-um-netognir-haldnar-a-islandi-a-vegum-cert-is-og-netoryggisdeildar-evropuherstjornar-bandarikjanna",
+      "title": "Vinnustofur um netógnir haldnar á Íslandi á vegum CERT-IS og netöryggisdeildar Evrópuherstjórnar Bandaríkjanna",
+      "published_at": "2026-10-12T00:00:00+00:00",
+      "published_date": "2026-10-12",
+      "publication_precision": "day",
+      "id": "fc0601be5fdcb3347d36",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-12-opid-fyrir-umsoknir-um-vidbotarstudning-vegna-frettathjonustu-i-almannathagu-a-landsvisu",
+      "title": "Opið fyrir umsóknir um viðbótarstuðning vegna fréttaþjónustu í almannaþágu á landsvísu",
+      "published_at": "2026-10-12T00:00:00+00:00",
+      "published_date": "2026-10-12",
+      "publication_precision": "day",
+      "id": "cc613a5474258d2374ea",
+      "classification_status": "pending_classification"
     },
     {
       "country": "Serbia",
@@ -6296,6 +7087,24 @@
       "translation_complete": true
     },
     {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/pozdravlenie-narodnomu-artistu-belarusi-evgeniu-gladkovu",
+      "title": "Поздравление народному артисту Беларуси Евгению Гладкову",
+      "published_at": "2026-10-11T05:00:00+00:00",
+      "id": "95846c3573fddae2a3e1",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/pozdravlenie-rabotnikam-kul-tury-s-professional-nym-prazdnikom-1791558170",
+      "title": "Поздравление работникам культуры с профессиональным праздником",
+      "published_at": "2026-10-11T03:00:00+00:00",
+      "id": "92ed0be173bf63d0c0eb",
+      "classification_status": "pending_classification"
+    },
+    {
       "country": "Austria",
       "country_code": "AT",
       "url": "https://www.bundeskanzleramt.gv.at/bundeskanzleramt/nachrichten-der-bundesregierung/2026/10/digital-austria-servicestelle-oeffnet-mit-neuer-servicenummer.html",
@@ -6469,6 +7278,90 @@
       "calibration_item": false,
       "source_text_chars": 612,
       "translated_text_chars": 535,
+      "translation_complete": true
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/pozdravlenie-ucastnikam-i-gostam-oblastnogo-festivala-armarki-dazynki-2026-v-kalinkovicah",
+      "title": "Поздравление участникам и гостям областного фестиваля-ярмарки \"Дажынкi-2026\" в Калинковичах",
+      "published_at": "2026-10-10T10:00:00+00:00",
+      "id": "99e1dad3f257edf26670",
+      "classification_status": "provisional",
+      "english_summary": "Alexander Lukashenko congratulates Gomel's agricultural workers on their achievements in grain harvesting, highlighting their professionalism, innovation, and contribution to Belarus's food security and economy. He expresses confidence in their future success and extends wishes for health and prosperity.",
+      "relevance": "related",
+      "topics": [
+        "food_security",
+        "economic_financial_security"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "All this is a significant contribution to the country's food security and strengthening its economy, as well as a strategic foundation for the future.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Alexander Lukashenko",
+          "summary": "He emphasizes the importance of the grain harvest and innovations in agriculture as critical to Belarus' food security and economic strength.",
+          "target": "Belarusian grain growers and agricultural sector",
+          "speaker_sentiment": "positive",
+          "evidence_quote": "You are increasing grain production, mastering new directions in crop production, and implementing innovative technologies. All this is a significant contribution to the country's food security and strengthening its economy."
+        }
+      ],
+      "confidence": 0.9,
+      "short_rationale": "The message explicitly links increased grain production and agricultural innovation to national food security and economic resilience.",
+      "ticker_message": "Belarus celebrates grain harvest as key to food security and economic strength.",
+      "related": true,
+      "primary_narrative": "food_security",
+      "secondary_narratives": [
+        "economic_financial_security"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 1243,
+      "translated_text_chars": 1328,
+      "translation_complete": true
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/pozdravlenie-ucastnikam-i-gostam-oblastnogo-festivala-armarki-dazynki-2026-v-sklove",
+      "title": "Поздравление участникам и гостям областного фестиваля-ярмарки \"Дажынкi-2026\" в Шклове",
+      "published_at": "2026-10-10T08:00:00+00:00",
+      "id": "af43185de53bf1484be6",
+      "classification_status": "provisional",
+      "english_summary": "President Lukashenko congratulates Mogilev Region on its grain harvest success at the Dazhynki-2026 festival, praising agricultural workers' dedication and professionalism, and wishes continued prosperity and abundant yields for the region and Belarus.",
+      "relevance": "related",
+      "topics": [
+        "food_security",
+        "economic_financial_security"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "This year, Mogilev Region has once again proven its ability to achieve good results. Your share in the national grain caravan is significant—1,220,000 tons of cereals and rapeseed excluding corn... I thank everyone who contributed to the harvest campaign. Your professionalism, resilience, and love for your work command the deepest respect.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Alexander Lukashenko",
+          "summary": "Recognizes the significance of the grain harvest in Mogilev Region as a vital contribution to national food security and praises the agricultural workforce’s dedication and professionalism.",
+          "target": "Agricultural workers of Mogilev Region and national food production",
+          "speaker_sentiment": "positive",
+          "evidence_quote": "Your share in the national grain caravan is significant—1,220,000 tons of cereals and rapeseed excluding corn... I thank everyone who contributed to the harvest campaign. Your professionalism, resilience, and love for your work command the deepest respect."
+        }
+      ],
+      "confidence": 0.9,
+      "short_rationale": "The statement explicitly frames the large grain harvest as critical to food security and praises professional agricultural efforts, indicating a national food security relevance.",
+      "ticker_message": "Belarus praises Mogilev Region's significant grain harvest contribution to national food security.",
+      "related": true,
+      "primary_narrative": "food_security",
+      "secondary_narratives": [
+        "economic_financial_security"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 1163,
+      "translated_text_chars": 1212,
       "translation_complete": true
     },
     {
@@ -6826,6 +7719,43 @@
       "calibration_item": false,
       "source_text_chars": 28424,
       "translated_text_chars": 7482,
+      "translation_complete": true
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/pozdravlenie-savo-minicu-s-pobedoj-na-vyborah-prezidenta-respubliki-serbskoj-bosnii-i-gercegoviny",
+      "title": "Поздравление Саво Миничу с победой на выборах Президента Республики Сербской Боснии и Герцеговины",
+      "published_at": "2026-10-09T14:41:02+00:00",
+      "id": "50fa0aa198decf86500a",
+      "classification_status": "provisional",
+      "english_summary": "President Lukashenko congratulated Savo Minić on his election as President of Republika Srpska, praised his prior work, reaffirmed Belarus-Republika Srpska friendly ties, and expressed hope for continued cooperation and prosperity.",
+      "relevance": "not_related",
+      "topics": [],
+      "evidence_status": "reported",
+      "evidence_quote": "President of Belarus Alexander Lukashenko congratulated Savo Minić on his victory in the elections for the President of the Republika Srpska of Bosnia and Herzegovina.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "President Alexander Lukashenko",
+          "summary": "Congratulates Savo Minić on his election victory and expresses confidence in continued cooperative development and friendly relations.",
+          "target": "Savo Minić and Republika Srpska",
+          "speaker_sentiment": "positive",
+          "evidence_quote": "The voting results are a testament to the citizens' recognition of your work as Prime Minister of Republika Srpska... Minsk and Banja Luka have been connected for many years by friendly relations... I hope for further expansion of cooperation in areas of mutual interest."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "This is a routine congratulatory message emphasizing friendly relations and cooperation without mentioning any security risks or measures.",
+      "ticker_message": "Belarusian President Lukashenko congratulates Republika Srpska's elected president, highlights friendly ties.",
+      "related": false,
+      "primary_narrative": "none_unclear",
+      "secondary_narratives": [],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": true,
+      "calibration_item": false,
+      "source_text_chars": 979,
+      "translated_text_chars": 993,
       "translation_complete": true
     },
     {
@@ -7306,6 +8236,195 @@
       "primary_narrative": "none_unclear",
       "secondary_narratives": [],
       "review_sample": false
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/privetstvie-ucastnikam-xiv-foruma-gorodov-pobratimov-belarusi-i-rossii",
+      "title": "Приветствие участникам XIV Форума городов-побратимов Беларуси и России",
+      "published_at": "2026-10-09T06:30:00+00:00",
+      "id": "781158a5bf58d368fff5",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/ucastie-v-sammite-sodruzestva-nezavisimyh-gosudarstv-v-turkmenistane",
+      "title": "Участие в саммите Содружества Независимых Государств в Туркменистане",
+      "published_at": "2026-10-09T05:04:37+00:00",
+      "id": "cf321083cf7762c54bb4",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/vstreca-s-prezidentom-turkmenistana-serdarom-berdymuhamedovym",
+      "title": "Встреча с Президентом Туркменистана Сердаром Бердымухамедовым ",
+      "published_at": "2026-10-09T04:30:00+00:00",
+      "id": "01158dc930e112a79cd7",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/pozdravlenie-prezidentu-ugandy-joveri-museveni-1791468480",
+      "title": "Поздравление Президенту Уганды Йовери Мусевени",
+      "published_at": "2026-10-09T03:00:00+00:00",
+      "id": "d44cdd0bec520e5b72c9",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-09-ungmenni-tokust-a-vid-oryggisaskorun-a-vettvangi-atlantshafsbandalagsins",
+      "title": "Ungmenni tókust á við öryggisáskorun á vettvangi Atlantshafsbandalagsins",
+      "published_at": "2026-10-09T00:00:00+00:00",
+      "published_date": "2026-10-09",
+      "publication_precision": "day",
+      "id": "1a19c496af90f7705596",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-09-skyrslu-vegna-fjordu-allsherjaruttektar-mannrettindarads-sth-skilad",
+      "title": "Skýrslu vegna fjórðu allsherjarúttektar mannréttindaráðs SÞ skilað",
+      "published_at": "2026-10-09T00:00:00+00:00",
+      "published_date": "2026-10-09",
+      "publication_precision": "day",
+      "id": "f3a1e65eafd21e13363b",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-09-forsenda-framfara-ad-riki-og-sveitarfelog-vinni-naid-saman",
+      "title": "Forsenda framfara að ríki og sveitarfélög vinni náið saman",
+      "published_at": "2026-10-09T00:00:00+00:00",
+      "published_date": "2026-10-09",
+      "publication_precision": "day",
+      "id": "66b0bcc62759e960d98f",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-09-skyrsla-starfshops-um-malefni-gervigreindar",
+      "title": "Skýrsla starfshóps um málefni gervigreindar",
+      "published_at": "2026-10-09T00:00:00+00:00",
+      "published_date": "2026-10-09",
+      "publication_precision": "day",
+      "id": "f04f311581b414b8d51f",
+      "classification_status": "provisional",
+      "english_summary": "In October 2026, Iceland's government-reported comprehensive proposals to enhance responsible AI use, focusing on education, Icelandic language AI development, and public sector implementation. The government approved establishing an inter-ministerial AI steering group and plans to update the national AI action plan by year-end.",
+      "relevance": "related",
+      "topics": [
+        "artificial_intelligence"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The working group on the government's approach to artificial intelligence affairs... provided a comprehensive assessment... and made recommendations on prioritization and improvements... The report puts forward numerous proposals aimed at strengthening responsible and targeted use of artificial intelligence in Iceland.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Prime Minister Kristrún Frostadóttir",
+          "summary": "The government views the expert group's review as an opportunity to advance AI use in the public sector while protecting education, labor, language, and IP values.",
+          "target": "Government AI policy and public sector AI use",
+          "speaker_sentiment": "positive",
+          "evidence_quote": "Prime Minister Kristrún Frostadóttir expressed satisfaction with the expert group's review of government AI policies, emphasizing the opportunity to take important steps forward in AI use by the public sector and the necessity of protecting values related to education, labor market, the Icelandic language, and intellectual property."
+        }
+      ],
+      "confidence": 0.9,
+      "short_rationale": "The government report and statements highlight AI use as a strategic national policy for beneficial societal impact and public sector implementation, evidencing direct security-related governance of AI use and sovereignty in language and data.",
+      "ticker_message": "Iceland's government advances comprehensive AI strategy emphasizing public sector use and protection of national values.",
+      "related": true,
+      "primary_narrative": "artificial_intelligence",
+      "secondary_narratives": [],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 4123,
+      "translated_text_chars": 3862,
+      "translation_complete": true
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-09-vidmid-um-sjalfbaera-throun-sveitarfelaga-i-samradsgatt",
+      "title": "Viðmið um sjálfbæra þróun sveitarfélaga í samráðsgátt",
+      "published_at": "2026-10-09T00:00:00+00:00",
+      "published_date": "2026-10-09",
+      "publication_precision": "day",
+      "id": "ab98b6750b2541ec2d47",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-09-aukin-samvinna-islands-og-graenlands-i-brennidepli-a-fundi-radherra",
+      "title": "Aukin samvinna Íslands og Grænlands í brennidepli á fundi ráðherra",
+      "published_at": "2026-10-09T00:00:00+00:00",
+      "published_date": "2026-10-09",
+      "publication_precision": "day",
+      "id": "b919afb35d31814085cf",
+      "classification_status": "provisional",
+      "english_summary": "Iceland and Greenland discussed enhancing cooperation focusing on Arctic security and development. They emphasized recent agreements involving Greenland, Denmark, and the U.S., and planned to review Nordic cooperation treaties with Faroe Islands, Greenland, and Åland participation at the Nordic Council meeting in October.",
+      "relevance": "related",
+      "topics": [
+        "sovereignty_borders",
+        "military_defence",
+        "diplomacy_alliances"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The recent agreement between Greenland, Denmark, and the United States strengthens security and defense in our region and highlights the importance of the North Atlantic Treaty Organization.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Þorgerður Katrín Gunnarsdóttir, Iceland's Foreign Minister",
+          "summary": "Iceland and Greenland seek to strengthen cooperation on Arctic security and development, underscoring NATO's importance and regional defense agreements.",
+          "target": "Iceland-Greenland cooperation and regional security structures",
+          "speaker_sentiment": "positive",
+          "evidence_quote": "We had a very useful meeting on cooperation between Iceland and Greenland as our interests in security and development in the Arctic are intertwined. The recent agreement between Greenland, Denmark, and the United States strengthens security and defense in our region and highlights the importance of the North Atlantic Treaty Organization."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The ministers emphasize intertwined Arctic security interests, reinforced by a regional defense agreement involving NATO, demonstrating collective security cooperation.",
+      "ticker_message": "Iceland and Greenland highlight stronger Arctic security cooperation and strategic defense agreements.",
+      "related": true,
+      "primary_narrative": "sovereignty_borders",
+      "secondary_narratives": [
+        "military_defence",
+        "diplomacy_alliances"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 1353,
+      "translated_text_chars": 1519,
+      "translation_complete": true
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-08-skipulagsbreytingar-logreglu-birtar-a-samradsgatt",
+      "title": "Skipulagsbreytingar lögreglu birtar í samráðsgátt",
+      "published_at": "2026-10-09T00:00:00+00:00",
+      "published_date": "2026-10-09",
+      "publication_precision": "day",
+      "id": "e1d4690ca1e05bfe96e0",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-09-korda-aetlad-ad-auka-oryggi-mikilvaegra-fjarskiptainnvida",
+      "title": "Korda ætlað að auka öryggi mikilvægra fjarskiptainnviða",
+      "published_at": "2026-10-09T00:00:00+00:00",
+      "published_date": "2026-10-09",
+      "publication_precision": "day",
+      "id": "e4b9571c2549d97eedbb",
+      "classification_status": "pending_classification"
     },
     {
       "country": "Austria",
@@ -8397,6 +9516,48 @@
       "review_sample": false
     },
     {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/aleksandr-lukasenko-8-9-oktabra-soversit-rabocij-vizit-v-turkmenistan",
+      "title": "Рабочий визит в Туркменистан",
+      "published_at": "2026-10-08T12:17:00+00:00",
+      "id": "351b26ef0b98a466e0d8",
+      "classification_status": "provisional",
+      "english_summary": "Belarusian President Lukashenko arrived in Turkmenistan to attend a CIS Heads of State meeting marking 35 years of the organization. Discussions cover social development, transport, information cooperation, law enforcement, and historical memory. Lukashenko also attended a diplomatic reception.",
+      "relevance": "related",
+      "topics": [
+        "political_institutions",
+        "diplomacy_alliances"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The leaders will discuss cooperation within the CIS, which celebrates its 35th anniversary this year. Alexander Lukashenko will express the Belarusian position on current CIS issues and the potential and future prospects of this international organization during his speech.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Alexander Lukashenko",
+          "summary": "Belarus President Lukashenko will articulate Belarus's stance on CIS cooperation and its future prospects.",
+          "target": "CIS cooperation and organizational future",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "Alexander Lukashenko will express the Belarusian position on current CIS issues and the potential and future prospects of this international organization during his speech."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "Belarus's leader discusses CIS cooperation and institutional future, reflecting on political-institutional and alliance security implications.",
+      "ticker_message": "Belarus President Lukashenko visits Turkmenistan to discuss CIS cooperation and future prospects.",
+      "related": true,
+      "primary_narrative": "political_institutions",
+      "secondary_narratives": [
+        "diplomacy_alliances"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 1138,
+      "translated_text_chars": 1144,
+      "translation_complete": true
+    },
+    {
       "country": "Netherlands",
       "country_code": "NL",
       "url": "https://www.rijksoverheid.nl/actueel/nieuws/2026/10/08/begin-2027-weer-vergunningverlening-in-de-rotterdamse-haven-dankzij-nieuw-gebiedsplan",
@@ -8503,6 +9664,15 @@
       "source_text_chars": 1742,
       "translated_text_chars": 1646,
       "translation_complete": true
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/privetstvie-ucastnikam-vtorogo-zasedania-soveta-predsedatelej-verhovnyh-vyssih-sudov-gosudarstv-ucastnikov-sng",
+      "title": "Приветствие участникам второго заседания Совета председателей верховных (высших) судов государств - участников СНГ",
+      "published_at": "2026-10-08T10:15:00+00:00",
+      "id": "2c8660ee2da4c6b0d9a2",
+      "classification_status": "pending_classification"
     },
     {
       "country": "Netherlands",
@@ -8807,6 +9977,258 @@
       "source_text_chars": 2956,
       "translated_text_chars": 2909,
       "translation_complete": true
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-08-thorgerdur-katrin-fundadi-med-utanrikisradherra-kanada",
+      "title": "Þorgerður Katrín fundaði með utanríkisráðherra Kanada",
+      "published_at": "2026-10-08T00:00:00+00:00",
+      "published_date": "2026-10-08",
+      "publication_precision": "day",
+      "id": "5b10b38d95ef408facfe",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-08-yfirlysing-og-adgerdir-rikisstjornar-vegna-kjarasamninga-a-almennum-vinnumarkadi",
+      "title": "Yfirlýsing og aðgerðir ríkisstjórnar vegna kjarasamninga á almennum vinnumarkaði",
+      "published_at": "2026-10-08T00:00:00+00:00",
+      "published_date": "2026-10-08",
+      "publication_precision": "day",
+      "id": "d7ebcb3d8d9b91511326",
+      "classification_status": "provisional",
+      "english_summary": "Iceland's government, unions, employers, and municipalities signed a joint statement to control inflation and support wage agreements by limiting fee hikes, enhancing wage data, reforming housing and rental policies, and protecting workers' rights, aiming for economic and social stability through 2027.",
+      "relevance": "related",
+      "topics": [
+        "economic_financial_security",
+        "food_security",
+        "civil_protection"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The government, the Icelandic Confederation of Labour, the Confederation of Icelandic Employers, and the Association of Local Authorities have signed a joint declaration... to reduce inflation and create conditions for lowering interest rates... A bill will be submitted to fund municipal capital contributions for affordable housing development... measures to stabilize child benefits and reform rent adjustments for stability and predictability... a joint response plan will be developed to tackle rising unemployment and prevent labor market withdrawal.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Icelandic government and labor market parties",
+          "summary": "Committed to collective action to control inflation, stabilize wages, improve affordable housing, and support economic and social stability through coordinated measures and legislation.",
+          "target": "Economic and social stability in the general labor market and housing sector",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "The government, the Icelandic Confederation of Labour, the Confederation of Icelandic Employers, and the Association of Local Authorities commit to these measures to ensure wage agreements' success and promote economic stability."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "This coordinated government and labor market plan addresses inflation control, wage and rental stability, affordable housing, and unemployment—core economic security and social resilience issues.",
+      "ticker_message": "Iceland's government and labor partners commit to controlling inflation, stabilizing wages, and improving affordable housing security.",
+      "related": true,
+      "primary_narrative": "economic_financial_security",
+      "secondary_narratives": [
+        "food_security",
+        "civil_protection"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 10322,
+      "translated_text_chars": 6508,
+      "translation_complete": true
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-08-bladamannafundur-vegna-kjarasamninga-a-almennum-vinnumarkadi",
+      "title": "Blaðamannafundur vegna kjarasamninga á almennum vinnumarkaði",
+      "published_at": "2026-10-08T00:00:00+00:00",
+      "published_date": "2026-10-08",
+      "publication_precision": "day",
+      "id": "6490dc4f805deae4741e",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-08-einkunnir-i-tolustofum-breytt-namsmat-vid-lok-grunnskola-til-umsagnar",
+      "title": "Einkunnir í tölustöfum – breytt námsmat við lok grunnskóla til umsagnar",
+      "published_at": "2026-10-08T00:00:00+00:00",
+      "published_date": "2026-10-08",
+      "publication_precision": "day",
+      "id": "9a779d1fc3483487ab86",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-08-umraedur-um-gervigreind-og-mannrettindi-aberandi-i-haustlotu-mannrettindarads-sameinudu-thjodanna",
+      "title": "Umræður um gervigreind og mannréttindi áberandi í haustlotu mannréttindaráðs Sameinuðu þjóðanna",
+      "published_at": "2026-10-08T00:00:00+00:00",
+      "published_date": "2026-10-08",
+      "publication_precision": "day",
+      "id": "f60fb01beaf7ccf3229c",
+      "classification_status": "provisional",
+      "english_summary": "The UN Human Rights Council's autumn 2026 session, with Iceland as a member, focused on human rights issues in various countries, notably Iran, Afghanistan, and Ukraine. Artificial intelligence's impact on human rights featured prominently, with calls for global regulation. Iceland actively participated in debates, youth inclusion, and advocated fundamental human rights values.",
+      "relevance": "related",
+      "topics": [
+        "artificial_intelligence",
+        "political_institutions",
+        "information_influence",
+        "civil_protection",
+        "health_biosecurity"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "In his regular report, UN High Commissioner for Human Rights Volker Türk strongly highlighted AI's impacts on human rights, noting that current regulatory frameworks lag behind the rapid technological development. He urged AI-developing countries and supply chain states to agree on clear regulations, independent oversight, and increased collaboration. Attention was also called to AI's effects on labor rights, democracy, and the environment. Human rights should guide AI development to ensure technology serves humanity, not the reverse.",
+      "roles": [],
+      "viewpoint_structure": "multiple_viewpoints",
+      "viewpoints": [
+        {
+          "speaker": "Foreign Minister Þorgerður Katrín Gunnarsdóttir",
+          "summary": "Iceland actively works to defend and strengthen global human rights consensus, engaging on critical issues such as Iran, Afghanistan, and Sudan, emphasizing respect for international law and human rights.",
+          "target": "Global human rights issues and UN Human Rights Council engagement",
+          "speaker_sentiment": "positive",
+          "evidence_quote": "Iceland continues active work in the Human Rights Council, defending and strengthening global human rights consensus."
+        },
+        {
+          "speaker": "UN High Commissioner for Human Rights Volker Türk",
+          "summary": "Warned that AI regulation is insufficient, called for clear rules and oversight, emphasizing AI's impact on human rights, labor, democracy, and environment.",
+          "target": "AI developing countries and governance frameworks",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "Current regulatory frameworks lag behind the rapid technological development. He urged AI-developing countries and supply chain states to agree on clear regulations, independent oversight, and increased collaboration."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The session included substantive UN-level discussion on AI's human rights risks and governance, linked to political institutions, civil protection, and information influence, qualifying as national security policy frame.",
+      "ticker_message": "UN Human Rights Council session highlights AI risks and governance alongside global human rights issues.",
+      "related": true,
+      "primary_narrative": "artificial_intelligence",
+      "secondary_narratives": [
+        "political_institutions",
+        "information_influence",
+        "civil_protection",
+        "health_biosecurity"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 7740,
+      "translated_text_chars": 6556,
+      "translation_complete": true
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-08",
+      "title": "Rekstrarstyrkir auglýstir til umsóknar",
+      "published_at": "2026-10-08T00:00:00+00:00",
+      "published_date": "2026-10-08",
+      "publication_precision": "day",
+      "id": "ee28d92fecc755867a14",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-08-radstefna-um-afallamidadar-nalganir",
+      "title": "Ráðstefna um áfallamiðaðar nálganir",
+      "published_at": "2026-10-08T00:00:00+00:00",
+      "published_date": "2026-10-08",
+      "publication_precision": "day",
+      "id": "740ce6212b9f822985d9",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-08-stefna-um-opinbera-thjonustu-gefin-ut-i-fyrsta-sinn",
+      "title": "Stefna um opinbera þjónustu gefin út í fyrsta sinn",
+      "published_at": "2026-10-08T00:00:00+00:00",
+      "published_date": "2026-10-08",
+      "publication_precision": "day",
+      "id": "3b9b0d28eba71d7856e1",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-08-nidurstodur-pisa-2025-i-staerstu-sveitarfelogum-landsins",
+      "title": "Niðurstöður PISA 2025 í stærstu sveitarfélögum landsins",
+      "published_at": "2026-10-08T00:00:00+00:00",
+      "published_date": "2026-10-08",
+      "publication_precision": "day",
+      "id": "c6a1c69774e58dbfa01b",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-07-arsfundur-jofnunarsjods-fjarhagsstada-sjodsins-sterk-og-almenn-jofnunarframlog-haekkud",
+      "title": "Ársfundur Jöfnunarsjóðs: Fjárhagsstaða sjóðsins sterk og almenn jöfnunarframlög hækkuð",
+      "published_at": "2026-10-08T00:00:00+00:00",
+      "published_date": "2026-10-08",
+      "publication_precision": "day",
+      "id": "00395e12f13e58ed194e",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-09-ny-skyrsla-itf-samhaefing-almenningssamgangna-gjaldtoku-og-skipulags-gerir-samgongur-skilvirkari",
+      "title": "Ný skýrsla ITF: Samhæfing almenningssamgangna, gjaldtöku og skipulags gerir samgöngur skilvirkari",
+      "published_at": "2026-10-08T00:00:00+00:00",
+      "published_date": "2026-10-08",
+      "publication_precision": "day",
+      "id": "4fca566733b03f2bc2b5",
+      "classification_status": "provisional",
+      "english_summary": "The International Transport Forum's 2026 report highlights that integrating public transport, tolling, and urban planning into a unified policy enhances transport efficiency. It uses Iceland's 2026 distance-based road charge as a case, emphasizing demand management and coordinated strategies to improve accessibility and reduce environmental impact.",
+      "relevance": "related",
+      "topics": [
+        "energy",
+        "climate_environment",
+        "critical_infrastructure",
+        "economic_financial_security",
+        "civil_protection"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The main conclusion of the report is that the best results are achieved by integrating various aspects such as tolling, public transport, spatial planning changes, and more, into one strategy. The report outlines how governments can manage travel demand to better use infrastructure, reduce traffic congestion and negative environmental impacts, and improve accessibility.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "International Transport Forum",
+          "summary": "Integrated demand management combining tolling, public transport, and urban planning improves transport efficiency, reduces environmental harm, and enhances accessibility.",
+          "target": "Governments and urban planners",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "Demand management involves both reducing trips and shifting them between modes, locations, and times... The report emphasizes moving away from the traditional 'predict and provide' approach toward policies that first define the desired future city and transport system, then decide how infrastructure and instruments support that vision."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The report states coordinated transport demand management improves infrastructure use, environmental outcomes, and accessibility, directly linked to national resilience and infrastructure security.",
+      "ticker_message": "ITF report urges integrated transport demand management to enhance efficiency, reduce congestion and emissions.",
+      "related": true,
+      "primary_narrative": "energy",
+      "secondary_narratives": [
+        "climate_environment",
+        "critical_infrastructure",
+        "economic_financial_security",
+        "civil_protection"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 3511,
+      "translated_text_chars": 3323,
+      "translation_complete": true
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-07-oskad-eftir-tilnefningum-til-blaskeljarinnar",
+      "title": "Óskað eftir tilnefningum til Bláskeljarinnar",
+      "published_at": "2026-10-08T00:00:00+00:00",
+      "published_date": "2026-10-08",
+      "publication_precision": "day",
+      "id": "98e21c70cf876b192e2c",
+      "classification_status": "pending_classification"
     },
     {
       "country": "United Kingdom",
@@ -9530,6 +10952,24 @@
       "translation_complete": true
     },
     {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/gosudarstvennyh-nagrad-udostoeny-11-predstavitelej-silovyh-struktur-i-voenno-promyslennogo-kompleksa",
+      "title": "Государственных наград удостоены 11 представителей силовых структур и военно-промышленного комплекса",
+      "published_at": "2026-10-07T16:00:00+00:00",
+      "id": "e4a7c258a0dbb2d49de8",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/aleksandr-lukasenko-nagradil-nikolaa-burlaeva-medal-u-franciska-skoriny",
+      "title": "Александр Лукашенко наградил Николая Бурляева медалью Франциска Скорины ",
+      "published_at": "2026-10-07T15:40:00+00:00",
+      "id": "f4f2301ee50723aac878",
+      "classification_status": "pending_classification"
+    },
+    {
       "country": "Estonia",
       "country_code": "EE",
       "url": "https://valitsus.ee/uudised/valitsuse-81026-istungi-kommenteeritud-paevakord",
@@ -9583,6 +11023,52 @@
       "source_text_chars": 14442,
       "translated_text_chars": 3659,
       "translation_complete": true
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/aleksandr-lukasenko-proizvel-kadrovye-izmenenia-v-sudebnoj-sisteme",
+      "title": "Президент произвел кадровые изменения в судебной системе",
+      "published_at": "2026-10-07T14:50:00+00:00",
+      "id": "ee0b970a1602bbb857e5",
+      "english_summary": "President Lukashenko signed a decree introducing personnel changes in Belarus’s judicial system, appointing new court heads, extending some chairpersons' terms, including Tatyana Tupik for Minsk City Court, and adding 20 judges from various legal and related fields.",
+      "relevance": "not_related",
+      "topics": [],
+      "evidence_status": "reported",
+      "evidence_quote": "On October 7, the President of Belarus, Alexander Lukashenko, signed Decree No. 355, which provides for personnel changes in the judicial system. New heads of several courts have been appointed, and the terms of some current chairpersons have been extended. Among them is Tatyana Tupik, who has been appointed as the Chairperson of the Minsk City Court for a new five-year term. The judiciary has been supplemented with 20 judges who previously worked in the judicial system, law enforcement and tax authorities, customs, advocacy, and the banking sector.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Belarusian official announcement",
+          "summary": "Personnel changes in the judicial system have been enacted, including appointments and term extensions for court chairpersons.",
+          "target": "Judicial system personnel",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "The President of Belarus, Alexander Lukashenko, signed Decree No. 355, which provides for personnel changes in the judicial system."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "The announcement details routine judicial personnel changes without stating a concrete national security risk or protective measure.",
+      "ticker_message": "Belarus enacts judicial personnel changes, appointing new court heads and extending terms.",
+      "related": false,
+      "primary_narrative": "none_unclear",
+      "secondary_narratives": [],
+      "classification_status": "provisional",
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 499,
+      "translated_text_chars": 555,
+      "translation_complete": true
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/pozdravlenie-kollektivu-i-veteranam-holdinga-belresursy",
+      "title": "Поздравление коллективу и ветеранам холдинга \"Белресурсы\" ",
+      "published_at": "2026-10-07T14:34:40+00:00",
+      "id": "fde9a411acb368804db9",
+      "classification_status": "pending_classification"
     },
     {
       "country": "Georgia",
@@ -9734,6 +11220,15 @@
       "translation_complete": true
     },
     {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/telefonnyj-razgovor-s-prezidentom-rossii-vladimirom-putinym-1791365219",
+      "title": "Телефонный разговор с Президентом России Владимиром Путиным",
+      "published_at": "2026-10-07T09:19:00+00:00",
+      "id": "92d6d1f1914644984f91",
+      "classification_status": "pending_classification"
+    },
+    {
       "country": "Moldova",
       "country_code": "MD",
       "url": "https://gov.md/index.php/ro/comunicate-de-presa/persoanele-cu-dizabilitati-severe-din-copilarie-vor-putea-cumula-pensia-de",
@@ -9825,6 +11320,58 @@
       "calibration_item": false,
       "source_text_chars": 2713,
       "translated_text_chars": 2621,
+      "translation_complete": true
+    },
+    {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/privetstvie-ucastnikam-kontrterroristiceskogo-foruma-v-minske",
+      "title": "Приветствие участникам Контртеррористического форума в Минске",
+      "published_at": "2026-10-07T07:54:51+00:00",
+      "id": "26342734b3f9df7e2513",
+      "classification_status": "provisional",
+      "english_summary": "Belarusian President Lukashenko greeted the Counter-Terrorism Forum in Minsk, emphasizing the global threat of terrorism and advocating collective efforts through international cooperation. He highlighted Belarus's initiative for a unified anti-terrorist front and the forum's role in advancing regional security and trust among intelligence agencies.",
+      "relevance": "related",
+      "topics": [
+        "terrorism_organised_crime",
+        "information_influence",
+        "artificial_intelligence"
+      ],
+      "evidence_status": "reported",
+      "evidence_quote": "The fight against terrorism is at the forefront of the global security of countries and regions... employing the most sophisticated and technological methods, including artificial intelligence, drones, cryptocurrencies, and closed segments of the global network used for propaganda, recruitment, financing, and preparation of terrorist acts... terrorism is a challenge that can only be overcome collectively, through close cooperation of key political actors and coordinated actions of competent intelligence services worldwide.",
+      "roles": [
+        {
+          "entity": "Belarus",
+          "entity_code": "BLR",
+          "role": "projecting_power",
+          "evidence_quote": "Belarusian side proposed the idea of creating a unified anti-terrorist front — a coalition of the UN, OSCE, CIS, CSTO, SCO, and other international structures.",
+          "rationale": "Belarus is advocating for and leading international cooperation against terrorism, projecting influence in global security frameworks."
+        }
+      ],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "President Alexander Lukashenko",
+          "summary": "Terrorism is a transnational threat requiring close international cooperation, including the use of advanced technologies and unified anti-terrorist coalitions, to effectively counter terrorism and ensure Eurasian stability.",
+          "target": "International community and security organizations",
+          "speaker_sentiment": "neutral",
+          "evidence_quote": "Terrorism is a challenge that can only be overcome collectively, through close cooperation of key political actors and coordinated actions of competent intelligence services worldwide."
+        }
+      ],
+      "confidence": 0.95,
+      "short_rationale": "Belarus highlights terrorism as a major transnational security threat and promotes international cooperative frameworks to counter it.",
+      "ticker_message": "Belarus President Lukashenko urges unified international cooperation to combat sophisticated terrorism threats.",
+      "related": true,
+      "primary_narrative": "terrorism_organised_crime",
+      "secondary_narratives": [
+        "information_influence",
+        "artificial_intelligence"
+      ],
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 2136,
+      "translated_text_chars": 2154,
       "translation_complete": true
     },
     {
@@ -9950,6 +11497,15 @@
       "human_reviewed": true
     },
     {
+      "country": "Belarus",
+      "country_code": "BY",
+      "url": "https://president.gov.by/ru/events/pozdravlenie-prezidentu-rossii-vladimiru-putinu-1791292630",
+      "title": "Поздравление Президенту России Владимиру Путину",
+      "published_at": "2026-10-07T03:00:00+00:00",
+      "id": "ab7dd1ba787c6b429beb",
+      "classification_status": "pending_classification"
+    },
+    {
       "country": "Georgia",
       "country_code": "GE",
       "url": "https://mfa.gov.ge/news/317578-maka-botchorishvilma-saqartveloshi-akreditebuli-diplomatiuri-korpusis-tsarmomadgenlebs-rtvelshi-umas",
@@ -9985,6 +11541,100 @@
       "source_text_chars": 737,
       "translated_text_chars": 775,
       "translation_complete": true
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-07-jofnunarsjodur-almenn-jofnunarframlog-2026-haekkud-um-ruma-1-4-milljarda-krona",
+      "title": "Jöfnunarsjóður: Almenn jöfnunarframlög 2026 hækkuð um rúma 1,4 milljarða króna",
+      "published_at": "2026-10-07T00:00:00+00:00",
+      "published_date": "2026-10-07",
+      "publication_precision": "day",
+      "id": "b7b02d1d58c5aaa73939",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-07-reglugerd-gefin-ut-um-vanhaefismork-vid-stjorn-okutaekis-vegna-neyslu-lyfja",
+      "title": "Reglugerð gefin út um vanhæfismörk við stjórn ökutækis vegna neyslu lyfja",
+      "published_at": "2026-10-07T00:00:00+00:00",
+      "published_date": "2026-10-07",
+      "publication_precision": "day",
+      "id": "8231abc9fa73bb130e51",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-07-verknam-a-vestfjordum-eflt-med-staekkun-menntaskolans-a-isafirdi",
+      "title": "Verknám á Vestfjörðum eflt með stækkun Menntaskólans á Ísafirði",
+      "published_at": "2026-10-07T00:00:00+00:00",
+      "published_date": "2026-10-07",
+      "publication_precision": "day",
+      "id": "79fb174a79635aba7bc7",
+      "english_summary": "The Ministry of Education and Children and Ísafjarðarbær municipality signed a letter of intent to expand vocational training facilities at the Junior College in Ísafjörður. The project improves local vocational education infrastructure, supports youth education choices, and strengthens regional development in the Westfjords.",
+      "relevance": "not_related",
+      "topics": [],
+      "evidence_status": "reported",
+      "evidence_quote": "Vocational and trade education expansion and facility improvements in Ísafjörður aim to strengthen local education and economy without citing specific national security risks or infrastructure vulnerabilities.",
+      "roles": [],
+      "viewpoint_structure": "single_viewpoint",
+      "viewpoints": [
+        {
+          "speaker": "Inga Sæland, Minister of Education and Children",
+          "summary": "Advocates expanding vocational training facilities to support youth education and local development, enhancing opportunities beyond the capital without direct security implications.",
+          "target": "Vocational education expansion in the Westfjords",
+          "speaker_sentiment": "positive",
+          "evidence_quote": "I want vocational and trade education to have the status it deserves. Our young people should be able to choose education based on interest and talent, not limited by location."
+        }
+      ],
+      "confidence": 0.9,
+      "short_rationale": "The text describes educational infrastructure improvements aimed at local development, without explicit connection to national or collective security concerns.",
+      "ticker_message": "Iceland expands vocational training facilities in Ísafjörður to enhance local education and development.",
+      "related": false,
+      "primary_narrative": "none_unclear",
+      "secondary_narratives": [],
+      "classification_status": "provisional",
+      "classifier_prompt_version": "government-hybrid-4",
+      "review_sample": false,
+      "calibration_item": false,
+      "source_text_chars": 3207,
+      "translated_text_chars": 3523,
+      "translation_complete": true
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-07-bladamannafundur-forsaetisradherra-med-formanni-graenlensku-landsstjornarinnar-og-logmanni-faereyja",
+      "title": "Blaðamannafundur forsætisráðherra með formanni grænlensku landsstjórnarinnar og lögmanni Færeyja",
+      "published_at": "2026-10-07T00:00:00+00:00",
+      "published_date": "2026-10-07",
+      "publication_precision": "day",
+      "id": "f9e0e7eb07b8e1057bbe",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-07-samkeppnishaefni-nordurlanda-umfjollunar-a-fundum-norraenna-radherra-og-radstefnu-i-kaupmannahofn",
+      "title": "Norðurlöndin sameina krafta sína til að efla samkeppnishæfni",
+      "published_at": "2026-10-07T00:00:00+00:00",
+      "published_date": "2026-10-07",
+      "publication_precision": "day",
+      "id": "f08a5cc35e2d606c84cd",
+      "classification_status": "pending_classification"
+    },
+    {
+      "country": "Iceland",
+      "country_code": "IS",
+      "url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-07-thjodaroryggi-og-veiking-veltihringrasar-atlantshafsins-i-brennidepli-a-arctic-circle",
+      "title": "Þjóðaröryggi og veiking veltihringrásar Atlantshafsins í brennidepli á Arctic Circle",
+      "published_at": "2026-10-07T00:00:00+00:00",
+      "published_date": "2026-10-07",
+      "publication_precision": "day",
+      "id": "ccd8632bb216100188c3",
+      "classification_status": "pending_classification"
     },
     {
       "country": "United Kingdom",
@@ -16443,34 +18093,39 @@
       "published_at": "2026-10-01T14:46:00+00:00",
       "id": "377218b394118d8a6b54",
       "classification_status": "provisional",
-      "english_summary": "Belarus ratified an agreement with Russia to regulate the transfer of funds recovered from debtors in Russia to Belarusian state bodies and budget organizations via the Ministry of Justice accounts.",
+      "english_summary": "Belarus has ratified an agreement with Russia to facilitate the transfer of funds recovered from debtors in Russia to Belarusian state bodies using Ministry of Justice accounts in both countries.",
+      "classifier_prompt_version": "government-hybrid-4",
+      "calibration_item": false,
+      "source_text_chars": 505,
       "relevance": "related",
       "topics": [
-        "economic_financial_security"
+        "economic_financial_security",
+        "political_institutions"
       ],
       "evidence_status": "reported",
-      "evidence_quote": "The international treaty defines the procedure for transferring funds ... recovered from debtors in the territory of Russia in favor of Belarusian state bodies and budgetary organizations.",
+      "evidence_quote": "President of Belarus Alexander Lukashenko has signed the Law ratifying the Agreement with Russia on certain issues regarding the execution of enforcement documents, where the claimants are state bodies and budget organizations of Belarus.",
       "roles": [],
       "viewpoint_structure": "single_viewpoint",
       "viewpoints": [
         {
           "speaker": "President of Belarus Alexander Lukashenko",
-          "summary": "Signed a law ratifying an agreement with Russia on executing enforcement documents for debts owed to Belarusian state bodies.",
-          "target": "Russia-Belarus financial debt enforcement agreement",
+          "summary": "The agreement establishes procedures for transferring recovered funds from Russian debtors to Belarusian state bodies, enhancing financial security and state institutional cooperation.",
+          "target": "Agreement with Russia on enforcement documents transfer procedures",
           "speaker_sentiment": "neutral",
-          "evidence_quote": "President of Belarus Alexander Lukashenko signed the Law on the ratification of the Agreement with Russia on certain issues of the execution of enforcement documents, with creditors being state bodies and budgetary organizations of Belarus."
+          "evidence_quote": "The international treaty establishes the procedure for transferring funds recovered from debtors on the territory of Russia to Belarusian state bodies and budget organizations, using accounts of the Ministry of Justice of Belarus."
         }
       ],
       "confidence": 0.9,
-      "short_rationale": "The treaty impacts cross-border financial enforcement mechanisms between Belarus and Russia, affecting economic security.",
-      "ticker_message": "Belarus ratifies agreement with Russia to enforce debt recovery for state bodies.",
+      "short_rationale": "The ratified agreement formalizes financial cooperation and fund transfers between Belarusian state bodies and Russia, impacting economic security.",
+      "ticker_message": "Belarus ratifies law enabling funds transfer from Russia to its state bodies for enforcement claims.",
       "related": true,
       "primary_narrative": "economic_financial_security",
-      "secondary_narratives": [],
-      "classifier_prompt_version": "government-hybrid-2",
+      "secondary_narratives": [
+        "political_institutions"
+      ],
       "review_sample": false,
-      "calibration_item": false,
-      "source_text_chars": 505
+      "translated_text_chars": 503,
+      "translation_complete": true
     },
     {
       "country": "Germany",
@@ -17231,37 +18886,34 @@
       "published_at": "2026-10-01T03:00:00+00:00",
       "id": "67ef9a1f9fe17bf34e38",
       "classification_status": "provisional",
-      "english_summary": "President Lukashenko congratulated Cyprus on Independence Day, emphasizing respect for its traditions, commitment to peace, sovereignty, and bilateral cooperation. He expressed confidence that Belarus-Cyprus friendship will strengthen trust and wished the Cypriot people stability and prosperity.",
-      "relevance": "related",
-      "topics": [
-        "sovereignty_borders",
-        "diplomacy_alliances"
-      ],
+      "english_summary": "President Lukashenko congratulated Cyprus on Independence Day, emphasizing respect for sovereignty, peace, and cooperation. He expressed belief that Belarus-Cyprus friendship will strengthen trust and wished Cypriots harmony, stability, and prosperity.",
+      "classifier_prompt_version": "government-hybrid-4",
+      "calibration_item": false,
+      "source_text_chars": 869,
+      "relevance": "not_related",
+      "topics": [],
       "evidence_status": "reported",
-      "evidence_quote": "Belarus respects your traditions, your aspiration for peace and well-being. Like the Cypriots, we advocate for maintaining international security, respecting the sovereignty and independence of countries, developing an equal dialogue, and mutually beneficial cooperation.",
+      "evidence_quote": "President of Belarus Alexander Lukashenko congratulated the people of the Republic of Cyprus on their national holiday - Independence Day, noting respect for sovereignty and independence.",
       "roles": [],
       "viewpoint_structure": "single_viewpoint",
       "viewpoints": [
         {
           "speaker": "President Alexander Lukashenko",
-          "summary": "Belarus supports Cyprus' sovereignty, peace, and mutual cooperation, emphasizing international security and independence.",
-          "target": "Republic of Cyprus and international security",
+          "summary": "He congratulated Cyprus on Independence Day, emphasized respect for sovereignty, peace, and cooperation.",
+          "target": "People of the Republic of Cyprus",
           "speaker_sentiment": "positive",
-          "evidence_quote": "Belarus respects your traditions, your aspiration for peace and well-being. Like the Cypriots, we advocate for maintaining international security, respecting the sovereignty and independence of countries, developing an equal dialogue, and mutually beneficial cooperation."
+          "evidence_quote": "Belarus respects your traditions, aspirations for peace and prosperity. Like the Cypriots, we advocate for maintaining international security, respect for sovereignty and independence of countries."
         }
       ],
-      "confidence": 0.9,
-      "short_rationale": "President Lukashenko emphasizes respect for Cyprus' sovereignty and mutual efforts for international security and cooperation.",
-      "ticker_message": "Belarus affirms respect for Cyprus' sovereignty and calls for international security and cooperation.",
-      "related": true,
-      "primary_narrative": "sovereignty_borders",
-      "secondary_narratives": [
-        "diplomacy_alliances"
-      ],
-      "classifier_prompt_version": "government-hybrid-2",
+      "confidence": 0.95,
+      "short_rationale": "The message is a diplomatic congratulation emphasizing respect and cooperation without specific security measures or risks.",
+      "ticker_message": "Belarus president congratulates Cyprus on Independence Day, emphasizing respect for sovereignty and cooperation.",
+      "related": false,
+      "primary_narrative": "none_unclear",
+      "secondary_narratives": [],
       "review_sample": false,
-      "calibration_item": false,
-      "source_text_chars": 869
+      "translated_text_chars": 900,
+      "translation_complete": true
     },
     {
       "country": "Belarus",
