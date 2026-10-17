@@ -51,11 +51,14 @@ WARSAW = ZoneInfo("Europe/Warsaw")
 PRAGUE = ZoneInfo("Europe/Prague")
 BUDAPEST = ZoneInfo("Europe/Budapest")
 LISBON = ZoneInfo("Europe/Lisbon")
+SKOPJE = ZoneInfo("Europe/Skopje")
+ALMATY = ZoneInfo("Asia/Almaty")
+VADUZ = ZoneInfo("Europe/Vaduz")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","MD","NL","PL","PT","RS","SE","SI","SK"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","KZ","LI","MD","MK","NL","PL","PT","RS","SE","SI","SK"}
 
 
 class Links(HTMLParser):
@@ -1084,7 +1087,109 @@ def discover_portugal(country,start,end):
     return entries,country["url"]
 
 
+def discover_north_macedonia(country,start,end):
+    """Page through the cabinet's dated Soopštenija cards only."""
+    first,last=start.astimezone(SKOPJE).date(),end.astimezone(SKOPJE).date()
+    entries=[]; seen=set()
+    prefix=country["url"].rstrip("/")+"/"
+    for page_number in range(1,101):
+        url=country["url"] if page_number==1 else country["url"]+f"?page={page_number}"
+        _,body=fetch(url,timeout=20)
+        page=body.decode("utf-8","replace")
+        cards=page.split('<div class="w-full sm:w-1/2 xl:w-1/3 mt-8 px-4">')[1:]
+        if not cards: raise RuntimeError("North Macedonian communiqué archive has no dated cards")
+        older=False
+        for card in cards:
+            date_match=re.search(r">(\d{2}/\d{2}/20\d{2})</div>",card)
+            link=re.search(r'<a href="('+re.escape(prefix)+r'[^"?#/]+)"[^>]*>\s*<h3[^>]*>(.*?)</h3>',card,re.S)
+            if not date_match or not link: raise RuntimeError("North Macedonian communiqué card lacks date or title")
+            day=dt.datetime.strptime(date_match.group(1),"%d/%m/%Y").date()
+            if day<first: older=True; continue
+            if day>last: continue
+            article_url=html.unescape(link.group(1))
+            if article_url in seen: raise RuntimeError("North Macedonian communiqué repeated an article")
+            seen.add(article_url)
+            title=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",link.group(2)))).strip()
+            published=dt.datetime.combine(day,dt.time.min,SKOPJE).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":"MK","url":article_url,"title":title,
+                            "published_at":published.isoformat(),"published_date":day.isoformat(),
+                            "publication_precision":"day","text":""})
+        if older or not re.search(r'gotoPage\('+str(page_number+1)+r", 'page'\)",page): break
+    else: raise RuntimeError("North Macedonian communiqué archive exceeded 100 pages")
+    return entries,country["url"]
+
+
+KAZAKH_MONTHS={name:number for number,name in enumerate(
+    ("Қаңтар","Ақпан","Наурыз","Сәуір","Мамыр","Маусым","Шілде","Тамыз","Қыркүйек","Қазан","Қараша","Желтоқсан"),1)}
+GERMAN_MONTHS={name:number for number,name in enumerate(
+    ("Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"),1)}
+
+
+def discover_kazakhstan(country,start,end):
+    """Read the prime minister's official news cards with their posted times."""
+    entries=[]; seen=set()
+    for page_number in range(1,101):
+        url=country["url"] if page_number==1 else country["url"]+f"?page={page_number}"
+        _,body=fetch(url,timeout=20)
+        page=body.decode("utf-8","replace")
+        cards=re.findall(r'<a href="(/kz/news/[^"?#]+)" class="article">(.*?)</a>',page,re.S)
+        if not cards: raise RuntimeError("Kazakh prime minister news archive has no dated cards")
+        older=False
+        for path,card in cards:
+            dated=re.search(r'<span class="article__date">(.*?)</span>',card,re.S)
+            title_match=re.search(r'<h3 class="article__heading">(.*?)</h3>',card,re.S)
+            if not dated or not title_match: raise RuntimeError("Kazakh prime minister news card lacks date or title")
+            parts=" ".join(dated.group(1).split()).replace(",","").split()
+            if len(parts)!=4 or parts[1] not in KAZAKH_MONTHS: raise RuntimeError("Unexpected Kazakh prime minister publication date")
+            published=dt.datetime(int(parts[2]),KAZAKH_MONTHS[parts[1]],int(parts[0]),
+                                  *map(int,parts[3].split(":")),tzinfo=ALMATY).astimezone(dt.timezone.utc)
+            if published<start: older=True; continue
+            if published>end: continue
+            article_url=urllib.parse.urljoin(country["url"],path)
+            if article_url in seen: raise RuntimeError("Kazakh prime minister news repeated an article")
+            seen.add(article_url)
+            title=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",title_match.group(1)))).strip()
+            entries.append({"country":country["name"],"country_code":"KZ","url":article_url,"title":title,
+                            "published_at":published.isoformat(),"publication_precision":"instant","text":""})
+        if older or not re.search(r'news\?page='+str(page_number+1)+r'"',page): break
+    else: raise RuntimeError("Kazakh prime minister news archive exceeded 100 pages")
+    return entries,country["url"]
+
+
+def discover_liechtenstein(country,start,end):
+    """Use only the government's media-release cards and check archive coverage."""
+    first,last=start.astimezone(VADUZ).date(),end.astimezone(VADUZ).date()
+    _,body=fetch(country["url"],timeout=20)
+    page=body.decode("utf-8","replace")
+    cards=[part.split("</li>",1)[0] for part in page.split('<div class="shortmsg ')[1:]]
+    if not cards: raise RuntimeError("Liechtenstein media-release section has no cards")
+    entries=[]; seen=set(); older=False
+    for card in cards:
+        date_match=re.search(r'<div class="shortmsg__date"[^>]*>(.*?)</div>',card,re.S)
+        title_match=re.search(r'<div class="shortmsg__text"[^>]*>(.*?)</div>',card,re.S)
+        link=re.search(r'<a class="shortmsg__more" href="(/medienportal-medium/16182/\d+/0/medienmitteilung)"',card)
+        if not date_match or not title_match or not link: raise RuntimeError("Liechtenstein media-release card lacks date or title")
+        dated=re.search(r'(\d{1,2})\.\s+(\w+)\s+(20\d{2})',html.unescape(date_match.group(1)))
+        if not dated or dated.group(2) not in GERMAN_MONTHS: raise RuntimeError("Unexpected Liechtenstein publication date")
+        day=dt.date(int(dated.group(3)),GERMAN_MONTHS[dated.group(2)],int(dated.group(1)))
+        if day<first: older=True; continue
+        if day>last: continue
+        article_url=urllib.parse.urljoin(country["url"],link.group(1))
+        if article_url in seen: raise RuntimeError("Liechtenstein media-release section repeated an article")
+        seen.add(article_url)
+        title=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",title_match.group(1)))).strip()
+        published=dt.datetime.combine(day,dt.time.min,VADUZ).astimezone(dt.timezone.utc)
+        entries.append({"country":country["name"],"country_code":"LI","url":article_url,"title":title,
+                        "published_at":published.isoformat(),"published_date":day.isoformat(),
+                        "publication_precision":"day","text":""})
+    if not older: raise RuntimeError("Liechtenstein media-release page does not reach the requested start date")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="LI": return discover_liechtenstein(country,start,end)
+    if country["iso2"]=="MK": return discover_north_macedonia(country,start,end)
+    if country["iso2"]=="KZ": return discover_kazakhstan(country,start,end)
     if country["iso2"]=="PT": return discover_portugal(country,start,end)
     if country["iso2"]=="HU": return discover_hungary(country,start,end)
     if country["iso2"]=="CZ": return discover_czechia(country,start,end)
@@ -1113,6 +1218,19 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="LI":
+        _,body=fetch(item["url"],timeout=20)
+        parser=ClassText("main-text"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Liechtenstein media release has no usable body text")
+        return article
+    if item["country_code"] in {"MK","KZ"}:
+        _,body=fetch(item["url"],timeout=20)
+        block="blog-content" if item["country_code"]=="MK" else "articles__container"
+        parser=ClassText(block); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Official government news article has no usable body text")
+        return article
     if item["country_code"]=="PT":
         _,body=fetch(item["url"],timeout=15)
         parser=ClassText("body"); parser.feed(body.decode("utf-8","replace"))
