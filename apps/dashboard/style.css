@@ -40,3 +40,25 @@ footer nav{display:flex;flex-wrap:wrap;gap:12px 20px;letter-spacing:0;text-trans
 .pending-country-grid a{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid #4b432c;padding:8px 10px;font:10px var(--mono);color:#e8e5d5}
 .pending-country-grid a:hover{border-color:#f4d66a}
 .pending-country-grid span{color:#f4d66a;white-space:nowrap}
+.government-trends{border:1px solid var(--line);background:#0d1315;padding:18px;margin:18px 0 20px}
+.government-trends-heading{display:flex;align-items:end;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.government-trends-heading h2{font:700 20px var(--mono);margin:8px 0 0}
+.government-trends-heading p{max-width:620px;margin:0;color:var(--muted);font:10px/1.6 var(--mono)}
+.trend-controls{display:flex;align-items:end;flex-wrap:wrap;gap:10px;margin:20px 0 14px}
+.trend-controls label{display:flex;flex-direction:column;gap:6px;min-width:160px;color:var(--muted);font:9px var(--mono);text-transform:uppercase}
+.trend-controls label[hidden]{display:none}
+.trend-controls select,.trend-controls input{min-height:34px;width:100%}
+.trend-panel{border:1px solid #25312f;background:#091012;padding:13px 14px;margin-top:9px}
+.trend-panel-title{display:flex;justify-content:space-between;gap:12px;align-items:center;font:11px var(--mono)}
+.trend-panel-title strong{color:#e9f3e5}
+.trend-panel-title span{color:var(--muted);font-size:9px}
+.trend-panel svg{display:block;width:100%;height:auto;min-height:190px;margin-top:7px}
+.trend-grid{stroke:#34413e;stroke-width:1;stroke-dasharray:3 5}
+.trend-axis{font:11px var(--mono);fill:#a6b7af}
+.trend-legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:15px}
+.trend-legend button{display:inline-flex;align-items:center;gap:7px;border:0;background:transparent;padding:4px 2px;color:#c6d3ca;font:10px var(--mono);text-align:left}
+.trend-legend button:hover{color:#fff}
+.trend-legend button.trend-off{opacity:.42;text-decoration:line-through}
+.trend-legend i{display:block;width:20px;height:3px;border-radius:2px;flex:none}
+.trend-note{color:var(--muted);font:9px/1.6 var(--mono);margin:16px 0 0}
+@media(max-width:700px){.government-trends{padding:12px}.trend-controls label{width:calc(50% - 5px);min-width:0}.trend-panel{padding:9px}.trend-panel-title{align-items:start;flex-direction:column;gap:4px}.trend-panel svg{min-height:150px}.trend-axis{font-size:14px}}
