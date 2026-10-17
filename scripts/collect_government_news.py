@@ -67,7 +67,7 @@ SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Saraj
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
                     "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE, "ES": MADRID, "TR": ISTANBUL, "UA": KYIV, "CH": ZURICH}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","AZ","BA","BG","BY","CH","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","TR","VA","XK"}
+COLLECTOR_READY_CODES = {"AD","AT","AZ","BA","BG","BY","CH","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","SM","TR","VA","XK"}
 
 
 class Links(HTMLParser):
@@ -1632,7 +1632,38 @@ def discover_switzerland(country,start,end):
     return entries,country["url"]
 
 
+def discover_san_marino(country,start,end):
+    """Use the active foreign ministry News e Comunicati archive and its own JSON feed."""
+    api="https://www.gov.sm/pub1/.rest/delivery/esteri-news?lang=it"
+    _,body=fetch(api,limit=12_000_000,timeout=25)
+    payload=json.loads(body)
+    rows=payload.get("results")
+    if not isinstance(rows,list) or payload.get("total")!=len(rows):
+        raise RuntimeError("San Marino foreign ministry archive is incomplete")
+    entries=[]; seen=set()
+    first,last=start.astimezone(ROME).date(),end.astimezone(ROME).date()
+    for row in rows:
+        if row.get("newsType") not in {"News","Comunicati"}: continue
+        identifier=row.get("@id","")
+        if not re.fullmatch(r"[0-9a-f-]{36}",identifier): raise RuntimeError("San Marino news item lacks an identifier")
+        published=date_value(row.get("dataIn"))
+        if not published: raise RuntimeError("San Marino news item lacks its official publication date")
+        day=published.astimezone(ROME).date()
+        if not first<=day<=last: continue
+        article_url="https://www.gov.sm/pub1/EsteriSM/dettaglio_notizia.html?idItem="+identifier
+        if article_url in seen: raise RuntimeError("San Marino archive repeated an item")
+        seen.add(article_url)
+        title=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",row.get("title", "")))).strip()
+        body_text=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",row.get("testo") or ""))).strip()
+        if not title or len(body_text)<40: raise RuntimeError("San Marino official communication lacks text")
+        entries.append({"country":country["name"],"country_code":"SM","url":article_url,
+                        "title":title,"published_at":published.isoformat(),"published_date":day.isoformat(),
+                        "publication_precision":"day","text":body_text})
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="SM": return discover_san_marino(country,start,end)
     if country["iso2"]=="CH": return discover_switzerland(country,start,end)
     if country["iso2"]=="UA": return discover_ukraine(country,start,end)
     if country["iso2"]=="TR": return discover_turkiye(country,start,end)
@@ -1675,6 +1706,10 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="SM":
+        body=item.get("text","")
+        if len(body)<40: raise RuntimeError("San Marino official communication has no usable body text")
+        return body
     if item["country_code"]=="UA":
         _,body=fetch(item["url"],timeout=20)
         parser=ClassText("editor-content"); parser.feed(body.decode("utf-8","replace"))
