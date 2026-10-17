@@ -1126,7 +1126,9 @@ def main():
                 if key in correction: existing[ident][key]=correction[key]
             existing[ident].update({"related":existing[ident].get("relevance")=="related","primary_narrative":(existing[ident].get("topics") or ["none_unclear"])[0],"secondary_narratives":(existing[ident].get("topics") or [])[1:],"classification_status":"human_reviewed","human_reviewed":True})
     if calibration_complete:
-        candidates.extend(x for x in existing.values() if x.get("classification_status") in {"awaiting_calibration", "pending_classification"})
+        candidates.extend(x for x in existing.values()
+                          if x.get("classification_status") in {"awaiting_calibration", "pending_classification"}
+                          and (not selected_codes or x["country_code"] in selected_codes))
     # Discover the official sources concurrently and log each completion.
     # With bounded request timeouts, slow sites cannot stall the whole batch.
     with ThreadPoolExecutor(max_workers=16) as pool:
