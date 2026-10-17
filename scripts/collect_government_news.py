@@ -55,11 +55,12 @@ SKOPJE = ZoneInfo("Europe/Skopje")
 ALMATY = ZoneInfo("Asia/Almaty")
 VADUZ = ZoneInfo("Europe/Vaduz")
 BUCHAREST = ZoneInfo("Europe/Bucharest")
+MONACO = ZoneInfo("Europe/Monaco")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","KZ","LI","MD","MK","NL","PL","PT","RO","RS","SE","SI","SK"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","KZ","LI","MC","MD","MK","NL","PL","PT","RO","RS","SE","SI","SK"}
 
 
 class Links(HTMLParser):
@@ -1233,7 +1234,50 @@ def discover_romania(country,start,end):
     return entries,country["url"]
 
 
+FRENCH_MONTHS={name:number for number,name in enumerate(
+    ("janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"),1)}
+
+
+def discover_monaco(country,start,end):
+    """Use the principality's own dated news search, following every result page."""
+    first,last=start.astimezone(MONACO).date(),end.astimezone(MONACO).date()
+    query=urllib.parse.urlencode({"query":"","date_from":first.isoformat(),"date_end":last.isoformat(),
+                                  "content_type[]":"news_post","view":"news_post","sort_by":"date_desc","subtree":""})
+    url="https://www.gouv.mc/search/results-data?"+query
+    entries=[]; seen=set()
+    for page_number in range(1,101):
+        _,body=fetch(url,timeout=20)
+        page=body.decode("utf-8","replace")
+        cards=re.findall(r'<a href="(/actualites/[^"?#]+)"[^>]*>(.*?)</a>',page,re.S)
+        if not cards and "Aucun résultat ne correspond" not in page:
+            raise RuntimeError("Monaco government news search has no readable result cards")
+        for path,card in cards:
+            title_match=re.search(r'<h3[^>]*>(.*?)</h3>',card,re.S)
+            dated=re.search(r'<span class="text-sm text-contrast uppercase font-semibold">\s*(\d{1,2})\s+([\wÀ-ÿ]+)\s+(20\d{2})\s*</span>',card)
+            if not title_match or not dated: raise RuntimeError("Monaco government news card lacks date or title")
+            month=FRENCH_MONTHS.get(dated.group(2).casefold())
+            if not month: raise RuntimeError("Unexpected Monaco government news month")
+            day=dt.date(int(dated.group(3)),month,int(dated.group(1)))
+            if not first<=day<=last: raise RuntimeError("Monaco news search returned an out-of-window result")
+            article_url=urllib.parse.urljoin(country["url"],path)
+            if article_url in seen: raise RuntimeError("Monaco government news repeated an article")
+            seen.add(article_url)
+            title=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",title_match.group(1)))).strip()
+            published=dt.datetime.combine(day,dt.time.min,MONACO).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":"MC","url":article_url,"title":title,
+                            "published_at":published.isoformat(),"published_date":day.isoformat(),
+                            "publication_precision":"day","text":""})
+        next_page=re.search(r'<a href="([^"]+)" rel="next"',page)
+        if not next_page: break
+        url=urllib.parse.urljoin("https://www.gouv.mc",html.unescape(next_page.group(1)))
+        if urllib.parse.urlparse(url).path!="/search/results-data" or urllib.parse.parse_qs(urllib.parse.urlparse(url).query).get("page")!=[str(page_number+1)]:
+            raise RuntimeError("Monaco government news pagination changed")
+    else: raise RuntimeError("Monaco government news archive exceeded 100 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="MC": return discover_monaco(country,start,end)
     if country["iso2"]=="RO": return discover_romania(country,start,end)
     if country["iso2"]=="LI": return discover_liechtenstein(country,start,end)
     if country["iso2"]=="MK": return discover_north_macedonia(country,start,end)
@@ -1266,6 +1310,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="MC":
+        _,body=fetch(item["url"],timeout=20)
+        parser=ClassText("prose"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Monaco government news has no usable body text")
+        return article
     if item["country_code"]=="RO":
         _,body=fetch(item["url"],timeout=20)
         parser=ClassText("pageDescription"); parser.feed(body.decode("utf-8","replace"))
