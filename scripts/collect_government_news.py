@@ -2071,6 +2071,10 @@ def article_text(item):
 class ModelRateLimit(RuntimeError):
     """The model's current rate window is exhausted; retain the item for a later run."""
 
+    def __init__(self, code):
+        self.code = code
+        super().__init__(code)
+
 
 def ask_openai(text, classification=True, examples=None, validation_note=""):
     string={"type":"string"}
@@ -2104,10 +2108,18 @@ def ask_openai(text, classification=True, examples=None, validation_note=""):
             else: last_problem=f"empty response (status={result.get('status')}, incomplete={result.get('incomplete_details')}, error={result.get('error')})"
         except urllib.error.HTTPError as exc:
             if exc.code==429:
+                try:
+                    response_error=json.loads(exc.read(16_384)).get("error") or {}
+                    error_code=response_error.get("code") or response_error.get("type") or "rate_limit_exceeded"
+                    if not isinstance(error_code,str) or not re.fullmatch(r"[a-zA-Z0-9_]+",error_code):
+                        error_code="rate_limit_exceeded"
+                except (ValueError,TypeError):
+                    error_code="rate_limit_exceeded"
                 try: retry_after=float(exc.headers.get("Retry-After", "0"))
                 except (TypeError, ValueError): retry_after=0
                 exc.close()
-                if attempt==4: raise ModelRateLimit("OpenAI rate limit persisted after five attempts") from None
+                if error_code in {"insufficient_quota","billing_hard_limit_reached","billing_not_active"} or attempt==4:
+                    raise ModelRateLimit(error_code) from None
                 time.sleep(min(60,max(retry_after,5*(2**attempt))))
                 continue
             last_problem=f"HTTP Error {exc.code}"
@@ -2276,13 +2288,13 @@ def main():
                     valid=(labels["relevance"]=="related" and bool(labels["topics"])) or (labels["relevance"]!="related" and not labels["topics"] and not labels["roles"])
                     if valid: break
                     validation_note="\nThe previous classification was internally inconsistent. Re-evaluate the source: related requires one or more directly supported topics; not_related/unclear require empty topics and roles. Do not remove a supported security topic merely to satisfy the schema."
-            except ModelRateLimit:
+            except ModelRateLimit as error:
                 item["classification_status"]="pending_classification"
-                item["classification_error"]="model_rate_limit"
+                item["classification_error"]=error.code
                 item.pop("text",None)
                 existing[item["id"]]=item
                 STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
-                print(f"Model rate limit reached; {item['country_code']} {item['id']} and later items remain pending",flush=True)
+                print(f"Model API 429 ({error.code}); {item['country_code']} {item['id']} and later items remain pending",flush=True)
                 break
             if not valid:
                 item.update(labels); item["classification_status"]="needs_review"; item["classification_error"]="inconsistent_relevance_topics_roles"; item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item
