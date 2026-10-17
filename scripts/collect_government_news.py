@@ -57,11 +57,12 @@ VADUZ = ZoneInfo("Europe/Vaduz")
 BUCHAREST = ZoneInfo("Europe/Bucharest")
 MONACO = ZoneInfo("Europe/Monaco")
 PODGORICA = ZoneInfo("Europe/Podgorica")
+LUXEMBOURG = ZoneInfo("Europe/Luxembourg")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","KZ","LI","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","VA"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","VA"}
 
 
 class Links(HTMLParser):
@@ -1337,7 +1338,44 @@ def discover_vatican(country,start,end):
     return entries,country["url"]
 
 
+def discover_luxembourg(country,start,end):
+    """Page through the live government archive and retain official communiqués."""
+    endpoint=("https://gouvernement.lu/content/gouvernement2024/fr/actualites/toutes_actualites/"
+              "jcr:content/root/root-responsivegrid/content-responsivegrid/sections-responsivegrid/"
+              "section/col1/search.searchresults-content.html")
+    entries=[]; seen=set()
+    for page_number in range(1,101):
+        url=endpoint+"?"+urllib.parse.urlencode({"format":"json","page":page_number})
+        _,body=fetch(url,timeout=20)
+        markup=body.decode("utf-8","replace")
+        match=re.search(r'data-json="(.*?)"',markup,re.S)
+        if not match: raise RuntimeError("Luxembourg government news archive has no search results")
+        results=json.loads(html.unescape(match.group(1)))["search"]
+        posts=results.get("items") or []
+        if not posts or results.get("paginationPage")!=page_number:
+            raise RuntimeError("Luxembourg government news pagination changed")
+        older=False
+        for post in posts:
+            page=post.get("page") or {}
+            raw_date=page.get("firstReleaseDateRss")
+            path=(page.get("linkItem") or {}).get("path")
+            if not raw_date or not path: raise RuntimeError("Luxembourg news card lacks date or link")
+            published=email.utils.parsedate_to_datetime(raw_date).astimezone(dt.timezone.utc)
+            if published<start: older=True; continue
+            if published>end or "/communiques/" not in path: continue
+            article_url=urllib.parse.urljoin("https://gouvernement.lu",path)
+            if article_url in seen: raise RuntimeError("Luxembourg archive repeated a communiqué")
+            seen.add(article_url)
+            entries.append({"country":country["name"],"country_code":"LU","url":article_url,
+                            "title":html.unescape(page.get("title") or "").strip(),
+                            "published_at":published.isoformat(),"text":""})
+        if older: break
+    else: raise RuntimeError("Luxembourg government news archive exceeded 100 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="LU": return discover_luxembourg(country,start,end)
     if country["iso2"]=="VA": return discover_vatican(country,start,end)
     if country["iso2"]=="ME": return discover_montenegro(country,start,end)
     if country["iso2"]=="MC": return discover_monaco(country,start,end)
@@ -1373,6 +1411,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="LU":
+        _,body=fetch(item["url"],timeout=20)
+        parser=ClassText("cmp-text"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Luxembourg communiqué has no usable body text")
+        return article
     if item["country_code"]=="VA":
         _,body=fetch(item["url"],timeout=20)
         match=re.search(r'<div itemprop="articleBody"[^>]*>(.*?)</div>',body.decode("utf-8","replace"),re.S)
