@@ -56,11 +56,12 @@ ALMATY = ZoneInfo("Asia/Almaty")
 VADUZ = ZoneInfo("Europe/Vaduz")
 BUCHAREST = ZoneInfo("Europe/Bucharest")
 MONACO = ZoneInfo("Europe/Monaco")
+PODGORICA = ZoneInfo("Europe/Podgorica")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","KZ","LI","MC","MD","MK","NL","PL","PT","RO","RS","SE","SI","SK"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","KZ","LI","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK"}
 
 
 class Links(HTMLParser):
@@ -1276,7 +1277,43 @@ def discover_monaco(country,start,end):
     return entries,country["url"]
 
 
+def discover_montenegro(country,start,end):
+    """Read cabinet statements from the government's own cabinet-tagged archive."""
+    first,last=start.astimezone(PODGORICA).date(),end.astimezone(PODGORICA).date()
+    entries=[]; seen=set()
+    for page_number in range(1,101):
+        url=f"https://www.gov.me/vijesti?page={page_number}&sort=published_at&tags=239"
+        _,body=fetch(url,timeout=20)
+        page=body.decode("utf-8","replace")
+        cards=re.findall(r'<app-search-item\b.*?</app-search-item>',page,re.S)
+        if not cards: raise RuntimeError("Montenegro cabinet archive has no news cards")
+        older=False
+        for card in cards:
+            title_match=re.search(r'<h3[^>]*>(.*?)</h3>',card,re.S)
+            link_match=re.search(r'<a[^>]+href="(/clanak/[^"?#]+)',card)
+            date_match=re.search(r'<time>\s*(\d{1,2})\.(\d{1,2})\.(20\d{2})\.\s*</time>',card)
+            if not title_match or not link_match: raise RuntimeError("Montenegro cabinet card lacks title or link")
+            title=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",title_match.group(1)))).strip()
+            if not date_match:
+                if re.match(r"^\d+\.\s*sjednica",title,re.I): continue
+                raise RuntimeError("Montenegro cabinet statement lacks publication date")
+            day=dt.date(int(date_match.group(3)),int(date_match.group(2)),int(date_match.group(1)))
+            if day<first: older=True; continue
+            if day>last or not title.casefold().startswith("saopštenje"): continue
+            article_url=urllib.parse.urljoin("https://www.gov.me",link_match.group(1))
+            if article_url in seen: raise RuntimeError("Montenegro cabinet archive repeated a statement")
+            seen.add(article_url)
+            published=dt.datetime.combine(day,dt.time.min,PODGORICA).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":"ME","url":article_url,"title":title,
+                            "published_at":published.isoformat(),"published_date":day.isoformat(),
+                            "publication_precision":"day","text":""})
+        if older: break
+    else: raise RuntimeError("Montenegro cabinet archive exceeded 100 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="ME": return discover_montenegro(country,start,end)
     if country["iso2"]=="MC": return discover_monaco(country,start,end)
     if country["iso2"]=="RO": return discover_romania(country,start,end)
     if country["iso2"]=="LI": return discover_liechtenstein(country,start,end)
@@ -1310,6 +1347,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="ME":
+        _,body=fetch(item["url"],timeout=20)
+        parser=ClassText("ui-article"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Montenegro cabinet statement has no usable body text")
+        return article
     if item["country_code"]=="MC":
         _,body=fetch(item["url"],timeout=20)
         parser=ClassText("prose"); parser.feed(body.decode("utf-8","replace"))
