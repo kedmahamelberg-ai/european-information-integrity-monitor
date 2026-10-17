@@ -38,12 +38,15 @@ footer nav{display:flex;flex-wrap:wrap;gap:12px 20px;letter-spacing:0;text-trans
 .government-pending>button:hover{border-color:#f4d66a;background:#252111}
 .government-pending>button b{display:inline-block;margin-left:10px;color:#e4e5d8;font-weight:400}
 .government-pending>button span:last-child{white-space:nowrap;text-transform:none}
+.government-controls .government-pending{margin:0;min-width:220px;align-self:end}
+.government-controls .government-pending>button{min-height:34px;padding:7px 10px}
 #government-pending-dialog{padding:20px;width:min(720px,94vw)}
 #government-pending-dialog::backdrop{background:#000b}
 .pending-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:8px}
 .pending-dialog-head h2{margin:0;color:#f4d66a;font:700 16px var(--mono)}
 .pending-dialog-head button{white-space:nowrap}
 #government-pending-dialog>p{color:#c9c5af;font:11px/1.6 var(--mono);margin:0 0 16px}
+@media(max-width:700px){.government-controls .government-pending{width:100%}}
 .pending-country-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:7px}
 .pending-country-grid a{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid #4b432c;padding:8px 10px;font:10px var(--mono);color:#e8e5d5}
 .pending-country-grid a:hover{border-color:#f4d66a}
