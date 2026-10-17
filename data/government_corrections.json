@@ -226,5 +226,40 @@
     "topics": [],
     "roles": [],
     "review_decision": "accept_unrelated"
+  },
+  {
+    "id": "3670772a8d40b0c3ad95",
+    "source_title": "Robert Fico: Aj v novom svetovom poriadku bude Slovensko pokračovať v suverénnej zahraničnej politike, na zabezpečenie stability a bezpečnosti potrebujeme schválený štátny rozpočet",
+    "source_summary": "Slovakia under PM Robert Fico will continue a sovereign foreign policy, diversify its international relations, and actively engage in EU policies. Approval of a comprehensive state budget is critical for Slovakia's stability, security, and ability to handle crises amid a changing global order.",
+    "relevance": "related",
+    "topics": [
+      "energy",
+      "economic_financial_security",
+      "sovereignty_borders"
+    ],
+    "roles": [
+      {
+        "entity": "Slovakia",
+        "entity_code": "SVK",
+        "role": "readiness",
+        "evidence_quote": "For Slovakia to continue to function effectively, the state budget needs to be approved... Approval of the budget in the National Council is a matter of Slovakia's stability, security, sovereignty and ability to respond to extremely serious events happening around us.",
+        "rationale": "The government's emphasis on budget approval relates directly to national stability and capacity to respond to energy and economic crises, demonstrating preparedness and resilience."
+      }
+    ],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Prime Minister Robert Fico",
+        "summary": "Slovakia will maintain sovereign foreign policy, actively diversify energy sources, and emphasizes that approving the state budget is crucial for national stability and crisis responsiveness, particularly regarding energy and economic challenges.",
+        "target": "Slovak government and National Council",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "We will continue the policy I call sovereign Slovak foreign policy... For Slovakia to continue to function effectively, the state budget needs to be approved... Approval of the budget in the National Council is a matter of Slovakia's stability, security, sovereignty and ability to respond to extremely serious events happening around us."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "Slovakia will take steps within its sovereignty... we filed a lawsuit against the European Commission's decision concerning the ban on Russian gas imports... For Slovakia to continue to function effectively, the state budget needs to be approved... Approval of the budget in the National Council is a matter of Slovakia's stability, security, sovereignty... adopting a balanced budget would mean cuts of 8 billion euros... Without a budget, we will not be able to address crisis situations... which other countries put us in by behaving as they do within the disintegrated world order.",
+    "short_rationale": "Slovakia's PM stresses sovereign foreign policy, energy diversification, and budget approval as vital for national stability and crisis response.",
+    "ticker_message": "Slovakia stresses sovereign policy, energy diversification, and urgent budget approval for stability and security.",
+    "review_decision": "accept_model_labels_and_wording"
   }
 ]
