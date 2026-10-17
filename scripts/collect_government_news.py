@@ -1363,7 +1363,17 @@ def main():
         cap=max(1,(len(candidates)+9)//10) if calibrating and not calibration_ids else (0 if calibrating else min(20 if selected_codes else 30,len(candidates)))
         for position,item in enumerate(candidates[:cap],1):
             print(f"Classifying {position}/{cap}: {item['country_code']} {item['id']}",flush=True)
-            text=article_text(item)
+            try:
+                text=article_text(item)
+            except (TimeoutError, urllib.error.URLError, OSError, RuntimeError) as error:
+                # Preserve this URL for a later retry without stopping the batch.
+                item["classification_status"]="needs_review" if isinstance(error,RuntimeError) else "pending_classification"
+                item["classification_error"]=type(error).__name__
+                existing[item["id"]]=item
+                STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
+                print(f"Deferred {item['country_code']} {item['id']}: {type(error).__name__}",flush=True)
+                continue
+            item.pop("classification_error",None)
             if not text: item["classification_status"]="no_text"; existing[item["id"]]=item; continue
             item["english_translation"],item["english_summary"]=translate_document(text)
             examples=[{**correction,"title":correction.get("source_title") or existing.get(ident,{}).get("title"),"summary":correction.get("source_summary") or existing.get(ident,{}).get("english_summary")} for ident,correction in correction_map.items()]
