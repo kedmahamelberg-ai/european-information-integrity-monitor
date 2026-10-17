@@ -209,7 +209,7 @@
     {
       "iso2": "ME",
       "name": "Montenegro",
-      "url": "https://www.gov.me/vijesti",
+      "url": "https://www.gov.me/vijesti?page=1&sort=published_at&tags=239",
       "verification_status": "verified"
     },
     {
