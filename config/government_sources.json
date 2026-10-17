@@ -9,8 +9,9 @@
     {
       "iso2": "AL",
       "name": "Albania",
-      "url": "https://www.kryeministria.al/newsrooms/lajme/",
-      "verification_status": "verified"
+      "url": "https://president.al/news/?lang=en",
+      "verification_status": "verified",
+      "scope_note": "Researcher-supplied official English-language presidency News archive. Covers presidential communications, not the Council of Ministers. The exact archive has dated October 2026 entries, but ordinary automated requests return HTTP 403; collector remains disabled."
     },
     {
       "iso2": "AD",
