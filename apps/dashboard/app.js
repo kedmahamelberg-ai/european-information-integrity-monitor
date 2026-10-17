@@ -134,7 +134,7 @@ function renderResponses(v){
 }
 function renderMap(){
  const all=rows(), layer=$('#metric').value, field=$('#response-metric').value;
- const points=countries.map(c=>({...c,...MonitorMap.aggregate(all,c.iso2)})).filter(c=>c.count&&($('#country').value==='all'||$('#country').value===c.iso2));
+ const points=layer==='government'?[]:countries.map(c=>({...c,...MonitorMap.aggregate(all,c.iso2)})).filter(c=>c.count&&($('#country').value==='all'||$('#country').value===c.iso2));
  const max=Math.max(1,...points.map(c=>c.views.value||0));
  const responseMax=Math.max(1,...points.flatMap(c=>MonitorMap.mapCategories[field].map(k=>c.responses[field][k]||0)));
  $('#markers').innerHTML=points.map(c=>{
@@ -152,16 +152,18 @@ function renderMap(){
    return `<g transform="translate(${x},${y})">${video}${symbols}<text class="country-code" x="-7" y="${radius+16}">${c.iso2}</text></g>`;
  }).join('');
  const r=MonitorMap.responses(rows());
- $('#map-key').innerHTML=(layer==='comments'?'':'<span class="video-key">● Classified videos · size follows views</span>')+(layer==='videos'?'':Object.entries(r[field]).filter(([key,n])=>n>0&&MonitorMap.mapCategories[field].includes(key)).map(([key,n])=>{const style=responseStyles[key]||responseStyles.unclear;return `<span><b style="color:${style.color}">${style.shape}</b> ${esc(human(key))} ${num(n)}</span>`}).join(''));
- const govVisible=$('#government-map-toggle')?.checked!==false;
+ $('#map-key').innerHTML=(!['comments','government'].includes(layer)?'<span class="video-key">● Classified videos · size follows views</span>':'')+(!['videos','government'].includes(layer)?Object.entries(r[field]).filter(([key,n])=>n>0&&MonitorMap.mapCategories[field].includes(key)).map(([key,n])=>{const style=responseStyles[key]||responseStyles.unclear;return `<span><b style="color:${style.color}">${style.shape}</b> ${esc(human(key))} ${num(n)}</span>`}).join(''):'');
+ const govVisible=layer==='both'||layer==='government';
  const govByCountry=new Map();for(const item of governmentData.items||[]){if(['provisional','human_reviewed'].includes(item.classification_status))govByCountry.set(item.country_code,(govByCountry.get(item.country_code)||0)+1);}
- $('#government-markers').innerHTML=govVisible?countries.filter(c=>govByCountry.has(c.iso2)).map(c=>{const [x,y]=project(c.longitude,c.latitude),n=govByCountry.get(c.iso2);return `<g class="government-marker" transform="translate(${x},${y})" aria-label="${esc(c.country_name)}: ${n} classified government communications"><title>${esc(c.country_name)} · ${n} government communications</title><text x="9" y="-8">★</text></g>`}).join(''):'';
- $('#response-metric').disabled=layer==='videos';
+ $('#government-markers').innerHTML=govVisible?countries.filter(c=>govByCountry.has(c.iso2)&&($('#country').value==='all'||$('#country').value===c.iso2)).map(c=>{const [x,y]=project(c.longitude,c.latitude),n=govByCountry.get(c.iso2);return `<g class="government-marker" transform="translate(${x},${y})" aria-label="${esc(c.country_name)}: ${n} classified government communications"><title>${esc(c.country_name)} · ${n} government communications</title><text x="9" y="-8">★</text></g>`}).join(''):'';
+ if(govVisible)$('#map-key').insertAdjacentHTML('beforeend',`<span><b class="gov-star">★</b> Government communications · ${num([...govByCountry.values()].reduce((a,b)=>a+b,0))}</span>`);
+ $('#response-metric').disabled=layer==='videos'||layer==='government';
 }
 function renderGovernment(){
  const items=(governmentData.items||[]).filter(x=>['provisional','human_reviewed'].includes(x.classification_status)), related=items.filter(x=>x.related===true);
  const latestByCountry=new Map(); for(const item of related.slice().sort((a,b)=>(b.published_at||'').localeCompare(a.published_at||''))){if(!latestByCountry.has(item.country_code))latestByCountry.set(item.country_code,item);} const highlights=[...latestByCountry.values()];
  $('#government-ticker').innerHTML=highlights.length?'<span class="ticker-label">GOVERNMENT WATCH · '+highlights.length+' COUNTRIES</span><div class="ticker-window"><div class="ticker-track">'+[...highlights,...highlights].map(x=>'<a href="'+esc(x.url)+'" target="_blank" rel="noopener" title="'+esc(x.country)+' · '+esc(x.title)+'"><b>'+esc(x.country)+'</b> '+esc(x.ticker_message||x.english_summary||x.title)+'</a>').join('')+'</div></div>':'<span class="ticker-label">GOVERNMENT WATCH</span><span class="ticker-empty">No classified related government communications in this collection window.</span>';
+ const tickerTrack=$('#government-ticker .ticker-track');if(tickerTrack)tickerTrack.style.animationDuration=Math.max(120,Math.ceil(tickerTrack.scrollWidth/2/28))+'s';
  const country=$('#government-country')?.value||'all', narrative=$('#government-narrative')?.value||'all', review=$('#government-review')?.value||'all';
  const filtered=items.filter(x=>(country==='all'||x.country_code===country)&&(narrative==='all'||[x.primary_narrative,...(x.secondary_narratives||[])].includes(narrative))&&(review==='all'||x.classification_status===review));
  if($('#government-source-list'))$('#government-source-list').innerHTML='<p class="panel-note">'+filtered.length+' communications · '+(governmentData.window_start?esc(governmentData.window_start.slice(0,10))+' to '+esc(governmentData.window_end?.slice(0,10)||''):'No collection yet')+' · routine human audit sample: 3%.</p>'+filtered.map(x=>'<article class="government-item"><div class="government-item-head"><span>'+esc(x.country)+' · '+esc(x.published_date||x.published_at?.slice(0,10)||'date unavailable')+(x.publication_precision==='day'?' · date only':'')+'</span><span class="source-state '+(x.classification_status==='human_reviewed'?'':'pending')+'">'+esc(human(x.classification_status||'unclassified'))+'</span></div><h2><a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.ticker_message||x.english_summary||x.title)+' ↗</a></h2><p>'+esc(x.english_summary||x.ticker_message||'Awaiting English translation and classification.')+'</p>'+(x.primary_narrative?'<div class="government-label"><b>'+esc(human(x.primary_narrative))+'</b>'+(x.secondary_narratives||[]).map(n=>'<span>'+esc(human(n))+'</span>').join('')+'<small>'+Math.round((x.confidence||0)*100)+'% confidence · '+esc(x.short_rationale||'')+'</small></div>':'')+'<details><summary>Classification rationale and source</summary><p>'+esc(x.short_rationale||'Translation is applied before classification; the source translation is not republished.')+'</p><p class="small">Original title: '+esc(x.title)+'<br>Official source: <a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.url)+'</a></p></details></article>').join('')||'<p class="empty">No government communications match these filters.</p>';
@@ -221,7 +223,7 @@ async function init(){try{
  render();route();
  }catch(e){$('#data-status').textContent='Snapshot unavailable. Please refresh or check the publishing workflow.';console.error(e);}}
 for(const id of ['batch','country','topic','metric','response-metric'])$('#'+id).onchange=render;
- $('#government-map-toggle').onchange=renderMap;for(const id of ['government-country','government-narrative','government-review'])$('#'+id).onchange=renderGovernment;
+ for(const id of ['government-country','government-narrative','government-review'])$('#'+id).onchange=renderGovernment;
 $('#date-range').onchange=()=>{$('#custom-dates').hidden=$('#date-range').value!=='custom';if($('#date-range').value==='custom')configureDateInputs();render();};
 for(const id of ['date-from','date-to'])$('#'+id).onchange=render;
 for(const id of ['rank-alignment','rank-sentiment'])$('#'+id).onchange=renderRanking;
