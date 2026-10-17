@@ -62,11 +62,12 @@ BAKU = ZoneInfo("Asia/Baku")
 MADRID = ZoneInfo("Europe/Madrid")
 ISTANBUL = ZoneInfo("Europe/Istanbul")
 KYIV = ZoneInfo("Europe/Kyiv")
+ZURICH = ZoneInfo("Europe/Zurich")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE, "ES": MADRID, "TR": ISTANBUL, "UA": KYIV}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE, "ES": MADRID, "TR": ISTANBUL, "UA": KYIV, "CH": ZURICH}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","AZ","BA","BG","BY","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","TR","VA","XK"}
+COLLECTOR_READY_CODES = {"AD","AT","AZ","BA","BG","BY","CH","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","TR","VA","XK"}
 
 
 class Links(HTMLParser):
@@ -1593,7 +1594,46 @@ def discover_ukraine(country,start,end):
     return entries,country["url"]
 
 
+def discover_switzerland(country,start,end):
+    """Use the Federal Council's own publisher ID, excluding other federal offices."""
+    entries=[]; seen=set(); total=None
+    for offset in range(0,10000,100):
+        query=urllib.parse.urlencode({"languages":"de","publisherIDs":"89",
+            "start_date":start.isoformat(timespec="milliseconds").replace("+00:00","Z"),
+            "end_date":end.isoformat(timespec="milliseconds").replace("+00:00","Z"),
+            "offset":offset,"limit":100,"sort":"DESC"})
+        url="https://d-nsbc-p.admin.ch/v1/search?newsKinds=CONTENT_HUB&newsKinds=ONSB&"+query
+        _,body=fetch(url,timeout=20)
+        payload=json.loads(body)
+        page_total=payload.get("pageResults")
+        if not isinstance(page_total,int) or not isinstance(payload.get("items"),list):
+            raise RuntimeError("Swiss Federal Council search returned unexpected paging data")
+        if total is None: total=page_total
+        elif page_total!=total: raise RuntimeError("Swiss Federal Council archive changed during paging")
+        for row in payload["items"]:
+            if "89" not in row.get("publishers",[]): raise RuntimeError("Swiss search returned another publisher")
+            if row.get("newsCategory")!="medienmitteilung": continue
+            identifier=row.get("langGroupId","")
+            if not re.fullmatch(r"[A-Za-z0-9_-]+",identifier): raise RuntimeError("Swiss release has no article identifier")
+            article_url=f"https://www.admin.ch/de/newnsb/{identifier}"
+            if article_url in seen: raise RuntimeError("Swiss Federal Council archive repeated a release")
+            seen.add(article_url)
+            published=date_value(row.get("publishDate"))
+            if not published: raise RuntimeError("Swiss release has no publication time")
+            if not start<=published<=end: continue
+            body_text=" ".join(re.sub(r"<[^>]+>"," ",part) for part in row.get("text",[]) if isinstance(part,str))
+            body_text=re.sub(r"\s+"," ",html.unescape(body_text)).strip()
+            entries.append({"country":country["name"],"country_code":"CH","url":article_url,
+                            "title":row["title"].strip(),"published_at":published.isoformat(),"text":body_text})
+        if offset+len(payload["items"])>=total:
+            if offset+len(payload["items"])!=total: raise RuntimeError("Swiss release count does not match archive pages")
+            break
+    else: raise RuntimeError("Swiss Federal Council archive exceeded 100 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="CH": return discover_switzerland(country,start,end)
     if country["iso2"]=="UA": return discover_ukraine(country,start,end)
     if country["iso2"]=="TR": return discover_turkiye(country,start,end)
     if country["iso2"]=="ES": return discover_spain(country,start,end)

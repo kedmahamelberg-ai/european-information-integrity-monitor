@@ -296,7 +296,7 @@
     {
       "iso2": "CH",
       "name": "Switzerland",
-      "url": "https://www.news.admin.ch/de/newnsb?display=list&newsCategoryIDs=medienmitteilung&publisherIDs=all&sort=dateDecreasing",
+      "url": "https://www.admin.ch/de/newnsb?publisherIDs=89&newsCategoryIDs=medienmitteilung&sort=dateDecreasing&display=list",
       "verification_status": "verified"
     },
     {
