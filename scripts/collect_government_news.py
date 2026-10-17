@@ -60,11 +60,13 @@ PODGORICA = ZoneInfo("Europe/Podgorica")
 LUXEMBOURG = ZoneInfo("Europe/Luxembourg")
 BAKU = ZoneInfo("Asia/Baku")
 MADRID = ZoneInfo("Europe/Madrid")
+ISTANBUL = ZoneInfo("Europe/Istanbul")
+KYIV = ZoneInfo("Europe/Kyiv")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE, "ES": MADRID}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE, "ES": MADRID, "TR": ISTANBUL, "UA": KYIV}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","AZ","BA","BG","BY","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","VA","XK"}
+COLLECTOR_READY_CODES = {"AD","AT","AZ","BA","BG","BY","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RO","RS","SE","SI","SK","TR","VA","XK"}
 
 
 class Links(HTMLParser):
@@ -1521,7 +1523,79 @@ def discover_spain(country,start,end):
     return entries,country["url"]
 
 
+def discover_turkiye(country,start,end):
+    """Read only dated press statements from the presidency's own section."""
+    first,last=start.astimezone(ISTANBUL).date(),end.astimezone(ISTANBUL).date()
+    entries=[]; seen=set()
+    for page_number in range(1,101):
+        url=country["url"] if page_number==1 else country["url"]+f"?&page={page_number}"
+        _,body=fetch(url,timeout=25)
+        page=body.decode("utf-8","replace")
+        if 'class="paging"' not in page:
+            raise RuntimeError("Turkish presidency press statements archive has no dated list")
+        cards=re.findall(r'<dl>\s*<dt class="date">\s*(\d{1,2})\.(\d{1,2})\.(20\d{2})\s*</dt>\s*<dd><a href="([^"]+)"[^>]*>(.*?)</a></dd>\s*</dl>',page,re.S)
+        if not cards: raise RuntimeError("Turkish presidency press statements page has no dated entries")
+        older=False
+        for day_s,month_s,year_s,path,title_html in cards:
+            day=dt.date(int(year_s),int(month_s),int(day_s))
+            if day<first: older=True; continue
+            if day>last: continue
+            article_url=urllib.parse.urljoin(country["url"],html.unescape(path))
+            if article_url in seen: raise RuntimeError("Turkish presidency repeated a press statement")
+            seen.add(article_url)
+            title=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",title_html))).strip()
+            published=dt.datetime.combine(day,dt.time.min,ISTANBUL).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":"TR","url":article_url,"title":title,
+                            "published_at":published.isoformat(),"published_date":day.isoformat(),
+                            "publication_precision":"day","text":""})
+        if older: break
+    else: raise RuntimeError("Turkish presidency archive exceeded 100 pages")
+    return entries,country["url"]
+
+
+def discover_ukraine(country,start,end):
+    """Read the Cabinet portal's filtered Government News category, including every page."""
+    first,last=start.astimezone(KYIV).date(),end.astimezone(KYIV).date()
+    params=f"&type=posts&category_id=3&date_from={first.isoformat()}&date_to={last.isoformat()}"
+    referer="https://www.kmu.gov.ua/timeline?"+params
+    entries=[]; seen=set(); expected_total=None
+    for page_number in range(1,101):
+        url="https://www.kmu.gov.ua/api/timeline?"+params+f"&page={page_number}&lang=uk"
+        response=subprocess.run(["curl","-fsSL","--max-time","25","-H","Accept: application/json",
+                                 "-H","X-Requested-With: XMLHttpRequest","-H",f"Referer: {referer}",
+                                 "-A","Mozilla/5.0",url],capture_output=True,timeout=30)
+        if response.returncode: raise RuntimeError(f"Ukraine government news page {page_number} failed: {response.stderr.decode('utf-8','replace')[:180]}")
+        payload=json.loads(response.stdout)
+        def scalar(key):
+            value=payload.get(key)
+            return value[0] if isinstance(value,list) and len(value)==1 else value
+        if scalar("current_page")!=page_number or not isinstance(payload.get("data"),dict):
+            raise RuntimeError("Ukraine government news API returned unexpected paging data")
+        total=int(scalar("total")); last_page=int(scalar("last_page"))
+        if expected_total is None: expected_total=total
+        elif total!=expected_total: raise RuntimeError("Ukraine government news archive changed during paging")
+        for group in payload["data"].values():
+            if not isinstance(group,list): raise RuntimeError("Ukraine government news group is malformed")
+            for row in group:
+                article_url=row.get("url","")
+                if row.get("source")!="posts" or not article_url.startswith("https://www.kmu.gov.ua/news/"):
+                    raise RuntimeError("Ukraine government news category returned a non-news entry")
+                if article_url in seen: raise RuntimeError("Ukraine government news archive repeated an article")
+                seen.add(article_url)
+                published=dt.datetime.strptime(row["date_from"],"%Y-%m-%d %H:%M:%S").replace(tzinfo=KYIV).astimezone(dt.timezone.utc)
+                if not start<=published<=end: continue
+                entries.append({"country":country["name"],"country_code":"UA","url":article_url,
+                                "title":row["title"].strip(),"published_at":published.isoformat(),"text":""})
+        if page_number>=last_page:
+            if len(seen)!=expected_total: raise RuntimeError("Ukraine government news archive count does not match its pages")
+            break
+    else: raise RuntimeError("Ukraine government news archive exceeded 100 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="UA": return discover_ukraine(country,start,end)
+    if country["iso2"]=="TR": return discover_turkiye(country,start,end)
     if country["iso2"]=="ES": return discover_spain(country,start,end)
     if country["iso2"]=="XK": return discover_kosovo(country,start,end)
     if country["iso2"]=="AZ": return discover_azerbaijan(country,start,end)
@@ -1561,6 +1635,18 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="UA":
+        _,body=fetch(item["url"],timeout=20)
+        parser=ClassText("editor-content"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Ukraine government news has no usable body text")
+        return article
+    if item["country_code"]=="TR":
+        _,body=fetch(item["url"],timeout=25)
+        parser=ClassText("news-detail"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Turkish presidency statement has no usable body text")
+        return article
     if item["country_code"]=="ES":
         _,body=fetch(item["url"],timeout=25)
         parser=ClassText("contentArticleBody"); parser.feed(body.decode("utf-8","replace"))
