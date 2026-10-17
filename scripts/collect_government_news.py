@@ -50,11 +50,12 @@ BRATISLAVA = ZoneInfo("Europe/Bratislava")
 WARSAW = ZoneInfo("Europe/Warsaw")
 PRAGUE = ZoneInfo("Europe/Prague")
 BUDAPEST = ZoneInfo("Europe/Budapest")
+PARIS = ZoneInfo("Europe/Paris")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "FR": PARIS}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","MD","NL","PL","RS","SE","SI","SK"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","FR","GB","GE","GR","HR","HU","IS","IT","MD","NL","PL","RS","SE","SI","SK"}
 
 
 class Links(HTMLParser):
@@ -1027,7 +1028,39 @@ def discover_hungary(country,start,end):
     return entries,country["url"]
 
 
+def discover_france(country,start,end):
+    """Read the French government's press-release cards and their exact timestamps."""
+    entries=[]; seen=set(); first=start.astimezone(PARIS).date(); last=end.astimezone(PARIS).date()
+    for page_number in range(1,101):
+        url=country["url"]+(f"?page={page_number}" if page_number>1 else "")
+        _,body=fetch(url)
+        page=body.decode("utf-8","replace")
+        cards=re.findall(r'<div\s+class="fr-card__content"[^>]*>(.*?)data-raw-published-date="([^"]+)"',page,re.S)
+        if not cards: raise RuntimeError("French press archive has no dated communiqué cards")
+        older=False
+        for fragment,raw_date in cards:
+            link=re.search(r'<h3[^>]*>\s*<a\s+href="([^"]+)"[^>]*>(.*?)</a>',fragment,re.S)
+            if not link: raise RuntimeError("French communiqué card lacks an article link")
+            path=html.unescape(link.group(1))
+            if not path.startswith("/communique/"): raise RuntimeError("French press archive returned a non-communiqué link")
+            article_url=urllib.parse.urljoin(country["url"],path)
+            published=dt.datetime.fromisoformat(raw_date)
+            day=published.astimezone(PARIS).date()
+            if day<first: older=True; continue
+            if day>last: continue
+            if article_url in seen: raise RuntimeError("French press archive repeated a communiqué")
+            seen.add(article_url)
+            title=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',link.group(2)))).strip()
+            entries.append({"country":country["name"],"country_code":"FR","url":article_url,"title":title,
+                            "published_at":published.isoformat(),"published_date":day.isoformat(),
+                            "publication_precision":"instant","text":""})
+        if older: break
+    else: raise RuntimeError("French press archive exceeded 100 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="FR": return discover_france(country,start,end)
     if country["iso2"]=="HU": return discover_hungary(country,start,end)
     if country["iso2"]=="CZ": return discover_czechia(country,start,end)
     if country["iso2"]=="PL": return discover_poland(country,start,end)
