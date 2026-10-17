@@ -17,6 +17,11 @@ on:
         description: Comma-separated ISO codes for an isolated pilot (for example NL,AT)
         required: false
         type: string
+      classify_only:
+        description: Classify saved pending items without rediscovering source archives
+        required: false
+        default: false
+        type: boolean
 permissions:
   contents: write
   pages: write
@@ -36,6 +41,7 @@ jobs:
       COLLECTION_SINCE: ${{ inputs.since }}
       COLLECTION_UNTIL: ${{ inputs.until }}
       COLLECTION_COUNTRIES: ${{ inputs.countries }}
+      CLASSIFY_ONLY: ${{ inputs.classify_only }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -60,13 +66,16 @@ jobs:
         with:
           path: data/government_state.json
           key: government-checkpoint-hybrid-v2-${{ github.ref_name }}-${{ steps.cache_scope.outputs.scope }}-${{ github.run_id }}
-          restore-keys: government-checkpoint-hybrid-v2-${{ github.ref_name }}-${{ steps.cache_scope.outputs.scope }}-
+          restore-keys: |
+            government-checkpoint-hybrid-v2-${{ github.ref_name }}-${{ steps.cache_scope.outputs.scope }}-
+            government-checkpoint-hybrid-v2-${{ github.ref_name }}-
       - name: Collect, translate and classify official government news
         run: |
           args=()
           if [ -n "$COLLECTION_SINCE" ]; then args+=(--since "$COLLECTION_SINCE"); fi
           if [ -n "$COLLECTION_UNTIL" ]; then args+=(--until "$COLLECTION_UNTIL"); fi
           if [ -n "$COLLECTION_COUNTRIES" ]; then args+=(--countries "$COLLECTION_COUNTRIES"); fi
+          if [ "$CLASSIFY_ONLY" = "true" ]; then args+=(--classify-only); fi
           python scripts/collect_government_news.py "${args[@]}"
       - name: Save collection checkpoint
         if: always()
