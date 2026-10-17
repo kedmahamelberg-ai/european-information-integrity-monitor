@@ -23,6 +23,7 @@ const human = (s) =>
 let feedQueue=[], feedIndex=0, feedPaused=matchMedia("(prefers-reduced-motion: reduce)").matches;
 let data = {videos:[], inventory:[], batches:[], collection:{}}, governmentData={items:[]}, governmentSourceDirectory={sources:[]}, countries=[], inventory=[], zoom=1;
 let activeTrendLine=null;
+let sceneIndex=0;
 const roles=["readiness","projecting_power","under_pressure"], colors={coverage:"#b9ee74", related:"#b9ee74", readiness:"#61d7bc", projecting_power:"#efb85b", under_pressure:"#f17a69"}, icons={readiness:"🛡", projecting_power:"⚔", under_pressure:"🎯"};
 function project(lon, lat) {
   const my = (v) => Math.log(Math.tan(Math.PI / 4 + (v * Math.PI) / 360));
@@ -161,6 +162,33 @@ function renderMap(){
  if(govVisible)$('#map-key').insertAdjacentHTML('beforeend',`<span><b class="gov-star">★</b> Related government communications · size follows count · ${num([...govByCountry.values()].reduce((a,b)=>a+b,0))}</span>`);
  $('#response-metric').disabled=layer==='videos'||layer==='government';
 }
+function scenePercent(count,total){return total?`${(100*count/total).toFixed(1)}%`:'—';}
+function sceneTopTopics(items,denominator){
+ const counts=new Map();
+ for(const item of items)for(const topic of item.topics||[])counts.set(topic,(counts.get(topic)||0)+1);
+ const leaders=[...counts].sort((a,b)=>b[1]-a[1]||(data.topic_labels?.[a[0]]||a[0]).localeCompare(data.topic_labels?.[b[0]]||b[0])).slice(0,3);
+ return leaders.length?leaders.map(([topic,count],i)=>`<div class="scene-rank"><span class="scene-rank-number">0${i+1}</span><span class="scene-rank-name">${esc(data.topic_labels?.[topic]||human(topic))}</span><div class="scene-rank-track" aria-hidden="true"><span style="width:${denominator?Math.min(100,100*count/denominator):0}%"></span></div><b>${scenePercent(count,denominator)}</b></div>`).join(''):'<p class="scene-empty">No related narratives classified yet.</p>';
+}
+function showSceneSlide(){
+ const host=$('#scene-slides');if(!host)return;
+ [...host.children].forEach((slide,i)=>slide.hidden=i!==sceneIndex);
+ [...$('#scene-dots').children].forEach((button,i)=>{button.setAttribute('aria-current',i===sceneIndex?'true':'false');button.setAttribute('aria-label',`${['Creator narratives','Audience response','Government narratives'][i]}${i===sceneIndex?' (current)':''}`);});
+}
+function renderSceneCarousel(){
+ const relatedVideos=MonitorMap.unique(data.videos||[]).filter(v=>v.label?.relevance==='related');
+ const videoTopics=relatedVideos.map(v=>({topics:[...new Set(v.label?.topics||[])]}));
+ const responses=MonitorMap.responses(relatedVideos),alignment=responses.alignment||{};
+ const alignedTotal=Object.values(alignment).reduce((sum,count)=>sum+(Number(count)||0),0);
+ const supports=alignment.supports||0,opposes=alignment.opposes||0,other=Math.max(0,alignedTotal-supports-opposes);
+ const governmentItems=(governmentData.items||[]).filter(x=>x.related===true&&['provisional','human_reviewed'].includes(x.classification_status));
+ const governmentTopics=governmentItems.map(x=>({topics:governmentTopicCodes(x)}));
+ const governmentLabels=governmentTopics.reduce((sum,x)=>sum+x.topics.length,0);
+ $('#scene-slides').innerHTML=`<article class="scene-slide" role="group" aria-roledescription="slide" aria-label="1 of 3, creator narratives"><div class="scene-head"><span>01 / VIDEO CREATORS</span><strong>Top security narratives</strong></div><div class="scene-ranks">${sceneTopTopics(videoTopics,relatedVideos.length)}</div><p>${num(relatedVideos.length)} unique related videos · share of related videos; topics can overlap.</p></article>`+
+ `<article class="scene-slide" role="group" aria-roledescription="slide" aria-label="2 of 3, audience response"><div class="scene-head"><span>02 / AUDIENCE RESPONSE</span><strong>Support and opposition</strong></div><div class="scene-response"><div><span>Supports message</span><b>${scenePercent(supports,alignedTotal)}</b><small>${num(supports)} comments</small></div><div><span>Opposes message</span><b>${scenePercent(opposes,alignedTotal)}</b><small>${num(opposes)} comments</small></div><div><span>Other / unclear</span><b>${scenePercent(other,alignedTotal)}</b><small>${num(other)} comments</small></div></div><p>${num(alignedTotal)} classified comments on related videos · retained audience sample, not a population poll.</p></article>`+
+ `<article class="scene-slide" role="group" aria-roledescription="slide" aria-label="3 of 3, government narratives"><div class="scene-head"><span>03 / GOVERNMENT SOURCES</span><strong>Top official narratives</strong></div><div class="scene-ranks">${sceneTopTopics(governmentTopics,governmentLabels)}</div><p>${num(governmentItems.length)} related communications · share of ${num(governmentLabels)} related topic labels.</p></article>`;
+ $('#scene-dots').innerHTML=['Creator narratives','Audience response','Government narratives'].map((name,i)=>`<button type="button" data-scene="${i}" aria-label="${name}">${i+1}</button>`).join('');
+ showSceneSlide();
+}
 function governmentTopicCodes(item){
  return [...new Set((item.topics?.length?item.topics:[item.primary_narrative,...(item.secondary_narratives||[])]).filter(Boolean))];
 }
@@ -250,6 +278,7 @@ function renderGovernment(){
  const country=$('#government-country')?.value||'all', narrative=$('#government-narrative')?.value||'all', review=$('#government-review')?.value||'all';
  const filtered=items.filter(x=>(country==='all'||x.country_code===country)&&(narrative==='all'||[x.primary_narrative,...(x.secondary_narratives||[])].includes(narrative))&&(review==='all'||x.classification_status===review));
  if($('#government-source-list'))$('#government-source-list').innerHTML='<p class="panel-note">'+filtered.length+' communications · '+(governmentData.window_start?esc(governmentData.window_start.slice(0,10))+' to '+esc(governmentData.window_end?.slice(0,10)||''):'No collection yet')+' · routine human audit sample: 3%.</p>'+filtered.map(x=>'<article class="government-item"><div class="government-item-head"><span>'+esc(x.country)+' · '+esc(x.published_date||x.published_at?.slice(0,10)||'date unavailable')+(x.publication_precision==='day'?' · date only':'')+'</span><span class="source-state '+(x.classification_status==='human_reviewed'?'':'pending')+'">'+esc(human(x.classification_status||'unclassified'))+'</span></div><h2><a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.ticker_message||x.english_summary||x.title)+' ↗</a></h2><p>'+esc(x.english_summary||x.ticker_message||'Awaiting English translation and classification.')+'</p>'+(x.primary_narrative?'<div class="government-label"><b>'+esc(human(x.primary_narrative))+'</b>'+(x.secondary_narratives||[]).map(n=>'<span>'+esc(human(n))+'</span>').join('')+'<small>'+Math.round((x.confidence||0)*100)+'% confidence · '+esc(x.short_rationale||'')+'</small></div>':'')+'<details><summary>Classification rationale and source</summary><p>'+esc(x.short_rationale||'Translation is applied before classification; the source translation is not republished.')+'</p><p class="small">Original title: '+esc(x.title)+'<br>Official source: <a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.url)+'</a></p></details></article>').join('')||'<p class="empty">No government communications match these filters.</p>';
+ renderSceneCarousel();
 }
 function renderRanking(){
  const alignment=$('#rank-alignment').value, sentiment=$('#rank-sentiment').value;
@@ -319,6 +348,10 @@ for(const id of ['date-from','date-to'])$('#'+id).onchange=render;
 for(const id of ['rank-alignment','rank-sentiment'])$('#'+id).onchange=renderRanking;
 $('#rank-reset').onclick=()=>{$('#rank-alignment').value='all';$('#rank-sentiment').value='all';renderRanking();};
 $('#feed-pause').onclick=()=>{feedPaused=!feedPaused;drawFeed();};
+$('#scene-prev').onclick=()=>{sceneIndex=(sceneIndex+2)%3;showSceneSlide();};
+$('#scene-next').onclick=()=>{sceneIndex=(sceneIndex+1)%3;showSceneSlide();};
+$('#scene-dots').onclick=e=>{const button=e.target.closest('[data-scene]');if(button){sceneIndex=Number(button.dataset.scene);showSceneSlide();}};
+setInterval(()=>{const carousel=$('#scene-carousel');if(!carousel||document.hidden||$('#monitor').hidden||matchMedia('(prefers-reduced-motion: reduce)').matches||carousel.matches(':hover')||carousel.contains(document.activeElement))return;sceneIndex=(sceneIndex+1)%3;showSceneSlide();},10000);
 $('#feed-mode').onchange=renderFeed;$('#search').oninput=renderEvidence;
 $('#reset').onclick=()=>{for(const id of ['batch','date-range','country','topic'])$('#'+id).value='all';for(const id of ['date-from','date-to'])$('#'+id).value='';$('#custom-dates').hidden=true;$('#metric').value='both';$('#response-metric').value='alignment';$('#rank-alignment').value='all';$('#rank-sentiment').value='all';zoom=1;setZoom();render();};
 $('#topics').onclick=e=>{const b=e.target.closest('[data-topic]');if(b){$('#topic').value=b.dataset.topic;render();}};
