@@ -382,16 +382,24 @@ def georgia_page(body):
     return json.loads(match.group(1))["props"]["pageProps"]["page"]
 
 
+def fetch_georgia_page(url):
+    """Retry the ministry's slow news pages with both ordinary browser identities."""
+    last_error=None
+    for user_agent,timeout in ((BROWSER_UA,20),(UA,25)):
+        try:
+            _,body=fetch(url,timeout=timeout,user_agent=user_agent)
+            return georgia_page(body)
+        except (TimeoutError,urllib.error.URLError,RuntimeError) as error:
+            last_error=error
+    raise last_error
+
+
 def discover_georgia(country,start,end):
     """Page through the foreign ministry's original-language News archive."""
     entries=[]; page_number=1; reported_total=None
     while True:
         url=country["url"] if page_number==1 else f'{country["url"]}?page={page_number}'
-        _,body=fetch(url)
-        try: content=georgia_page(body)["content"]
-        except RuntimeError:
-            _,body=fetch(url,user_agent=BROWSER_UA)
-            content=georgia_page(body)["content"]
+        content=fetch_georgia_page(url)["content"]
         if int(content["page"])!=page_number: raise RuntimeError("Georgian news pagination changed")
         if reported_total is None: reported_total=int(content["total"])
         elif int(content["total"])!=reported_total: raise RuntimeError("Georgian news total changed during pagination")
@@ -2107,11 +2115,7 @@ def article_text(item):
         if not text: raise RuntimeError("Belarusian official communication has no article body")
         return text
     if item["country_code"]=="GE":
-        _,body=fetch(item["url"])
-        try: description=georgia_page(body).get("description") or ""
-        except RuntimeError:
-            _,body=fetch(item["url"],user_agent=BROWSER_UA)
-            description=georgia_page(body).get("description") or ""
+        description=fetch_georgia_page(item["url"]).get("description") or ""
         text=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",description))).strip()
         if not text: raise RuntimeError("Georgian official communication has no article body")
         return text
@@ -2377,3 +2381,4 @@ def main():
         raise SystemExit("Every ready official news section failed; no source cursor advanced.")
 
 if __name__ == "__main__": main()
+
