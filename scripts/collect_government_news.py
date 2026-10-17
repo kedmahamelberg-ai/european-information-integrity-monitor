@@ -1307,7 +1307,7 @@ def discover_romania(country,start,end):
     entries=[]; seen=set()
     for page_number in range(1,101):
         url=country["url"] if page_number==1 else country["url"]+f"&page={page_number}"
-        _,body=fetch(url,timeout=20)
+        _,body=fetch_ipv4(url,timeout=20)
         page=body.decode("utf-8","replace")
         cards=page.split('<div class="album ptb30">')[1:]
         if not cards: raise RuntimeError("Romanian cabinet news archive has no dated cards")
@@ -1907,7 +1907,7 @@ def article_text(item):
         if len(article)<40: raise RuntimeError("Monaco government news has no usable body text")
         return article
     if item["country_code"]=="RO":
-        _,body=fetch(item["url"],timeout=20)
+        _,body=fetch_ipv4(item["url"],timeout=20)
         parser=ClassText("pageDescription"); parser.feed(body.decode("utf-8","replace"))
         article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
         return article if len(article)>=40 else ""
