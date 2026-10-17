@@ -48,11 +48,12 @@ COPENHAGEN = ZoneInfo("Europe/Copenhagen")
 LJUBLJANA = ZoneInfo("Europe/Ljubljana")
 BRATISLAVA = ZoneInfo("Europe/Bratislava")
 WARSAW = ZoneInfo("Europe/Warsaw")
+PRAGUE = ZoneInfo("Europe/Prague")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","DE","DK","EE","GB","GE","GR","HR","IS","IT","MD","NL","PL","RS","SE","SI","SK"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","IS","IT","MD","NL","PL","RS","SE","SI","SK"}
 
 
 class Links(HTMLParser):
@@ -958,7 +959,41 @@ def discover_poland(country,start,end):
     return entries,country["url"]
 
 
+def discover_czechia(country,start,end):
+    """Use the press-release archive linked by the Czech government media centre."""
+    first,last=start.astimezone(PRAGUE).date(),end.astimezone(PRAGUE).date()
+    entries=[]; seen=set()
+    for page_number in range(1,101):
+        url=country["url"]+(f"&conn=18187&pg={page_number}" if page_number>1 else "")
+        _,body=fetch(url)
+        page=body.decode("utf-8","replace")
+        cards=re.split(r'<div class="list__item">',page)[1:]
+        if not cards: raise RuntimeError("Czech cabinet press archive has no dated cards")
+        older=False
+        for card in cards:
+            dated=re.search(r'<div class="post__date">.*?<p>\s*(\d{1,2})\.\s*(\d{1,2})\.\s*(20\d{2})\s*</p>',card,re.S)
+            link=re.search(r'<a\s+href="([^"]+)"\s+class="post__link">(.*?)</a>',card,re.S)
+            if not dated or not link: raise RuntimeError("Czech cabinet press card lacks date or title")
+            day=dt.date(int(dated.group(3)),int(dated.group(2)),int(dated.group(1)))
+            if day<first: older=True; continue
+            if day>last: continue
+            article_url=urllib.parse.urljoin(country["url"],html.unescape(link.group(1)))
+            if not article_url.startswith("https://vlada.gov.cz/cz/media-centrum/aktualne/"):
+                raise RuntimeError("Unexpected Czech cabinet press URL")
+            if article_url in seen: raise RuntimeError("Czech cabinet press archive repeated an article")
+            seen.add(article_url)
+            title=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',link.group(2)))).strip()
+            published=dt.datetime.combine(day,dt.time.min,PRAGUE).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":"CZ","url":article_url,"title":title,
+                "published_at":published.isoformat(),"published_date":day.isoformat(),
+                "publication_precision":"day","text":""})
+        if older or not re.search(r'pg='+str(page_number+1)+r'[^0-9]',page): break
+    else: raise RuntimeError("Czech cabinet press archive exceeded 100 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="CZ": return discover_czechia(country,start,end)
     if country["iso2"]=="PL": return discover_poland(country,start,end)
     if country["iso2"]=="SK": return discover_slovakia(country,start,end)
     if country["iso2"]=="SI": return discover_slovenia(country,start,end)
@@ -984,6 +1019,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="CZ":
+        _,body=fetch(item["url"])
+        parser=ClassText("article"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r'\s+',' ',' '.join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Czech cabinet press item has no usable body text")
+        return article
     if item["country_code"]=="PL":
         _,body=fetch(item["url"])
         parser=ClassText("main-content"); parser.feed(body.decode("utf-8","replace"))
