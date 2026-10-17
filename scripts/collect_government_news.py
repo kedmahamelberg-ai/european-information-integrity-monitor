@@ -1124,6 +1124,13 @@ KAZAKH_MONTHS={name:number for number,name in enumerate(
     ("Қаңтар","Ақпан","Наурыз","Сәуір","Мамыр","Маусым","Шілде","Тамыз","Қыркүйек","Қазан","Қараша","Желтоқсан"),1)}
 GERMAN_MONTHS={name:number for number,name in enumerate(
     ("Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"),1)}
+LIECHTENSTEIN_MONTHS={name.casefold():number for number,names in enumerate((
+    ("Januar","January","janvier","gennaio"),("Februar","February","février","febbraio"),
+    ("März","March","mars","marzo"),("April","avril","aprile"),
+    ("Mai","May","mai","maggio"),("Juni","June","juin","giugno"),
+    ("Juli","July","juillet","luglio"),("August","août","agosto"),
+    ("September","septembre","settembre"),("Oktober","October","octobre","ottobre"),
+    ("November","novembre"),("Dezember","December","décembre","dicembre")),1) for name in names}
 
 
 def discover_kazakhstan(country,start,end):
@@ -1170,9 +1177,11 @@ def discover_liechtenstein(country,start,end):
         title_match=re.search(r'<div class="shortmsg__text"[^>]*>(.*?)</div>',card,re.S)
         link=re.search(r'<a class="shortmsg__more" href="(/medienportal-medium/16182/\d+/0/medienmitteilung)"',card)
         if not date_match or not title_match or not link: raise RuntimeError("Liechtenstein media-release card lacks date or title")
-        dated=re.search(r'(\d{1,2})\.\s+(\w+)\s+(20\d{2})',html.unescape(date_match.group(1)))
-        if not dated or dated.group(2) not in GERMAN_MONTHS: raise RuntimeError("Unexpected Liechtenstein publication date")
-        day=dt.date(int(dated.group(3)),GERMAN_MONTHS[dated.group(2)],int(dated.group(1)))
+        date_text=re.sub(r'<[^>]+>',' ',html.unescape(date_match.group(1))).strip()
+        dated=re.search(r'(\d{1,2})\.?\s+([\wÀ-ÿ]+)\s+(20\d{2})',date_text)
+        month=LIECHTENSTEIN_MONTHS.get(dated.group(2).casefold()) if dated else None
+        if not month: raise RuntimeError(f"Unexpected Liechtenstein publication date: {date_text[:80]}")
+        day=dt.date(int(dated.group(3)),month,int(dated.group(1)))
         if day<first: older=True; continue
         if day>last: continue
         article_url=urllib.parse.urljoin(country["url"],link.group(1))
