@@ -106,9 +106,9 @@
     {
       "iso2": "FR",
       "name": "France",
-      "url": "https://www.info.gouv.fr/espace-presse",
+      "url": "https://www.info.gouv.fr/toute-l-actualite",
       "verification_status": "verified",
-      "scope_note": "Official government press communications; excludes general explanatory news articles."
+      "scope_note": "Official government news and statements in Toute l'actualité; source archive currently denies automated requests, so collection is disabled."
     },
     {
       "iso2": "GE",
