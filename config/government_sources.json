@@ -98,9 +98,8 @@
       "iso2": "FI",
       "name": "Finland",
       "url": "https://valtioneuvosto.fi/ajankohtaista/uutiset",
-      "additional_official_sections": ["https://valtioneuvosto.fi/ajankohtaista/tiedotteet"],
       "verification_status": "verified",
-      "scope_note": "Collect the ministries' dated Uutinen news and Tiedote press releases; exclude other site changes and deduplicate article links."
+      "scope_note": "Only the ministries' dated Uutinen items in the official government news section."
     },
     {
       "iso2": "FR",
