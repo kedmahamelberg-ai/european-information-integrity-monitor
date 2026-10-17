@@ -8,6 +8,13 @@ ROOT = Path(__file__).resolve().parents[1]
 source = ROOT / "apps/dashboard"
 out = ROOT / "build"
 out.mkdir(exist_ok=True)
+from collect_government_news import COLLECTOR_READY_CODES
+government_sources = json.loads((ROOT / "config/government_sources.json").read_text())["sources"]
+(out / "government-sources.json").write_text(json.dumps({"sources": [
+    {"iso2": source["iso2"], "name": source["name"], "url": source["url"],
+     "collection_status": "active" if source["iso2"] in COLLECTOR_READY_CODES else "pending"}
+    for source in government_sources
+]}, ensure_ascii=False, indent=2) + "\n")
 for p in source.rglob("*"):
     if p.is_file():
         dst = out / p.relative_to(source)
@@ -78,7 +85,7 @@ from check_public_counts import check
 check(json.loads((out / "data.json").read_text()))
 # Bind code, styles and the data snapshot to one deployment revision.
 revision = hashlib.sha256(
-    b"".join((out / name).read_bytes() for name in ["map-data.js", "app.js", "live.js", "style.css", "data.json", "cameras.json", "government-data.json"])
+    b"".join((out / name).read_bytes() for name in ["map-data.js", "app.js", "live.js", "style.css", "data.json", "cameras.json", "government-data.json", "government-sources.json"])
 ).hexdigest()[:16]
 page = out / "index.html"
 html = page.read_text().replace(
