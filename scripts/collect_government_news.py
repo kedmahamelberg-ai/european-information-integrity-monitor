@@ -54,11 +54,12 @@ LISBON = ZoneInfo("Europe/Lisbon")
 SKOPJE = ZoneInfo("Europe/Skopje")
 ALMATY = ZoneInfo("Asia/Almaty")
 VADUZ = ZoneInfo("Europe/Vaduz")
+BUCHAREST = ZoneInfo("Europe/Bucharest")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","KZ","LI","MD","MK","NL","PL","PT","RS","SE","SI","SK"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","KZ","LI","MD","MK","NL","PL","PT","RO","RS","SE","SI","SK"}
 
 
 class Links(HTMLParser):
@@ -1186,7 +1187,45 @@ def discover_liechtenstein(country,start,end):
     return entries,country["url"]
 
 
+ROMANIAN_MONTHS={name:number for number,name in enumerate(
+    ("Ianuarie","Februarie","Martie","Aprilie","Mai","Iunie","Iulie","August","Septembrie","Octombrie","Noiembrie","Decembrie"),1)}
+
+
+def discover_romania(country,start,end):
+    """Page through the Romanian cabinet's official dated Știri section."""
+    first,last=start.astimezone(BUCHAREST).date(),end.astimezone(BUCHAREST).date()
+    entries=[]; seen=set()
+    for page_number in range(1,101):
+        url=country["url"] if page_number==1 else country["url"]+f"&page={page_number}"
+        _,body=fetch(url,timeout=20)
+        page=body.decode("utf-8","replace")
+        cards=page.split('<div class="album ptb30">')[1:]
+        if not cards: raise RuntimeError("Romanian cabinet news archive has no dated cards")
+        older=False
+        for card in cards:
+            dated=re.search(r'<label class="greydatum"[^>]*>[^<]*?(\d{1,2})\s+([A-Za-zăâîșțĂÂÎȘȚ]+)\s+(20\d{2})',card)
+            title_match=re.search(r'<h2[^>]*>\s*<a href="(https://gov\.ro/ro/stiri/[^"?#]+)"[^>]*>(.*?)</a>',card,re.S)
+            if not dated or not title_match: raise RuntimeError("Romanian cabinet news card lacks date or title")
+            month=ROMANIAN_MONTHS.get(dated.group(2).capitalize())
+            if not month: raise RuntimeError("Unexpected Romanian cabinet publication month")
+            day=dt.date(int(dated.group(3)),month,int(dated.group(1)))
+            if day<first: older=True; continue
+            if day>last: continue
+            article_url=html.unescape(title_match.group(1)).split("&page=",1)[0]
+            if article_url in seen: raise RuntimeError("Romanian cabinet news repeated an article")
+            seen.add(article_url)
+            title=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",title_match.group(2)))).strip()
+            published=dt.datetime.combine(day,dt.time.min,BUCHAREST).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":"RO","url":article_url,"title":title,
+                            "published_at":published.isoformat(),"published_date":day.isoformat(),
+                            "publication_precision":"day","text":""})
+        if older: break
+    else: raise RuntimeError("Romanian cabinet news archive exceeded 100 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="RO": return discover_romania(country,start,end)
     if country["iso2"]=="LI": return discover_liechtenstein(country,start,end)
     if country["iso2"]=="MK": return discover_north_macedonia(country,start,end)
     if country["iso2"]=="KZ": return discover_kazakhstan(country,start,end)
@@ -1218,6 +1257,11 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="RO":
+        _,body=fetch(item["url"],timeout=20)
+        parser=ClassText("pageDescription"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        return article if len(article)>=40 else ""
     if item["country_code"]=="LI":
         _,body=fetch(item["url"],timeout=20)
         parser=ClassText("main-text"); parser.feed(body.decode("utf-8","replace"))
