@@ -97,8 +97,10 @@
     {
       "iso2": "FI",
       "name": "Finland",
-      "url": "https://valtioneuvosto.fi/fi/ajankohtaista/tiedotteet",
-      "verification_status": "verified"
+      "url": "https://valtioneuvosto.fi/ajankohtaista/uutiset",
+      "additional_official_sections": ["https://valtioneuvosto.fi/ajankohtaista/tiedotteet"],
+      "verification_status": "verified",
+      "scope_note": "Collect the ministries' dated Uutinen news and Tiedote press releases; exclude other site changes and deduplicate article links."
     },
     {
       "iso2": "FR",
@@ -260,7 +262,7 @@
       "name": "San Marino",
       "url": "https://www.gov.sm/pub1/EsteriSM/Ufficio-Stampa/News-e-Comunicati.html",
       "verification_status": "verified",
-      "scope_note": "Official central Congress of State press releases."
+      "scope_note": "Active foreign ministry News e Comunicati archive, covering official ministerial communications."
     },
     {
       "iso2": "RS",
