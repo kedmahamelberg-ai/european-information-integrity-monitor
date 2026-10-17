@@ -50,11 +50,12 @@ BRATISLAVA = ZoneInfo("Europe/Bratislava")
 WARSAW = ZoneInfo("Europe/Warsaw")
 PRAGUE = ZoneInfo("Europe/Prague")
 BUDAPEST = ZoneInfo("Europe/Budapest")
+LISBON = ZoneInfo("Europe/Lisbon")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","MD","NL","PL","RS","SE","SI","SK"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","CZ","DE","DK","EE","GB","GE","GR","HR","HU","IS","IT","MD","NL","PL","PT","RS","SE","SI","SK"}
 
 
 class Links(HTMLParser):
@@ -1027,7 +1028,64 @@ def discover_hungary(country,start,end):
     return entries,country["url"]
 
 
+def discover_portugal(country,start,end):
+    """Page through the public search service behind the official Comunicados archive."""
+    _,page=fetch(country["url"],timeout=15)
+    app_script=re.search(r'<script[^>]+src="([^"]*/pages/_app-[^"]+\.js[^"]*)"',page.decode("utf-8","replace"))
+    if not app_script: raise RuntimeError("Portuguese government archive client is missing")
+    script_url=urllib.parse.urljoin(country["url"],html.unescape(app_script.group(1)))
+    _,bundle=fetch(script_url,limit=5_000_000,timeout=20)
+    credentials=re.search(r'customerKey:"([^"]+)",apiKey:"([^"]+)"',bundle.decode("utf-8","replace"))
+    if not credentials: raise RuntimeError("Portuguese government archive configuration changed")
+    customer_id=credentials.group(1).rsplit("-",1)[-1]
+    endpoint="https://discover-euc1.sitecorecloud.io/discover/v2/"+customer_id
+    first,last=start.astimezone(LISBON).date(),end.astimezone(LISBON).date()
+    entries=[]; seen=set(); previous_date=None
+    for page_number in range(100):
+        offset=page_number*7
+        query={"context":{"page":{"uri":"/pt/gc25/comunicacao/comunicados"},
+                          "user":{"uuid":"european-security-monitor-public-archive"},
+                          "locale":{"language":"pt","country":"pt"}},
+               "widget":{"items":[{"rfk_id":"rfkid_7","search":{"content":{},"offset":offset,
+                   "sort":{"choices":True,"value":[{"name":"date_descending"}]},"limit":7,
+                   "filter":{"type":"and","filters":[{"type":"eq","name":"gc","value":"gc25"},
+                       {"type":"eq","name":"template","value":"{1FE4C8AC-FFB8-4A13-8954-A0B97B521235}"}]}},
+                   "entity":"ceger","sources":["1204169","1206276","1206277","1206278","1206279",
+                       "1228141","1228948","1228949","1228950"]}]}}
+        request=urllib.request.Request(endpoint,data=json.dumps(query).encode(),headers={
+            "Authorization":credentials.group(2),"Content-Type":"application/json",
+            "Referer":"https://portugal.gov.pt/","User-Agent":UA})
+        with urllib.request.urlopen(request,timeout=20) as response:
+            widget=json.load(response)["widgets"][0]
+        if int(widget.get("offset",-1))!=offset: raise RuntimeError("Portuguese communiqué pagination did not advance")
+        rows=widget.get("content") or []
+        if not rows and offset<int(widget.get("total_item",0)):
+            raise RuntimeError("Portuguese communiqué archive ended before its reported total")
+        older=False
+        for row in rows:
+            published=date_value(row.get("date"))
+            if not published: raise RuntimeError("Portuguese communiqué has no publication time")
+            day=published.astimezone(LISBON).date()
+            if previous_date and published>previous_date: raise RuntimeError("Portuguese communiqué archive is not date sorted")
+            previous_date=published
+            if day<first: older=True; continue
+            if day>last: continue
+            path=row.get("url") or ""
+            if not path.startswith("/pt/gc25/comunicacao/comunicados/"):
+                raise RuntimeError("Portuguese archive returned a non-communiqué link")
+            article_url=urllib.parse.urljoin(country["url"],path)
+            if article_url in seen: raise RuntimeError("Portuguese communiqué archive repeated an article")
+            seen.add(article_url)
+            entries.append({"country":country["name"],"country_code":"PT","url":article_url,
+                "title":row["title"].strip(),"published_at":published.isoformat(),
+                "published_date":day.isoformat(),"publication_precision":"instant","text":""})
+        if older or offset+len(rows)>=int(widget.get("total_item",0)): break
+    else: raise RuntimeError("Portuguese communiqué archive exceeded 100 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="PT": return discover_portugal(country,start,end)
     if country["iso2"]=="HU": return discover_hungary(country,start,end)
     if country["iso2"]=="CZ": return discover_czechia(country,start,end)
     if country["iso2"]=="PL": return discover_poland(country,start,end)
@@ -1055,6 +1113,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="PT":
+        _,body=fetch(item["url"],timeout=15)
+        parser=ClassText("body"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Portuguese communiqué has no usable body text")
+        return article
     if item["country_code"]=="HU":
         _,body=fetch(item["url"])
         parser=MainText(); parser.feed(body.decode("utf-8","replace"))
