@@ -7,6 +7,7 @@ import hashlib
 import html
 import json
 import os
+import random
 import re
 import ssl
 import subprocess
@@ -2107,10 +2108,10 @@ def ask_openai(text, classification=True, examples=None, validation_note=""):
                 except json.JSONDecodeError as exc: last_problem=f"invalid JSON at character {exc.pos}"
             else: last_problem=f"empty response (status={result.get('status')}, incomplete={result.get('incomplete_details')}, error={result.get('error')})"
         except urllib.error.HTTPError as exc:
-            if exc.code==429:
+            if exc.code in {429,503}:
                 try:
                     response_error=json.loads(exc.read(16_384)).get("error") or {}
-                    error_code=response_error.get("code") or response_error.get("type") or "rate_limit_exceeded"
+                    error_code=response_error.get("code") or response_error.get("type") or ("rate_limit_exceeded" if exc.code==429 else "server_is_overloaded")
                     if not isinstance(error_code,str) or not re.fullmatch(r"[a-zA-Z0-9_]+",error_code):
                         error_code="rate_limit_exceeded"
                 except (ValueError,TypeError):
@@ -2120,7 +2121,9 @@ def ask_openai(text, classification=True, examples=None, validation_note=""):
                 exc.close()
                 if error_code in {"insufficient_quota","billing_hard_limit_reached","billing_not_active"} or attempt==4:
                     raise ModelRateLimit(error_code) from None
-                time.sleep(min(60,max(retry_after,5*(2**attempt))))
+                if retry_after>60:
+                    raise ModelRateLimit("retry_after_exceeds_run_budget") from None
+                time.sleep((retry_after if retry_after>0 else 5*(2**attempt))+random.uniform(0,1))
                 continue
             last_problem=f"HTTP Error {exc.code}"
             exc.close()
@@ -2294,7 +2297,7 @@ def main():
                 item.pop("text",None)
                 existing[item["id"]]=item
                 STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
-                print(f"Model API 429 ({error.code}); {item['country_code']} {item['id']} and later items remain pending",flush=True)
+                print(f"Model API limit ({error.code}); {item['country_code']} {item['id']} and later items remain pending",flush=True)
                 break
             if not valid:
                 item.update(labels); item["classification_status"]="needs_review"; item["classification_error"]="inconsistent_relevance_topics_roles"; item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item
