@@ -32,6 +32,7 @@ PUBLIC = ROOT / "build/government-data.json"
 CORRECTIONS = ROOT / "data/government_corrections.json"
 REVIEW_QUEUE = ROOT / "build/government-review-queue.json"
 UA = "EuropeanSecurityMonitor/1.0 (public research; contact: monitor@hamelberg-ai.com)"
+BROWSER_UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
 AMSTERDAM = ZoneInfo("Europe/Amsterdam")
 YEREVAN = ZoneInfo("Asia/Yerevan")
 BRUSSELS = ZoneInfo("Europe/Brussels")
@@ -159,8 +160,8 @@ def official_article_text(body):
     return re.sub(r"\s+"," "," ".join(parser.parts))
 
 
-def fetch(url, limit=2_000_000, timeout=8):
-    req=urllib.request.Request(url, headers={"User-Agent":UA,"Accept":"text/html,application/rss+xml,application/atom+xml,application/xml,*/*"})
+def fetch(url, limit=2_000_000, timeout=8, user_agent=UA):
+    req=urllib.request.Request(url, headers={"User-Agent":user_agent,"Accept":"text/html,application/rss+xml,application/atom+xml,application/xml,*/*"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             if r.status >= 400: raise RuntimeError(f"HTTP {r.status}")
@@ -170,7 +171,7 @@ def fetch(url, limit=2_000_000, timeout=8):
         # while the runner's curl trust store validates it. Keep TLS enabled.
         if not isinstance(error.reason,ssl.SSLCertVerificationError): raise
         response=subprocess.run(["curl","-fsSL","--max-time",str(timeout),"--max-filesize",str(limit),
-                                 "-A",UA,url],capture_output=True,timeout=timeout+2)
+                                 "-A",user_agent,url],capture_output=True,timeout=timeout+2)
         if response.returncode: raise RuntimeError(f"Verified curl fetch failed: {response.stderr.decode('utf-8','replace')[:180]}") from error
         return url,response.stdout
 
@@ -374,7 +375,10 @@ def discover_austria(country, start, end):
 
 def georgia_page(body):
     match=re.search(rb'<script[^>]*id=["\']__NEXT_DATA__["\'][^>]*>(.*?)</script>',body,re.I|re.S)
-    if not match: raise RuntimeError("Georgian news page has no dated article data")
+    if not match:
+        title=re.search(rb"<title[^>]*>(.*?)</title>",body,re.I|re.S)
+        page_title=re.sub(rb"\s+",b" ",title.group(1)).decode("utf-8","replace")[:80] if title else "no title"
+        raise RuntimeError(f"Georgian news page has no dated article data (title={page_title!r}, bytes={len(body)})")
     return json.loads(match.group(1))["props"]["pageProps"]["page"]
 
 
@@ -384,7 +388,10 @@ def discover_georgia(country,start,end):
     while True:
         url=country["url"] if page_number==1 else f'{country["url"]}?page={page_number}'
         _,body=fetch(url)
-        content=georgia_page(body)["content"]
+        try: content=georgia_page(body)["content"]
+        except RuntimeError:
+            _,body=fetch(url,user_agent=BROWSER_UA)
+            content=georgia_page(body)["content"]
         if int(content["page"])!=page_number: raise RuntimeError("Georgian news pagination changed")
         if reported_total is None: reported_total=int(content["total"])
         elif int(content["total"])!=reported_total: raise RuntimeError("Georgian news total changed during pagination")
@@ -1070,13 +1077,23 @@ def discover_poland(country,start,end):
 def discover_czechia(country,start,end):
     """Use the press-release archive linked by the Czech government media centre."""
     first,last=start.astimezone(PRAGUE).date(),end.astimezone(PRAGUE).date()
-    entries=[]; seen=set()
+    entries=[]; seen=set(); base_url=country["url"]
     for page_number in range(1,101):
-        url=country["url"]+(f"&conn=18187&pg={page_number}" if page_number>1 else "")
+        url=base_url+(f"&conn=18187&pg={page_number}" if page_number>1 else "")
         _,body=fetch(url)
         page=body.decode("utf-8","replace")
         cards=re.split(r'<div class="list__item">',page)[1:]
-        if not cards: raise RuntimeError("Czech cabinet press archive has no dated cards")
+        if not cards:
+            alternate="https://vlada.gov.cz/scripts/modules/column/default.php?lid=1&categid=284&dlid=1"
+            retry_url=alternate if page_number==1 else url
+            _,body=fetch(retry_url,user_agent=BROWSER_UA)
+            page=body.decode("utf-8","replace")
+            cards=re.split(r'<div class="list__item">',page)[1:]
+            if cards and page_number==1: base_url=alternate
+        if not cards:
+            title=re.search(r"<title[^>]*>(.*?)</title>",page,re.I|re.S)
+            page_title=re.sub(r"\s+"," ",title.group(1))[:80] if title else "no title"
+            raise RuntimeError(f"Czech cabinet press archive has no dated cards (title={page_title!r}, bytes={len(body)})")
         older=False
         for card in cards:
             dated=re.search(r'<div class="post__date">.*?<p>\s*(\d{1,2})\.\s*(\d{1,2})\.\s*(20\d{2})\s*</p>',card,re.S)
@@ -2091,7 +2108,10 @@ def article_text(item):
         return text
     if item["country_code"]=="GE":
         _,body=fetch(item["url"])
-        description=georgia_page(body).get("description") or ""
+        try: description=georgia_page(body).get("description") or ""
+        except RuntimeError:
+            _,body=fetch(item["url"],user_agent=BROWSER_UA)
+            description=georgia_page(body).get("description") or ""
         text=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",description))).strip()
         if not text: raise RuntimeError("Georgian official communication has no article body")
         return text
