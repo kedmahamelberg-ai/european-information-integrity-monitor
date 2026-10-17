@@ -46,11 +46,12 @@ ROME = ZoneInfo("Europe/Rome")
 BERLIN = ZoneInfo("Europe/Berlin")
 COPENHAGEN = ZoneInfo("Europe/Copenhagen")
 LJUBLJANA = ZoneInfo("Europe/Ljubljana")
+BRATISLAVA = ZoneInfo("Europe/Bratislava")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","DE","DK","EE","GB","GE","GR","HR","IS","IT","MD","NL","RS","SE","SI"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","DE","DK","EE","GB","GE","GR","HR","IS","IT","MD","NL","RS","SE","SI","SK"}
 
 
 class Links(HTMLParser):
@@ -889,7 +890,40 @@ def discover_slovenia(country,start,end):
     return entries,country["url"]
 
 
+def discover_slovakia(country,start,end):
+    """Page through official Slovak cabinet press statements by dated card."""
+    first,last=start.astimezone(BRATISLAVA).date(),end.astimezone(BRATISLAVA).date()
+    entries=[]; seen=set()
+    for page_number in range(1,101):
+        url=country["url"] if page_number==1 else country["url"]+f"strana{page_number}/"
+        _,body=fetch(url)
+        page=body.decode("utf-8","replace")
+        cards=re.split(r"<div class=['\"]idsk-card idsk-card-secondary uvidsk-article['\"]>",page)[1:]
+        if not cards: raise RuntimeError("Slovak cabinet press page has no dated cards")
+        older=False
+        for card in cards:
+            dated=re.search(r"title=['\"]Pridané dňa: (\d{2}\.\d{2}\.20\d{2})['\"]",card)
+            link=re.search(r"<a href=['\"]([^'\"]+)['\"] class=['\"]idsk-card-title[^'\"]*['\"][^>]*>(.*?)</a>",card,re.S)
+            if not dated or not link: raise RuntimeError("Slovak cabinet press card lacks date or title")
+            day=dt.datetime.strptime(dated.group(1),"%d.%m.%Y").date()
+            if day<first: older=True; continue
+            if day>last: continue
+            article_url=urllib.parse.urljoin(country["url"],html.unescape(link.group(1)))
+            if not article_url.startswith(country["url"]): raise RuntimeError("Unexpected Slovak cabinet press URL")
+            if article_url in seen: raise RuntimeError("Slovak cabinet press archive repeated an article")
+            seen.add(article_url)
+            title=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',link.group(2)))).strip()
+            published=dt.datetime.combine(day,dt.time.min,BRATISLAVA).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":"SK","url":article_url,"title":title,
+                "published_at":published.isoformat(),"published_date":day.isoformat(),
+                "publication_precision":"day","text":""})
+        if older or not re.search(r"/tlacove-spravy/strana"+str(page_number+1)+r"/",page): break
+    else: raise RuntimeError("Slovak cabinet press archive exceeded 100 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="SK": return discover_slovakia(country,start,end)
     if country["iso2"]=="SI": return discover_slovenia(country,start,end)
     if country["iso2"]=="DK": return discover_denmark(country,start,end)
     if country["iso2"]=="DE": return discover_germany(country,start,end)
@@ -913,6 +947,12 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="SK":
+        _,body=fetch(item["url"])
+        parser=ClassText("page-content"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r'\s+',' ',' '.join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("Slovak cabinet press item has no usable body text")
+        return article
     if item["country_code"]=="SI":
         _,body=fetch(item["url"],timeout=25)
         page=body.decode("utf-8","replace")
