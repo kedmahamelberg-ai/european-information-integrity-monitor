@@ -32,3 +32,11 @@ footer nav{display:flex;flex-wrap:wrap;gap:12px 20px;letter-spacing:0;text-trans
 .map-key b{display:inline-flex;align-items:center;line-height:1}
 .gov-star{font-size:16px;line-height:1}
 .government-marker text{font-family:Arial,sans-serif;font-weight:900}
+.government-pending{border:1px solid #5b4c29;background:#17170f;padding:14px 16px;margin:14px 0 4px}
+.government-pending:empty{display:none}
+.government-pending h2{margin:0 0 6px;color:#f4d66a;font:700 12px var(--mono);text-transform:uppercase}
+.government-pending p{margin:0 0 12px;color:#c9c5af;font:11px/1.5 var(--mono)}
+.pending-country-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:7px}
+.pending-country-grid a{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid #4b432c;padding:8px 10px;font:10px var(--mono);color:#e8e5d5}
+.pending-country-grid a:hover{border-color:#f4d66a}
+.pending-country-grid span{color:#f4d66a;white-space:nowrap}

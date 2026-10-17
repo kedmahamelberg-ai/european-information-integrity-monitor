@@ -21,7 +21,7 @@ const human = (s) =>
       ? "Unavailable"
       : Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 });
 let feedQueue=[], feedIndex=0, feedPaused=matchMedia("(prefers-reduced-motion: reduce)").matches;
-let data = {videos:[], inventory:[], batches:[], collection:{}}, governmentData={items:[]}, countries=[], inventory=[], zoom=1;
+let data = {videos:[], inventory:[], batches:[], collection:{}}, governmentData={items:[]}, governmentSourceDirectory={sources:[]}, countries=[], inventory=[], zoom=1;
 const roles=["readiness","projecting_power","under_pressure"], colors={coverage:"#b9ee74", related:"#b9ee74", readiness:"#61d7bc", projecting_power:"#efb85b", under_pressure:"#f17a69"}, icons={readiness:"🛡", projecting_power:"⚔", under_pressure:"🎯"};
 function project(lon, lat) {
   const my = (v) => Math.log(Math.tan(Math.PI / 4 + (v * Math.PI) / 360));
@@ -162,6 +162,8 @@ function renderMap(){
 }
 function renderGovernment(){
  const items=(governmentData.items||[]).filter(x=>['provisional','human_reviewed'].includes(x.classification_status)), related=items.filter(x=>x.related===true);
+ const pendingSources=(governmentSourceDirectory.sources||[]).filter(x=>x.collection_status==='pending');
+ $('#government-pending').innerHTML=pendingSources.length?'<h2>Pending collection · '+pendingSources.length+' countries</h2><p>Official news sections are recorded, but automatic retrieval is not yet reliable. Missing communications here do not mean these governments published nothing.</p><div class="pending-country-grid">'+pendingSources.map(x=>'<a href="'+esc(x.url)+'" target="_blank" rel="noopener"><b>'+esc(x.name)+'</b><span>Pending ↗</span></a>').join('')+'</div>':'';
  const latestByCountry=new Map(); for(const item of related.slice().sort((a,b)=>(b.published_at||'').localeCompare(a.published_at||''))){if(!latestByCountry.has(item.country_code))latestByCountry.set(item.country_code,item);} const highlights=[...latestByCountry.values()];
  $('#government-ticker').innerHTML=highlights.length?'<span class="ticker-label">GOVERNMENT WATCH · '+highlights.length+' COUNTRIES</span><div class="ticker-window"><div class="ticker-track">'+[...highlights,...highlights].map(x=>'<a href="'+esc(x.url)+'" target="_blank" rel="noopener" title="'+esc(x.country)+' · '+esc(x.title)+'"><b>'+esc(x.country)+'</b> '+esc(x.ticker_message||x.english_summary||x.title)+'</a>').join('')+'</div></div>':'<span class="ticker-label">GOVERNMENT WATCH</span><span class="ticker-empty">No classified related government communications in this collection window.</span>';
  const tickerTrack=$('#government-ticker .ticker-track');if(tickerTrack)tickerTrack.style.animationDuration=Math.max(120,Math.ceil(tickerTrack.scrollWidth/2/28))+'s';
@@ -211,8 +213,8 @@ function showSource(key){const v=inventory.find(x=>x.batch+'|'+x.id===key);if(!v
 }
 function route(){const r=['evidence','government','methodology'].includes(location.hash.slice(1))?location.hash.slice(1):'monitor';for(const id of ['monitor','evidence','government','methodology'])$('#'+id).hidden=id!==r;document.querySelectorAll('nav a').forEach(a=>a.setAttribute('aria-current',a.hash==='#'+r?'page':'false'));}
 async function init(){try{
- const rev=document.documentElement.dataset.build||Date.now();const result=await Promise.all(['data.json','countries.json','assets/world.json','methodology.html','government-data.json'].map(async p=>{const r=await fetch(`${p}?v=${rev}`);if(!r.ok&&p==='government-data.json')return {items:[]};if(!r.ok)throw Error('Snapshot unavailable');return p.endsWith('.html')?r.text():r.json()}));
- data=result[0];countries=result[1];governmentData=result[4];countries=countries.countries||countries;
+ const rev=document.documentElement.dataset.build||Date.now();const result=await Promise.all(['data.json','countries.json','assets/world.json','methodology.html','government-data.json','government-sources.json'].map(async p=>{const r=await fetch(`${p}?v=${rev}`);if(!r.ok&&p==='government-data.json')return {items:[]};if(!r.ok)throw Error('Snapshot unavailable');return p.endsWith('.html')?r.text():r.json()}));
+ data=result[0];countries=result[1];governmentData=result[4];governmentSourceDirectory=result[5];countries=countries.countries||countries;
  const coded=new Map(data.videos.map(v=>[v.batch+'|'+v.id,v]));inventory=(data.inventory||data.videos).map(v=>({...v,...coded.get(v.batch+'|'+v.id)}));
  $('#methodology').innerHTML=result[3];$('#geography').innerHTML=result[2].features.map(f=>`<path d="${geometry(f.geometry)}"/>`).join('');
  $('#country').insertAdjacentHTML('beforeend',countries.map(c=>`<option value="${esc(c.iso2)}">${esc(c.country_name)}</option>`).join(''));
