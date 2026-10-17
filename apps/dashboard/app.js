@@ -22,7 +22,7 @@ const human = (s) =>
       : Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 });
 let feedQueue=[], feedIndex=0, feedPaused=matchMedia("(prefers-reduced-motion: reduce)").matches;
 let data = {videos:[], inventory:[], batches:[], collection:{}}, governmentData={items:[]}, governmentSourceDirectory={sources:[]}, countries=[], inventory=[], zoom=1;
-const hiddenTrendTopics=new Set();
+let activeTrendLine=null;
 const roles=["readiness","projecting_power","under_pressure"], colors={coverage:"#b9ee74", related:"#b9ee74", readiness:"#61d7bc", projecting_power:"#efb85b", under_pressure:"#f17a69"}, icons={readiness:"🛡", projecting_power:"⚔", under_pressure:"🎯"};
 function project(lon, lat) {
   const my = (v) => Math.log(Math.tan(Math.PI / 4 + (v * Math.PI) / 360));
@@ -173,6 +173,22 @@ function updateTrendCountries(){
   if([...select.options].some(o=>o.value===previous))select.value=previous;
  }
 }
+function updateTrendTopics(){
+ const select=$('#trend-topic'),previous=select.value;
+ const codes=[...new Set((governmentData.items||[]).filter(x=>x.related===true).flatMap(governmentTopicCodes))].sort((a,b)=>(data.topic_labels?.[a]||human(a)).localeCompare(data.topic_labels?.[b]||human(b)));
+ select.innerHTML='<option value="top">Main narratives</option><option value="all">All active narratives</option>'+codes.map(code=>`<option value="${esc(code)}">${esc(data.topic_labels?.[code]||human(code))}</option>`).join('');
+ if([...select.options].some(o=>o.value===previous))select.value=previous;
+}
+function trendCountrySeries(code,topics,items,days){
+ const matching=items.filter(x=>code==='all'||x.country_code===code),daily=new Map(days.map(day=>[day,[]]));
+ for(const item of matching)daily.get(item.chartDate).push(...governmentTopicCodes(item));
+ const counts=new Map(),series=new Map(topics.map(t=>[t,[]]));let total=0;
+ for(const day of days){
+  for(const topic of daily.get(day)){counts.set(topic,(counts.get(topic)||0)+1);total++;}
+  for(const topic of topics)series.get(topic).push(total?100*(counts.get(topic)||0)/total:null);
+ }
+ return {code,items:matching.length,total,counts,series};
+}
 function renderGovernmentTrends(){
  const coded=(governmentData.items||[]).filter(x=>x.related===true&&['provisional','human_reviewed'].includes(x.classification_status)&&governmentTopicCodes(x).length);
  const dated=coded.map(x=>({...x,chartDate:(x.published_date||x.published_at||'').slice(0,10)})).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x.chartDate));
@@ -189,28 +205,38 @@ function renderGovernmentTrends(){
  const selectedCountries=[...new Set(['trend-country-1','trend-country-2','trend-country-3'].map(id=>$('#'+id).value).filter(x=>x!=='none'))];
  const colorFor=(topic)=>{const index=Object.keys(data.topic_labels||{}).sort().indexOf(topic);return `hsl(${Math.round(((index<0?topic.split('').reduce((n,c)=>n+c.charCodeAt(0),0):index)*137.508)%360)} 78% 68%)`;};
  const countryName=code=>code==='all'?'Europe · all collected countries':countries.find(c=>c.iso2===code)?.country_name||code;
- const panels=selectedCountries.map(code=>{
-  const items=selected.filter(x=>code==='all'||x.country_code===code),daily=new Map(days.map(day=>[day,[]]));
-  for(const item of items)daily.get(item.chartDate).push(...governmentTopicCodes(item));
-  const counts=new Map(),series=new Map(topics.map(t=>[t,[]]));let total=0;
-  for(const day of days){for(const topic of daily.get(day)){counts.set(topic,(counts.get(topic)||0)+1);total++;}for(const topic of topics)series.get(topic).push(total?100*(counts.get(topic)||0)/total:null);}
-  const w=1000,h=270,left=54,right=24,top=22,bottom=46,plotW=w-left-right,plotH=h-top-bottom;
-  const x=i=>left+(days.length===1?plotW/2:i*plotW/(days.length-1)),y=value=>top+plotH*(1-value/100);
-  const grid=[0,25,50,75,100].map(v=>`<line x1="${left}" y1="${y(v)}" x2="${w-right}" y2="${y(v)}" class="trend-grid"/><text x="${left-10}" y="${y(v)+4}" text-anchor="end" class="trend-axis">${v}%</text>`).join('');
-  const step=Math.max(1,Math.ceil(days.length/7)),tickIndexes=[...new Set([...days.keys()].filter(i=>i%step===0).concat(days.length-1))];
-  const ticks=tickIndexes.map(i=>`<text x="${x(i)}" y="${h-13}" text-anchor="middle" class="trend-axis">${esc(days[i].slice(5))}</text>`).join('');
-  const paths=topics.filter(t=>!hiddenTrendTopics.has(t)&&(counts.get(t)||0)>0).map(t=>{
-   const values=series.get(t),points=values.map((v,i)=>v===null?null:[i,v]).filter(Boolean),path=points.map(([i,v],j)=>`${j?'L':'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' '),lastValue=values.at(-1);
-   return `<path d="${path}" fill="none" stroke="${colorFor(t)}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".88"><title>${esc(countryName(code))} · ${esc(data.topic_labels?.[t]||human(t))} · ${lastValue.toFixed(1)}% (${counts.get(t)} labels)</title></path><circle cx="${x(days.length-1)}" cy="${y(lastValue)}" r="2.5" fill="${colorFor(t)}"><title>${esc(data.topic_labels?.[t]||human(t))}: ${lastValue.toFixed(1)}%</title></circle>`;
-  }).join('');
-  return `<div class="trend-panel"><div class="trend-panel-title"><strong>${esc(countryName(code))}</strong><span>${num(items.length)} related communications · ${num(total)} topic labels</span></div>${total?`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Daily cumulative narrative shares for ${esc(countryName(code))}, ${esc(from)} to ${esc(to)}">${grid}${ticks}${paths}</svg>`:'<p class="empty">No related communications in this period.</p>'}</div>`;
- });
- chartHost.innerHTML=panels.join('');
- legend.innerHTML=topics.map(t=>`<button type="button" data-trend-topic="${esc(t)}" aria-pressed="${!hiddenTrendTopics.has(t)}" class="${hiddenTrendTopics.has(t)?'trend-off':''}"><i style="background:${colorFor(t)}"></i>${esc(data.topic_labels?.[t]||human(t))}</button>`).join('');
- note.textContent=`${from} to ${to} · Cumulative from the start of this selected period. Daily values use publication dates; each related topic label contributes once to the denominator. Tap a narrative in the legend to show or hide it. Updated with each published collection.`;
+ const comparison=selectedCountries.length>1,cohorts=selectedCountries.map(code=>trendCountrySeries(code,topics,selected,days));
+ const frequency=new Map(topics.map(t=>[t,selected.reduce((n,item)=>n+Number(governmentTopicCodes(item).includes(t)),0)]));
+ const ranked=topics.filter(t=>frequency.get(t)>0).sort((a,b)=>frequency.get(b)-frequency.get(a)||(data.topic_labels?.[a]||a).localeCompare(data.topic_labels?.[b]||b));
+ let choice=$('#trend-topic').value;
+ if(comparison&&(choice==='top'||choice==='all')&&ranked.length){choice=ranked[0];$('#trend-topic').value=choice;activeTrendLine=null;}
+ $('#government-trends-description').textContent=comparison?'Compare the selected narrative across countries on one daily chart. Each line uses that country’s related topic labels as its denominator.':'Each line shows a narrative’s cumulative share of all related topic labels in the selected period. A communication can have more than one narrative.';
+ const visibleTopics=choice==='top'?ranked.slice(0,8):choice==='all'?ranked:topics.includes(choice)?[choice]:[];
+ const countryColors=['#86dafa','#f4ca68','#cc9df3'];
+ const seriesDefs=comparison?cohorts.map((cohort,i)=>({key:`${choice}|${cohort.code}`,topic:choice,code:cohort.code,label:countryName(cohort.code),color:countryColors[i],dash:['','8 5','2 5'][i],count:cohort.counts.get(choice)||0,values:cohort.series.get(choice)||[]})).filter(s=>s.count>0):visibleTopics.map(topic=>({key:`${topic}|${cohorts[0].code}`,topic,code:cohorts[0].code,label:data.topic_labels?.[topic]||human(topic),color:colorFor(topic),dash:'',count:cohorts[0].counts.get(topic)||0,values:cohorts[0].series.get(topic)||[]})).filter(s=>s.count>0);
+ const maxValue=Math.max(0,...seriesDefs.flatMap(s=>s.values.filter(v=>v!==null))),axisMax=[2,5,10,15,20,25,30,40,50,75,100].find(v=>v>=maxValue*1.07)||100;
+ const w=1000,h=300,left=55,right=25,top=26,bottom=48,plotW=w-left-right,plotH=h-top-bottom;
+ const x=i=>left+(days.length===1?plotW/2:i*plotW/(days.length-1)),y=value=>top+plotH*(1-value/axisMax);
+ const formatPercent=v=>v.toFixed(1)+'%';
+ const grid=[0,.25,.5,.75,1].map(f=>{const v=axisMax*f;return `<line x1="${left}" y1="${y(v)}" x2="${w-right}" y2="${y(v)}" class="trend-grid"/><text x="${left-10}" y="${y(v)+4}" text-anchor="end" class="trend-axis">${formatPercent(v)}</text>`;}).join('');
+ const step=Math.max(1,Math.ceil(days.length/7)),tickIndexes=[...new Set([...days.keys()].filter(i=>i%step===0).concat(days.length-1))];
+ const ticks=tickIndexes.map(i=>`<text x="${x(i)}" y="${h-14}" text-anchor="middle" class="trend-axis">${esc(days[i].slice(5))}</text>`).join('');
+ const paths=seriesDefs.map(s=>{
+  const points=s.values.map((v,i)=>v===null?null:[i,v]).filter(Boolean),path=points.map(([i,v],j)=>`${j?'L':'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' '),final=s.values.at(-1),active=activeTrendLine===s.key;
+  return `<path d="${path}" fill="none" stroke="${s.color}" stroke-width="${active?4:2.5}" stroke-dasharray="${s.dash}" stroke-linecap="round" stroke-linejoin="round" opacity="${active||!activeTrendLine?'.95':'.3'}"/><path d="${path}" class="trend-hit" data-trend-key="${esc(s.key)}" tabindex="0" role="button" aria-label="${esc(s.label)}: ${formatPercent(final)}"><title>${esc(s.label)} · ${formatPercent(final)} · ${s.count} labels</title></path><circle cx="${x(days.length-1)}" cy="${y(final)}" r="${active?5:3.5}" fill="${s.color}"/>`;
+ }).join('');
+ const active=seriesDefs.find(s=>s.key===activeTrendLine);
+ const focus=active?`<div class="trend-focus" role="status"><strong>${esc(active.label)}</strong><b>${formatPercent(active.values.at(-1))}</b><span>${active.count} related topic labels · cumulative through ${esc(to)}</span></div>`:'<p class="trend-hint">Select a line or a label below to see its name, share and count.</p>';
+ const barMax=Math.max(1,...cohorts.map(c=>c.series.get(choice)?.at(-1)||0));
+ const bars=comparison?`<div class="trend-compare-bars"><h3>Share at period end · ${esc(data.topic_labels?.[choice]||human(choice))}</h3>${cohorts.map((cohort,i)=>{const share=cohort.series.get(choice)?.at(-1),count=cohort.counts.get(choice)||0;return `<div class="trend-bar-row"><span>${esc(countryName(cohort.code))}</span><div class="trend-bar-track"><i style="width:${100*(share||0)/barMax}%;background:${countryColors[i]}"></i></div><b>${share===null?'—':formatPercent(share)}</b><small>${count} labels</small></div>`;}).join('')}<p>Bar lengths are scaled to the highest country share; printed percentages use each country's full set of related labels.</p></div>`:'';
+ const title=comparison?`Compare · ${esc(data.topic_labels?.[choice]||human(choice))}`:countryName(cohorts[0].code);
+ const meta=comparison?'Same topic · one shared time axis · each country has its own denominator':`${num(cohorts[0].items)} related communications · ${num(cohorts[0].total)} topic labels`;
+ chartHost.innerHTML=`<div class="trend-panel"><div class="trend-panel-title"><strong>${title}</strong><span>${esc(meta)}</span></div>${seriesDefs.length?`<svg viewBox="0 0 ${w} ${h}" role="group" aria-label="Daily cumulative narrative shares, ${esc(from)} to ${esc(to)}">${grid}${ticks}${paths}</svg>${focus}${bars}`:'<p class="empty">No related narrative labels match this selection.</p>'}</div>`;
+ legend.innerHTML=seriesDefs.map(s=>`<button type="button" data-trend-key="${esc(s.key)}" aria-pressed="${activeTrendLine===s.key}"><i style="background:${s.color}"></i><span>${esc(s.label)}</span><b>${formatPercent(s.values.at(-1))}</b></button>`).join('');
+ note.textContent=`${from} to ${to} · Daily cumulative shares from the start of this period. Each related topic label contributes once to the denominator. ${comparison?'Country lines compare one selected narrative; percentages are within each country.':choice==='top'?'Showing the eight most common narratives; choose “All active narratives” to see more.':'Only narratives with at least one related label are shown.'} Updated with each published collection.`;
 }
 function renderGovernment(){
- updateTrendCountries();renderGovernmentTrends();
+ updateTrendCountries();updateTrendTopics();renderGovernmentTrends();
  const items=(governmentData.items||[]).filter(x=>['provisional','human_reviewed'].includes(x.classification_status)), related=items.filter(x=>x.related===true);
  const pendingSources=(governmentSourceDirectory.sources||[]).filter(x=>x.collection_status==='pending');
  $('#government-pending').innerHTML=pendingSources.length?'<button type="button" id="government-pending-open" aria-haspopup="dialog" aria-controls="government-pending-dialog"><span>Pending collection <b>'+pendingSources.length+' countries</b></span><span>View sources ↗</span></button>':'';
@@ -279,9 +305,13 @@ async function init(){try{
  }catch(e){$('#data-status').textContent='Snapshot unavailable. Please refresh or check the publishing workflow.';console.error(e);}}
 for(const id of ['batch','country','topic','metric','response-metric'])$('#'+id).onchange=render;
  for(const id of ['government-country','government-narrative','government-review'])$('#'+id).onchange=renderGovernment;
- $('#trend-range').onchange=()=>{document.querySelectorAll('.trend-custom-date').forEach(el=>el.hidden=$('#trend-range').value!=='custom');renderGovernmentTrends();};
- for(const id of ['trend-from','trend-to','trend-country-1','trend-country-2','trend-country-3'])$('#'+id).onchange=renderGovernmentTrends;
- $('#government-trend-legend').onclick=e=>{const button=e.target.closest('[data-trend-topic]');if(!button)return;const topic=button.dataset.trendTopic;if(hiddenTrendTopics.has(topic))hiddenTrendTopics.delete(topic);else hiddenTrendTopics.add(topic);renderGovernmentTrends();};
+ $('#trend-range').onchange=()=>{document.querySelectorAll('.trend-custom-date').forEach(el=>el.hidden=$('#trend-range').value!=='custom');activeTrendLine=null;renderGovernmentTrends();};
+ $('#trend-topic').onchange=()=>{activeTrendLine=null;renderGovernmentTrends();};
+ for(const id of ['trend-from','trend-to','trend-country-1','trend-country-2','trend-country-3'])$('#'+id).onchange=()=>{activeTrendLine=null;renderGovernmentTrends();};
+ const focusTrend=e=>{const target=e.target.closest('[data-trend-key]');if(!target)return;activeTrendLine=target.dataset.trendKey;renderGovernmentTrends();if(e.type==='keydown'){[...$('#government-trend-legend').querySelectorAll('[data-trend-key]')].find(el=>el.dataset.trendKey===activeTrendLine)?.focus();}};
+ $('#government-trend-charts').onclick=focusTrend;
+ $('#government-trend-charts').onkeydown=e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest('[data-trend-key]')){e.preventDefault();focusTrend(e);}};
+ $('#government-trend-legend').onclick=focusTrend;
 $('#date-range').onchange=()=>{$('#custom-dates').hidden=$('#date-range').value!=='custom';if($('#date-range').value==='custom')configureDateInputs();render();};
 for(const id of ['date-from','date-to'])$('#'+id).onchange=render;
 for(const id of ['rank-alignment','rank-sentiment'])$('#'+id).onchange=renderRanking;
