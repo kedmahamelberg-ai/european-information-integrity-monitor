@@ -45,11 +45,12 @@ LONDON = ZoneInfo("Europe/London")
 ROME = ZoneInfo("Europe/Rome")
 BERLIN = ZoneInfo("Europe/Berlin")
 COPENHAGEN = ZoneInfo("Europe/Copenhagen")
+LJUBLJANA = ZoneInfo("Europe/Ljubljana")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","DE","DK","EE","GB","GE","GR","HR","IS","IT","MD","NL","RS","SE"}
+COLLECTOR_READY_CODES = {"AD","AT","BA","BG","BY","DE","DK","EE","GB","GE","GR","HR","IS","IT","MD","NL","RS","SE","SI"}
 
 
 class Links(HTMLParser):
@@ -128,18 +129,18 @@ def official_article_text(body):
     return re.sub(r"\s+"," "," ".join(parser.parts))
 
 
-def fetch(url, limit=2_000_000):
+def fetch(url, limit=2_000_000, timeout=8):
     req=urllib.request.Request(url, headers={"User-Agent":UA,"Accept":"text/html,application/rss+xml,application/atom+xml,application/xml,*/*"})
     try:
-        with urllib.request.urlopen(req, timeout=8) as r:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
             if r.status >= 400: raise RuntimeError(f"HTTP {r.status}")
             return r.geturl(), r.read(limit)
     except urllib.error.URLError as error:
         # Some official servers omit a chain that Python's CA bundle needs,
         # while the runner's curl trust store validates it. Keep TLS enabled.
         if not isinstance(error.reason,ssl.SSLCertVerificationError): raise
-        response=subprocess.run(["curl","-fsSL","--max-time","8","--max-filesize",str(limit),
-                                 "-A",UA,url],capture_output=True,timeout=10)
+        response=subprocess.run(["curl","-fsSL","--max-time",str(timeout),"--max-filesize",str(limit),
+                                 "-A",UA,url],capture_output=True,timeout=timeout+2)
         if response.returncode: raise RuntimeError(f"Verified curl fetch failed: {response.stderr.decode('utf-8','replace')[:180]}") from error
         return url,response.stdout
 
@@ -852,7 +853,44 @@ def discover_denmark(country,start,end):
     return entries,country["url"]
 
 
+def discover_slovenia(country,start,end):
+    """Use the official news archive filtered to the cabinet publisher."""
+    first,last=start.astimezone(LJUBLJANA).date(),end.astimezone(LJUBLJANA).date()
+    entries=[]; seen=set()
+    base=country["url"].split("?",1)[0]
+    for offset in range(0,2000,20):
+        query=urllib.parse.urlencode({"org[0]":"936","start":offset})
+        _,body=fetch(base+"?"+query,timeout=25)
+        page=body.decode("utf-8","replace")
+        if '<ul class="list news-list">' not in page: raise RuntimeError("Slovenian cabinet news listing is missing")
+        cards=re.split(r'<li\s+class="list-item">',page)[1:]
+        if not cards: break
+        older=False
+        for card in cards:
+            card=card.split("</li>",1)[0]
+            dated=re.search(r'<time\s+datetime="(20\d{2}-\d{2}-\d{2})"',card)
+            link=re.search(r'<h3\s+class="title">\s*<a\s+href="([^"]+)">(.*?)</a>',card,re.S)
+            if not dated or not link: raise RuntimeError("Slovenian cabinet news card lacks date or title")
+            day=dt.date.fromisoformat(dated.group(1))
+            if day<first: older=True; continue
+            if day>last: continue
+            url=urllib.parse.urljoin(base,html.unescape(link.group(1)))
+            if not re.fullmatch(r'https://www\.gov\.si/novice/20\d{2}-\d{2}-\d{2}-[^/]+/',url):
+                raise RuntimeError("Unexpected Slovenian cabinet news URL")
+            if url in seen: raise RuntimeError("Slovenian cabinet news repeated an article")
+            seen.add(url)
+            title=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',link.group(2)))).strip()
+            published=dt.datetime.combine(day,dt.time.min,LJUBLJANA).astimezone(dt.timezone.utc)
+            entries.append({"country":country["name"],"country_code":"SI","url":url,"title":title,
+                "published_at":published.isoformat(),"published_date":day.isoformat(),
+                "publication_precision":"day","text":""})
+        if older or not re.search(r'start='+str(offset+20)+r'(?:["&]|&amp;)',page): break
+    else: raise RuntimeError("Slovenian cabinet news archive exceeded 100 pages")
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="SI": return discover_slovenia(country,start,end)
     if country["iso2"]=="DK": return discover_denmark(country,start,end)
     if country["iso2"]=="DE": return discover_germany(country,start,end)
     if country["iso2"]=="SE": return discover_sweden(country,start,end)
@@ -875,6 +913,14 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="SI":
+        _,body=fetch(item["url"],timeout=25)
+        page=body.decode("utf-8","replace")
+        intro=ClassText("intro"); intro.feed(page[page.find('<main'):])
+        content=ClassText("content-blocks"); content.feed(page[page.find('<main'):])
+        article=re.sub(r'\s+',' ',' '.join(intro.parts+content.parts)).strip()
+        if len(article)<40: raise RuntimeError("Slovenian cabinet news has no usable body text")
+        return article
     if item["country_code"]=="DK":
         _,body=fetch(item["url"])
         parser=ClassText("content-rte"); parser.feed(body.decode("utf-8","replace"))
