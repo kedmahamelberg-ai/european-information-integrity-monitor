@@ -47,9 +47,9 @@
     {
       "iso2": "BE",
       "name": "Belgium",
-      "url": "https://news.belgium.be/nl/zoek-een-nieuwsbericht?source%5Bcouncil%5D=council&source%5Bgovernment%5D=government",
+      "url": "https://diplomatie.belgium.be/nl/nieuws",
       "verification_status": "verified",
-      "scope_note": "Official Dutch-language archive filtered to Council of Ministers decisions and federal government members. Excludes federal-institution and agency releases. The English portal omits Council decisions. Automated extraction is pending because direct requests are denied."
+      "scope_note": "Official Dutch-language Foreign Affairs ministry news archive. This is one federal ministry's communications, not all cabinet decisions. The broader federal portal and prime minister's site deny direct scheduled requests; the English federal portal also omits Council decisions."
     },
     {
       "iso2": "BA",
