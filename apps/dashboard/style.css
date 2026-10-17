@@ -31,6 +31,10 @@ footer nav{display:flex;flex-wrap:wrap;gap:12px 20px;letter-spacing:0;text-trans
 .map-key>span{display:inline-flex;align-items:center;gap:4px;min-height:19px;flex:none;line-height:1}
 .map-key b{display:inline-flex;align-items:center;line-height:1}
 .gov-star{font-size:16px;line-height:1}
+.government-ticker{border-color:#4a8292;background:#0b171c}
+.ticker-label{color:#9be7ff;background:#17313a}
+.ticker-track a{border-color:#365664}
+.ticker-track b{color:#9be7ff}
 .government-marker text{font-family:Arial,sans-serif;font-weight:900}
 .government-pending{margin:12px 0 4px}
 .government-pending:empty{display:none}
