@@ -40,6 +40,7 @@
     clearTimeout(slot.watchdog);
     if (slot.player) { try { slot.player.destroy(); } catch {} }
     slot.player = null;
+    slot.direct = false;
   }
   function armWatchdog(slot, generation) {
     clearTimeout(slot.watchdog);
@@ -76,6 +77,16 @@
     };
     if (!active()) { badge(slot, "PAUSED"); return; }
     const generation = ++slot.generation;
+    if (!window.YT?.Player) {
+      // A direct muted embed keeps the street views visible when the optional
+      // YouTube player API does not initialize in a visitor's browser.
+      slot.root.querySelector(`#camera-player-${slot.number}`).innerHTML =
+        `<iframe title="${safe(c.city)}, ${safe(c.country)}: ${safe(c.view)}" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(c.video_id)}?autoplay=1&mute=1&playsinline=1&controls=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="eager"></iframe>`;
+      slot.direct = true;
+      slot.root.querySelector(".camera-player").classList.remove("pending");
+      badge(slot, "● LIVE SOURCE", true);
+      return;
+    }
     slot.player = new YT.Player(`camera-player-${slot.number}`, {
       host: "https://www.youtube-nocookie.com",
       width: "100%", height: "200", videoId: c.video_id,
@@ -118,7 +129,15 @@
   }
   function resumeVisibility() {
     for (const slot of slots) {
-      if (!active()) { slot.player?.pauseVideo?.(); clearTimeout(slot.watchdog); }
+      if (!active()) {
+        slot.player?.pauseVideo?.(); clearTimeout(slot.watchdog);
+        if (slot.direct) {
+          slot.root.querySelector(".camera-player")?.replaceChildren();
+          slot.direct = false;
+          badge(slot, "PAUSED");
+        }
+      }
+      else if (slot.direct) continue;
       else if (!slot.player && slot.index >= 0) mount(slot);
       else { slot.player?.playVideo?.(); if (!slot.autoplayBlocked) armWatchdog(slot, slot.generation); }
     }
@@ -132,7 +151,7 @@
       root.className = "camera-tile";
       root.setAttribute("aria-label", `Live city view ${number + 1}`);
       wall.appendChild(root);
-      return {number,root,index:-1,player:null,elapsed:0,duration:60+number*15,generation:0,autoplayBlocked:false};
+      return {number,root,index:-1,player:null,direct:false,elapsed:0,duration:60+number*15,generation:0,autoplayBlocked:false};
     });
     // Only mounted cameras reserve countries, so initialization cannot reserve a phantom slot.
     slots[1].index = -1;
@@ -177,8 +196,7 @@
       const previous = slots.map(slot=>({slot,camera:cameras[slot.index]}));
       cameras = catalogue.cameras;
       if (!booted) {
-        if(window.YT?.Player)boot();
-        else if(!window.onYouTubeIframeAPIReady) {window.onYouTubeIframeAPIReady=boot;const script=document.createElement('script');script.src='https://www.youtube.com/iframe_api';script.onerror=()=>{wall.innerHTML='<p class="camera-message">Camera player could not load. Open the camera list to watch at the source.</p>';};document.head.appendChild(script);}
+        boot();
         return;
       }
       for (const {slot,camera} of previous)
