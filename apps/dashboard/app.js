@@ -208,8 +208,9 @@ function renderGovernmentTrends(){
  const comparison=selectedCountries.length>1,cohorts=selectedCountries.map(code=>trendCountrySeries(code,topics,selected,days));
  const frequency=new Map(topics.map(t=>[t,selected.reduce((n,item)=>n+Number(governmentTopicCodes(item).includes(t)),0)]));
  const ranked=topics.filter(t=>frequency.get(t)>0).sort((a,b)=>frequency.get(b)-frequency.get(a)||(data.topic_labels?.[a]||a).localeCompare(data.topic_labels?.[b]||b));
+ const comparedRanked=topics.filter(t=>cohorts.some(c=>(c.counts.get(t)||0)>0)).sort((a,b)=>cohorts.filter(c=>(c.counts.get(b)||0)>0).length-cohorts.filter(c=>(c.counts.get(a)||0)>0).length||cohorts.reduce((n,c)=>n+(c.counts.get(b)||0)-(c.counts.get(a)||0),0));
  let choice=$('#trend-topic').value;
- if(comparison&&(choice==='top'||choice==='all')&&ranked.length){choice=ranked[0];$('#trend-topic').value=choice;activeTrendLine=null;}
+ if(comparison&&(choice==='top'||choice==='all')&&comparedRanked.length){choice=comparedRanked[0];$('#trend-topic').value=choice;activeTrendLine=null;}
  $('#government-trends-description').textContent=comparison?'Compare the selected narrative across countries on one daily chart. Each line uses that country’s related topic labels as its denominator.':'Each line shows a narrative’s cumulative share of all related topic labels in the selected period. A communication can have more than one narrative.';
  const visibleTopics=choice==='top'?ranked.slice(0,8):choice==='all'?ranked:topics.includes(choice)?[choice]:[];
  const countryColors=['#86dafa','#f4ca68','#cc9df3'];
@@ -218,7 +219,8 @@ function renderGovernmentTrends(){
  const w=1000,h=300,left=55,right=25,top=26,bottom=48,plotW=w-left-right,plotH=h-top-bottom;
  const x=i=>left+(days.length===1?plotW/2:i*plotW/(days.length-1)),y=value=>top+plotH*(1-value/axisMax);
  const formatPercent=v=>v.toFixed(1)+'%';
- const grid=[0,.25,.5,.75,1].map(f=>{const v=axisMax*f;return `<line x1="${left}" y1="${y(v)}" x2="${w-right}" y2="${y(v)}" class="trend-grid"/><text x="${left-10}" y="${y(v)+4}" text-anchor="end" class="trend-axis">${formatPercent(v)}</text>`;}).join('');
+ const tickStep=axisMax<=2?0.5:axisMax<=5?1:axisMax<=10?2:axisMax<=25?5:axisMax<=50?10:25;
+ const grid=Array.from({length:Math.floor(axisMax/tickStep)+1},(_,i)=>i*tickStep).map(v=>`<line x1="${left}" y1="${y(v)}" x2="${w-right}" y2="${y(v)}" class="trend-grid"/><text x="${left-10}" y="${y(v)+4}" text-anchor="end" class="trend-axis">${formatPercent(v)}</text>`).join('');
  const step=Math.max(1,Math.ceil(days.length/7)),tickIndexes=[...new Set([...days.keys()].filter(i=>i%step===0).concat(days.length-1))];
  const ticks=tickIndexes.map(i=>`<text x="${x(i)}" y="${h-14}" text-anchor="middle" class="trend-axis">${esc(days[i].slice(5))}</text>`).join('');
  const paths=seriesDefs.map(s=>{
