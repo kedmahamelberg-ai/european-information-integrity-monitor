@@ -265,6 +265,46 @@ function renderGovernmentTrends(){
  legend.innerHTML=seriesDefs.map(s=>`<button type="button" data-trend-key="${esc(s.key)}" aria-pressed="${activeTrendLine===s.key}"><i style="background:${s.color}"></i><span>${esc(s.label)}</span><b>${formatPercent(s.values.at(-1))}</b></button>`).join('');
  note.textContent=`${from} to ${to} · Daily cumulative shares from the start of this period. Each related topic label contributes once to the denominator. ${comparison?'Country lines compare one selected narrative; percentages are within each country.':choice==='top'?'Showing the eight most common narratives; choose “All active narratives” to see more.':'Only narratives with at least one related label are shown.'} Updated with each published collection.`;
 }
+// Pick one related story per country, with a new weighted draw on each page visit.
+// Recency, citizen-facing security topics and explicit European scope guide placement;
+// these are display preferences, never changes to the research classification.
+function buildGovernmentHighlights(items, previous=[], random=Math.random, now=Date.now()){
+ const citizenTopics=new Set(['water','energy','food_security','critical_infrastructure','health_biosecurity','economic_financial_security','cyber','civil_protection','armed_conflict','military_defence','nuclear_cbrn','terrorism_organised_crime']);
+ const seen=new Set(), groups=new Map();
+ const weight=item=>{
+  const date=Date.parse(item.published_at||item.published_date||'');
+  const age=Number.isFinite(date)?Math.max(0,(now-date)/86400000):30;
+  const citizen=governmentTopicCodes(item).some(topic=>citizenTopics.has(topic));
+  const european=/\b(europe(?:an)?|eu|nato|cross.border|ukraine)\b/i.test([item.ticker_message,item.english_summary].filter(Boolean).join(' '));
+  return (1+4*Math.exp(-age/4))*(citizen?1.8:1)*(european?1.4:1);
+ };
+ const rank=item=>-Math.log(Math.max(Number.MIN_VALUE,random()))/weight(item);
+ for(const item of items){
+  if(item.related!==true||!['provisional','human_reviewed'].includes(item.classification_status)||!item.url||!item.country_code||seen.has(item.url))continue;
+  seen.add(item.url);
+  if(!groups.has(item.country_code))groups.set(item.country_code,[]);
+  groups.get(item.country_code).push(item);
+ }
+ const picks=[...groups.values()].map(group=>{
+  const fresh=group.filter(item=>!previous.includes(item.url));
+  return (fresh.length?fresh:group).map(item=>({item,rank:rank(item)})).sort((a,b)=>a.rank-b.rank)[0].item;
+ }).map(item=>({item,rank:rank(item)})).sort((a,b)=>a.rank-b.rank).map(x=>x.item);
+ // Avoid repeating the previous opening stories where alternatives exist.
+ const fresh=picks.filter(item=>!previous.includes(item.url));
+ const repeated=picks.filter(item=>previous.includes(item.url));
+ return [...fresh.slice(0,3),...fresh.slice(3),...repeated];
+}
+let governmentWatchSource=null, governmentWatchHighlights=[];
+function getGovernmentHighlights(items){
+ if(governmentWatchSource===items)return governmentWatchHighlights;
+ let previous=[];
+ try{const saved=JSON.parse(localStorage.getItem('esm-government-watch-opening')||'[]');if(Array.isArray(saved))previous=saved;}catch{}
+ governmentWatchHighlights=buildGovernmentHighlights(items,previous);
+ governmentWatchSource=items;
+ try{localStorage.setItem('esm-government-watch-opening',JSON.stringify(governmentWatchHighlights.slice(0,3).map(x=>x.url)));}catch{}
+ return governmentWatchHighlights;
+}
+
 function renderGovernment(){
  updateTrendCountries();updateTrendTopics();renderGovernmentTrends();
  const items=(governmentData.items||[]).filter(x=>['provisional','human_reviewed'].includes(x.classification_status)), related=items.filter(x=>x.related===true);
@@ -272,7 +312,7 @@ function renderGovernment(){
  $('#government-pending').innerHTML=pendingSources.length?'<button type="button" id="government-pending-open" aria-haspopup="dialog" aria-controls="government-pending-dialog"><span>Pending collection <b>'+pendingSources.length+' countries</b></span><span>View sources ↗</span></button>':'';
  $('#government-pending-list').innerHTML=pendingSources.map(x=>'<a href="'+esc(x.url)+'" target="_blank" rel="noopener"><b>'+esc(x.name)+'</b><span>Pending ↗</span></a>').join('');
  if(pendingSources.length)$('#government-pending-open').onclick=()=>$('#government-pending-dialog').showModal();
- const latestByCountry=new Map(); for(const item of related.slice().sort((a,b)=>(b.published_at||'').localeCompare(a.published_at||''))){if(!latestByCountry.has(item.country_code))latestByCountry.set(item.country_code,item);} const highlights=[...latestByCountry.values()];
+ const highlights=getGovernmentHighlights(governmentData.items||[]);
  $('#government-ticker').innerHTML=highlights.length?'<span class="ticker-label">GOVERNMENT WATCH · '+highlights.length+' COUNTRIES</span><div class="ticker-window"><div class="ticker-track">'+[...highlights,...highlights].map(x=>'<a href="'+esc(x.url)+'" target="_blank" rel="noopener" title="'+esc(x.country)+' · '+esc(x.title)+'"><b>'+esc(x.country)+'</b> '+esc(x.ticker_message||x.english_summary||x.title)+'</a>').join('')+'</div></div>':'<span class="ticker-label">GOVERNMENT WATCH</span><span class="ticker-empty">No classified related government communications in this collection window.</span>';
  const tickerTrack=$('#government-ticker .ticker-track');if(tickerTrack)tickerTrack.style.animationDuration=Math.max(120,Math.ceil(tickerTrack.scrollWidth/2/28))+'s';
  const country=$('#government-country')?.value||'all', narrative=$('#government-narrative')?.value||'all', review=$('#government-review')?.value||'all';
