@@ -1,7 +1,12 @@
 name: Daily government communications
 on:
   schedule:
-    - cron: "0 15 * * *"
+    # Wake before the top-of-hour congestion, then wait for 15:00 locally.
+    - cron: "47 14 * * *"
+      timezone: "Europe/Amsterdam"
+    - cron: "0,17,47 15 * * *"
+      timezone: "Europe/Amsterdam"
+    - cron: "17 16 * * *"
       timezone: "Europe/Amsterdam"
   workflow_dispatch:
     inputs:
@@ -31,14 +36,31 @@ permissions:
   contents: write
   pages: write
   id-token: write
-concurrency:
-  group: pages
-  cancel-in-progress: false
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      enabled: ${{ steps.schedule.outputs.enabled }}
+      until: ${{ steps.schedule.outputs.until }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for the daily Amsterdam collection time
+        id: schedule
+        run: python scripts/government_schedule.py prepare
   collect:
+    needs: prepare
+    if: needs.prepare.outputs.enabled == 'true'
+    # Take the shared publishing lock only after the pre-15:00 wait.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
+      DAILY_UNTIL: ${{ needs.prepare.outputs.until }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -75,9 +97,16 @@ jobs:
           restore-keys: |
             government-checkpoint-hybrid-v3-${{ github.ref_name }}-
             government-checkpoint-hybrid-v2-${{ github.ref_name }}-
+      - name: Check saved daily progress
+        id: daily
+        run: python scripts/government_schedule.py collect
       - name: Collect, translate and classify official government news
+        env:
+          DAILY_MODE: ${{ steps.daily.outputs.mode }}
         run: |
           args=()
+          if [ -n "$DAILY_UNTIL" ]; then args+=(--until "$DAILY_UNTIL"); fi
+          if [ "$DAILY_MODE" = "classify-only" ]; then args+=(--classify-only); fi
           if [ -n "$COLLECTION_SINCE" ]; then args+=(--since "$COLLECTION_SINCE"); fi
           if [ -n "$COLLECTION_UNTIL" ]; then args+=(--until "$COLLECTION_UNTIL"); fi
           if [ -n "$COLLECTION_COUNTRIES" ]; then args+=(--countries "$COLLECTION_COUNTRIES"); fi
