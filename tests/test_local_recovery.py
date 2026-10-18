@@ -10,6 +10,28 @@ recovery = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(recovery)
 
 class LocalRecoveryTests(unittest.TestCase):
+    def test_dns_failure_prevents_audio_attempt_and_cooldown(self):
+        def unavailable(*_):
+            raise OSError('sandbox DNS detail')
+        with self.assertRaisesRegex(RuntimeError, 'direct Mac network access') as error:
+            recovery.verify_audio_preflight(resolve=unavailable)
+        self.assertNotIn('sandbox DNS detail', str(error.exception))
+
+    def test_audio_preflight_rejects_unusable_private_cookie(self):
+        previous = os.environ.get('EIIM_YOUTUBE_COOKIE_FILE')
+        try:
+            with tempfile.TemporaryDirectory() as folder:
+                path = Path(folder) / 'cookies.txt'
+                path.write_text('# Netscape HTTP Cookie File\n')
+                os.environ['EIIM_YOUTUBE_COOKIE_FILE'] = str(path)
+                with self.assertRaisesRegex(RuntimeError, 'invalid or expired'):
+                    recovery.verify_audio_preflight(resolve=lambda *_: [('ready',)])
+        finally:
+            if previous is None:
+                os.environ.pop('EIIM_YOUTUBE_COOKIE_FILE', None)
+            else:
+                os.environ['EIIM_YOUTUBE_COOKIE_FILE'] = previous
+
     def test_mac_stay_awake_is_bound_to_recovery_pid(self):
         calls = []
         marker = object()
