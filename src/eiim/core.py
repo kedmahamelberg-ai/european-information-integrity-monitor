@@ -63,6 +63,38 @@ def term_match(text, term):
     )
 
 
+def tourism_only(title, description=""):
+    """Exclude clear travel promotion without a public-affairs signal.
+
+    Keep ambiguous cases for the existing relevance classifier, especially
+    reports about tourism policy or protests in tourist destinations.
+    """
+    title = normalize(title)
+    context = normalize(title + "\n" + description)
+    travel = re.search(
+        r"\b(?:travel (?:guide|vlog)|walking tour|city (?:tour|walk)|virtual tour|"
+        r"things to do|places to visit|must[- ]visit|tourist attractions?|"
+        r"vacation (?:in|to)|holiday (?:in|to)|trip to|"
+        r"gu[ií]a de viaje|lugares para visitar|viaje a|"
+        r"guide de voyage|visiter [a-zà-ÿ]+|voyage [aà] |"
+        r"roteiro de viagem|viagem (?:a|para)|passeio (?:em|por)|"
+        r"cosa vedere|guida turistica|stadtf[uü]hrung|reisevlog)\b",
+        title,
+    )
+    civic = re.search(
+        r"\b(?:protest\w*|demonstrat\w*|manifest\w*|strike|strikes|"
+        r"gr[eè]ve\w*|greve\w*|huelga\w*|sciopero\w*|"
+        r"government|gouvernement|governo|gobierno|regierung|"
+        r"parliament|parlement|parlamento|election\w*|[eé]lection\w*|"
+        r"pol[ií]tic\w*|policy|politique|pol[ií]tica|"
+        r"security|s[eé]curit[eé]|seguran[çc]a|seguridad|"
+        r"war|guerre|guerra|conflict\w*|conflit\w*|"
+        r"migration|immigration|tax|imp[oô]t\w*|imposto\w*)\b",
+        context,
+    )
+    return bool(travel and not civic)
+
+
 def country_matches(title, description, cfg=None):
     cfg = cfg or config("countries")
     text = title + "\n" + description
@@ -75,6 +107,7 @@ def country_matches(title, description, cfg=None):
             *c["variants"],
             *c["local_demonyms"],
             *c["adjectival_forms"],
+            *c.get("major_city_cues", []),
         ]
         if any(term_match(text, t) for t in terms):
             matched.append(c["iso2"])
@@ -286,6 +319,11 @@ def channel_tiers(channels, at, cfg=None):
 
 def rank_comments(comments, cfg=None):
     cfg = cfg or config("sampling")
+    # Relevance-ordered pages can overlap while YouTube updates rankings.
+    unique = {}
+    for comment in comments:
+        unique.setdefault(comment["comment_id"], comment)
+    comments = list(unique.values())
     weights = cfg["comment_visibility_weights"]
     likes = max([c["like_count"] for c in comments] + [1])
     replies = max([c["reply_count"] for c in comments] + [1])

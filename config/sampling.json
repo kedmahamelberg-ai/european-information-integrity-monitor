@@ -1,5 +1,5 @@
 {
-  "version": "sampling-1.1",
+  "version": "sampling-1.2",
   "seed": 20261004,
   "target_per_country": 10,
   "tier_weights": {
