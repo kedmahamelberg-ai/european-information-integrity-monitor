@@ -75,7 +75,7 @@ jobs:
                 echo '::error::Targeted classification requires a batch and classification_only=true'
                 return 1
               }
-              targets+=(--video-ids "$REVIEW_VIDEO_IDS")
+              targets+=(--video-ids="$REVIEW_VIDEO_IDS")
             fi
             if [ -n "$REVIEW_BATCH" ]; then
               PYTHONPATH=src python -m eiim.hybrid "${recovery[@]}" "${targets[@]}" --batch "$REVIEW_BATCH" | tee /tmp/hybrid-report.json
