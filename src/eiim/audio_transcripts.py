@@ -123,7 +123,9 @@ class AudioTranscripts:
         if category:
             self.download_errors[category] = self.download_errors.get(category, 0) + 1
         reason = result.get("failure_reason")
-        if reason in {"AudioAccessBlocked", "AudioDownloadUnavailable"}:
+        # Video-specific download failures must not halt other sources.
+        # Only repeated authentication or rate-limit failures stop the session.
+        if reason == "AudioAccessBlocked":
             self.blocked_attempts += 1
             if self.blocked_attempts >= 3:
                 self.stopped = "audio_access_unavailable"
