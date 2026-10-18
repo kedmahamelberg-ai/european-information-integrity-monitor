@@ -104,8 +104,12 @@ about = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="description" content="The European Security Monitor is an independent research project created and developed by Kedma Hamelberg, PhD.">
 <meta name="author" content="Kedma Hamelberg">
 <link rel="canonical" href="https://monitor.hamelberg-ai.com/about.html">
+<meta property="og:title" content="About the European Security Monitor | Kedma Hamelberg">
+<meta property="og:description" content="Meet the creator and learn how the European Security Monitor studies security narratives and audience responses.">
+<meta property="og:image" content="https://monitor.hamelberg-ai.com/assets/esm-preview.png">
+<link rel="icon" type="image/png" sizes="64x64" href="/assets/favicon.png">
 <link rel="stylesheet" href="style.css?v=REV"></head><body>
-<main class="methodology"><p><a href="./">Open the European Security Monitor</a></p>BODY</main>
+<main class="methodology"><p><a href="./">Open the European Security Monitor</a></p><figure><img src="assets/esm-preview.png" width="1200" height="630" alt="European Security Monitor: research on European security narratives by Kedma Hamelberg" style="display:block;max-width:100%;height:auto"><figcaption>European Security Monitor, created and developed by Kedma Hamelberg, PhD.</figcaption></figure>BODY</main>
 </body></html>""".replace("REV", revision).replace("BODY", (out / "methodology.html").read_text())
 (out / "about.html").write_text(about)
 (out / "robots.txt").write_text("User-agent: *\nAllow: /\nSitemap: https://monitor.hamelberg-ai.com/sitemap.xml\n")
