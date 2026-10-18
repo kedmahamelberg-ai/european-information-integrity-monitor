@@ -19,8 +19,13 @@ class ClassificationExitTests(unittest.TestCase):
     def test_workflow_can_hold_unrequested_videos_for_human_review(self):
         workflow = (Path(__file__).parents[1] / ".github/workflows/classification-review.yml").read_text()
         self.assertIn("video_ids:", workflow)
-        self.assertIn('targets+=(--video-ids "$REVIEW_VIDEO_IDS")', workflow)
+        self.assertIn('targets+=(--video-ids="$REVIEW_VIDEO_IDS")', workflow)
         self.assertIn('test "$REVIEW_CLASSIFICATION_ONLY" = "true"', workflow)
+
+    def test_targeted_comment_refresh_accepts_video_ids_starting_with_hyphen(self):
+        workflow = (Path(__file__).parents[1] / ".github/workflows/comment-refresh.yml").read_text()
+        self.assertEqual(workflow.count('--video-ids="$REVIEW_VIDEO_IDS"'), 2)
+        self.assertNotIn('--video-ids "$REVIEW_VIDEO_IDS"', workflow)
 
     def test_completed_classification_triggers_publication(self):
         site = (Path(__file__).parents[1] / ".github/workflows/site.yml").read_text()

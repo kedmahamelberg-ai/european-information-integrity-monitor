@@ -54,7 +54,7 @@ jobs:
         shell: bash
         run: |
           if [ -n "$REVIEW_VIDEO_IDS" ]; then
-            PYTHONPATH=src python -m eiim.cli refresh-comments --batch "$REVIEW_BATCH" --video-ids "$REVIEW_VIDEO_IDS" > /tmp/comment-refresh.json
+            PYTHONPATH=src python -m eiim.cli refresh-comments --batch "$REVIEW_BATCH" --video-ids="$REVIEW_VIDEO_IDS" > /tmp/comment-refresh.json
           else
             PYTHONPATH=src python -m eiim.cli refresh-comments --batch "$REVIEW_BATCH" > /tmp/comment-refresh.json
           fi
@@ -64,7 +64,7 @@ jobs:
         run: |
           run_hybrid() {
             if [ -n "$REVIEW_VIDEO_IDS" ]; then
-              PYTHONPATH=src python -m eiim.hybrid --batch "$REVIEW_BATCH" --video-ids "$REVIEW_VIDEO_IDS" | tee /tmp/hybrid-report.json
+              PYTHONPATH=src python -m eiim.hybrid --batch "$REVIEW_BATCH" --video-ids="$REVIEW_VIDEO_IDS" | tee /tmp/hybrid-report.json
             else
               PYTHONPATH=src python -m eiim.hybrid --batch "$REVIEW_BATCH" | tee /tmp/hybrid-report.json
             fi
