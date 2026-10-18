@@ -222,7 +222,7 @@ function renderGovernmentTrends(){
  const dated=coded.map(x=>({...x,chartDate:(x.published_date||x.published_at||'').slice(0,10)})).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x.chartDate));
  const chartHost=$('#government-trend-charts'),legend=$('#government-trend-legend'),note=$('#government-trend-note');
  if(!dated.length){chartHost.innerHTML='<p class="empty">Narrative dynamics will appear when related government communications are classified.</p>';legend.innerHTML='';note.textContent='';return;}
- const allDates=dated.map(x=>x.chartDate).sort(),first=allDates[0],last=allDates.at(-1),range=$('#trend-range').value;
+ const allDates=dated.map(x=>x.chartDate).sort(),first=allDates[0],lastPublished=allDates.at(-1),collectionDate=(governmentData.as_of||'').slice(0,10),last=/^\d{4}-\d{2}-\d{2}$/.test(collectionDate)&&collectionDate>lastPublished?collectionDate:lastPublished,range=$('#trend-range').value;
  let from=first,to=last;
  if(range==='7'||range==='30')from=new Date(Date.parse(last+'T00:00:00Z')-(Number(range)-1)*86400000).toISOString().slice(0,10);
  if(range==='custom'){from=$('#trend-from').value||first;to=$('#trend-to').value||last;}
@@ -263,7 +263,7 @@ function renderGovernmentTrends(){
  const meta=comparison?'Same topic · one shared time axis · each country has its own denominator':`${num(cohorts[0].items)} related communications · ${num(cohorts[0].total)} topic labels`;
  chartHost.innerHTML=`<div class="trend-panel"><div class="trend-panel-title"><strong>${title}</strong><span>${esc(meta)}</span></div>${seriesDefs.length?`<svg viewBox="0 0 ${w} ${h}" role="group" aria-label="Daily cumulative narrative shares, ${esc(from)} to ${esc(to)}">${grid}${ticks}${paths}</svg>${focus}${bars}`:'<p class="empty">No related narrative labels match this selection.</p>'}</div>`;
  legend.innerHTML=seriesDefs.map(s=>`<button type="button" data-trend-key="${esc(s.key)}" aria-pressed="${activeTrendLine===s.key}"><i style="background:${s.color}"></i><span>${esc(s.label)}</span><b>${formatPercent(s.values.at(-1))}</b></button>`).join('');
- note.textContent=`${from} to ${to} · Daily cumulative shares from the start of this period. Each related topic label contributes once to the denominator. ${comparison?'Country lines compare one selected narrative; percentages are within each country.':choice==='top'?'Showing the eight most common narratives; choose “All active narratives” to see more.':'Only narratives with at least one related label are shown.'} Updated with each published collection.`;
+ note.textContent=`${from} to ${to} · Daily cumulative shares by source publication date. Each related topic label contributes once to the denominator. ${to>lastPublished?`The collection extends through ${to}; no related source was published after ${lastPublished}, so the lines carry forward unchanged. `:''}${comparison?'Country lines compare one selected narrative; percentages are within each country.':choice==='top'?'Showing the eight most common narratives; choose “All active narratives” to see more.':'Only narratives with at least one related label are shown.'} Updated with each published collection.`;
 }
 // Pick one related story per country, with a new weighted draw on each page visit.
 // Recency, citizen-facing security topics and explicit European scope guide placement;
