@@ -2,7 +2,7 @@
 
 import json, os, time, uuid, urllib.request, urllib.parse, urllib.error
 from datetime import datetime, timezone, timedelta
-from .core import config, digest, now, normalize, cosine, validate_classification, ROOT
+from .core import config, digest, now, normalize, cosine, validate_classification, tourism_only, ROOT
 from .storage import record
 
 
@@ -213,6 +213,7 @@ class YouTube:
                         c["english_demonym"],
                         *c["local_names"],
                         *c["variants"],
+                        *c.get("major_city_cues", []),
                     ]
                 )
             )
@@ -232,7 +233,9 @@ class YouTube:
                     "part": "snippet",
                     "type": "video",
                     "q": q,
-                    "order": "date",
+                    # One page per country remains within the fixed request budget.
+                    # Date ordering returned almost only Saturday in 2026-W42.
+                    "order": "relevance",
                     "maxResults": self.cfg["search_page_size"],
                     "publishedAfter": utc(
                         (
@@ -246,6 +249,9 @@ class YouTube:
                     params["pageToken"] = token
                 response = self.get("search", **params)
                 for item in response.get("items", []):
+                    snippet = item.get("snippet", {})
+                    if tourism_only(snippet.get("title", ""), snippet.get("description", "")):
+                        continue
                     candidates[item["id"]["videoId"]] = item
                 token = response.get("nextPageToken")
                 if not token:
@@ -262,6 +268,7 @@ class YouTube:
 
     def comments(self, video_id):
         out = []
+        seen = set()
         token = None
         limit = self.cfg["comment_pool_limit"]
         while limit == "all" or len(out) < limit:
@@ -282,6 +289,9 @@ class YouTube:
                 raise
             for t in body.get("items", []):
                 c = t["snippet"]["topLevelComment"]
+                if c["id"] in seen:
+                    continue
+                seen.add(c["id"])
                 s = c["snippet"]
                 out.append(
                     {

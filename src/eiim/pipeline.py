@@ -307,6 +307,7 @@ class Pipeline:
                     *c["variants"],
                     *c["local_demonyms"],
                     *c["adjectival_forms"],
+                    *c.get("major_city_cues", []),
                 ]
             ):
                 terms.append(
@@ -341,6 +342,16 @@ class Pipeline:
             if "relevance_video_id" in x
         }
         for v in self.values("candidate_videos"):
+            if tourism_only(v["title"], v["description"]):
+                frame.append(
+                    dict(
+                        v,
+                        news_relevance=False,
+                        news_relevance_confidence=1,
+                        relevance_method="deterministic_tourism_only",
+                    )
+                )
+                continue
             if not v["frame_eligible"]:
                 frame.append(
                     dict(

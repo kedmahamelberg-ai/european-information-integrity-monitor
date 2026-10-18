@@ -1,5 +1,5 @@
 {
-  "version": "geography-1.0",
+  "version": "geography-1.1",
   "scope": "Broad European geographic universe including transcontinental states, Cyprus and Kosovo (status neutral). No dependent territories as separate countries. XK/XKX are user-assigned codes, not official ISO assignments.",
   "generic_terms": [
     "Europe",
@@ -27,7 +27,12 @@
       ],
       "latitude": 41.15,
       "longitude": 20.17,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Tirana",
+        "Durrës",
+        "Vlorë"
+      ]
     },
     {
       "iso2": "AD",
@@ -48,7 +53,12 @@
       ],
       "latitude": 42.55,
       "longitude": 1.6,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Andorra la Vella",
+        "les Escaldes",
+        "Encamp"
+      ]
     },
     {
       "iso2": "AM",
@@ -69,7 +79,12 @@
       ],
       "latitude": 40.1,
       "longitude": 45.0,
-      "scope_note": "Transcontinental/broad European scope"
+      "scope_note": "Transcontinental/broad European scope",
+      "major_city_cues": [
+        "Yerevan",
+        "Gyumri",
+        "Vanadzor"
+      ]
     },
     {
       "iso2": "AT",
@@ -90,7 +105,12 @@
       ],
       "latitude": 47.5,
       "longitude": 14.5,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Vienna",
+        "Graz",
+        "Linz"
+      ]
     },
     {
       "iso2": "AZ",
@@ -111,7 +131,12 @@
       ],
       "latitude": 40.4,
       "longitude": 47.7,
-      "scope_note": "Transcontinental/broad European scope"
+      "scope_note": "Transcontinental/broad European scope",
+      "major_city_cues": [
+        "Baku",
+        "Sumgayit",
+        "Ganja"
+      ]
     },
     {
       "iso2": "BY",
@@ -132,7 +157,12 @@
       ],
       "latitude": 53.7,
       "longitude": 28.0,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Minsk",
+        "Homyel'",
+        "Hrodna"
+      ]
     },
     {
       "iso2": "BE",
@@ -157,7 +187,12 @@
       ],
       "latitude": 50.7,
       "longitude": 4.6,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Brussels",
+        "Antwerp",
+        "Gent"
+      ]
     },
     {
       "iso2": "BA",
@@ -181,7 +216,12 @@
       ],
       "latitude": 44.2,
       "longitude": 17.7,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Sarajevo",
+        "Banja Luka",
+        "Zenica"
+      ]
     },
     {
       "iso2": "BG",
@@ -202,7 +242,12 @@
       ],
       "latitude": 42.7,
       "longitude": 25.4,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Sofia",
+        "Plovdiv",
+        "Varna"
+      ]
     },
     {
       "iso2": "HR",
@@ -223,7 +268,12 @@
       ],
       "latitude": 45.1,
       "longitude": 15.2,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Zagreb",
+        "Split",
+        "Rijeka"
+      ]
     },
     {
       "iso2": "CY",
@@ -247,7 +297,12 @@
       ],
       "latitude": 35.0,
       "longitude": 33.0,
-      "scope_note": "Transcontinental/broad European scope"
+      "scope_note": "Transcontinental/broad European scope",
+      "major_city_cues": [
+        "Nicosia",
+        "Limassol",
+        "Larnaca"
+      ]
     },
     {
       "iso2": "CZ",
@@ -271,7 +326,12 @@
       ],
       "latitude": 49.8,
       "longitude": 15.5,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Prague",
+        "Brno",
+        "Ostrava"
+      ]
     },
     {
       "iso2": "DK",
@@ -292,7 +352,12 @@
       ],
       "latitude": 56.1,
       "longitude": 9.5,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Copenhagen",
+        "Århus",
+        "Odense"
+      ]
     },
     {
       "iso2": "EE",
@@ -313,7 +378,12 @@
       ],
       "latitude": 58.7,
       "longitude": 25.2,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Tallinn",
+        "Tartu",
+        "Narva"
+      ]
     },
     {
       "iso2": "FI",
@@ -337,7 +407,12 @@
       ],
       "latitude": 64.5,
       "longitude": 26.0,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Helsinki",
+        "Espoo",
+        "Tampere"
+      ]
     },
     {
       "iso2": "FR",
@@ -360,7 +435,12 @@
       ],
       "latitude": 46.6,
       "longitude": 2.2,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Paris",
+        "Marseille",
+        "Lyon"
+      ]
     },
     {
       "iso2": "GE",
@@ -383,7 +463,12 @@
       ],
       "latitude": 42.1,
       "longitude": 43.4,
-      "scope_note": "Transcontinental/broad European scope"
+      "scope_note": "Transcontinental/broad European scope",
+      "major_city_cues": [
+        "Tbilisi",
+        "Batumi",
+        "Kutaisi"
+      ]
     },
     {
       "iso2": "DE",
@@ -404,7 +489,12 @@
       ],
       "latitude": 51.2,
       "longitude": 10.4,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Berlin",
+        "Hamburg",
+        "Munich"
+      ]
     },
     {
       "iso2": "GR",
@@ -426,7 +516,12 @@
       ],
       "latitude": 39.0,
       "longitude": 22.0,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Athens",
+        "Thessaloníki",
+        "Pátra"
+      ]
     },
     {
       "iso2": "HU",
@@ -447,7 +542,12 @@
       ],
       "latitude": 47.2,
       "longitude": 19.5,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Budapest",
+        "Debrecen",
+        "Szeged"
+      ]
     },
     {
       "iso2": "IS",
@@ -468,7 +568,12 @@
       ],
       "latitude": 64.9,
       "longitude": -18.5,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Reykjavík",
+        "Kópavogur",
+        "Hafnarfjörður"
+      ]
     },
     {
       "iso2": "IE",
@@ -489,7 +594,12 @@
       ],
       "latitude": 53.4,
       "longitude": -8.0,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Dublin",
+        "Cork",
+        "Limerick"
+      ]
     },
     {
       "iso2": "IT",
@@ -512,7 +622,12 @@
       ],
       "latitude": 42.8,
       "longitude": 12.5,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Rome",
+        "Milan",
+        "Naples"
+      ]
     },
     {
       "iso2": "KZ",
@@ -536,7 +651,12 @@
       ],
       "latitude": 48.0,
       "longitude": 67.0,
-      "scope_note": "Transcontinental/broad European scope"
+      "scope_note": "Transcontinental/broad European scope",
+      "major_city_cues": [
+        "Almaty",
+        "Astana",
+        "Shymkent"
+      ]
     },
     {
       "iso2": "XK",
@@ -558,7 +678,12 @@
       ],
       "latitude": 42.6,
       "longitude": 20.9,
-      "scope_note": "Disputed status; included without sovereignty determination"
+      "scope_note": "Disputed status; included without sovereignty determination",
+      "major_city_cues": [
+        "Pristina",
+        "Prizren",
+        "Mitrovicë"
+      ]
     },
     {
       "iso2": "LV",
@@ -579,7 +704,12 @@
       ],
       "latitude": 56.9,
       "longitude": 24.6,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Riga",
+        "Daugavpils",
+        "Liepāja"
+      ]
     },
     {
       "iso2": "LI",
@@ -600,7 +730,12 @@
       ],
       "latitude": 47.17,
       "longitude": 9.55,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Schaan",
+        "Triesen",
+        "Vaduz"
+      ]
     },
     {
       "iso2": "LT",
@@ -621,7 +756,12 @@
       ],
       "latitude": 55.2,
       "longitude": 23.9,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Vilnius",
+        "Kaunas",
+        "Klaipėda"
+      ]
     },
     {
       "iso2": "LU",
@@ -643,7 +783,12 @@
       ],
       "latitude": 49.8,
       "longitude": 6.1,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Luxembourg",
+        "Esch-sur-Alzette",
+        "Dudelange"
+      ]
     },
     {
       "iso2": "MT",
@@ -664,7 +809,12 @@
       ],
       "latitude": 35.9,
       "longitude": 14.4,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "San Pawl il-Baħar",
+        "Birkirkara",
+        "Mosta"
+      ]
     },
     {
       "iso2": "MD",
@@ -688,7 +838,12 @@
       ],
       "latitude": 47.0,
       "longitude": 28.4,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Chisinau",
+        "Tiraspol",
+        "Bălţi"
+      ]
     },
     {
       "iso2": "MC",
@@ -709,7 +864,10 @@
       ],
       "latitude": 43.74,
       "longitude": 7.42,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Monaco"
+      ]
     },
     {
       "iso2": "ME",
@@ -731,7 +889,12 @@
       ],
       "latitude": 42.7,
       "longitude": 19.3,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Podgorica",
+        "Nikšić",
+        "Herceg Novi"
+      ]
     },
     {
       "iso2": "NL",
@@ -754,7 +917,12 @@
       ],
       "latitude": 52.2,
       "longitude": 5.3,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Rotterdam",
+        "Amsterdam",
+        "The Hague"
+      ]
     },
     {
       "iso2": "MK",
@@ -777,7 +945,12 @@
       ],
       "latitude": 41.6,
       "longitude": 21.7,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Skopje",
+        "Kumanovo",
+        "Prilep"
+      ]
     },
     {
       "iso2": "NO",
@@ -799,7 +972,12 @@
       ],
       "latitude": 64.5,
       "longitude": 12.0,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Oslo",
+        "Bergen",
+        "Trondheim"
+      ]
     },
     {
       "iso2": "PL",
@@ -820,7 +998,12 @@
       ],
       "latitude": 52.0,
       "longitude": 19.1,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Warsaw",
+        "Kraków",
+        "Wrocław"
+      ]
     },
     {
       "iso2": "PT",
@@ -843,7 +1026,12 @@
       ],
       "latitude": 39.6,
       "longitude": -8.0,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Lisbon",
+        "Porto",
+        "Braga"
+      ]
     },
     {
       "iso2": "RO",
@@ -864,7 +1052,12 @@
       ],
       "latitude": 45.9,
       "longitude": 25.0,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Bucharest",
+        "Iaşi",
+        "Constanţa"
+      ]
     },
     {
       "iso2": "RU",
@@ -890,7 +1083,12 @@
       ],
       "latitude": 58.0,
       "longitude": 40.0,
-      "scope_note": "Transcontinental/broad European scope"
+      "scope_note": "Transcontinental/broad European scope",
+      "major_city_cues": [
+        "Moscow",
+        "Saint Petersburg",
+        "Novosibirsk"
+      ]
     },
     {
       "iso2": "SM",
@@ -911,7 +1109,12 @@
       ],
       "latitude": 43.94,
       "longitude": 12.46,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Serravalle",
+        "Dogana",
+        "Valdragone"
+      ]
     },
     {
       "iso2": "RS",
@@ -935,7 +1138,12 @@
       ],
       "latitude": 44.0,
       "longitude": 20.8,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Belgrade",
+        "Niš",
+        "Novi Sad"
+      ]
     },
     {
       "iso2": "SK",
@@ -956,7 +1164,12 @@
       ],
       "latitude": 48.7,
       "longitude": 19.7,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Bratislava",
+        "Košice",
+        "Nitra"
+      ]
     },
     {
       "iso2": "SI",
@@ -977,7 +1190,12 @@
       ],
       "latitude": 46.1,
       "longitude": 14.8,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Ljubljana",
+        "Maribor",
+        "Celje"
+      ]
     },
     {
       "iso2": "ES",
@@ -1000,7 +1218,12 @@
       ],
       "latitude": 40.3,
       "longitude": -3.7,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Madrid",
+        "Barcelona",
+        "Valencia"
+      ]
     },
     {
       "iso2": "SE",
@@ -1021,7 +1244,12 @@
       ],
       "latitude": 62.0,
       "longitude": 16.0,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Stockholm",
+        "Gothenburg",
+        "Malmö"
+      ]
     },
     {
       "iso2": "CH",
@@ -1047,7 +1275,12 @@
       ],
       "latitude": 46.8,
       "longitude": 8.2,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Zürich",
+        "Geneva",
+        "Basel"
+      ]
     },
     {
       "iso2": "TR",
@@ -1071,7 +1304,12 @@
       ],
       "latitude": 39.0,
       "longitude": 35.0,
-      "scope_note": "Transcontinental/broad European scope"
+      "scope_note": "Transcontinental/broad European scope",
+      "major_city_cues": [
+        "Istanbul",
+        "Ankara",
+        "Bursa"
+      ]
     },
     {
       "iso2": "UA",
@@ -1092,7 +1330,12 @@
       ],
       "latitude": 49.0,
       "longitude": 31.0,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Kyiv",
+        "Kharkiv",
+        "Odesa"
+      ]
     },
     {
       "iso2": "GB",
@@ -1124,7 +1367,12 @@
       ],
       "latitude": 54.5,
       "longitude": -2.5,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "London",
+        "Birmingham",
+        "Glasgow"
+      ]
     },
     {
       "iso2": "VA",
@@ -1147,7 +1395,12 @@
       ],
       "latitude": 41.9,
       "longitude": 12.45,
-      "scope_note": "European sovereign state"
+      "scope_note": "European sovereign state",
+      "major_city_cues": [
+        "Vatican City"
+      ]
     }
-  ]
+  ],
+  "major_city_cues_source": "GeoNames cities1000.zip, population-ranked populated places, retrieved 2026-10-18; excludes feature PPLX neighborhoods. Monaco and Vatican City have fewer than three distinct listed places.",
+  "major_city_cues_source_url": "https://download.geonames.org/export/dump/cities1000.zip"
 }

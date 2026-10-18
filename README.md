@@ -15,6 +15,8 @@ A transcript-based research monitor of conflict and hybrid-threat communication 
 - Public counters are timestamped views, likes and total comments, with nullable missing values, video age and per-1,000-view ratios. Public shares are unavailable. No combined “engagement” sum or causal claims.
 - Minimum available comments: **2**. Existing collection retains up to 30 from a pool of up to 100 visible top-level comments. This is not the full audience.
 
+Weekly discovery searches each monitored country's name, demonym, local names, and up to three major-city cues within the full seven-day window. The city cues are population-ranked populated places from [GeoNames](https://download.geonames.org/export/dump/cities1000.zip); Monaco and Vatican City have fewer than three distinct listed places. Search uses one relevance-ordered page per country and the existing EU-wide page, so it does not increase the request budget. A clear tourism-only title is excluded unless the title or description signals public affairs; ambiguous material still goes through the relevance check. Video and comment IDs are deduplicated before storage, and immutable batch-scoped IDs make retries idempotent. This is a bounded discovery frame, not a census or a guarantee of even daily coverage.
+
 ## Workflows
 
 `Sunday research collection` retains the existing discovery/sample design and feeds the conflict taxonomy. `Classify saved Monitor evidence` reuses a specified retained batch and refreshes counters for existing eligible videos. It never discovers additional videos or retrieves additional comments. Both share the same single-writer concurrency group and $5 weekly model budget.
