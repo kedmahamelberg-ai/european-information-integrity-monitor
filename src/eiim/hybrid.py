@@ -976,6 +976,10 @@ def main():
     print(json.dumps(report, indent=2))
     # Missing acquisition is a visible handoff to the scheduled Mac recovery.
     # A classification failure or budget stop must still fail the workflow.
+    coverage = report.get('coverage') or {}
+    if coverage.get('sampled_videos', 0) > 0 and coverage.get('saved_transcripts') == 0:
+        print('::error::The weekly sample was saved, but zero sources have usable English text; recovery and classification are still pending.')
+        raise SystemExit(1)
     if report.get("classification_status") != "complete" or report.get("failures"):
         raise SystemExit(1)
 

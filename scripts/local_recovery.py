@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import socket
 import subprocess
 import sys
 import ssl
@@ -30,6 +31,20 @@ def configure_private_cookie(private=PRIVATE):
     local_cookie = private / 'cookies.txt'
     if local_cookie.is_file():
         os.environ['EIIM_YOUTUBE_COOKIE_FILE'] = str(local_cookie)
+
+def verify_audio_preflight(resolve=socket.getaddrinfo):
+    """Fail before saving cooldown records when this Mac cannot reach YouTube."""
+    try:
+        resolve('www.youtube.com', 443)
+    except OSError:
+        raise RuntimeError('YouTube DNS unavailable; retry with direct Mac network access') from None
+    chosen = os.environ.get('EIIM_YOUTUBE_COOKIE_FILE')
+    if chosen:
+        from eiim.youtube_session import youtube_cookies
+        try:
+            youtube_cookies(Path(chosen).read_text())
+        except (OSError, ValueError):
+            raise RuntimeError('Private YouTube cookie file missing, invalid or expired') from None
 
 def keep_mac_awake(*, platform=sys.platform, pid=os.getpid, spawn=subprocess.Popen):
     """Keep macOS awake only while this recovery process exists."""
@@ -168,6 +183,8 @@ def main():
         print(json.dumps({'eligible_for_recovery': len(queue), 'retained_local_records': len(rows), 'dry_run': args.dry_run}), flush=True)
         if args.dry_run:
             return
+        if queue:
+            verify_audio_preflight()
         keep_mac_awake()
         temp = output.with_suffix('.new')
         temp.write_text(''.join(json.dumps(r) + '\n' for r in rows))
