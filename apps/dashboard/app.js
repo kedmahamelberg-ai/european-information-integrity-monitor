@@ -353,8 +353,9 @@ function drawFeed(){
  $('#source-feed').innerHTML=v.map(x=>`<button class="feed-item" data-source="${esc(x.batch+'|'+x.id)}"><img src="${thumbnail(x)}" loading="lazy" alt=""><span><span class="source-state ${x.label?'':'pending'}">${esc(state(x))}</span><b>${esc(x.title)}</b><small>${esc(x.countries.join(' / '))} · ${esc(x.batch)} · ${num(x.engagement?.views)} views</small></span></button>`).join('')||'<p class="empty">No sources match these filters.</p>';
 }
 setInterval(()=>{const feed=$('.feed-panel');if(!feedPaused&&!document.hidden&&!$('#monitor').hidden&&!$('#source-dialog').open&&!feed.matches(':hover')&&!feed.contains(document.activeElement)&&feedQueue.length>3){feedIndex=(feedIndex+1)%feedQueue.length;drawFeed();}},8000);
-function renderEvidence(){const q=$("#search").value.toLowerCase(),v=rows(true,true).filter(x=>`${x.title} ${x.channel}`.toLowerCase().includes(q));
- $("#evidence-table").innerHTML=`<p class="small">${v.length} sources · situation-room filters apply. No English text means no content classification.</p><div class="evidence-grid">${v.map(x=>`<article class="case"><img src="${thumbnail(x)}" loading="lazy" alt="Video cover"><span class="source-state ${x.label?'':'pending'}">${esc(state(x))}</span><h2>${esc(x.title)}</h2><p>${esc(x.channel)} · ${esc(x.countries.join(' / '))} · ${esc(x.batch)}</p><p>Original language: ${esc(x.original_language||'und')} · ${num(x.engagement?.views)} views</p>${x.label?`<p>${esc(human(x.label.relevance))} · ${esc(x.label.topics.map(t=>data.topic_labels?.[t]||human(t)).join(' / '))}</p>`:''}<button data-source="${esc(x.batch+'|'+x.id)}">Inspect source ↗</button></article>`).join('')}</div>`;
+function renderEvidence(){const q=$("#search").value.toLowerCase(),batch=$("#archive-batch").value,country=$("#archive-country").value;
+ const v=inventory.filter(x=>(batch==="all"||x.batch===batch)&&(country==="all"||x.countries.includes(country))&&`${x.title} ${x.channel}`.toLowerCase().includes(q));
+ $("#evidence-table").innerHTML=`<p class="small">${v.length} sampled sources · country means mentioned in the title or description, not where the video was filmed or its audience. No English text means no content classification.</p><div class="evidence-grid">${v.map(x=>`<article class="case"><img src="${thumbnail(x)}" loading="lazy" alt="Video cover"><span class="source-state ${x.label?'':'pending'}">${esc(state(x))}</span><h2>${esc(x.title)}</h2><p>${esc(x.channel)} · ${esc(x.countries.join(' / '))} · ${esc(x.batch)}</p><p>Original language: ${esc(x.original_language||'und')} · ${num(x.engagement?.views)} views</p>${x.label?`<p>${esc(human(x.label.relevance))} · ${esc(x.label.topics.map(t=>data.topic_labels?.[t]||human(t)).join(' / '))}</p>`:''}<button data-source="${esc(x.batch+'|'+x.id)}">Inspect source ↗</button></article>`).join('')}</div>`;
 }
 function showSource(key){const v=inventory.find(x=>x.batch+'|'+x.id===key);if(!v)return;
  $("#source-detail").innerHTML=`<span class="source-state">${esc(state(v))}</span><h2>${esc(v.title)}</h2><iframe title="${esc(v.title)}" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.id)}" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe><p class="small">${esc(v.channel)} · ${esc(v.countries.join(' / '))} · original language: ${esc(v.original_language||'und')}</p>${v.transcript_method==='faster-whisper'?'<p class="small">Evidence was automatically transcribed from public audio using Whisper. Translation and speech recognition can contain errors.</p>':''}${v.label?`<p>${esc(human(v.label.relevance))} · ${esc(v.label.topics.map(t=>data.topic_labels?.[t]||human(t)).join(' / '))}</p>${v.label.roles.map(r=>`<span class="tag">${icons[r.role]||''} ${esc(r.entity)} · ${esc(data.role_labels?.[r.role]||human(r.role))}</span>`).join('')}`:'<p class="small">Content labels require a successfully saved English transcript. This source is visible as part of the sampled inventory.</p>'}<p><a href="https://www.youtube.com/watch?v=${encodeURIComponent(v.id)}" target="_blank" rel="noopener">Open original video ↗</a></p>`;
@@ -367,7 +368,9 @@ async function init(){try{
  const coded=new Map(data.videos.map(v=>[v.batch+'|'+v.id,v]));inventory=(data.inventory||data.videos).map(v=>({...v,...coded.get(v.batch+'|'+v.id)}));
  $('#methodology').innerHTML=result[3];$('#geography').innerHTML=result[2].features.map(f=>`<path d="${geometry(f.geometry)}"/>`).join('');
  $('#country').insertAdjacentHTML('beforeend',countries.map(c=>`<option value="${esc(c.iso2)}">${esc(c.country_name)}</option>`).join(''));
+ $('#archive-country').insertAdjacentHTML('beforeend',countries.map(c=>`<option value="${esc(c.iso2)}">${esc(c.country_name)}</option>`).join(''));
  $('#batch').insertAdjacentHTML('beforeend',data.batches.map(b=>`<option value="${esc(b.id)}">${esc(b.id)}</option>`).join(''));
+ $('#archive-batch').insertAdjacentHTML('beforeend',data.batches.map(b=>`<option value="${esc(b.id)}">${esc(b.id)}</option>`).join(''));
  $('#topic').insertAdjacentHTML('beforeend',Object.entries(data.topic_labels||{}).map(([c,n])=>`<option value="${esc(c)}">${esc(n)}</option>`).join(''));
  $('#government-country').insertAdjacentHTML('beforeend',countries.map(c=>`<option value="${esc(c.iso2)}">${esc(c.country_name)}</option>`).join(''));
  const governmentLabels=[...new Set((governmentData.items||[]).flatMap(x=>[x.primary_narrative,...(x.secondary_narratives||[])].filter(Boolean)))];$('#government-narrative').insertAdjacentHTML('beforeend',governmentLabels.map(n=>`<option value="${esc(n)}">${esc(human(n))}</option>`).join(''));
@@ -393,6 +396,7 @@ $('#scene-next').onclick=()=>{sceneIndex=(sceneIndex+1)%3;showSceneSlide();};
 $('#scene-dots').onclick=e=>{const button=e.target.closest('[data-scene]');if(button){sceneIndex=Number(button.dataset.scene);showSceneSlide();}};
 setInterval(()=>{const carousel=$('#scene-carousel');if(!carousel||document.hidden||$('#monitor').hidden||matchMedia('(prefers-reduced-motion: reduce)').matches||carousel.matches(':hover')||carousel.contains(document.activeElement))return;sceneIndex=(sceneIndex+1)%3;showSceneSlide();},10000);
 $('#feed-mode').onchange=renderFeed;$('#search').oninput=renderEvidence;
+for(const id of ['archive-batch','archive-country'])$('#'+id).onchange=renderEvidence;
 $('#reset').onclick=()=>{for(const id of ['batch','date-range','country','topic'])$('#'+id).value='all';for(const id of ['date-from','date-to'])$('#'+id).value='';$('#custom-dates').hidden=true;$('#metric').value='both';$('#response-metric').value='alignment';$('#rank-alignment').value='all';$('#rank-sentiment').value='all';zoom=1;setZoom();render();};
 $('#topics').onclick=e=>{const b=e.target.closest('[data-topic]');if(b){$('#topic').value=b.dataset.topic;render();}};
 $('#markers').onclick=e=>{const el=e.target.closest('[data-country]');if(el){showCountry(el.dataset.country,el.dataset.measure);}};
@@ -418,7 +422,7 @@ async function refreshSnapshot(){
     const coded=new Map(data.videos.map(v=>[v.batch+'|'+v.id,v]));
     inventory=(data.inventory||data.videos).map(v=>({...v,...coded.get(v.batch+'|'+v.id)}));
     const existing=new Set([...$('#batch').options].map(o=>o.value));
-    for(const b of data.batches)if(!existing.has(b.id))$('#batch').insertAdjacentHTML('beforeend',`<option value="${esc(b.id)}">${esc(b.id)}</option>`);
+    for(const b of data.batches)if(!existing.has(b.id)){const option=`<option value="${esc(b.id)}">${esc(b.id)}</option>`;$('#batch').insertAdjacentHTML('beforeend',option);$('#archive-batch').insertAdjacentHTML('beforeend',option);}
     configureDateInputs();
     render();
   }catch{/* Retain the last successfully loaded snapshot during network failures. */}
