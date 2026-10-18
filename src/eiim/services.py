@@ -18,6 +18,17 @@ class ClassificationUnavailable(RuntimeError):
     pass
 
 
+def _without_nul(value):
+    """Remove NUL characters that PostgreSQL JSONB cannot represent."""
+    if isinstance(value, str):
+        return value.replace("\x00", "")
+    if isinstance(value, list):
+        return [_without_nul(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _without_nul(item) for key, item in value.items()}
+    return value
+
+
 class Ledger:
     def __init__(self, store, batch):
         self.store = store
@@ -152,7 +163,7 @@ class YouTube:
         )
         try:
             with urllib.request.urlopen(url, timeout=45) as response:
-                body = json.load(response)
+                body = _without_nul(json.load(response))
         except urllib.error.HTTPError as e:
             try:
                 reason = (
