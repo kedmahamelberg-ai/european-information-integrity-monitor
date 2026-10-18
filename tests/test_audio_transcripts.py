@@ -57,6 +57,20 @@ class AudioTests(unittest.TestCase):
         self.assertIsNone(audio.check(VIDEO))
         self.assertTrue(all(not p.exists() for p in folders))
 
+    def test_unavailable_video_does_not_block_following_sources(self):
+        def unavailable(command, **kwargs):
+            Path(command[-1], "result.json").write_text(json.dumps({
+                "failure_reason": "AudioDownloadUnavailable",
+                "audio_download_error": "video_unavailable",
+            }))
+            return SimpleNamespace(returncode=0)
+        audio = AudioTranscripts(runner=unavailable)
+        for _ in range(3):
+            self.assertEqual(audio.check(VIDEO)["failure_reason"], "AudioDownloadUnavailable")
+        self.assertIsNone(audio.stopped)
+        self.assertEqual(audio.attempted, 3)
+        self.assertEqual(audio.download_errors["video_unavailable"], 3)
+
     def test_timeout_and_run_limit_never_admit_evidence(self):
         def timeout(*args, **kwargs): raise subprocess.TimeoutExpired("worker", 900)
         audio = AudioTranscripts(max_videos=1, runner=timeout)
