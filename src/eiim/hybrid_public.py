@@ -25,8 +25,9 @@ def _audit_progress(plan, rows, reviews):
     ]
     if assigned:
         target = max(
-            review["review_assignment"].get("target", plan["target"])
-            for review in assigned
+            plan["target"],
+            *(review["review_assignment"].get("target", plan["target"])
+              for review in assigned),
         )
         completed = min(target, len(assigned))
     else:
