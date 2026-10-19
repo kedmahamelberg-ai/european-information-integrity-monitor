@@ -679,7 +679,7 @@ def discover_iceland(country,start,end):
             article_url=canonical_source_url(article_url)
             if not re.fullmatch(
                 r'https://www\.stjornarradid\.is/efst-a-baugi/frettir/stok-frett/'
-                r'(?:20\d{2}-\d{2}-\d{2}(?:-[a-z0-9-]+)?|[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})',
+                r'[a-z0-9][a-z0-9-]*',
                 article_url
             ):
                 raise RuntimeError(f"Unexpected Icelandic official news URL: {article_url}")
