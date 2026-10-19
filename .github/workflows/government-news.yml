@@ -1,13 +1,7 @@
 name: Daily government communications
 on:
-  schedule:
-    # Wake before the top-of-hour congestion, then wait for 15:00 locally.
-    - cron: "47 14 * * *"
-      timezone: "Europe/Amsterdam"
-    - cron: "0,17,47 15 * * *"
-      timezone: "Europe/Amsterdam"
-    - cron: "17 16 * * *"
-      timezone: "Europe/Amsterdam"
+  # Supabase pg_cron dispatches this workflow at 15:00 Europe/Amsterdam.
+  # See ops/government-daily-clock.md; no duplicate GitHub cron triggers.
   workflow_dispatch:
     inputs:
       since:
