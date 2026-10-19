@@ -1,6 +1,6 @@
 # Independent government collection clock
 
-Status: prepared, not activated. Requires a scoped GitHub credential in Supabase Vault.
+Status: activated October 19, 2026. First daily dispatch October 20 at 15:00 Europe/Amsterdam (13:00 UTC). Vault token expires November 18, 2026; renew before that date. Authenticated read of the workflow endpoint returned HTTP 200.
 
 GitHub scheduled events arrived hours late on October 19. This clock uses Supabase pg_cron to dispatch the existing main-branch workflow at 15:00 Europe/Amsterdam (including daylight-saving changes). GitHub runner queues can still delay actual job start; this removes dependence on GitHub's cron event delivery.
 
@@ -9,7 +9,7 @@ GitHub scheduled events arrived hours late on October 19. This clock uses Supaba
 2. Store it through Supabase Vault as `monitor_github_actions_dispatch`. Never commit the token or put it in logs.
 3. Apply `government-daily-clock.sql` in one transaction in project `jnzibjjejmfochertwco`.
 4. Verify the named cron job is active. Inspect cron job history and HTTP response status after 15:00. A queued HTTP request alone does not confirm a successful workflow dispatch.
-5. Once confirmed operational, reduce the existing GitHub cron entries to a fallback. Keep the existing workflow concurrency and checkpoints.
+5. The GitHub cron entries are removed to avoid redundant dispatches. Keep the existing workflow concurrency and checkpoints.
 
 The function sends at most one dispatch per Amsterdam calendar day, in a five-minute window starting at 15:00. It fixes the collection cutoff to 15:00. It supplies no country overrides: the existing 39-country collector allowlist remains authoritative and the 12 pending countries stay disabled.
 
