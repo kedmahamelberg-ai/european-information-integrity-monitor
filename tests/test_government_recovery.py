@@ -47,10 +47,10 @@ class GovernmentRecoveryTests(unittest.TestCase):
         base="https://www.stjornarradid.is/efst-a-baugi/frettir/"
         def card(slug,date):
             return f'<article class="search-result-card"><a href="{base}stok-frett/{slug}" class="search-result-card-link"><h3 class="search-result-card-title title">Official statement</h3><span class="search-result-card-date">{date}</span></a></article>'
-        body=card("345973f7-4e13-4982-b704-d9996149d06e/","19. október 2026")+card("2026-10-17-older","17. október 2026")
+        body=card("345973f7-4e13-4982-b704-d9996149d06e/","19. október 2026")+card("skipar-svaedisrad-um-strandsvaedisskipulag-fyrir-austfirdi","19. október 2026")+card("2026-10-17-older","17. október 2026")
         scope["fetch"]=lambda url:(url,body.encode())
         entries,_=scope["discover_iceland"]({"url":base,"iso2":"IS","name":"Iceland"},dt.datetime(2026,10,18,tzinfo=dt.timezone.utc),dt.datetime(2026,10,19,13,tzinfo=dt.timezone.utc))
-        self.assertEqual(len(entries),1)
+        self.assertEqual(len(entries),2)
         self.assertEqual(entries[0]["published_date"],"2026-10-19")
         self.assertEqual(entries[0]["publication_precision"],"day")
 
