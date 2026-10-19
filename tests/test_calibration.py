@@ -15,6 +15,33 @@ from test_hybrid import label
 
 
 class CalibrationTests(unittest.TestCase):
+    def current_fixture(self):
+        s = MemoryStore()
+        s.batch({"id": "b", "collection_timestamp": "2026-10-05T00:00:00Z"}, "config")
+        p = {
+            "hybrid_version": VERSION,
+            "label": label(),
+            "classified_at": "2026-10-05T00:00:00Z",
+        }
+        old = record("pipeline_runs", "b", "old", p, "v")
+        values = video_values(p["label"])
+        review = {
+            "version": VERSION,
+            "hybrid_version": VERSION,
+            "queue_record_id": "old",
+            "queue_hash": old["record"]["payload_hash"],
+            "review_status": "complete",
+            "item_type": "hybrid_video",
+            "comment_id": None,
+            "reviewer": "Human",
+            "reviewed_at": "2026-10-05T01:00:00Z",
+            "basis": "watched_video",
+            "human_label": values,
+            "decisions": {k: "agree" for k in values},
+        }
+        s.write("b", [old, record("human_validation", "b", "review", review, "v")])
+        return s, review
+
     def fixture(self):
         s = MemoryStore()
         s.batch(
@@ -108,6 +135,33 @@ class CalibrationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "version/hash"):
                 project_four_categories(s, "b")
         self.assertEqual(len(s.read("pipeline_runs")), 1)
+
+    def test_video_review_survives_comment_only_enrichment(self):
+        s, review = self.current_fixture()
+        enriched = copy.deepcopy(s.tables["pipeline_runs"]["old"]["payload"])
+        enriched["label"]["comments"] = [{"comment_id": "new-comment"}]
+        enriched["input_hash"] = "new-comment-input"
+        s.write("b", [record("pipeline_runs", "b", "enriched", enriched, "v")])
+
+        self.assertEqual(current_reviews(s)[("enriched", None)], review)
+        self.assertNotIn(("old", None), current_reviews(s))
+
+    def test_changed_video_label_cannot_inherit_old_review(self):
+        s, _ = self.current_fixture()
+        changed = copy.deepcopy(s.tables["pipeline_runs"]["old"]["payload"])
+        changed["label"]["content_reference"]["target"] = "A different target"
+        s.write("b", [record("pipeline_runs", "b", "changed", changed, "v")])
+
+        self.assertEqual(current_reviews(s), {})
+
+    def test_comment_enrichment_does_not_bypass_source_hash(self):
+        s, _ = self.current_fixture()
+        enriched = copy.deepcopy(s.tables["pipeline_runs"]["old"]["payload"])
+        enriched["label"]["comments"] = [{"comment_id": "new-comment"}]
+        s.write("b", [record("pipeline_runs", "b", "enriched", enriched, "v")])
+        s.tables["human_validation"]["review"]["payload"]["queue_hash"] = "tampered"
+
+        self.assertEqual(current_reviews(s), {})
 
     def test_corrected_export_wins_when_review_time_is_preserved(self):
         s, _, inputs = self.fixture()

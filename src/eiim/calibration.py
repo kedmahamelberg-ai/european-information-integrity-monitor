@@ -110,11 +110,9 @@ def current_reviews(store, batch=None):
     from .hybrid_review import validate_review
 
     batches = retained_batch_ids(store, batch)
-    known = {
-        r["id"]: r
-        for batch_id in batches
-        for r in latest_labels(labels(store, batch_id))
-    }
+    rows = [r for batch_id in batches for r in labels(store, batch_id)]
+    known = {r["id"]: r for r in rows}
+    latest = {(r["batch_id"], r["video_id"]): r for r in latest_labels(rows)}
     out = {}
     for r in sorted(
         [
@@ -139,7 +137,28 @@ def current_reviews(store, batch=None):
             validate_review(p, source)
         except (ValueError, KeyError, TypeError):
             continue
-        out[(source["id"], p.get("comment_id"))] = p
+        current = latest[(source["batch_id"], source["video_id"])]
+        if source["id"] != current["id"]:
+            # A comment-only enrichment creates a new immutable row after a
+            # review packet was exported. Retain a reviewed video only when
+            # every video label and its evidence context stayed unchanged.
+            # Comment reviews remain bound to their original exact source.
+            if p.get("comment_id") is not None or any(
+                source["payload"].get(field) != current["payload"].get(field)
+                for field in (
+                    "hybrid_version", "classified_at", "model_version",
+                    "evidence_scope", "transcript_truncated", "source_language",
+                    "reviewer_context",
+                )
+            ) or {
+                k: v for k, v in source["payload"]["label"].items()
+                if k != "comments"
+            } != {
+                k: v for k, v in current["payload"]["label"].items()
+                if k != "comments"
+            }:
+                continue
+        out[(current["id"], p.get("comment_id"))] = p
     return out
 
 
