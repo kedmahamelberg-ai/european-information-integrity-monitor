@@ -887,5 +887,7 @@ class PublicationAuditTests(unittest.TestCase):
             str(i): {"review_assignment": {"selected": True, "target": 15}}
             for i in range(15)
         }
-        self.assertEqual(_audit_progress({"target": 16}, rows, reviews), (16, 15))
-        self.assertEqual(_audit_progress({"target": 14}, rows, reviews), (15, 15))
+        plan = {"target": 16, "selected_video_ids": list(rows)}
+        self.assertEqual(_audit_progress(plan, rows, reviews), (16, 15))
+        plan["target"] = 14
+        self.assertEqual(_audit_progress(plan, rows, reviews), (15, 15))
