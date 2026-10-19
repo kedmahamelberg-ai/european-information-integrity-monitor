@@ -48,12 +48,28 @@ with params as (
   from eiim.pipeline_runs r join retained b on b.id=r.batch_id, params p
   where r.purged_at is null and r.payload->>'comment_translation_id'=any(p.selected_comments)
   order by r.payload->>'comment_translation_id', r.payload->>'translated_at' desc, r.created_at desc, r.id desc
+), reviewed_source_runs as (
+  select distinct on (r.id) r.*
+  from eiim.pipeline_runs r
+  join retained b on b.id=r.batch_id
+  join eiim.human_validation h on h.batch_id=r.batch_id
+    and h.video_id=r.video_id and h.purged_at is null
+    and h.payload->>'queue_record_id'=r.id
+  join context_videos v on v.video_id=r.video_id
+  where r.purged_at is null
+  order by r.id
 ), selected_runs as (
-  select a.* from access a join context_videos v using(video_id)
-  union all
-  select c.* from coded c join context_videos v using(video_id)
-  union all
-  select * from translation_runs
+  select distinct on (id) *
+  from (
+    select a.* from access a join context_videos v using(video_id)
+    union all
+    select c.* from coded c join context_videos v using(video_id)
+    union all
+    select * from translation_runs
+    union all
+    select * from reviewed_source_runs
+  ) sources
+  order by id
 ), engagement_runs as (
   select distinct on (r.video_id) r.*
   from eiim.pipeline_runs r join retained b on b.id=r.batch_id join context_videos v using(video_id)
