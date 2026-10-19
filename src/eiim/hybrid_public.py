@@ -28,6 +28,14 @@ def _audit_progress(plan, rows, reviews):
             review["review_assignment"].get("target", plan["target"])
             for review in assigned
         )
+        # A growing current sample increases the target when prior reviewed
+        # videos remain in that sample. An unrelated legacy assignment keeps
+        # its original target rather than inheriting a different plan.
+        if any(
+            video_id in plan.get("selected_video_ids", ()) and row["id"] in reviewed
+            for video_id, row in rows.items()
+        ):
+            target = max(target, plan["target"])
         completed = min(target, len(assigned))
     else:
         # Older exports did not retain their immutable assignment metadata.

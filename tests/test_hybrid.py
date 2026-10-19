@@ -878,3 +878,16 @@ class PublicationAuditTests(unittest.TestCase):
         self.assertEqual(other["classification_status"], "ai_coded_sample_audited")
         self.assertIsNotNone(other["label"])
         self.assertEqual(out["collection"]["reviewed_videos"], 1)
+
+    def test_audit_target_grows_after_new_sources_are_classified(self):
+        from eiim.hybrid_public import _audit_progress
+
+        rows = {str(i): {"id": str(i)} for i in range(15)}
+        reviews = {
+            str(i): {"review_assignment": {"selected": True, "target": 15}}
+            for i in range(15)
+        }
+        plan = {"target": 16, "selected_video_ids": list(rows)}
+        self.assertEqual(_audit_progress(plan, rows, reviews), (16, 15))
+        plan["target"] = 14
+        self.assertEqual(_audit_progress(plan, rows, reviews), (15, 15))
