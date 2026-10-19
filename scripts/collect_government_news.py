@@ -75,6 +75,40 @@ CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
 COLLECTOR_READY_CODES = {"AD","AM","AT","AZ","BA","BE","BG","BY","CH","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RS","SE","SI","SK","SM","TR","VA","XK"}
 
 
+# Verified publisher rename: retain the existing classified canonical record.
+SOURCE_URL_ALIASES = {"https://www.rijksoverheid.nl/actueel/nieuws/2026/10/19/persbericht-laat-je-niet-interneppen": "https://www.rijksoverheid.nl/actueel/nieuws/2026/10/19/we-twijfelen-allemaal-maar-klikken-toch-vier-op-de-tien-heeft-weleens-klikspijt"}
+
+
+def canonical_source_url(url):
+    url = SOURCE_URL_ALIASES.get(url, url)
+    if url.startswith("https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/"):
+        url = url.rstrip("/")
+    return url
+
+
+def canonical_government_items(items):
+    """Merge verified URL aliases before selecting anything for classification."""
+    result = {}
+    priority = {"human_reviewed": 5, "provisional": 4, "needs_review": 3,
+                "pending_classification": 2, "awaiting_calibration": 1}
+    for original in items:
+        item = dict(original)
+        url = canonical_source_url(item["url"])
+        aliases = set(item.get("source_aliases") or [])
+        if url != item["url"]:
+            aliases.add(item["url"])
+        item.update(url=url, id=hashlib.sha256(url.encode()).hexdigest()[:20])
+        previous = result.get(item["id"])
+        if previous:
+            aliases.update(previous.get("source_aliases") or [])
+            if priority.get(previous.get("classification_status"), 0) >= priority.get(item.get("classification_status"), 0):
+                item = dict(previous)
+        if aliases:
+            item["source_aliases"] = sorted(aliases)
+        result[item["id"]] = item
+    return result
+
+
 class Links(HTMLParser):
     def __init__(self):
         super().__init__(); self.links=[]; self.text=[]; self.capture=0
@@ -626,7 +660,7 @@ def discover_greece(country,start,end):
 
 
 def discover_iceland(country,start,end):
-    """Page through the ministry-wide official Fréttir archive with dated URLs."""
+    """Read publication dates from official Fréttir cards, including UUID links."""
     first,last=max(dt.date(2026,10,1),start.astimezone(REYKJAVIK).date()),end.astimezone(REYKJAVIK).date()
     entries=[]; seen=set(); page_number=0
     while True:
@@ -642,8 +676,13 @@ def discover_iceland(country,start,end):
             date_match=re.search(r'<span\b[^>]*class=["\']search-result-card-date["\'][^>]*>(.*?)</span>',card,re.I|re.S)
             if not link or not title_match or not date_match: raise RuntimeError("Icelandic news card lacks link, title or date")
             article_url=urllib.parse.urljoin(country["url"],html.unescape(link.group(1)))
-            url_date=re.fullmatch(r'https://www\.stjornarradid\.is/efst-a-baugi/frettir/stok-frett/(20\d{2}-\d{2}-\d{2})(?:-[a-z0-9-]+)?',article_url)
-            if not url_date: raise RuntimeError(f"Unexpected Icelandic official news URL: {article_url}")
+            article_url=canonical_source_url(article_url)
+            if not re.fullmatch(
+                r'https://www\.stjornarradid\.is/efst-a-baugi/frettir/stok-frett/'
+                r'(?:20\d{2}-\d{2}-\d{2}(?:-[a-z0-9-]+)?|[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})',
+                article_url
+            ):
+                raise RuntimeError(f"Unexpected Icelandic official news URL: {article_url}")
             displayed=html.unescape(re.sub(r'<[^>]+>',' ',date_match.group(1))).strip()
             icelandic_months={"janúar":1,"febrúar":2,"mars":3,"apríl":4,"maí":5,"júní":6,
                               "júlí":7,"ágúst":8,"september":9,"október":10,"nóvember":11,"desember":12}
@@ -652,7 +691,7 @@ def discover_iceland(country,start,end):
             day=dt.date(int(dated.group(3)),icelandic_months[dated.group(2)],int(dated.group(1)))
             oldest=day if oldest is None or day<oldest else oldest
             if not first<=day<=last: continue
-            if article_url in seen: raise RuntimeError("Icelandic news archive repeats an article")
+            if article_url in seen: continue
             seen.add(article_url)
             title=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',title_match.group(1)))).strip()
             published=dt.datetime.combine(day,dt.time.min,REYKJAVIK).astimezone(dt.timezone.utc)
@@ -2229,7 +2268,7 @@ def main():
     source_cursors=dict(state.get("source_cursors") or {})
     starts_by_code={source["iso2"]:requested_start or date_value(source_cursors.get(source["iso2"])) or initial_start for source in selected_sources}
     start=min(starts_by_code.values(),default=requested_start or initial_start)
-    existing={x["id"]:x for x in state.get("items",[])}; sources_status=[]; candidates=[]; discovered_links={}
+    existing=canonical_government_items(state.get("items",[])); sources_status=[]; candidates=[]; discovered_links={}
     corrections=json.loads(CORRECTIONS.read_text()) if CORRECTIONS.exists() else []
     correction_map={x["id"]:x for x in corrections if x.get("id")}
     calibration_ids={x["id"] for x in existing.values() if x.get("calibration_item")}
@@ -2276,11 +2315,12 @@ def main():
                         if not source_start.astimezone(source_tz).date()<=day<=end.astimezone(source_tz).date(): continue
                     elif pub and not(source_start<=pub<=end): continue
                     if not pub: continue
+                    item["url"]=canonical_source_url(item["url"])
                     item["published_at"]=(pub or end).isoformat(); item["id"]=hashlib.sha256(item["url"].encode()).hexdigest()[:20]
                     if item["id"] in existing:
                         for key in ("published_date","publication_precision"):
                             if key in item: existing[item["id"]][key]=item[key]
-                    else:
+                    elif item["id"] not in discovered_links:
                         discovered_links[item["id"]]={key:item[key] for key in ("id","url","country_code","published_at")}
                         candidates.append(item)
                 print(f"Discovered {source['name']}: {len(entries)} candidate links",flush=True)
