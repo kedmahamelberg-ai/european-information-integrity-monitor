@@ -270,5 +270,1003 @@
     "topics": [],
     "roles": [],
     "review_decision": "correct_to_unrelated"
+  },
+  {
+    "id": "5b1839d77b69c2d99df7",
+    "source_title": "Nina Larsson deltar vid EU-ministerrådsmöte i Luxemburg",
+    "source_summary": "On October 19, Minister Nina Larsson will attend the EU EPSCO meeting to discuss quality jobs and equality's role in boosting EU growth and competitiveness. The Council is set to adopt conclusions on equality, LGBTQI rights, anti-racism, and a recommendation to combat homelessness and social exclusion.",
+    "source_fingerprint": "4c80c3e5bec9a8f8d89d6fbe8a2129f60a1937b17b6801be5617edcb07eb204e",
+    "relevance": "related",
+    "topics": [
+      "economic_financial_security",
+      "political_institutions"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Equality Minister Nina Larsson",
+        "summary": "Equality enhances economic growth and competitiveness when everyone can reach their full potential.",
+        "target": "EU Council and Member States",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "Equality is good business! Research shows that equality and increased profitability lead to socio-economic gains. When both women and men can reach their full potential, competitiveness and growth in Europe are strengthened."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The Council is expected to adopt a Council conclusion on equality as a driver for growth and competitiveness in the EU. The ministers will also discuss the EU Commission's upcoming initiative for quality jobs... The Council is also expected to adopt a recommendation on actions against homelessness and exclusion from the housing market, aiming to combat social exclusion and enhance individuals' opportunities for self-sufficiency.",
+    "short_rationale": "The EU Council meeting addresses equality-driven economic growth, quality jobs, and social inclusion policies, directly relating to economic security and political institutional initiatives.",
+    "ticker_message": "EU Council promotes equality and quality jobs to boost growth and fight social exclusion."
+  },
+  {
+    "id": "df01d94ef1f03b158b22",
+    "source_title": "Sverige stärker Ukrainas motståndskraft inför vintern med nytt stödpaket",
+    "source_summary": "Sweden is providing 522 million SEK in 2026 to support Ukraine amidst intensified Russian attacks on civilian energy and transport infrastructure. The aid supports energy supply, transport restoration, humanitarian needs, cybersecurity, and healthcare to help mitigate winter hardships and maintain essential services.",
+    "source_fingerprint": "8fa28f16f8da2754da720cc73180b51efd0358e015833e1a3a0467bee2ef7b7e",
+    "relevance": "related",
+    "topics": [
+      "energy",
+      "critical_infrastructure",
+      "economic_financial_security",
+      "sovereignty_borders",
+      "armed_conflict",
+      "civil_protection"
+    ],
+    "roles": [
+      {
+        "entity": "Sweden",
+        "entity_code": "SWE",
+        "role": "readiness",
+        "evidence_quote": "Sweden is therefore contributing a civilian support package of 522 million SEK for 2026 to address Ukraine's most urgent needs before and during winter.",
+        "rationale": "Sweden is preparing and strengthening Ukraine's resilience and critical infrastructure in response to Russian attacks."
+      },
+      {
+        "entity": "Russia",
+        "entity_code": "RUS",
+        "role": "projecting_power",
+        "evidence_quote": "Russia's ruthless attacks on Ukraine’s civilian population and infrastructure are deliberate attempts to break down Ukraine's resilience. By targeting electricity and heating... attacks on Ukraine’s ports, roads, and railways severely impact the Ukrainian people.",
+        "rationale": "Russia is actively using military power to damage Ukraine's critical infrastructure and civilian resilience."
+      }
+    ],
+    "viewpoint_structure": "multiple_viewpoints",
+    "viewpoints": [
+      {
+        "speaker": "Minister for Aid and Foreign Trade Benjamin Dousa",
+        "summary": "Russia deliberately targets Ukraine's energy infrastructure to break civilian resilience; Swedish support will provide energy installations to maintain essential services and assist 150,000 Ukrainians.",
+        "target": "Russia's attacks and Swedish civilian energy aid to Ukraine",
+        "speaker_sentiment": "negative",
+        "evidence_quote": "Russia's ruthless attacks on Ukraine’s civilian population and infrastructure are deliberate attempts to break down Ukraine's resilience... The new Swedish support will include equipment and installations for energy supply."
+      },
+      {
+        "speaker": "Minister for Infrastructure and Housing Andreas Carlson",
+        "summary": "Attacks on transport infrastructure harm Ukraine's economy and civilian life; Sweden contributes funds to restore transport routes vital for economic and social stability.",
+        "target": "Russia's infrastructure attacks and Sweden's transport support to Ukraine",
+        "speaker_sentiment": "negative",
+        "evidence_quote": "Russia's attacks on Ukraine’s ports, roads, and railways severely impact the Ukrainian people... we are now contributing an additional 60 million SEK to the international transport support fund."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "Russia's ruthless attacks on Ukraine’s civilian population and infrastructure are deliberate attempts to break down Ukraine's resilience. By targeting electricity and heating, Russia aims to make the upcoming winter unbearable for the Ukrainian people. The new Swedish support will include equipment and installations for energy supply... The funds will assist in restoring vital transport infrastructure, including railways and border crossings... Additionally, support is allocated to enhance Ukraine's health care, public health efforts, and preparedness against infectious diseases... Support to UNHCR and WFP targets protection for internally displaced persons and secured food supply.",
+    "short_rationale": "Sweden’s civilian support package directly addresses Russia's attacks on Ukraine’s energy and transport infrastructure, impacting civilian resilience, economy, health, and food security.",
+    "ticker_message": "Sweden provides 522 million SEK civilian aid to support Ukraine's energy, transport, health, and food security amid Russian attacks."
+  },
+  {
+    "id": "d17c687714dd9355664b",
+    "source_title": "Förslag om fri rörlighet inom EU för ökad delaktighet för personer med funktionsnedsättning",
+    "source_summary": "A government inquiry proposes new Swedish laws to implement EU directives establishing an EU Disability Card and EU-wide parking permits for people with disabilities, extending rights to third-country residents. The Social Insurance Agency and municipalities will manage administration, with the Swedish Agency for Participation overseeing information and follow-up.",
+    "source_fingerprint": "22ebabcbe7ba23b89347e0df3f950c84e4a4eb38a5a8cbfc8d2e39051cd91c3c",
+    "relevance": "related",
+    "topics": [
+      "political_institutions"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Government inquiry",
+        "summary": "The inquiry proposes implementing EU directives on disability certification and parking permits to strengthen free movement and equality for persons with disabilities within the EU, with specific Swedish authorities assigned responsibilities.",
+        "target": "Implementation of EU disability certificate and parking permit directives",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "The inquiry proposes new legislation and regulations for the EU Disability Card... The inquiry proposes adapting current rules by introducing a new EU parking permit... The inquiry proposes that the Swedish Agency for Participation be given overall responsibility for consolidated information and follow-up of the EU directives."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The inquiry proposes new legislation and regulations for the EU Disability Card... The Swedish Social Insurance Agency is proposed to be the responsible authority. The inquiry proposes adapting current rules by introducing a new EU parking permit... The Swedish Transport Agency is proposed to have national responsibility... The inquiry proposes that the Swedish Agency for Participation be given overall responsibility for consolidated information and follow-up of the EU directives.",
+    "short_rationale": "The proposed legislation to implement EU disability certification and parking permits addresses political institutional aspects of rights, equality, and free movement within the EU as mandated by directives.",
+    "ticker_message": "Sweden proposes national laws to implement EU disability card and parking permit directives for equal access."
+  },
+  {
+    "id": "95b18348795659fd94a0",
+    "source_title": "Justitieminister Gunnar Strömmer besöker Småland",
+    "source_summary": "Justice Minister Gunnar Strömmer will visit Växjö on October 16, meeting forest owners, farmer representatives, and police officials. For details, contact press secretary Hanna Johansen.",
+    "source_fingerprint": "b4399db898d5bdc81050d755e5259379eec1ceb7cfcfb9ba0db7055d37cebc3f",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Press release",
+        "summary": "Minister for Justice Gunnar Strömmer will visit Växjö and meet various local stakeholders.",
+        "target": "Local stakeholders and public",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "Minister for Justice Gunnar Strömmer will visit Växjö and its surroundings and meet with forest owners, representatives from the Federation of Swedish Farmers, and the Police Authority."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "Minister for Justice Gunnar Strömmer will visit Växjö and meet forest owners, Federation of Swedish Farmers, and Police Authority representatives.",
+    "short_rationale": "The visit and meetings are routine engagements without a stated concrete security risk or resilience action.",
+    "ticker_message": "Swedish Minister for Justice to visit Växjö and meet local stakeholders on October 16."
+  },
+  {
+    "id": "86c3188c00271db6fa55",
+    "source_title": "Ebba Busch deltar på lanseringen av superdator",
+    "source_summary": "Energy and Industry Minister Ebba Busch will inaugurate Sferical's Nvidia-based supercomputer on October 15. Media access is provided; press secretary Axel Vide is the contact person.",
+    "source_fingerprint": "0dd7dc35764abed2d097b76dd12439c8ed4173ff1b71baeded4beab906e103c6",
+    "relevance": "related",
+    "topics": [
+      "artificial_intelligence"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Announcement",
+        "summary": "The inauguration of Sferical's new supercomputer using Nvidia technology is scheduled with media presence.",
+        "target": "Media and public",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "Minister for Energy and Industry Ebba Busch will participate in the inauguration of Sferical's new supercomputer, built with Nvidia technology."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "Minister for Energy and Industry Ebba Busch will participate in the inauguration of Sferical's new supercomputer, built with Nvidia technology.",
+    "short_rationale": "The announcement concerns a tech event opening without stating any national or collective security, resource, sovereignty, or resilience implications.",
+    "ticker_message": "Swedish Minister to inaugurate Sferical's Nvidia-based supercomputer; event open to media."
+  },
+  {
+    "id": "61f96e977e92f1915228",
+    "source_title": "Nya ambassadörer till Sverige",
+    "source_summary": "On October 15, 2026, four ambassadors presented their letters of credence to the Swedish King, officially enabling them to represent their countries—Azerbaijan, Vietnam, Luxembourg, and Mauritius—in Sweden.",
+    "source_fingerprint": "3391fdbeb66744d7640fd3a3fa1cfd3159bd7e2a28460495716b71bad202a995",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Official announcement",
+        "summary": "Ambassadors presented letters of credence to the Swedish King, enabling them to represent their countries in Sweden.",
+        "target": "Ambassadors from Azerbaijan, Vietnam, Luxembourg, and Mauritius",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "With the letters of credence now handed over to the Swedish head of state, the ambassadors can fully represent their countries in Sweden."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The following ambassadors presented their letters of credence to His Majesty the King on Wednesday, October 15, 2026",
+    "short_rationale": "Presentation of letters of credence is a routine diplomatic procedure without direct national security relevance.",
+    "ticker_message": "New ambassadors present letters of credence to the Swedish King, enabling representation in Sweden."
+  },
+  {
+    "id": "159dcfda761997378c42",
+    "source_title": "Stärkt skydd för den som drabbas av skador från bristfälliga produkter",
+    "source_summary": "The government proposes a law updating product liability based on an EU directive, expanding manufacturer liability to digital products and information loss, removing deductibles for property damage, and updating legal procedures. The law will take effect on January 1, 2027.",
+    "source_fingerprint": "cd2449e5be6691451892df41f5de093a38ba1e829247b090d5c5b1c5cdad787c",
+    "relevance": "related",
+    "topics": [
+      "economic_financial_security",
+      "technology_supply_chains"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Government",
+        "summary": "The government proposes a new product liability law to adapt to digital technologies and improve compensation for damages.",
+        "target": "New product liability framework and injured parties",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "The government proposes a new law that adapts product liability rules to technological developments and strengthens the ability of injured parties to receive compensation."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The new law adjusts the regulatory framework to technological development and the digital economy, creating better balance between companies and injured parties. The new rules mean that manufacturers can be held liable for more types of products, not only physical goods and electricity but also digital products such as apps and other software.",
+    "short_rationale": "The proposed law addresses legal liability and compensation in digital and technological products, directly linked to technology supply chains and economic security.",
+    "ticker_message": "Government proposes updated product liability law to cover digital products and improve compensation."
+  },
+  {
+    "id": "11caf39df97702c948b4",
+    "source_title": "Premiepensionens försäkringsformer – betänkande skickas på remiss",
+    "source_summary": "The government is consulting on a report proposing to simplify and reform the premium pension system by phasing out traditional insurance, introducing a state payment product (AP7 Såfa), and allowing current traditional insurance holders to opt out. Feedback is open until February 1, 2027.",
+    "source_fingerprint": "860ba48d4a2508abd9bf5b75ed89f4bab9b8e73557116f22092e009254645662",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Minister for the Elderly and Social Insurance Anna Tenje",
+        "summary": "The government aims to simplify and improve the premium pension system while preserving freedom of choice.",
+        "target": "Swedish premium pension system reform",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "Therefore, the government has commissioned a review of how the system can be made simpler, clearer, more secure, and more cost-effective while safeguarding freedom of choice."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The inquiry has analyzed how the premium pension system can become easier to understand and better adapted to the pension period. The inquiry proposes making the system simpler, clearer, more secure, and more cost-effective while safeguarding freedom of choice.",
+    "short_rationale": "The report and government consultation concern pension system reforms without stating a direct national security or essential system risk.",
+    "ticker_message": "Sweden consults on reforms to simplify and adapt the premium pension system."
+  },
+  {
+    "id": "fde9e55449952abb1107",
+    "source_title": "Pressträff om utredning av informationsdelning vid ambulansuppdrag",
+    "source_summary": "Health Minister Elisabet Lann and investigator Stefan Jansson presented proposed measures to improve ambulance personnel safety at an October 15 press conference.",
+    "source_fingerprint": "61a9a101f99ad133030414d365d31c7788f13ec6bf537e945971e48628b45f61",
+    "relevance": "related",
+    "topics": [
+      "civil_protection"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Minister of Health Elisabet Lann",
+        "summary": "Presented proposals for measures to enhance the safety of ambulance personnel.",
+        "target": "Ambulance personnel safety measures",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "The investigation presented its proposals for measures to increase the safety of ambulance personnel."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The investigation presented its proposals for measures to increase the safety of ambulance personnel.",
+    "short_rationale": "The announcement concerns improving the safety and protection of ambulance personnel, which relates directly to civil protection and resilience.",
+    "ticker_message": "Health Minister presents proposals to improve safety of ambulance personnel."
+  },
+  {
+    "id": "025001f2107320498333",
+    "source_title": "Statsministern deltar i Europeiska rådet i Bryssel",
+    "source_summary": "Prime Minister Ulf Kristersson will attend the European Council meeting in Brussels to discuss EU competitiveness, support for Ukraine, security, the 2028–2034 budget, migration, enlargement, and Middle East developments, emphasizing responsible budgets and limiting Russian visa access.",
+    "source_fingerprint": "1460394ef239526e2f21cf56c642e5122bc34d1cdc6c9b5aab15636a9d4c88f0",
+    "relevance": "related",
+    "topics": [
+      "energy",
+      "economic_financial_security",
+      "sovereignty_borders",
+      "military_defence",
+      "migration_displacement",
+      "diplomacy_alliances"
+    ],
+    "roles": [
+      {
+        "entity": "Sweden",
+        "entity_code": "SWE",
+        "role": "readiness",
+        "evidence_quote": "Sweden will continue to advocate for long-term and robust support for Ukraine and increased pressure on Russia.",
+        "rationale": "Sweden is supporting Ukraine's defense and pushing for policies to strengthen EU defense preparedness against hybrid threats."
+      }
+    ],
+    "viewpoint_structure": "multiple_viewpoints",
+    "viewpoints": [
+      {
+        "speaker": "Prime Minister Ulf Kristersson",
+        "summary": "Advocates for continued strong EU support to Ukraine, pressure on Russia, and a responsible EU budget.",
+        "target": "EU policy on Ukraine support, Russia sanctions, and EU budget",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "Sweden will continue to advocate for long-term and robust support for Ukraine and increased pressure on Russia. At the same time, we are clear that the EU's next long-term budget needs to be responsible and restrained."
+      },
+      {
+        "speaker": "European Council",
+        "summary": "Focus on Europe's competitiveness, security and defense, hybrid threat resilience, migration, Ukraine's EU path, and global economic impacts.",
+        "target": "EU Heads of State and Government discussions",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "The EU heads of state and government will discuss Europe's competitiveness, support for Ukraine, as well as European security and defense... leaders are expected to reaffirm the EU's long-term support for Ukraine... discuss efforts to strengthen the Union's defense preparedness and resilience against hybrid threats."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The European Council will also address issues of European security and defense, including efforts to strengthen the Union's defense preparedness and resilience against hybrid threats. The government is pushing to further restrict Russian citizens' ability to obtain visas allowing entry into the EU. Sweden will continue to advocate for long-term and robust support for Ukraine and increased pressure on Russia. The leaders will discuss measures to strengthen the EU's competitiveness, reduce the impact of high energy prices, and strategic discussions on migration and the EU's future enlargement.",
+    "short_rationale": "The EU summit addresses key collective security concerns including defense, support for Ukraine, hybrid threats, energy resilience, and migration, with Sweden actively advocating on these matters.",
+    "ticker_message": "EU leaders meet to boost competitiveness, defense, support Ukraine, and address migration, amid geopolitical challenges."
+  },
+  {
+    "id": "edd2377509a361220de4",
+    "source_title": "Distributionsutredningen har överlämnat sitt slutbetänkande",
+    "source_summary": "The government commissioned an investigation to assess and potentially revise Teracom AB's public service role and management of terrestrial networks, following cessation of commercial TV broadcasts, to ensure effective infrastructure use.",
+    "source_fingerprint": "dba80b37ee1b4c8ebea90a0367389ec9771a37da209f98343336a1e1035e7eaa",
+    "relevance": "related",
+    "topics": [
+      "critical_infrastructure",
+      "political_institutions"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Distribution Investigation and Minister of Culture Parisa Liljestrand",
+        "summary": "The investigation examines whether the current terrestrial network model and Teracom's public service mandate remain appropriate after commercial TV broadcasts ceased, to ensure effective infrastructure use.",
+        "target": "Teracom's public service mandate and terrestrial network organization",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "In light of this change, there was a need to analyze whether the existing model for terrestrial networks is still appropriate and ensures effective use of the infrastructure."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The Distribution Investigation ... analyze and, if necessary, propose changes to Teracom AB's public service mandate and the organization and financing of terrestrial networks ... public service broadcasters are obligated to transmit radio and TV in terrestrial networks and the infrastructure for terrestrial networks is owned by the wholly state-owned company Teracom AB.",
+    "short_rationale": "The government-commissioned investigation addresses public service mandate and infrastructure organization adjustments for terrestrial broadcasting, implicating national communication infrastructure and public service media regulation.",
+    "ticker_message": "Sweden reviews Teracom's public service mandate and terrestrial network organization after commercial TV exit."
+  },
+  {
+    "id": "4c09188e258ac7900b5b",
+    "source_title": "Regeringen deltar på Nordiska rådets session i Helsingfors",
+    "source_summary": "The 78th Nordic Council session in October 2026 in Helsinki focuses on Nordic security and cooperation on total preparedness. Nordic prime ministers and leaders will discuss protecting youth from social media harm. Media accreditation is required by October 16.",
+    "source_fingerprint": "3f06025c59948f01825c272cb39d22090171d7c1688a1ee03a5571744f1d72ab",
+    "relevance": "related",
+    "topics": [
+      "cyber",
+      "political_institutions",
+      "civil_protection"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Nordic Council organizers",
+        "summary": "The Nordic countries aim to enhance collective and national collaboration on comprehensive preparedness and youth protection in digital spaces as part of Nordic security.",
+        "target": "Nordic countries' collective security and youth protection",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "This year's session theme, overarching Nordic security, will highlight how the Nordic countries can collaborate more closely on cross-sector comprehensive preparedness... Leaders are expected to discuss how the Nordic countries can act collectively and nationally to ensure that children and young people are not harmed in relation to social media and digital platforms."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "This year's session theme, overarching Nordic security, will highlight how the Nordic countries can collaborate more closely on cross-sector comprehensive preparedness to face a more uncertain world. Leaders are expected to discuss how the Nordic countries can act collectively and nationally to ensure that children and young people are not harmed in relation to social media and digital platforms.",
+    "short_rationale": "The Nordic Council session focuses on Nordic comprehensive security cooperation and protecting youth from digital harms, constituting concrete security and civil protection topics.",
+    "ticker_message": "Nordic Council 2026 focuses on Nordic security cooperation and youth protection from social media harms."
+  },
+  {
+    "id": "35856580438b9ce1da3c",
+    "source_title": "EU-minister Jessica Rosencrantz deltar i Allmänna rådet i Luxemburg",
+    "source_summary": "On October 13, EU Minister Jessica Rosencrantz meets EU colleagues in Luxembourg to discuss the EU's long-term budget and preparations for the October 15–16 European Council. Sweden demands budget cuts to limit increased contributions. Topics include competitiveness, Ukraine, security, migration, and the rule of law in Hungary.",
+    "source_fingerprint": "03351388154f52571c06d20f1752417326de02e46190f2ef840391b615fb87ef",
+    "relevance": "related",
+    "topics": [
+      "economic_financial_security",
+      "political_institutions"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "EU Minister Jessica Rosencrantz",
+        "summary": "Sweden opposes the proposed increase in the EU long-term budget, advocating for cuts to protect taxpayers and keep contributions low.",
+        "target": "EU long-term budget negotiation",
+        "speaker_sentiment": "negative",
+        "evidence_quote": "The volume of the new negotiation proposal for the EU budget is still unreasonable. Sweden will push for further cuts. Today's proposal would mean a very large increase in Sweden's EU contribution."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The volume of the new negotiation proposal for the EU budget is still unreasonable. Sweden will push for further cuts. Today's proposal would mean a very large increase in Sweden's EU contribution. The government protects Swedish taxpayers' money and will continue to work to keep the EU contribution low. The EU needs a better budget, not a bigger one.",
+    "short_rationale": "Sweden's minister explicitly calls the EU budget proposal excessive, citing economic security concerns and advocating budget reduction.",
+    "ticker_message": "Sweden opposes EU long-term budget increase, pushing for cuts to protect taxpayers' money."
+  },
+  {
+    "id": "2e6fc45830e91c7c3e14",
+    "source_title": "Sveriges bidrag till Natos avskräckning och försvar under 2027",
+    "source_summary": "Sweden's government proposed to parliament contributions of land, naval, and air forces to NATO's deterrence and defense in 2027, emphasizing responding to the Russian threat, including deployment of Patriot missile systems and participation in operations in Finland, Latvia, Poland, and other NATO missions.",
+    "source_fingerprint": "677768f60c309a6f2cbe1720045d1b3a6c07e9f854af8679089d49bf7d9c7767",
+    "relevance": "related",
+    "topics": [
+      "sovereignty_borders",
+      "military_defence",
+      "diplomacy_alliances"
+    ],
+    "roles": [
+      {
+        "entity": "Sweden",
+        "entity_code": "SWE",
+        "role": "readiness",
+        "evidence_quote": "By contributing Swedish military units to NATO's collective defense, we strengthen the alliance's ability to defend its member countries.",
+        "rationale": "Sweden plans to deploy armed forces to NATO operations increasing collective defense readiness and alliance security."
+      }
+    ],
+    "viewpoint_structure": "multiple_viewpoints",
+    "viewpoints": [
+      {
+        "speaker": "Foreign Minister Maria Malmer Stenergard",
+        "summary": "Russia is the most serious threat; Swedish contributions to NATO demonstrate solidarity and strengthen security for Sweden and allies.",
+        "target": "NATO collective defense and Russia as a threat",
+        "speaker_sentiment": "negative",
+        "evidence_quote": "Russia constitutes the most serious threat to the security of Sweden and our allies. Through continued Swedish contributions to NATO's deterrence and defense, we put our solidaristic alliance policy into action and strengthen our own and NATO's overall security."
+      },
+      {
+        "speaker": "Defense Minister Pål Jonson",
+        "summary": "A strong NATO deterrence and defense capability is crucial; Swedish military contributions strengthen the alliance's and Sweden's security.",
+        "target": "NATO deterrence and defense capacity",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "It is crucial that NATO has a strong and credible deterrence and defense capability. By contributing Swedish military units to NATO's collective defense, we strengthen the alliance's ability to defend its member countries."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "Russia constitutes the most serious threat to the security of Sweden and our allies. Through continued Swedish contributions to NATO's deterrence and defense, we put our solidaristic alliance policy into action and strengthen our own and NATO's overall security.",
+    "short_rationale": "The government bill outlines Sweden's military contributions to NATO to counter Russia, enhancing alliance defense and national security.",
+    "ticker_message": "Sweden plans military contributions to NATO in 2027 to strengthen defense against Russia threats."
+  },
+  {
+    "id": "139200060958b6544a2d",
+    "source_title": "Ebba Busch reser till Västerås och Ödeshög",
+    "source_summary": "Energy and Business Minister Ebba Busch will visit Westinghouse nuclear fuel factory in Västerås and chocolate factory Narr in Ödeshög on October 14–15, highlighting nuclear fuel supply to Ukraine and local industry. Media contacts are provided for both locations.",
+    "source_fingerprint": "fde8d38ecf2f433517f4942fad2df17011f21375b148262b1b447d10ef75d562",
+    "relevance": "related",
+    "topics": [
+      "energy"
+    ],
+    "roles": [
+      {
+        "entity": "Sweden",
+        "entity_code": "SWE",
+        "role": "projecting_power",
+        "evidence_quote": "The minister will visit the Westinghouse nuclear fuel factory ... supplying nuclear fuel to all reactors in Ukraine.",
+        "rationale": "By supplying nuclear fuel to Ukraine's reactors, Sweden supports Ukraine's energy security, projecting influence through critical energy resource provision."
+      }
+    ],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Minister for Energy and Business Ebba Busch",
+        "summary": "The visit to a nuclear fuel factory highlights the importance of supplying nuclear fuel to Ukraine, crucial for its electricity supply and energy security.",
+        "target": "Nuclear fuel supply and Ukraine's electricity security",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "The factory supplies nuclear fuel to all reactors in Ukraine, which is crucial for the country's electricity supply."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The factory supplies nuclear fuel to all reactors in Ukraine, which is crucial for the country's electricity supply.",
+    "short_rationale": "The minister's visit underlines Sweden's role in supplying nuclear fuel vital for Ukraine's electricity and energy security, presenting a concrete national security aspect of energy supply and resilience.",
+    "ticker_message": "Swedish Minister visits nuclear fuel plant supporting Ukraine's critical electricity supply."
+  },
+  {
+    "id": "1017f3469d9a42ab6106",
+    "source_title": "Försvarsminister Pål Jonson besöker Linköping",
+    "source_summary": "Defence Minister Pål Jonson will visit Saab, LEAD incubator, the Defence Materiel Administration's T&E site, and the Tactical Testing Unit for Gripen fighters in Linköping on October 15. Interview opportunities with the minister will be offered.",
+    "source_fingerprint": "c2a7ea3a3238decd8e05a33a3083202354897152a28b6d4032c0abfd7717c62a",
+    "relevance": "related",
+    "topics": [
+      "technology_supply_chains",
+      "military_defence"
+    ],
+    "roles": [
+      {
+        "entity": "Sweden",
+        "entity_code": "SWE",
+        "role": "readiness",
+        "evidence_quote": "Minister of Defence Pål Jonson will visit Saab in Linköping as the company presents the first GlobalEye system developed for Sweden, and TU JAS tactical testing unit for JAS 39 Gripen fighter aircraft.",
+        "rationale": "Visits to key defence industry sites and testing units indicate efforts to prepare and enhance Swedish defence capabilities."
+      }
+    ],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Swedish Ministry of Defence",
+        "summary": "Highlighting development and verification of critical military systems like GlobalEye and Gripen fighter jets underlines Sweden's focus on defence readiness and technological advancement.",
+        "target": "Swedish defence technology and capabilities",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "The Defence Minister will visit the Tactical Testing Unit JAS (TU JAS) at Malmen Airfield in Linköping, and the Swedish Defence Materiel Administration's Test and Evaluation test site."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "Minister of Defence Pål Jonson will visit Saab in Linköping as the company presents the first GlobalEye system developed for Sweden, visit the Tactical Testing Unit JAS and the Swedish Defence Materiel Administration's Test and Evaluation test site.",
+    "short_rationale": "The Defence Minister's visit to development and testing sites of key military systems directly relates to national defence readiness.",
+    "ticker_message": "Swedish Defence Minister visits Saab and key testing units to review critical military systems development."
+  },
+  {
+    "id": "e7308c3860c7aeb1d968",
+    "source_title": "Klimat- och miljöministern deltar i miljörådet",
+    "source_summary": "Minister Pourmokhtari attends the Environment Council on October 12 to discuss the EU Emissions Trading System revision and agree on Council conclusions for upcoming UN biodiversity and climate meetings, guiding the EU's negotiation mandates and priorities internationally.",
+    "source_fingerprint": "464ad6cf3a298c01d9a2e4625cdd80b5017538ea006637670c3e76cf48206cd7",
+    "relevance": "related",
+    "topics": [
+      "climate_environment"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "EU Climate and Environment Ministers",
+        "summary": "The ministers aim to revise the EU Emissions Trading System to meet emission reduction and climate neutrality goals.",
+        "target": "EU ETS revision and related climate targets",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "The revision is the first part of a broader legislative package aimed at achieving the EU's emission reduction target by 2040 and ensuring that the EU ETS can support the climate neutrality goal by 2050."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "EU climate and environment ministers will discuss the European Commission's proposal to revise the EU Emissions Trading System (EU ETS) to achieve the EU's emission reduction target by 2040 and climate neutrality by 2050.",
+    "short_rationale": "The discussion centers on revising the EU ETS as part of meeting concrete emission reduction and neutrality targets, directly relevant to climate security and environment.",
+    "ticker_message": "EU ministers discuss revising the EU Emissions Trading System to meet 2040 emission targets and 2050 neutrality."
+  },
+  {
+    "id": "6ba71491feeb02b85232",
+    "source_title": "Utrikesminister Maria Malmer Stenergard deltar i EU:s utrikesministermöte i Luxemburg",
+    "source_summary": "Foreign Minister Maria Malmer Stenergard attends the EU Foreign Ministers meeting discussing EU enlargement's security impact, ongoing Russian aggression in Ukraine and winter support, and Middle East issues including maritime security and EU backing for Palestinian elections.",
+    "source_fingerprint": "58fb53fc5e04ccb830315fc57351e10177f9fce14d7bdb31be386d34de7819ed",
+    "relevance": "related",
+    "topics": [
+      "economic_financial_security",
+      "sovereignty_borders",
+      "military_defence",
+      "armed_conflict",
+      "maritime_security"
+    ],
+    "roles": [
+      {
+        "entity": "EU",
+        "entity_code": "EU",
+        "role": "readiness",
+        "evidence_quote": "The EU’s enlargement is an investment in peace, democracy, security, stability, and prosperity.",
+        "rationale": "EU foreign ministers emphasize readiness by viewing enlargement as strengthening collective security and defense policy."
+      }
+    ],
+    "viewpoint_structure": "multiple_viewpoints",
+    "viewpoints": [
+      {
+        "speaker": "Foreign Minister Maria Malmer Stenergard",
+        "summary": "The EU enlargement enhances peace, democracy, and security, promoting freedom over oppression and strengthened defense policy.",
+        "target": "EU enlargement and collective security",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "The EU’s enlargement is an investment in peace, democracy, security, stability, and prosperity. We want more countries to choose freedom over oppression and Brussels over Moscow."
+      },
+      {
+        "speaker": "Foreign Minister Maria Malmer Stenergard",
+        "summary": "The EU must focus on supporting Ukraine through its fifth winter of war by addressing immediate and long-term financial and defense needs, including using frozen Russian assets.",
+        "target": "Russia's aggression against Ukraine",
+        "speaker_sentiment": "negative",
+        "evidence_quote": "Ukraine is approaching its fifth war winter, and we observe brutal Russian attacks... our foremost task is to help Ukraine get through the winter while finding solutions to its long-term financing needs. We need to review how we can use the frozen Russian assets."
+      },
+      {
+        "speaker": "Foreign Ministers (EU Council)",
+        "summary": "The EU foreign ministers address maritime security challenges in the Strait of Hormuz and the Red Sea, amidst tensions in the Middle East relating to Israel and Palestine.",
+        "target": "Maritime security in the Middle East",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "The foreign ministers are expected to address maritime security in the Strait of Hormuz and the Red Sea, and receive an update on developments in Israel and Palestine."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The EU’s enlargement is an investment in peace, democracy, security... Ukraine is approaching its fifth war winter... brutal Russian attacks on Ukrainian cities, civilians, and critical infrastructure... we observe maritime security in the Strait of Hormuz and the Red Sea.",
+    "short_rationale": "The communication addresses EU enlargement's impact on security, responses to Russian attacks on Ukraine, and maritime security in Middle East, directly relating to defense, armed conflict, economic security, and sovereignty.",
+    "ticker_message": "EU ministers discuss enlargement's security impact, support for Ukraine wartime needs, and Middle East maritime security."
+  },
+  {
+    "id": "2ef8b32ccea37b779106",
+    "source_title": "Finansministern till IMF:s och Världsbankens årsmöten i Bangkok",
+    "source_summary": "Finance Minister Elisabeth Svantesson will lead her final meeting as chair of the World Bank and IMF Development Committee during the IMF and World Bank annual meetings in Bangkok, discussing global economic issues including job creation, private capital mobilization, economic imbalances, and AI's impact.",
+    "source_fingerprint": "9880779492c6a0b9a2b05d07c5554c1ce8162a43eb9b6a3e6947cc2c2bc6b900",
+    "relevance": "related",
+    "topics": [
+      "economic_financial_security",
+      "diplomacy_alliances",
+      "artificial_intelligence"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Finance Minister Elisabeth Svantesson",
+        "summary": "The Finance Minister emphasizes the importance of the Development Committee as a platform to influence the global economic agenda amid global uncertainty.",
+        "target": "World Bank and IMF Development Committee meetings and discussions",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "For Sweden, the chairmanship has been an important platform to influence the global economic agenda during a time of great global uncertainty."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "During the annual meetings, the global economic situation, conditions for economic development, and risks in the global economy will be discussed. The World Bank will focus on how to mobilize more private capital to create jobs, while the IMF will focus on global economic imbalances, rising government debt interest rates, and the economic consequences of AI.",
+    "short_rationale": "The official highlights engagement with global economic risks and development, focusing on managing financial challenges and supporting growth, relevant to economic and diplomatic security.",
+    "ticker_message": "Sweden's Finance Minister leads final Development Committee meeting focusing on global economic risks and growth."
+  },
+  {
+    "id": "80694c292343f0cea53b",
+    "source_title": "Sverige deltar i Steadfast Noon",
+    "source_summary": "Sweden joins NATO's annual Steadfast Noon exercise with JAS 39 Gripen fighters and personnel to practice conventional support for nuclear deterrence. The exercise aims to maintain the credibility and effectiveness of NATO's nuclear deterrence without using live nuclear weapons.",
+    "source_fingerprint": "00d656e79722775ef61b6efe40e5ac1ebd98cd0a112234d9f47c3ec8430eb430",
+    "relevance": "related",
+    "topics": [
+      "military_defence",
+      "diplomacy_alliances"
+    ],
+    "roles": [
+      {
+        "entity": "Sweden",
+        "entity_code": "SWE",
+        "role": "readiness",
+        "evidence_quote": "By participating in Steadfast Noon, Sweden contributes to the security of the entire alliance",
+        "rationale": "Sweden trains and participates in NATO's nuclear deterrence exercise, demonstrating preparedness and collective defense readiness."
+      }
+    ],
+    "viewpoint_structure": "multiple_viewpoints",
+    "viewpoints": [
+      {
+        "speaker": "Prime Minister Ulf Kristersson",
+        "summary": "Sweden contributes to the security of the entire NATO alliance through participation in the exercise.",
+        "target": "NATO alliance security",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "By participating in Steadfast Noon, Sweden contributes to the security of the entire alliance"
+      },
+      {
+        "speaker": "Defense Minister Pål Jonson",
+        "summary": "The exercise demonstrates NATO's capability and readiness to protect all allies and Sweden's conventional support to nuclear deterrence.",
+        "target": "NATO deterrence and protection capability",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "Steadfast Noon... demonstrates NATO's capability and readiness to protect all allies"
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "Steadfast Noon is a recurring annual routine exercise aimed at ensuring that NATO's nuclear deterrence remains credible and effective. The exercise includes allied fighter aircraft capable of carrying nuclear weapons, so-called Dual Capable Aircraft. Sweden participates in the exercise with fighter aircraft (JAS 39 Gripen) and personnel from the Armed Forces.",
+    "short_rationale": "Sweden's participation in NATO nuclear deterrence exercise shows alliance readiness and deterrence capability.",
+    "ticker_message": "Sweden joins NATO's Steadfast Noon nuclear deterrence exercise to enhance alliance readiness."
+  },
+  {
+    "id": "299df421c1559b4b0db9",
+    "source_title": "Utredning föreslår stärkt kontroll, uppföljning och tillsyn av verksamheter inom hälso- och sjukvården",
+    "source_summary": "A government inquiry proposes licensing requirements and stricter oversight for private healthcare providers to improve patient safety and prevent welfare crimes. Measures include enhanced information sharing, stronger supervisory roles for authorities, and extended sanctions to combat increasing criminal activity in healthcare.",
+    "source_fingerprint": "a5bc21a8eb0d6988b0a38a3cb10efca51355547fa97fc4a71d863ad8c8428dcf",
+    "relevance": "related",
+    "topics": [
+      "health_biosecurity",
+      "civil_protection"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Health Minister Elisabet Lann",
+        "summary": "Health Minister Lann emphasizes the seriousness of welfare crimes in healthcare, linking them directly to risks to people's lives and health, and highlights the need for strengthened patient safety measures.",
+        "target": "Healthcare oversight and welfare crime prevention",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "Welfare crimes are always very serious. But when it comes to healthcare, it also involves people's lives and health."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The inquiry now submits the report Strengthened Patient Safety and Increased Resilience (SOU 2026:61). One of the proposals is that private care providers should require a license to operate healthcare or aesthetic services. The purpose is both to make it harder for unscrupulous actors to establish themselves and to strengthen patient safety.",
+    "short_rationale": "The government inquiry proposes licensing and enhanced supervision of private healthcare to protect patient safety against increasing welfare crimes, directly addressing health security and system resilience.",
+    "ticker_message": "Swedish inquiry proposes healthcare licensing and tougher controls to strengthen patient safety and combat welfare crimes."
+  },
+  {
+    "id": "f03ec7174f572e1d90f6",
+    "source_title": "Finansminister Elisabeth Svantesson presenterar ny ekonomisk prognos",
+    "source_summary": "Finance Minister Elisabeth Svantesson will present a new economic development forecast today, October 8 at 14:00, with registration available via an external website.",
+    "source_fingerprint": "3ad177bec716530d89eca40db8edbfaae01064848090a6349ae5fa4ec890f444",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Finance Minister Elisabeth Svantesson",
+        "summary": "Minister will present an economic development forecast on October 8.",
+        "target": "economic development forecast",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "Finance Minister Elisabeth Svantesson will present a new forecast for economic development."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "Finance Minister Elisabeth Svantesson will present a new forecast for economic development.",
+    "short_rationale": "The announcement concerns an economic forecast presentation, which lacks direct national security or critical infrastructure relevance.",
+    "ticker_message": "Sweden's Finance Minister to present new economic forecast on October 8."
+  },
+  {
+    "id": "cfdc318a0e727cacc0e0",
+    "source_title": "Sverige tar nästa steg mot att bli part i nytt globalt havsavtal",
+    "source_summary": "Sweden's government proposes joining the BBNJ agreement to protect biodiversity in international ocean areas. This move follows nearly 20 years of talks and aims to enhance ocean conservation, fulfilling UN goals and requiring parliamentary approval for accession.",
+    "source_fingerprint": "cf1635168256c73e5a2d0193512c6c218d2b873d2cd6450d044f00e37141e123",
+    "relevance": "related",
+    "topics": [
+      "climate_environment",
+      "sovereignty_borders"
+    ],
+    "roles": [],
+    "viewpoint_structure": "multiple_viewpoints",
+    "viewpoints": [
+      {
+        "speaker": "Climate and Environment Minister Romina Pourmokhtari",
+        "summary": "Sweden has been a driving force behind the BBNJ agreement to provide stronger protection for ocean life, translating global words into real action.",
+        "target": "BBNJ agreement and ocean life protection",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "Sweden has helped drive one of the most important global environmental agreements since the Paris Agreement, and now we are taking the next crucial step. After nearly 20 years of negotiations, the world has agreed to provide stronger protection for life in our oceans."
+      },
+      {
+        "speaker": "Foreign Minister Maria Malmer Stenergard",
+        "summary": "Sweden's accession contributes to strengthened protection of ocean biodiversity and deepened international cooperation.",
+        "target": "Swedish accession to BBNJ agreement and ocean biodiversity protection",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "By taking the next step towards Swedish accession to the global oceans agreement, we contribute to strengthening the protection of biodiversity in the world's oceans. This is an important step for deepened international cooperation and for future generations to inherit healthy and vibrant seas."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The government has today decided on a bill with the aim that Sweden will join the so-called BBNJ agreement. The agreement concerns protecting biological diversity in ocean areas beyond national jurisdiction.",
+    "short_rationale": "Sweden aims to join the BBNJ agreement to protect biodiversity in international ocean waters, reflecting a clear national and global environmental security measure.",
+    "ticker_message": "Sweden aims to join BBNJ agreement to protect biodiversity in international ocean waters."
+  },
+  {
+    "id": "3dc0c26fee1a18ab6997",
+    "source_title": "Stark återhämtning i svensk ekonomi trots global osäkerhet",
+    "source_summary": "Sweden's economy is recovering strongly despite Middle East geopolitical tensions. Growth and consumption rise, unemployment is expected to fall by late 2026, and inflation remains low due to low core inflation and tax cuts, approaching the 2% target soon.",
+    "source_fingerprint": "b779cb1203304d35573568c1a8a56ade4cab82163ce88822dcdfefa1f2ed2245",
+    "relevance": "related",
+    "topics": [
+      "energy",
+      "economic_financial_security"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Finance Minister Elisabeth Svantesson",
+        "summary": "Sweden's economy is recovering with growth prospects despite geopolitical tensions affecting the energy market and inflation.",
+        "target": "Swedish economic outlook amid geopolitical uncertainties",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "The Swedish economy continues to develop in the right direction. Growth is strengthening, inflation is low, and the labor market is expected to gradually improve."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "At the same time, we see great uncertainty in the world, not least due to geopolitical tensions and their impact on the energy market... Sweden's inflation remains low despite high energy prices.",
+    "short_rationale": "The report directly links geopolitical tensions to energy market impacts affecting Sweden's economic and inflation outlook, showing national economic security relevance.",
+    "ticker_message": "Sweden's economy recovers amid geopolitical tensions impacting energy market and inflation outlook."
+  },
+  {
+    "id": "c4827fcc6dc20518d063",
+    "source_title": "Regeringen tar emot delbetänkande om preventiva vistelseförbud",
+    "source_summary": "The government received an interim report proposing changes to improve preventive residence prohibitions, including house searches for serving decisions, tougher electronic monitoring rules, and police access to location data when monitoring is hindered. Extending prohibition duration and temporary decisions were not recommended.",
+    "source_fingerprint": "ec4a853938a4fb51eabe7e4df61ee75e18a113a39e08207a7f26beac2f3558d3",
+    "relevance": "related",
+    "topics": [
+      "terrorism_organised_crime",
+      "civil_protection"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Investigation on stronger self-defense rights and more effective access prohibitions",
+        "summary": "The investigation proposes changes to strengthen preventive residence prohibitions to improve safety and prevent crime in public spaces, including stricter monitoring rules and potential use of house searches to serve prohibitions, but recommends against extending durations or allowing temporary prohibitions.",
+        "target": "Preventive residence prohibitions and related legal enforcement tools",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "The investigation proposes changes aimed at streamlining the use of preventive residence prohibitions... The investigation also proposes stricter rules for electronic monitoring... The investigation assesses that these changes should not be implemented."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The purpose is to increase safety in public spaces and to prevent criminal activities there, such as drug dealing or other network-related crime at the location.",
+    "short_rationale": "The proposed legal changes aim to strengthen preventive residence prohibitions to enhance public safety and prevent crime, thus directly relating to civil protection and organised crime prevention.",
+    "ticker_message": "Government considers stronger preventive residence prohibitions to improve public safety and counter crime."
+  },
+  {
+    "id": "541e63bd76194d227b7a",
+    "source_title": "Förslag om nytt system för återkrav inom socialförsäkringen remitteras",
+    "source_summary": "The Ministry of Health and Social Affairs proposes a new system for recovering incorrectly paid social insurance benefits, including strict repayment liability and new remission rules considering payment ability, authority fault, and good faith. Feedback is requested by 22 January 2027.",
+    "source_fingerprint": "dfc1c2990e5bb0e2fa9c182aaeeac4d251c221dc1840ddd33301785f72386ae2",
+    "relevance": "related",
+    "topics": [
+      "economic_financial_security",
+      "political_institutions"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "The Ministry of Health and Social Affairs",
+        "summary": "The ministry is proposing stricter repayment obligations for incorrectly paid social insurance benefits to reduce financial losses from welfare fraud and errors.",
+        "target": "Social insurance regulatory framework",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "The inquiry's proposals include that compensation paid out incorrectly or in excessive amounts should entail an obligation to repay, regardless of whether the individual realized or should have realized that the payment was incorrect."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The report proposes a new regulatory framework for the recovery of incorrectly paid social insurance benefits. Approximately 15–20 billion SEK is paid out incorrectly from welfare systems annually. The proposals include that compensation paid out incorrectly or in excessive amounts should entail an obligation to repay, regardless of whether the individual realized that the payment was incorrect.",
+    "short_rationale": "The proposed new system addresses significant financial losses in social insurance by establishing strict repayment rules, impacting economic security and regulatory institutions.",
+    "ticker_message": "Sweden proposes strict repayment rules for incorrect social insurance payments to enhance financial security."
+  },
+  {
+    "id": "b9aabd76e8b0099715ee",
+    "source_title": "Pressbriefing om säkerhetsläget",
+    "source_summary": "A press briefing on the security situation will be held on October 6 by the Prime Minister and key ministers, providing a status update.",
+    "source_fingerprint": "70a88462dedaf8aae77f908d1af00266b12d2c57aa41dd154c377f8adff4418c",
+    "relevance": "related",
+    "topics": [
+      "political_institutions",
+      "military_defence",
+      "civil_protection"
+    ],
+    "roles": [],
+    "viewpoint_structure": "unclear",
+    "viewpoints": [],
+    "evidence_status": "reported",
+    "evidence_quote": "On Tuesday, October 6, Prime Minister Ulf Kristersson, Foreign Minister Maria Malmer Stenergard, Defense Minister Pål Jonson, and Justice Minister Gunnar Strömmer will hold a press briefing on the security situation.",
+    "short_rationale": "A press briefing by top government officials on the security situation signals discussion of national security issues.",
+    "ticker_message": "Sweden's top officials will brief the press on the national security situation on October 6."
+  },
+  {
+    "id": "8a142b71918873807bb5",
+    "source_title": "Försvarsberedningen ges förlängd tid för sitt arbete",
+    "source_summary": "Defence Minister Pål Jonsson extended the Defence Commission's final report deadline to April 29, 2027. The commission updated the security situation, reported on the 2024 defence decision and NATO obligations, and proposed growth measures. The final report aims to follow up current defence policies without proposing new decisions.",
+    "source_fingerprint": "f6b9020d8fe786db104450ee95656a01974da8aa0c3223941d247a9145c01931",
+    "relevance": "related",
+    "topics": [
+      "political_institutions",
+      "military_defence"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Defence Minister Pål Jonsson",
+        "summary": "The Defence Commission monitors and updates the current defence decision and total defence situation, emphasizing NATO obligations.",
+        "target": "Norway's Defence Commission and defence policy",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "The final report is not intended to support a new defence decision but rather to monitor the current defence decision."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The Defence Commission presented its interim report \"Heightened Alert – Current Situation in Total Defence and Global Affairs\" ... updated the security policy situation ... followed up on the 2024 defence decision and obligations arising from NATO membership and collective defence ... overview of both civil and military defence.",
+    "short_rationale": "The Defence Commission assesses Norway's total defence posture and NATO obligations, reflecting ongoing military and political institutional security considerations.",
+    "ticker_message": "Norway's Defence Commission deadline extended to monitor current defence decision and NATO obligations."
+  },
+  {
+    "id": "2d7929270f718bf48bbb",
+    "source_title": "Regeringen har tagit emot slutbetänkande om redovisningsfrågor",
+    "source_summary": "The government reviewed a report proposing new accounting categories, including micro-companies, to simplify reporting. It suggests relief for medium-sized firms, exempts more groups from consolidated accounts, limits ownership disclosure, and maintains audits of sustainability reports by authorized auditors.",
+    "source_fingerprint": "0c10eb498b66413dd9a4fd98e7aec1aaa5a2e725b1c6916d999d488b952f1de6",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Government Inquiry Report",
+        "summary": "The inquiry proposes accounting law changes to simplify reporting and reduce administrative burdens for small and medium companies.",
+        "target": "Accounting and auditing regulations for sustainability and financial reporting",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "The inquiry proposes, among other things, to introduce the category of micro-companies in accounting legislation, aiming to simplify annual reporting rules for the smallest firms."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The inquiry was tasked with exploring possibilities to create greater flexibility for companies, reduce administrative burdens, and improve conditions for competition and growth. The inquiry proposes, among other things, to introduce the category of micro-companies in accounting legislation, aiming to simplify annual reporting rules for the smallest firms.",
+    "short_rationale": "The report focuses on administrative and accounting law changes for companies, without citing any concrete security risks or resilience measures.",
+    "ticker_message": "Government inquiry proposes accounting simplifications for small companies without security implications."
+  },
+  {
+    "id": "1ea3336d3ff555f55b62",
+    "source_title": "Svenskt luftvärnsförband till Natoinsats i Polen",
+    "source_summary": "Sweden will deploy a Patriot air defense unit from December to protect NATO's logistics hub in Poland, critical for aid to Ukraine. This support complements fighter jet contributions and enhances NATO, European, and Swedish security amid Russian threats targeting aid routes.",
+    "source_fingerprint": "a0c42ea8e9d0e18b2613e285f82de61c76bd7921764aaf5814ad1ddd38e762b5",
+    "relevance": "related",
+    "topics": [
+      "military_defence",
+      "diplomacy_alliances"
+    ],
+    "roles": [
+      {
+        "entity": "Sweden",
+        "entity_code": "SWE",
+        "role": "readiness",
+        "evidence_quote": "The air defense unit will have the task of protecting the logistics hub in Poland used as a transshipment point for military and civilian support to Ukraine. The unit will be equipped with the Patriot air defense system and will be led by NATO's air command.",
+        "rationale": "Sweden is deploying air defense and fighter jets to protect a logistics hub, increasing NATO readiness and collective defense."
+      }
+    ],
+    "viewpoint_structure": "multiple_viewpoints",
+    "viewpoints": [
+      {
+        "speaker": "Prime Minister Ulf Kristersson",
+        "summary": "Sweden’s contribution with fighter jets and the Patriot system strengthens NATO, European, and Swedish security.",
+        "target": "NATO's logistics hub security",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "This strengthens NATO's, Europe's, and Sweden's security."
+      },
+      {
+        "speaker": "Foreign Minister Maria Malmer Stenergard",
+        "summary": "The Swedish contribution is vital to ensure military and civilian aid reaches Ukraine and supports NATO deterrence and defense.",
+        "target": "Swedish air defense contribution",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "I cannot overstate how important this Swedish contribution is. It aims to ensure that military and civilian aid reaches Ukraine and is part of our support for NATO's deterrence and defense."
+      },
+      {
+        "speaker": "Defense Minister Pål Jonson",
+        "summary": "Due to Russian airspace violations and influence attempts, Sweden takes responsibility to protect NATO’s eastern flank and logistics hub.",
+        "target": "Russian attempts to undermine aid and NATO's eastern flank",
+        "speaker_sentiment": "negative",
+        "evidence_quote": "The severe security situation, with repeated violations of allied airspace and Russian attempts to influence support to Ukraine, shows the importance of protecting the logistics hub in Poland."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "Sweden is now, for the second time, contributing fighter jets to the NATO mission to protect NATO's logistics hub in Poland. As part of that, Sweden is also contributing the Patriot air defense system. The task is to protect the logistics hub and thereby ensure that important materiel reaches Ukraine.",
+    "short_rationale": "Sweden is deploying air defense assets to protect a NATO logistics hub in Poland, securing aid to Ukraine amid Russian threats, strengthening NATO defense posture.",
+    "ticker_message": "Sweden to contribute Patriot air defense to protect NATO logistics hub aiding Ukraine from December."
+  },
+  {
+    "id": "d5766a87af082cf7df18",
+    "source_title": "Utrikesminister Maria Malmer Stenergard talar på Norrmalmstorg",
+    "source_summary": "Foreign Minister Maria Malmer Stenergard will speak at a demonstration supporting Ukraine on October 5 organized by the Monday Movement.",
+    "source_fingerprint": "1e7e6b167d8b3546595d32f57863d7b5a07753886dc15451ed7d134d55ecaac4",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Foreign Minister Maria Malmer Stenergard",
+        "summary": "Foreign Minister Maria Malmer Stenergard will speak at a demonstration supporting Ukraine.",
+        "target": "Monday Movement's demonstration in support of Ukraine",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "Foreign Minister Maria Malmer Stenergard will speak at the Monday Movement's demonstration in support of Ukraine."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "On Monday, October 5, Foreign Minister Maria Malmer Stenergard will speak at the Monday Movement's demonstration in support of Ukraine.",
+    "short_rationale": "The statement reports participation in a supportive event without stating a concrete security risk or measure.",
+    "ticker_message": "Sweden's Foreign Minister will speak at a pro-Ukraine demonstration on October 5."
+  },
+  {
+    "id": "d517c90cc423b804debe",
+    "source_title": "Ebba Busch besöker Kiruna och Gällivare",
+    "source_summary": "Energy and Business Minister Ebba Busch visits Kiruna and Gällivare on October 5th, including stops at SSC Esrange and Boliden Aitik, with media availability.",
+    "source_fingerprint": "08609b2722b92e52753f3397914583d9e25b17bd1fcb56358b144f8593130b4f",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Announcement",
+        "summary": "The minister is conducting visits to energy-related and mining sites with media availability.",
+        "target": "Minister's visit to SSC Esrange and Boliden Aitik",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "Minister for Energy and Business Ebba Busch is visiting Kiruna and Gällivare. The minister will visit SSC Esrange and Boliden Aitik. Time is available for the media."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "Minister for Energy and Business Ebba Busch is visiting Kiruna and Gällivare. The minister will visit SSC Esrange and Boliden Aitik. Time is available for the media.",
+    "short_rationale": "The announcement of ministerial visits to energy and mining sites lacks any specific security risk or protective measure mentioned, thus is routine.",
+    "ticker_message": "Swedish Energy Minister visits Kiruna and Gällivare energy and mining sites; no security risks stated."
+  },
+  {
+    "id": "bce25badd916cf4cfdae",
+    "source_title": "Konkurrenskraft i fokus när EU-minister Jessica Rosencrantz träffar nordiska samarbetsministrar i Köpenhamn",
+    "source_summary": "EU Minister Jessica Rosencrantz will attend an October 1 meeting in Copenhagen with Nordic cooperation ministers to discuss Nordic competitiveness and modernization of the Nordic Council of Ministers, featuring a report inspired by the EU's 2024 Draghi report and a related conference.",
+    "source_fingerprint": "5a1a47e3d929a2ec3c6129583c9a8679494d8fde9f87ce1d8a15e06439110649",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Jessica Rosencrantz",
+        "summary": "EU Minister emphasizes reviewing a new report to strengthen Nordic competitiveness inspired by the EU Draghi report.",
+        "target": "Nordic cooperation ministers and competitiveness policies",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "I look forward to reviewing a new report, inspired by the EU's so-called Draghi report, and discussing how we can further strengthen Nordic competitiveness."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "Jessica Rosencrantz, EU Minister responsible for Nordic affairs, will visit Copenhagen on October 1 for a meeting with the Nordic cooperation ministers. The agenda includes Nordic competitiveness and discussions on the modernization of the Nordic Council of Ministers.",
+    "short_rationale": "The meeting focuses on competitiveness and modernization of cooperation but does not state a concrete national security risk or protection measure.",
+    "ticker_message": "EU Minister and Nordic ministers meet to discuss Nordic competitiveness and council modernization."
+  },
+  {
+    "id": "aae6763ee2cd0fde5dcd",
+    "source_title": "Justitieministern och migrationsministern deltar vid RIF-möte i Luxemburg",
+    "source_summary": "On October 1-2, Sweden's Justice and Migration Ministers will attend the EU Justice and Home Affairs Council in Brussels, discussing organized crime, Schengen challenges, internal security, migration returns, EU strategic drug frameworks, and the impact of Russia's war on EU security and migration policies.",
+    "source_fingerprint": "f3524d6db230898594042c4e2064a4f8d7809af3fdce75ec18b88a0339082de4",
+    "relevance": "related",
+    "topics": [
+      "cyber",
+      "political_institutions",
+      "terrorism_organised_crime",
+      "migration_displacement"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "EU Council for Justice and Home Affairs Ministers",
+        "summary": "Ministers discuss challenges to EU internal security including organized crime, migration management, and hybrid threats related to the war in Ukraine, emphasizing improved cooperation, technology use, and early warning to strengthen resilience.",
+        "target": "EU internal security and migration management",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "Ministers are expected to discuss strengthening [internal security] through improved information exchange, operational police cooperation and increased use of new technology... discuss joint EU tools to improve readmission cooperation and receive a status report on implementing the EU's Migration and Asylum Pact... discuss how the EU can strengthen situational awareness and improve early warning capabilities for migration-related crises."
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "The Justice Minister's agenda includes work against organized crime and the EU's internal security... Ministers will also discuss implementing the EU's strategic framework on drugs and threats posed by organized drug crime... On migration, ministers will also discuss how the EU can strengthen situational awareness and improve early warning capabilities for migration-related crises... focus on better using existing systems and analytical tools to identify risks and prevent crises.",
+    "short_rationale": "The meeting addresses EU internal security risks from organized crime, migration crises, and hybrid threats linked to the Ukraine war, focusing on cooperation and resilience.",
+    "ticker_message": "EU ministers meet to strengthen internal security, combat organized crime, and manage migration challenges."
   }
 ]

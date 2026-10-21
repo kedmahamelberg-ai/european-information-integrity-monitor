@@ -9,6 +9,7 @@ source = ROOT / "apps/dashboard"
 out = ROOT / "build"
 out.mkdir(exist_ok=True)
 from collect_government_news import COLLECTOR_READY_CODES
+from government_reviews import apply_confirmed_corrections
 government_sources = json.loads((ROOT / "config/government_sources.json").read_text())["sources"]
 (out / "government-sources.json").write_text(json.dumps({"sources": [
     {"iso2": source["iso2"], "name": source["name"], "url": source["url"],
@@ -34,7 +35,7 @@ if not gov_public.exists():
             "items": [{k: v for k, v in item.items() if k != "english_translation"}
                       for item in state.get("items", [])],
         }
-if not gov_public.exists() and ("--live" in sys.argv or "--camera-only" in sys.argv):
+if not gov_public.exists() and ("--live" in sys.argv or "--camera-only" in sys.argv or "--government-only" in sys.argv):
     request = urllib.request.Request(
         f"https://monitor.hamelberg-ai.com/government-data.json?preserve={int(datetime.now(timezone.utc).timestamp())}",
         headers={"Cache-Control": "no-cache", "User-Agent": "EIIM-government-snapshot/1.0"},
@@ -51,7 +52,13 @@ if not gov_public.exists() and ("--live" in sys.argv or "--camera-only" in sys.a
     except urllib.error.HTTPError as error:
         if error.code!=404 or "--camera-only" in sys.argv: raise
 if not gov_public.exists():
-    gov_public.write_text(json.dumps(snapshot or {"items": []}, ensure_ascii=False, indent=2) + "\n")
+    snapshot = snapshot or {"items": []}
+    corrections_file = ROOT / "data" / "government_corrections.json"
+    corrections = json.loads(corrections_file.read_text()) if corrections_file.exists() else []
+    _, stale = apply_confirmed_corrections(snapshot["items"], corrections)
+    if stale:
+        print(f"Skipped {len(stale)} government reviews whose source evidence changed")
+    gov_public.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2) + "\n")
 if "--live" in sys.argv:
     sys.path.insert(0, str(ROOT / "src"))
     from eiim.hybrid_public import export_public
@@ -61,7 +68,7 @@ if "--live" in sys.argv:
     # recovery health and hybrid labels from pipeline_runs. Ask Supabase for
     # that bounded projection instead of transferring model/cache envelopes.
     print(export_public(Store(public_pipeline_only=True), out / "data.json"))
-if "--camera-only" in sys.argv:
+if "--camera-only" in sys.argv or "--government-only" in sys.argv:
     # A camera availability refresh must preserve the already published research
     # snapshot; never query Supabase merely to check independent city streams.
     timestamp = int(datetime.now(timezone.utc).timestamp())
@@ -77,6 +84,18 @@ if "--camera-only" in sys.argv:
     if not isinstance(published, dict) or not isinstance(published.get("videos"), list):
         raise RuntimeError("Published research snapshot is invalid")
     (out / "data.json").write_bytes(payload)
+if "--government-only" in sys.argv:
+    # Government corrections can publish without another Supabase export or
+    # camera availability check. Reuse the verified public camera snapshot.
+    request = urllib.request.Request(
+        f"https://monitor.hamelberg-ai.com/cameras.json?government-refresh={int(datetime.now(timezone.utc).timestamp())}",
+        headers={"Cache-Control": "no-cache", "User-Agent": "EIIM-government-snapshot/1.0"},
+    )
+    with urllib.request.urlopen(request, timeout=20) as response:
+        payload = response.read(1_000_001)
+    if len(payload) > 1_000_000 or not isinstance(json.loads(payload), (dict, list)):
+        raise RuntimeError("Published camera snapshot is invalid")
+    (out / "cameras.json").write_bytes(payload)
 if "--live" in sys.argv or "--camera-only" in sys.argv:
     from check_cameras import refresh
     refresh(out / "cameras.json", os.environ.get("YOUTUBE_API_KEY"),

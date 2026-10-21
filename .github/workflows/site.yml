@@ -29,6 +29,8 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -42,6 +44,29 @@ jobs:
           node --check apps/dashboard/live.js
           node --check apps/dashboard/map-data.js
           node --test tests/*.test.cjs
+      - name: Select publication source
+        id: publication-source
+        if: github.event_name == 'push'
+        run: |
+          python - <<'PY'
+          import os, subprocess
+          allowed = {
+              '.github/workflows/site.yml',
+              'data/government_corrections.json',
+              'scripts/build_site.py',
+              'scripts/collect_government_news.py',
+              'scripts/government_reviews.py',
+              'tests/test_government_reviews.py',
+          }
+          try:
+              changed = set(subprocess.check_output(
+                  ['git', 'diff', '--name-only', 'HEAD^', 'HEAD'], text=True
+              ).splitlines())
+          except subprocess.CalledProcessError:
+              changed = set()
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f"government_only={'true' if changed and changed <= allowed else 'false'}\n")
+          PY
       - name: Build public export
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
@@ -50,6 +75,8 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "schedule" ]; then
             python scripts/build_site.py --camera-only
+          elif [ "${{ steps.publication-source.outputs.government_only }}" = "true" ]; then
+            python scripts/build_site.py --government-only
           elif [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_SECRET_KEY" ]; then
             python scripts/build_site.py --live
           else
