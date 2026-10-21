@@ -69,8 +69,21 @@ class LocalRecoveryTests(unittest.TestCase):
         self.assertEqual(recovery.candidates([source],[],now),[source])
         for changes in ({'caption_state':'saved'},{'batch':'2026-W01'},{'id':'bad'}):
             self.assertEqual(recovery.candidates([{**source,**changes}],[],now),[])
-        record={'record':{'batch_id':source['batch'],'video_id':source['id'],'payload':{'transcript_english':[{'text':'saved'}]}}}
+        record={'record':{'batch_id':source['batch'],'video_id':source['id'],'payload':{
+            'eligible': True, 'transcript_language': 'en',
+            'transcript_complete': True, 'transcript_english':[{'text':'saved'}]}}}
         self.assertEqual(recovery.candidates([source],[record],now),[])
+
+    def test_partial_audio_is_retryable_after_quality_cooldown(self):
+        now = datetime(2026,10,21,tzinfo=timezone.utc)
+        source={'id':'abcdefghijk','batch':'2026-W42','caption_state':'incomplete'}
+        def partial(days):
+            return {'record':{'batch_id':source['batch'],'video_id':source['id'],'payload':{
+                'eligible': True, 'transcript_language': 'en',
+                'transcript_complete': False, 'transcript_english':[{'text':'fragment'}],
+                'audio_attempted_at':(now-timedelta(days=days)).isoformat()}}}
+        self.assertEqual(recovery.candidates([source],[partial(2)],now),[])
+        self.assertEqual(recovery.candidates([source],[partial(8)],now),[source])
 
     def test_cooldowns_and_untouched_first(self):
         now = datetime(2026,10,7,tzinfo=timezone.utc)

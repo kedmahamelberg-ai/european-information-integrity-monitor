@@ -7,6 +7,7 @@ from .hybrid import VERSION, retained_inputs, labels, latest_labels
 from .review_sampling import sample_plan, assignment, linked_comment_plan
 from .storage import record
 from .engagement import engagement
+from .language_access import publishable_label
 
 VIDEO_FIELDS = ["relevance", "topics", "roles"]
 EXECUTION = config("hybrid")["execution"]
@@ -85,7 +86,8 @@ def packet(store, batch, plan_override=None):
     from .calibration import current_reviews
 
     saved_reviews = current_reviews(store, batch)
-    current = [r for r in latest_labels(labels(store, batch)) if r["video_id"] in videos]
+    current = [r for r in latest_labels(labels(store, batch))
+               if r["video_id"] in videos and publishable_label(r)]
     population = getattr(store, "review_population", None)
     available_comments = {c["comment_id"] for c in comments
                           if translations.get(c["comment_id"], {}).get("text_english")}

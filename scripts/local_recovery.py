@@ -21,6 +21,7 @@ sys.path.insert(0, str(ROOT / 'src'))
 from eiim.audio_transcripts import AudioTranscripts
 from eiim.core import digest
 from eiim.storage import record
+from eiim.language_access import usable_english_transcript
 
 URL = 'https://monitor.hamelberg-ai.com/data.json'
 
@@ -93,7 +94,7 @@ def recover_queue(queue, save, progress, *, reader_factory=AudioTranscripts,
         result['direct_failure_reason'] = 'RequestBlocked' if source.get('caption_state') == 'blocked' else None
         save(source, result)
         completed += 1
-        saved += bool(result.get('transcript_english'))
+        saved += usable_english_transcript(result)
         progress(status('running'))
         if reader.stopped and reader.stopped != 'audio_run_limit':
             reason = reader.stopped
@@ -126,7 +127,7 @@ def candidates(inventory, rows, now):
     for row in rows:
         r = row['record']; key = (r['batch_id'], r['video_id'])
         latest[key] = r['payload']
-        if r['payload'].get('transcript_english'):
+        if usable_english_transcript(r['payload']):
             saved.add(key)
     pending = []
     for source in inventory:
@@ -140,7 +141,7 @@ def candidates(inventory, rows, now):
             if not stamp:
                 continue
             attempted = datetime.fromisoformat(stamp.replace('Z', '+00:00'))
-            quality = previous.get('failure_reason') in {'AudioLanguageUncertain', 'AudioNoUsableSpeech', 'AudioInvalidSegments'}
+            quality = previous.get('failure_reason') in {'AudioLanguageUncertain', 'AudioNoUsableSpeech', 'AudioInvalidSegments', 'AudioIncompleteTranscript'} or previous.get('transcript_complete') is False
             if now - attempted < timedelta(days=7 if quality else 1):
                 continue
         pending.append((bool(previous), source))

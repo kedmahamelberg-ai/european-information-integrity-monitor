@@ -196,11 +196,13 @@ def _balanced_reviews(validated, known, *, comments, limit):
 def calibration_examples(store, exclude_video_id=None):
     """Bounded private examples from validated retained reviews, excluding self."""
     from .hybrid import labels, retained_inputs
+    from .language_access import publishable_label
 
     known = {
         r["id"]: r
         for batch_id in retained_batch_ids(store)
         for r in labels(store, batch_id)
+        if publishable_label(r)
     }
     examples = {"videos": [], "comments": []}
     cache = {}

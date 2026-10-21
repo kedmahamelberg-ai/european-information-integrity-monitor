@@ -10,6 +10,9 @@ select jsonb_build_object(
       where r.batch_id=s.batch_id and r.video_id=s.video_id and r.purged_at is null
         and r.payload->>'policy_version'='english-access-1.0'
         and r.payload->>'eligible'='true'
+        and coalesce(r.payload->>'transcript_language','en')='en'
+        and r.payload->>'transcript_complete' is distinct from 'false'
+        and r.payload_hash <> '7f4757c6b7c321d8773c2648205489d7a72abccb4500f7369a2f582fc0d84d65'
         and jsonb_array_length(coalesce(r.payload->'transcript_english', '[]'::jsonb))>0
     ) then 'saved' else 'unverified' end
   ) order by s.batch_id desc, s.video_id), '[]'::jsonb)

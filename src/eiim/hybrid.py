@@ -12,6 +12,8 @@ from .core import ROOT, config, digest, now
 from .language_access import (
     access_records,
     video_access,
+    usable_english_transcript,
+    publishable_label,
     translated_comment,
     TRANSLATION_VERSION,
 )
@@ -469,9 +471,7 @@ def retained_inputs(store, batch):
                 snapshots, key=lambda p: p["captured_at"]
             )
         language = video_access(source, batch, access)
-        if language["eligible"] and any(
-            s.get("text", "").strip() for s in language.get("transcript_english", [])
-        ):
+        if usable_english_transcript(language):
             videos[vid] = (source, language)
     comments = [
         r["payload"]
@@ -536,6 +536,10 @@ def reclassify(store, batch, classifier=None, video_ids=None):
         if video_ids is not None and vid not in video_ids:
             continue
         existing = completed.get(vid)
+        if existing and not publishable_label(existing):
+            # An old label based on rejected or truncated evidence must be
+            # replaced after a newly usable transcript arrives.
+            existing = None
         selected = sorted(
             [c for c in comments if c["video_id"] == vid], key=lambda c: c["comment_id"]
         )
@@ -691,7 +695,8 @@ def reclassify(store, batch, classifier=None, video_ids=None):
                     "reason": str(error),
                 }
             )
-    current = latest_labels(labels(store, batch))
+    current = [r for r in latest_labels(labels(store, batch))
+               if r["video_id"] in videos and publishable_label(r)]
     current_ids = {r["video_id"] for r in current}
     if video_ids is not None and status == "complete":
         for vid in video_ids:
@@ -833,7 +838,7 @@ def retrieve_retained_captions(store, batch, audio=None):
             continue
         source = dict(row["payload"], video_id=row["video_id"])
         old = video_access(source, batch, access)
-        if any(s.get("text", "").strip() for s in old.get("transcript_english", [])):
+        if usable_english_transcript(old):
             continue
         result = reader.check(source, retrieve_english_audio=True)
         attempted += 1
@@ -877,7 +882,7 @@ def retrieve_retained_captions(store, batch, audio=None):
                 )
             ],
         )
-        retrieved += bool(result.get("transcript_english"))
+        retrieved += usable_english_transcript(result)
         if reader.blocked and (not fallback or fallback.stopped) and (not audio or audio.stopped):
             break
     report = {"new_saved_transcripts": retrieved, "attempted_videos": attempted,

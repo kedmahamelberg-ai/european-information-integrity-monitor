@@ -4,6 +4,35 @@ from .core import now
 
 POLICY_VERSION = "english-access-1.0"
 
+# Audited source/label records whose English evidence cannot support a label.
+# Hashes identify immutable records, so a later corrected transcript or label
+# can become eligible without suppressing the video permanently.
+QUARANTINED_TRANSCRIPT_HASHES = frozenset({
+    "7f4757c6b7c321d8773c2648205489d7a72abccb4500f7369a2f582fc0d84d65",
+})
+QUARANTINED_LABEL_IDS = frozenset({
+    "2026-W40:hybrid:hybrid-framing-1.4:-vCnvdiXv2s:388d431769301e06d69e",
+})
+
+
+def usable_english_transcript(access):
+    """A saved fragment or a flagged partial transcript is not full evidence."""
+    return bool(
+        access.get("eligible")
+        and primary_language(access.get("transcript_language") or "en") == "en"
+        and access.get("transcript_complete") is not False
+        and access.get("_payload_hash") not in QUARANTINED_TRANSCRIPT_HASHES
+        and any(s.get("text", "").strip() for s in access.get("transcript_english", []))
+    )
+
+
+def publishable_label(row):
+    """A label made from truncated or quarantined evidence stays private."""
+    return (
+        row["id"] not in QUARANTINED_LABEL_IDS
+        and row["payload"].get("transcript_truncated") is not True
+    )
+
 
 def primary_language(code):
     return (code or "und").lower().replace("_", "-").split("-")[0]
@@ -49,12 +78,12 @@ def access_records(rows):
             and p.get("english_access_video_id")
         ):
             key = (r["batch_id"], p["english_access_video_id"])
+            current = dict(p, _payload_hash=r.get("payload_hash"))
             previous = records.get(key, {})
             # A later failed lookup must not erase already saved source evidence.
-            if (previous.get("eligible") and previous.get("transcript_english")
-                    and not (p.get("eligible") and p.get("transcript_english"))):
+            if usable_english_transcript(previous) and not usable_english_transcript(current):
                 continue
-            records[key] = p
+            records[key] = current
     return records
 
 
@@ -63,8 +92,13 @@ def video_access(video, batch, records):
 
 
 def caption_state(access):
-    if access.get("eligible") and any(s.get("text", "").strip() for s in access.get("transcript_english", [])):
+    if usable_english_transcript(access):
         return "saved"
+    if access.get("transcript_english") and (
+        access.get("transcript_complete") is False
+        or access.get("_payload_hash") in QUARANTINED_TRANSCRIPT_HASHES
+    ):
+        return "incomplete"
     if access.get("failure_reason") in {"IpBlocked", "RequestBlocked", "AudioAccessBlocked"} or access.get("direct_failure_reason") in {"IpBlocked", "RequestBlocked"}:
         return "blocked"
     if access.get("status") == "no_english_captions" or access.get("failure_reason") == "TranscriptsDisabled":

@@ -14,12 +14,21 @@ with params as (
   select distinct on (r.video_id) r.*
   from eiim.pipeline_runs r join retained b on b.id=r.batch_id
   where r.purged_at is null and r.payload->>'policy_version'='english-access-1.0'
+    and r.payload->>'eligible'='true'
+    and coalesce(r.payload->>'transcript_language','en')='en'
+    and r.payload->>'transcript_complete' is distinct from 'false'
+    and r.payload_hash <> '7f4757c6b7c321d8773c2648205489d7a72abccb4500f7369a2f582fc0d84d65'
+    and jsonb_array_length(coalesce(r.payload->'transcript_english','[]'::jsonb))>0
   order by r.video_id, r.payload->>'checked_at' desc, r.created_at desc, r.id desc
 ), coded as (
-  select distinct on (r.video_id) r.*
-  from eiim.pipeline_runs r join retained b on b.id=r.batch_id
-  where r.purged_at is null and r.payload->>'hybrid_version' in ('hybrid-framing-1.4','hybrid-framing-1.5','hybrid-framing-1.6') and r.payload ? 'label'
-  order by r.video_id, r.payload->>'classified_at' desc, r.created_at desc, r.id desc
+  select * from (
+    select distinct on (r.video_id) r.*
+    from eiim.pipeline_runs r join retained b on b.id=r.batch_id
+    where r.purged_at is null and r.payload->>'hybrid_version' in ('hybrid-framing-1.4','hybrid-framing-1.5','hybrid-framing-1.6') and r.payload ? 'label'
+    order by r.video_id, r.payload->>'classified_at' desc, r.created_at desc, r.id desc
+  ) latest
+  where latest.payload->>'transcript_truncated' is distinct from 'true'
+    and latest.id <> '2026-W40:hybrid:hybrid-framing-1.4:-vCnvdiXv2s:388d431769301e06d69e'
 ), population_videos as (
   select c.video_id, c.payload
   from coded c join sampled s using(video_id) join access a using(video_id)

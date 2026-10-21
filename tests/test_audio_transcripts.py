@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from eiim.audio_transcripts import AudioTranscripts, english_result
 from eiim.hybrid import retrieve_retained_captions
-from eiim.language_access import caption_state, EnglishCaptionAccess, access_records
+from eiim.language_access import caption_state, EnglishCaptionAccess, access_records, usable_english_transcript
 from eiim.reclassification import evidence_input
 from eiim.storage import MemoryStore, record
 
@@ -28,11 +28,21 @@ class AudioTests(unittest.TestCase):
 
     def test_translation_provenance_and_missing_material_reach_classifier(self):
         result = english_result(VIDEO, dict(SPEECH, discarded_segments=1))
-        self.assertEqual(caption_state(result), "saved")
+        self.assertEqual(caption_state(result), "incomplete")
+        self.assertFalse(usable_english_transcript(result))
+        self.assertEqual(result["failure_reason"], "AudioIncompleteTranscript")
         self.assertEqual(result["original_language"], "de")
         self.assertEqual(result["caption_translation"], "whisper_translation")
         self.assertEqual(result["transcript_english"][0]["duration"], 18)
         self.assertTrue(evidence_input(VIDEO, result)["transcript_truncated"])
+
+    def test_quarantined_access_hash_is_not_usable(self):
+        saved = english_result(VIDEO, SPEECH)
+        row = record("pipeline_runs", "b", "quarantined", saved)["record"]
+        row["payload_hash"] = "7f4757c6b7c321d8773c2648205489d7a72abccb4500f7369a2f582fc0d84d65"
+        access = access_records([row])[("b", VIDEO["video_id"])]
+        self.assertEqual(caption_state(access), "incomplete")
+        self.assertFalse(usable_english_transcript(access))
 
     def test_empty_uncertain_invalid_and_repetitive_speech_stays_unclassified(self):
         for speech in [dict(SPEECH, segments=[]), dict(SPEECH, language_probability=.2),
