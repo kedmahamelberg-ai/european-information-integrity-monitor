@@ -24,9 +24,13 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT / "src"))
 from eiim.storage import Store
+from government_reviews import apply_confirmed_corrections
 SOURCES = json.loads((ROOT / "config/government_sources.json").read_text())["sources"]
 HYBRID = json.loads((ROOT / "config/hybrid.json").read_text())
 TOPICS = HYBRID["topics"]
+COUNTRY_ISO3 = {country["iso2"]: country["iso3"] for country in
+                json.loads((ROOT / "config/countries.json").read_text())["countries"]}
+ROLE_ENTITY_CODES = set(COUNTRY_ISO3.values()) | {"EU", "OTHER"}
 STATE = ROOT / "data/government_state.json"
 PUBLIC = ROOT / "build/government-data.json"
 CORRECTIONS = ROOT / "data/government_corrections.json"
@@ -2171,12 +2175,12 @@ class ModelRateLimit(RuntimeError):
         super().__init__(code)
 
 
-def ask_openai(text, classification=True, examples=None, validation_note=""):
+def ask_openai(text, classification=True, examples=None, validation_note="", source_country_code=""):
     string={"type":"string"}
     def obj(fields): return {"type":"object","properties":fields,"required":list(fields),"additionalProperties":False}
     topic={"type":"string","enum":TOPICS}
     if classification:
-        role=obj({"entity":string,"entity_code":string,"role":{"type":"string","enum":HYBRID["roles"]},"evidence_quote":string,"rationale":string})
+        role=obj({"entity":string,"entity_code":{"type":"string","enum":sorted(ROLE_ENTITY_CODES)},"role":{"type":"string","enum":HYBRID["roles"]},"evidence_quote":string,"rationale":string})
         viewpoint=obj({"speaker":string,"summary":string,"target":string,"speaker_sentiment":{"type":"string","enum":HYBRID["sentiment"]},"evidence_quote":string})
         schema=obj({"relevance":{"type":"string","enum":HYBRID["relevance"]},"topics":{"type":"array","items":topic},"evidence_status":{"type":"string","enum":HYBRID["evidence_status"]},"evidence_quote":string,"roles":{"type":"array","items":role},"viewpoint_structure":{"type":"string","enum":HYBRID["viewpoint_structure"]},"viewpoints":{"type":"array","items":viewpoint},"confidence":{"type":"number"},"short_rationale":string,"ticker_message":string})
     else:
@@ -2187,6 +2191,11 @@ def ask_openai(text, classification=True, examples=None, validation_note=""):
           "TOPICS are multi-label but choose only directly evidenced, specific topics. Do not infer health_biosecurity merely from UNICEF, children, or routine care; migration_displacement requires actual movement or displacement; technology_supply_chains requires technology dependence or supply chains; political_institutions requires an institutional security or sovereignty issue, not any policy; diplomacy_alliances requires substantive international security cooperation, not every meeting. Related requires at least one topic; not_related and unclear require empty topics and roles. "
           "ROLES use the creator definitions: readiness means preparing, training, or strengthening defence or collective resilience; projecting_power means demonstrating military power, threatening, coercing, or conducting an attack; under_pressure means portrayed as attacked, sabotaged, coerced, or threatened. Ordinary policymaking, financial support, diplomacy, partnership, and willingness to cooperate do not by themselves establish any actor role. Leave roles empty when none is evidenced. "
           "VIEWPOINT STRUCTURE is single_viewpoint for one attributable substantive proposition; multiple_viewpoints requires two or more distinct substantive positions, not merely two people at a meeting. Attribute only propositions actually made or reported; do not invent a speaker's stance. Evidence quotes must be verbatim short passages from the supplied English translation, with no invented ellipsis. Provide a concise evidence-based rationale and a neutral plain-English ticker message of at most 18 words stating the main point.")
+    if classification:
+        source_iso3=COUNTRY_ISO3.get(source_country_code, "")
+        task += (" Role entity_code must be a valid ISO3 country code, EU for an EU-wide actor, or OTHER for a named actor outside the coded countries; never leave it empty."
+                 + (f" This official source is from {source_country_code} ({source_iso3}); use {source_iso3} for a clearly domestic public service, but do not assign its code to foreign actors."
+                    if source_iso3 else ""))
     example_text=""
     if classification and examples:
         example_text="\nResearcher corrections from earlier source reviews (use as calibration examples):\n"+json.dumps(examples[-30:],ensure_ascii=False)
@@ -2282,15 +2291,9 @@ def main():
                 item["classification_status"]="pending_classification"
                 for key in ("relevance","topics","roles","viewpoint_structure","viewpoints","evidence_status","evidence_quote","confidence","short_rationale","ticker_message","related","primary_narrative","secondary_narratives","review_sample"):
                     item.pop(key,None)
-    for ident, correction in correction_map.items():
-        if ident in existing:
-            if "relevance" in correction: existing[ident]["relevance"]=correction["relevance"]
-            elif "related" in correction: existing[ident]["relevance"]="related" if correction["related"] else "not_related"
-            if "topics" in correction: existing[ident]["topics"]=correction["topics"]
-            elif "primary_narrative" in correction: existing[ident]["topics"]=[correction["primary_narrative"],*correction.get("secondary_narratives",[])] if correction["related"] else []
-            for key in ("roles","viewpoint_structure","viewpoints","evidence_status","evidence_quote","short_rationale","ticker_message"):
-                if key in correction: existing[ident][key]=correction[key]
-            existing[ident].update({"related":existing[ident].get("relevance")=="related","primary_narrative":(existing[ident].get("topics") or ["none_unclear"])[0],"secondary_narratives":(existing[ident].get("topics") or [])[1:],"classification_status":"human_reviewed","human_reviewed":True})
+    _, stale_corrections=apply_confirmed_corrections(existing.values(),corrections)
+    if stale_corrections:
+        print(f"Skipped {len(stale_corrections)} government reviews whose source evidence changed",flush=True)
     if calibration_complete:
         candidates.extend(x for x in existing.values()
                           if x.get("classification_status") in {"awaiting_calibration", "pending_classification"}
@@ -2382,10 +2385,12 @@ def main():
                 examples=[{**correction,"title":correction.get("source_title") or existing.get(ident,{}).get("title"),"summary":correction.get("source_summary") or existing.get(ident,{}).get("english_summary")} for ident,correction in correction_map.items()]
                 validation_note=""
                 for validation_attempt in range(2):
-                    labels=ask_openai(item["english_translation"],True,examples,validation_note)
-                    valid=(labels["relevance"]=="related" and bool(labels["topics"])) or (labels["relevance"]!="related" and not labels["topics"] and not labels["roles"])
+                    labels=ask_openai(item["english_translation"],True,examples,validation_note,item["country_code"])
+                    valid=((labels["relevance"]=="related" and bool(labels["topics"])) or
+                           (labels["relevance"]!="related" and not labels["topics"] and not labels["roles"]))
+                    valid=valid and all(role.get("entity_code") in ROLE_ENTITY_CODES for role in labels["roles"])
                     if valid: break
-                    validation_note="\nThe previous classification was internally inconsistent. Re-evaluate the source: related requires one or more directly supported topics; not_related/unclear require empty topics and roles. Do not remove a supported security topic merely to satisfy the schema."
+                    validation_note="\nThe previous classification was internally inconsistent. Re-evaluate the source: related requires one or more directly supported topics; not_related/unclear require empty topics and roles; every role needs a valid nonempty ISO3, EU, or OTHER entity code. Do not remove a supported security topic merely to satisfy the schema."
             except ModelRateLimit as error:
                 item["classification_status"]="pending_classification"
                 item["classification_error"]=error.code
