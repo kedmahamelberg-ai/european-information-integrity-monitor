@@ -155,7 +155,7 @@ def packet(store, batch, plan_override=None):
                     }
                     for code in source.get("countries", [])
                 ],
-                "country_basis": "title_and_description",
+                "country_basis": "title_or_lead_description_or_saved_transcript",
                 "description": source.get("description", ""),
                 "source_language": access["original_language"],
                 "caption_status": access.get("status"),
