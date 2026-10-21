@@ -79,6 +79,43 @@ class MeasuresTests(unittest.TestCase):
         self.assertTrue(country_matches("European Union debate", "")[1])
         self.assertFalse(term_match("skull", "UK"))
 
+    def test_country_facets_follow_subject_not_incidental_mentions(self):
+        self.assertEqual(content_country_codes(
+            "Poland in the 90s was a different world 🇵🇱",
+            "In the UK you see many cultures. My parents travelled to Sweden. "
+            "In Poland it was different.",
+        ), ["PL"])
+        self.assertEqual(content_country_codes(
+            "Is Finland Worth It in 2027?", "Study in Finland. Learn English and Swedish."
+        ), ["FI"])
+        self.assertEqual(content_country_codes(
+            "Six Flags Over Georgia reopened", "A ride near Atlanta was closed."
+        ), [])
+        self.assertEqual(content_country_codes(
+            "Georgia and Russia discuss the border", "Tbilisi and Moscow officials met."
+        ), ["GE", "RU"])
+        self.assertEqual(content_country_codes(
+            "Debate com Luís Montenegro", "O primeiro-ministro português falou no parlamento."
+        ), ["PT"])
+        self.assertEqual(content_country_codes(
+            "Immobilien in Montenegro", "Maxi Montenegro explica rendimentos. 🇲🇪"
+        ), ["ME"])
+
+    def test_country_facets_preserve_cross_border_and_transcript_context(self):
+        self.assertEqual(content_country_codes(
+            "Why Does This Border Zigzag?! 🇸🇪🇫🇮", ""
+        ), ["SE", "FI"])
+        self.assertEqual(content_country_codes(
+            "Att bemöta detta beteende med sympati vore naivt. #frankrike #sverige",
+            "", transcript=[{"text": "This is a French woman at a protest in France."}],
+        ), ["FR"])
+        self.assertEqual(content_country_codes(
+            "Question for… #map #europe #montenegro", ""
+        ), ["ME"])
+        self.assertEqual(content_country_codes(
+            "How Many Countries Border Yours? #europe #germany #france #italy #poland", ""
+        ), [])
+
     def test_schema(self):
         x = validate_classification(label())
         self.assertAlmostEqual(x["sfi"], 7 / 3)
