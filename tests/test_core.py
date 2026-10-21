@@ -92,6 +92,9 @@ class MeasuresTests(unittest.TestCase):
             "Six Flags Over Georgia reopened", "A ride near Atlanta was closed."
         ), [])
         self.assertEqual(content_country_codes(
+            "Chatham, Georgia Booking Records", "Local booking records."
+        ), [])
+        self.assertEqual(content_country_codes(
             "Georgia and Russia discuss the border", "Tbilisi and Moscow officials met."
         ), ["GE", "RU"])
         self.assertEqual(content_country_codes(
