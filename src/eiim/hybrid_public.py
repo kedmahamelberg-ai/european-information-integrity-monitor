@@ -1,7 +1,7 @@
 """Explicit public allowlist: counters and attributed labels, never raw discussions."""
 
 import json
-from .core import config, now
+from .core import config, now, content_country_codes
 from .hybrid import VERSION, retained_inputs, labels, latest_labels
 from .hybrid_review import video_values
 from .review_sampling import sample_plan
@@ -121,6 +121,10 @@ def export_public(store, path):
             source = dict(sampled_row["payload"], **candidates.get(vid, {}))
             source["video_id"] = vid
             access = video_access(source, batch, accesses)
+            source["countries"] = content_country_codes(
+                source.get("title", ""), source.get("description", ""),
+                transcript=access.get("transcript_english", []),
+            )
             reason = caption_state(access)
             caption_health[reason] += 1
             output["inventory"].append({"id": vid, "batch": batch, "title": source.get("title", ""), "channel": source.get("channel", ""), "countries": source.get("countries", []), "published_at": source.get("published_at"), "original_language": access.get("original_language", "und"), "caption_state": reason, "engagement": engagement(source)})
