@@ -115,6 +115,95 @@ def country_matches(title, description, cfg=None):
     return matched, generic
 
 
+def content_country_codes(title, description, cfg=None, transcript=None):
+    """Countries the source is primarily about, not every country it mentions.
+
+    Discovery intentionally uses the broader ``country_matches`` cues.  A
+    source's country facet instead follows its title, or the first substantive
+    description paragraph when the title gives no location.  This prevents an
+    anecdote, language, hashtag list, or promotional footer from putting a
+    video in an unrelated country's archive.
+    """
+    cfg = cfg or config("countries")
+    valid = {c["iso2"] for c in cfg["countries"]}
+    title = title or ""
+    description = description or ""
+    context = normalize(title + "\n" + description[:1200])
+
+    def focused_matches(text):
+        found = []
+        for country in cfg["countries"]:
+            terms = [country["country_name"], country["english_demonym"],
+                     *country["local_names"], *country["variants"],
+                     *country["local_demonyms"], *country["adjectival_forms"],
+                     *country.get("major_city_cues", [])]
+            # "English" describes a language far more often than UK content.
+            if country["iso2"] == "GB":
+                terms = [term for term in terms if normalize(term) != "english"]
+            if any(term_match(text, term) for term in set(terms) if term):
+                found.append(country["iso2"])
+        if "GE" in found and re.search(
+            r"\b(?:atlanta|ossoff|medicaid|six flags|dalton|"
+            r"north georgia|coffee county|chatham county|"
+            r"georgia national fair|us senate|u\.s\. senate|"
+            r"georgia state|hurricane isaias|mike collins)\b", context
+        ) and not re.search(r"\b(?:tbilisi|caucasus|abkhazia|ossetia)\b", context):
+            found.remove("GE")
+        if "ME" in found and re.search(
+            r"\b(?:lu[ií]s|luis|maxi|fernanda|comendador)\s+montenegro\b|"
+            r"\b(?:chega|andr[eé] ventura|sns|primeiro.ministro)\b", context
+        ) and not (
+            "🇲🇪" in title or "🇲🇪" in description[:1200]
+            or re.search(r"\b(?:in|to|from|dans|en|em|nach|im|u|v)\s+montenegro\b", normalize(title))
+            or re.search(r"\b(?:crna gora|adriatic|balkan)\b", context)
+        ):
+            found.remove("ME")
+        return found
+
+    # Country hashtags are useful discovery cues, but a list of hashtags is
+    # not evidence that the video is substantively about every listed place.
+    title_prose = title.split("#", 1)[0].strip()
+    title_codes = focused_matches(title_prose) if title_prose else []
+    for flag in re.findall(r"[\U0001f1e6-\U0001f1ff]{2}", title):
+        code = "".join(chr(ord(letter) - 0x1f1e6 + ord("A")) for letter in flag)
+        if code in valid and code not in title_codes:
+            title_codes.append(code)
+    if title_codes:
+        return title_codes[:3] if len(title_codes) <= 3 else []
+
+    for paragraph in re.split(r"\n\s*\n", description):
+        body = paragraph.strip()
+        if not body or body.startswith(("http://", "https://", "#")):
+            continue
+        if len(re.findall(r"#\w+", body)) >= 3 or len(body.split()) < 5:
+            continue
+        if re.search(r"^(?:subscribe|follow|book a|join (?:me|our)|"
+                     r"check out|visit my|watch more|tags:|keywords:)",
+                     normalize(body)):
+            continue
+        codes = focused_matches(body)
+        if codes:
+            return codes if len(codes) <= 3 else []
+    # Hashtag-only titles often contain several unrelated country tags.  When
+    # source prose is silent, the saved English transcript can identify the
+    # actual setting without asking the classifier to infer a location.
+    if transcript:
+        spoken = " ".join(
+            part.get("text", "") if isinstance(part, dict) else str(part)
+            for part in transcript
+        )
+        excerpt = " ".join(spoken.split()[:120])
+        context += "\n" + normalize(excerpt)
+        codes = focused_matches(excerpt)
+        if codes:
+            return codes if len(codes) <= 3 else []
+    if "#" in title:
+        codes = focused_matches(title[title.find("#"):])
+        if 0 < len(codes) <= 2:
+            return codes
+    return []
+
+
 def sfi(o, a, m, score_max=4):
     if score_max not in (4, 6):
         raise ValueError("Unsupported score scale")
