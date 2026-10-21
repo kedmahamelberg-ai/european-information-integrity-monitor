@@ -50,11 +50,14 @@ def english_result(video, speech):
         return dict(result, failure_reason="AudioNoUsableSpeech")
     if result["original_language"] == "und":
         result.update(original_language=language, language_basis="whisper_language_detection")
-    return dict(result, eligible=True, status="english_audio_transcription",
+    complete = not speech.get("discarded_segments", 0)
+    return dict(result, eligible=complete,
+                status="english_audio_transcription" if complete else "english_audio_incomplete",
+                failure_reason="AudioIncompleteTranscript" if not complete else None,
                 caption_source_language=language,
                 caption_translation="none" if primary_language(language) == "en" else "whisper_translation",
                 transcript_language="en", transcript_english=clean,
-                transcript_complete=not speech.get("discarded_segments", 0),
+                transcript_complete=complete,
                 transcription_language_probability=confidence,
                 transcription_quality="automatic_unreviewed",
                 audio_duration_seconds=speech.get("duration"))
@@ -133,7 +136,7 @@ class AudioTranscripts:
             self.blocked_attempts = 0
         if reason in {"AudioDependenciesUnavailable", "AudioModelUnavailable"}:
             self.stopped = reason
-        self.saved += bool(result.get("transcript_english"))
+        self.saved += bool(result.get("eligible") and result.get("transcript_english"))
         return result
 
 

@@ -8,6 +8,10 @@ with retained as (
 ), selected_runs as (
  (select distinct on (video_id) * from runs
   where payload->>'policy_version'='english-access-1.0' and payload->>'eligible'='true'
+    and coalesce(payload->>'transcript_language','en')='en'
+    and payload->>'transcript_complete' is distinct from 'false'
+    and payload_hash <> '7f4757c6b7c321d8773c2648205489d7a72abccb4500f7369a2f582fc0d84d65'
+    and jsonb_array_length(coalesce(payload->'transcript_english','[]'::jsonb))>0
   order by video_id, payload->>'checked_at' desc, created_at desc, id desc)
  union
  (select distinct on (video_id) * from runs

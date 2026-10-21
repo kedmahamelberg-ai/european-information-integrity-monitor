@@ -54,6 +54,38 @@ class PublicCoverageTests(unittest.TestCase):
         self.assertNotIn('blocked', [x['id'] for x in out['videos']])
         self.assertNotIn('transcript_english', json.dumps(out))
 
+    def test_incomplete_transcript_and_truncated_label_do_not_publish(self):
+        s = fixtures.HybridTests().make_transcript_store()
+        s.batch({'id': '2026-W40'}, 'test')
+        s.write('2026-W40', [
+            record('candidate_videos', '2026-W40', 'partial-candidate', {'title': 'Partial'}, 'partial'),
+            record('sampled_videos', '2026-W40', 'partial-sample', {'selected_for_sample': True}, 'partial'),
+            record('pipeline_runs', '2026-W40', 'partial-access', {
+                'english_access_video_id': 'partial', 'policy_version': POLICY_VERSION,
+                'eligible': True, 'original_language': 'en', 'transcript_language': 'en',
+                'transcript_complete': False, 'transcript_english': [{'text': 'Only a fragment', 'start': 0}],
+            }, 'partial'),
+            record('pipeline_runs', '2026-W40', 'partial-label', {
+                'hybrid_version': VERSION, 'video_id': 'partial', 'label': fixtures.label(),
+                'classified_at': '2026-10-04T00:00:00Z', 'model_version': 'test',
+                'transcript_truncated': True,
+            }, 'partial'),
+            record('pipeline_runs', '2026-W40', 'truncated-label', {
+                'hybrid_version': VERSION, 'video_id': 'v', 'label': fixtures.label(),
+                'classified_at': '2026-10-04T00:00:00Z', 'model_version': 'test',
+                'transcript_truncated': True,
+            }, 'v'),
+        ])
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / 'public.json'
+            export_public(s, p)
+            out = json.loads(p.read_text())
+        self.assertEqual(out['collection']['sampled_videos'], 2)
+        self.assertEqual(out['collection']['classified_videos'], 0)
+        self.assertEqual(next(x for x in out['inventory'] if x['id'] == 'partial')['caption_state'], 'incomplete')
+        self.assertNotIn('partial', [x['id'] for x in out['videos']])
+        self.assertIsNone(next(x for x in out['videos'] if x['id'] == 'v')['label'])
+
     def test_human_comment_correction_overrides_ai_in_aggregate(self):
         row={'id':'r','payload':{'label':fixtures.label()}}
         review={'human_label':dict(fixtures.label()['comments'][0], alignment='opposes')}

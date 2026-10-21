@@ -1,6 +1,8 @@
 # English access and original-language provenance
 
-Policy: `english-access-1.0`.
+Policy: `english-access-1.0`, with the full-evidence gate applied to retained records.
+
+A video enters classification, public security totals and human review only when a saved English transcript is usable in full. Local Whisper output that discarded speech segments is retained privately for diagnosis but is marked incomplete, not eligible. Labels whose classifier input was truncated are withheld until classification can use the complete saved text. A known incoherent transcript and its AI label are quarantined by their immutable record identifiers; corrected evidence and a new label can restore that video. A video becoming private later does not erase an adequate transcript already retained. A playable video without adequate English text remains in the source inventory while bounded local recovery is attempted. Automated speech recognition can still mistranscribe words despite complete technical coverage; that limitation is shown in the review evidence and must not be described as human verification.
 
 The active analysis/review pool requires either publisher-declared English audio, or a successfully retrieved nonempty English caption/transcript track. Non-English and unknown-audio videos do not qualify from an English title or description alone. Existing English tracks are preferred; successful YouTube auto-translation into English also qualifies. A CC flag or a “translatable” flag alone is insufficient. Blocked, failed, empty and unavailable retrievals fail closed and retain their distinct status. No proxy, cookie or access-control workaround is used.
 

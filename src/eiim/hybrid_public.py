@@ -6,7 +6,7 @@ from .hybrid import VERSION, retained_inputs, labels, latest_labels
 from .hybrid_review import video_values
 from .review_sampling import sample_plan
 from .engagement import engagement
-from .language_access import access_records, video_access, caption_state
+from .language_access import access_records, video_access, caption_state, publishable_label
 from .calibration import current_reviews
 from collections import Counter
 
@@ -128,6 +128,7 @@ def export_public(store, path):
             r["video_id"]: r
             for r in labels_by_batch[batch].values()
             if r["video_id"] in videos
+            and publishable_label(r)
         }
         comments_by_video = {
             vid: [
