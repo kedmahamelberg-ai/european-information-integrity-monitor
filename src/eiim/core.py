@@ -146,7 +146,8 @@ def content_country_codes(title, description, cfg=None, transcript=None):
             r"\b(?:atlanta|ossoff|medicaid|six flags|dalton|"
             r"north georgia|coffee county|chatham county|"
             r"georgia national fair|us senate|u\.s\. senate|"
-            r"georgia state|hurricane isaias|mike collins)\b", context
+            r"georgia state|hurricane isaias|mike collins|"
+            r"booking records|county jail|sheriff)\b", context
         ) and not re.search(r"\b(?:tbilisi|caucasus|abkhazia|ossetia)\b", context):
             found.remove("GE")
         if "ME" in found and re.search(
