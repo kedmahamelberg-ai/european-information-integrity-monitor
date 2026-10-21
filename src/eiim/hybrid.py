@@ -8,7 +8,7 @@ from collections import Counter
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-from .core import ROOT, config, digest, now
+from .core import ROOT, config, content_country_codes, digest, now
 from .language_access import (
     access_records,
     video_access,
@@ -471,6 +471,10 @@ def retained_inputs(store, batch):
                 snapshots, key=lambda p: p["captured_at"]
             )
         language = video_access(source, batch, access)
+        source["countries"] = content_country_codes(
+            source.get("title", ""), source.get("description", ""),
+            transcript=language.get("transcript_english", []),
+        )
         if usable_english_transcript(language):
             videos[vid] = (source, language)
     comments = [
