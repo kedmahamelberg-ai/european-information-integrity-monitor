@@ -23,9 +23,9 @@ from .review_sampling import plans_for_store, assignment
 from .services import Classifier, Ledger, BudgetExhausted, ClassificationUnavailable
 from .storage import Store, ReadSnapshot, record
 
-VERSION = "hybrid-framing-1.6"
-COMMENT_VERSION = "hybrid-comments-1.6"
-SUPPORTED_VERSIONS = {VERSION, "hybrid-framing-1.5", "hybrid-framing-1.4"}
+VERSION = "hybrid-framing-1.7"
+COMMENT_VERSION = "hybrid-comments-1.7"
+SUPPORTED_VERSIONS = {VERSION, "hybrid-framing-1.6", "hybrid-framing-1.5", "hybrid-framing-1.4"}
 VIDEO_TRANSCRIPT_CHAR_LIMIT = 12000
 
 

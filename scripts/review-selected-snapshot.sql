@@ -24,7 +24,7 @@ with params as (
   select * from (
     select distinct on (r.video_id) r.*
     from eiim.pipeline_runs r join retained b on b.id=r.batch_id
-    where r.purged_at is null and r.payload->>'hybrid_version' in ('hybrid-framing-1.4','hybrid-framing-1.5','hybrid-framing-1.6') and r.payload ? 'label'
+    where r.purged_at is null and r.payload->>'hybrid_version' in ('hybrid-framing-1.4','hybrid-framing-1.5','hybrid-framing-1.6','hybrid-framing-1.7') and r.payload ? 'label'
     order by r.video_id, r.payload->>'classified_at' desc, r.created_at desc, r.id desc
   ) latest
   where latest.payload->>'transcript_truncated' is distinct from 'true'

@@ -175,7 +175,7 @@ def packet(store, batch, plan_override=None):
                     if not r.get("purged_at")
                     and r.get("video_id") == vid
                     and r["payload"].get("item_type") == "hybrid_video"
-                    and r["payload"].get("version") != VERSION
+                    and r["payload"].get("version") != p.get("hybrid_version", VERSION)
                 ],
                 "review_assignment": assignment(plan, vid),
                 "engagement": engagement(source),
@@ -192,7 +192,7 @@ def packet(store, batch, plan_override=None):
                             for r in store.read("human_validation", batch)
                             if not r.get("purged_at")
                             and r["payload"].get("comment_id") == c["comment_id"]
-                            and r["payload"].get("version") != VERSION
+                            and r["payload"].get("version") != p.get("hybrid_version", VERSION)
                         ],
                         "ai": ai_comments[c["comment_id"]],
                     }
@@ -241,7 +241,7 @@ def write_html(data, path):
 def validate_review(item, row):
     source_version = row["payload"].get("hybrid_version", VERSION)
     if (
-        source_version not in {VERSION, "hybrid-framing-1.5", "hybrid-framing-1.4", "hybrid-framing-1.3"}
+        source_version not in {VERSION, "hybrid-framing-1.6", "hybrid-framing-1.5", "hybrid-framing-1.4", "hybrid-framing-1.3"}
         or item.get("version") != source_version
         or item.get("queue_hash") != row.get("payload_hash", digest(row["payload"]))
     ):
