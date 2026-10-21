@@ -251,7 +251,8 @@ class Pipeline:
         for v in videos:
             sn = v["snippet"]
             published = datetime.fromisoformat(sn["publishedAt"].replace("Z", "+00:00"))
-            countries, generic = country_matches(sn["title"], sn.get("description", ""))
+            _, generic = country_matches(sn["title"], sn.get("description", ""))
+            countries = content_country_codes(sn["title"], sn.get("description", ""))
             eligible = datetime.fromisoformat(
                 self.window["window_start"]
             ) <= published < datetime.fromisoformat(
