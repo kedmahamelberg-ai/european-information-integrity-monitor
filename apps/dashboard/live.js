@@ -117,7 +117,7 @@
     loadPlayerApi().then(() => {
       if (generation !== slot.generation || !active()) return;
       slot.player = new window.YT.Player(`camera-player-${slot.number}`, {
-      host: "https://www.youtube-nocookie.com",
+      host: "https://www.youtube.com",
       width: "100%", height: "200", videoId: c.video_id,
       playerVars: {autoplay:1, mute:1, playsinline:1, controls:1, rel:0, origin:location.origin},
       events: {
