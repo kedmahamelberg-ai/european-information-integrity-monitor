@@ -1851,7 +1851,8 @@ def discover_switzerland(country,start,end):
 def discover_san_marino(country,start,end):
     """Use the active foreign ministry News e Comunicati archive and its own JSON feed."""
     api="https://www.gov.sm/pub1/.rest/delivery/esteri-news?lang=it"
-    _,body=fetch(api,limit=12_000_000,timeout=25)
+    # This full archive is already about 11 MB; slower routes can exceed 25 s.
+    _,body=fetch(api,limit=12_000_000,timeout=60)
     payload=json.loads(body)
     rows=payload.get("results")
     if not isinstance(rows,list) or payload.get("total")!=len(rows):
