@@ -39,6 +39,38 @@ def collection_mode(state, ready_codes, until):
     return "classify-only" if ready_codes else "collect"
 
 
+def covered_today_codes(state, ready_codes, until):
+    """Sources already checked today need no second archive request at 15:00."""
+    target = dt.datetime.fromisoformat(until)
+    if target.tzinfo is None:
+        raise ValueError("Daily cutoff must include a time zone")
+    local_start = target.astimezone(AMSTERDAM).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    covered = set()
+    for code in ready_codes:
+        try:
+            cursor = dt.datetime.fromisoformat(state.get("source_cursors", {})[code])
+            if cursor.tzinfo is not None and cursor >= local_start:
+                covered.add(code)
+        except (KeyError, TypeError, ValueError):
+            pass
+    return covered
+
+
+def daily_plan(state, ready_codes, phase, until):
+    if phase not in {"", "early", "retry"}:
+        raise ValueError("Unknown daily collection phase")
+    if phase == "retry":
+        if not until:
+            raise ValueError("Daily retry requires a cutoff")
+        covered = covered_today_codes(state, ready_codes, until)
+        return {"mode": "classify-only" if covered == ready_codes else "collect",
+                "skip": ",".join(sorted(covered))}
+    return {"mode": collection_mode(state, ready_codes, until) if phase == "early" else "collect",
+            "skip": ""}
+
+
 def ready_codes(path):
     tree = ast.parse(path.read_text())
     for node in tree.body:
@@ -73,9 +105,13 @@ def main():
         state_path = root / "data/government_state.json"
         state = json.loads(state_path.read_text()) if state_path.exists() else {}
         codes = ready_codes(root / "scripts/collect_government_news.py")
-        mode = collection_mode(state, codes, os.environ.get("DAILY_UNTIL", ""))
-        print(f"Daily collection mode: {mode}; {len(codes)} working countries", flush=True)
-        output({"mode": mode})
+        phase = os.environ.get("DAILY_PHASE", "")
+        until = os.environ.get("COLLECTION_UNTIL") or os.environ.get("DAILY_UNTIL", "")
+        plan = daily_plan(state, codes, phase, until)
+        print(f"Daily collection phase: {phase or 'manual'}; mode: {plan['mode']}; "
+              f"already checked today: {plan['skip'] or 'none'}; "
+              f"{len(codes)} working countries", flush=True)
+        output(plan)
 
 
 if __name__ == "__main__":

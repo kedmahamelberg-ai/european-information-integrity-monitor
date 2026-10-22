@@ -5,10 +5,12 @@ import datetime as dt
 import email.utils
 import hashlib
 import html
+import http.client
 import json
 import os
 import random
 import re
+import socket
 import ssl
 import subprocess
 import sys
@@ -221,6 +223,36 @@ def fetch_ipv4(url, limit=2_000_000, timeout=20):
     if response.returncode:
         raise RuntimeError(f"IPv4 fetch failed: {response.stderr.decode('utf-8','replace')[:180]}")
     return url,response.stdout
+
+
+def source_failure_diagnostic(error):
+    """Record the runner's evidence without claiming to know the site's state."""
+    http_status = error.code if isinstance(error, urllib.error.HTTPError) else None
+    if http_status is None:
+        match = re.search(r"\b(?:HTTP(?: Error)? |error: )([1-5]\d\d)\b", str(error))
+        if match:
+            http_status = int(match.group(1))
+    reason = error.reason if isinstance(error, urllib.error.URLError) else error
+    if http_status in {401, 403, 429}:
+        category = "possible_access_restriction"
+    elif http_status == 404:
+        category = "source_url_changed_or_removed"
+    elif http_status is not None and http_status >= 500:
+        category = "possible_service_outage"
+    elif isinstance(reason, ssl.SSLCertVerificationError):
+        category = "tls_validation_failure"
+    elif isinstance(reason, socket.gaierror):
+        category = "dns_failure"
+    elif isinstance(reason, (TimeoutError, socket.timeout)) or "timed out" in str(error).lower():
+        category = "timeout_or_network_path"
+    elif isinstance(reason, http.client.RemoteDisconnected):
+        category = "connection_closed"
+    elif isinstance(error, RuntimeError):
+        category = "collector_or_page_format_changed"
+    else:
+        category = "unclassified_failure"
+    return {"error_category": category, "http_status": http_status,
+            "needs_independent_check": True}
 
 
 def date_value(value):
@@ -2261,7 +2293,7 @@ def translate_document(source_text):
 
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument("--since",default=""); ap.add_argument("--until",default=""); ap.add_argument("--countries",default="",help="Comma-separated ISO country codes for an isolated source check"); ap.add_argument("--discovery-only",action="store_true"); ap.add_argument("--classify-only",action="store_true",help="Classify pending checkpoint items without re-fetching source archives"); args=ap.parse_args()
+    ap=argparse.ArgumentParser(); ap.add_argument("--since",default=""); ap.add_argument("--until",default=""); ap.add_argument("--countries",default="",help="Comma-separated ISO country codes for an isolated source check"); ap.add_argument("--skip-countries",default="",help="Already checked countries to omit from the scheduled retry"); ap.add_argument("--discovery-only",action="store_true"); ap.add_argument("--classify-only",action="store_true",help="Classify pending checkpoint items without re-fetching source archives"); args=ap.parse_args()
     if args.discovery_only and args.classify_only: ap.error("--discovery-only and --classify-only cannot be combined")
     now=dt.datetime.now(dt.timezone.utc).replace(microsecond=0)
     state=json.loads(STATE.read_text()) if STATE.exists() else {"last_successful_collection_end":None,"items":[]}
@@ -2271,13 +2303,16 @@ def main():
     if args.until and re.fullmatch(r"\d{4}-\d{2}-\d{2}", args.until):
         end=dt.datetime.combine(dt.date.fromisoformat(args.until)+dt.timedelta(days=1),dt.time.min,AMSTERDAM).astimezone(dt.timezone.utc)-dt.timedelta(microseconds=1)
     selected_codes={code.strip().upper() for code in args.countries.split(",") if code.strip()}
-    matching_sources=[source for source in SOURCES if source.get("verification_status")=="verified" and (source["iso2"] in selected_codes if selected_codes else source["iso2"] in COLLECTOR_READY_CODES)]
+    skipped_codes={code.strip().upper() for code in args.skip_countries.split(",") if code.strip()}
+    if skipped_codes-COLLECTOR_READY_CODES: ap.error("--skip-countries includes a country without a ready collector")
+    if selected_codes and skipped_codes: ap.error("--countries and --skip-countries cannot be combined")
+    matching_sources=[source for source in SOURCES if source.get("verification_status")=="verified" and (source["iso2"] in selected_codes if selected_codes else source["iso2"] in COLLECTOR_READY_CODES-skipped_codes)]
     if selected_codes-{source["iso2"] for source in matching_sources}: raise SystemExit("Country selection contains missing or unverified codes")
     selected_sources=[] if args.classify_only else matching_sources
     source_cursors=dict(state.get("source_cursors") or {})
     starts_by_code={source["iso2"]:requested_start or date_value(source_cursors.get(source["iso2"])) or initial_start for source in selected_sources}
     start=min(starts_by_code.values(),default=requested_start or initial_start)
-    existing=canonical_government_items(state.get("items",[])); sources_status=[]; candidates=[]; discovered_links={}
+    existing=canonical_government_items(state.get("items",[])); sources_status=[]; candidates=[]; discovered_links={}; article_failures=[]
     corrections=json.loads(CORRECTIONS.read_text()) if CORRECTIONS.exists() else []
     correction_map={x["id"]:x for x in corrections if x.get("id")}
     calibration_ids={x["id"] for x in existing.values() if x.get("calibration_item")}
@@ -2328,7 +2363,7 @@ def main():
                         candidates.append(item)
                 print(f"Discovered {source['name']}: {len(entries)} candidate links",flush=True)
             except Exception as e:
-                sources_status.append({"country_code":source["iso2"],"country":source["name"],"official_home":source["url"],"status":"source_unavailable","error":type(e).__name__})
+                sources_status.append({"country_code":source["iso2"],"country":source["name"],"official_home":source["url"],"status":"source_unavailable","error":type(e).__name__,**source_failure_diagnostic(e)})
                 print(f"Unavailable {source['name']}: {type(e).__name__}: {e}",flush=True)
     if args.discovery_only:
         print(json.dumps({"window_start":start.isoformat(),"window_end":end.isoformat(),"sources":sources_status,"items":[{"country":x["country"],"url":x["url"],"title":x["title"],"published_at":x["published_at"]} for x in candidates]},ensure_ascii=False,indent=2))
@@ -2374,6 +2409,8 @@ def main():
                 # Preserve this URL for a later retry without stopping the batch.
                 item["classification_status"]="needs_review" if isinstance(error,RuntimeError) else "pending_classification"
                 item["classification_error"]=type(error).__name__
+                article_failures.append({"country_code":item["country_code"],"url":item["url"],
+                                         "error":type(error).__name__,**source_failure_diagnostic(error)})
                 existing[item["id"]]=item
                 STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
                 print(f"Deferred {item['country_code']} {item['id']}: {type(error).__name__}",flush=True)
@@ -2410,19 +2447,25 @@ def main():
     calibration_ids={x["id"] for x in existing.values() if x.get("calibration_item")}
     calibration_complete=bool(correction_map) or bool(state.get("calibration_complete")) or bool(calibration_ids and calibration_ids.issubset(correction_map))
     out={"as_of":end.isoformat(),"window_start":start.isoformat(),"window_end":end.isoformat(),"taxonomy_version":HYBRID["version"],"sources":sources_status,"items":sorted(existing.values(),key=lambda x:x.get("published_at",""),reverse=True),"review":{"routine_sample_percent":3,"calibration_tranche_percent":10,"calibration_ready":calibration_complete}}
-    collection_complete=not args.classify_only and not selected_codes and bool(selected_sources) and len(sources_status)==len(selected_sources) and all(x["status"]=="discovered" for x in sources_status)
+    collection_complete=not args.classify_only and not selected_codes and not skipped_codes and bool(selected_sources) and len(sources_status)==len(selected_sources) and all(x["status"]=="discovered" for x in sources_status)
     cursor=end.isoformat() if collection_complete else state.get("last_successful_collection_end")
     STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":cursor,"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":out["items"]},ensure_ascii=False,indent=2)+"\n")
     PUBLIC.parent.mkdir(exist_ok=True)
     public={**out,"items":[{k:v for k,v in item.items() if k not in {"text","english_translation"}} for item in out["items"]]}
     PUBLIC.write_text(json.dumps(public,ensure_ascii=False,indent=2)+"\n")
+    (PUBLIC.parent / "government-source-diagnostics.json").write_text(json.dumps({
+        "observed_at":now.isoformat(),"window_start":start.isoformat(),"window_end":end.isoformat(),
+        "attempted_sources":len(selected_sources),"skipped_after_early_success":sorted(skipped_codes),
+        "sources":sources_status,"article_failures":article_failures,
+        "interpretation":"A single runner cannot prove a site is offline or that collection is blocked. Compare the exact section URL from an independent network before assigning a cause."
+    },ensure_ascii=False,indent=2)+"\n")
     REVIEW_QUEUE.parent.mkdir(exist_ok=True)
     REVIEW_QUEUE.write_text(json.dumps({"instructions":"Review every calibration_item before calibration is complete, every needs_review conflict, and thereafter the 3% routine sample. Return corrections as a JSON array with id, relevance, topics, roles and viewpoints where changed. Corrections calibrate later batches.","items":[{k:v for k,v in item.items() if k in {"id","country","country_code","url","title","published_at","english_summary","relevance","topics","evidence_status","evidence_quote","roles","viewpoint_structure","viewpoints","ticker_message","short_rationale","calibration_item","review_sample","classification_status","classification_error"}} for item in out["items"] if (item.get("calibration_item") and not item.get("human_reviewed")) or item.get("classification_status")=="needs_review" or (item.get("classification_status")=="provisional" and item.get("review_sample") and not item.get("human_reviewed"))]},ensure_ascii=False,indent=2)+"\n")
     ok=sum(x["status"]=="discovered" for x in sources_status)
     print(json.dumps({"window_start":out["window_start"],"window_end":out["window_end"],"sources_ok":ok,"sources_unavailable":sum(x["status"]!="discovered" for x in sources_status),"batch_items":len(candidates),"classified_this_run":sum(x.get("classification_status")=="provisional" for x in candidates[:cap]),"stored_items":len(existing),"awaiting_calibration":sum(x.get("classification_status")=="awaiting_calibration" for x in out["items"]),"pending_classification":sum(x.get("classification_status")=="pending_classification" for x in out["items"]),"calibration_review_items":sum(bool(x.get("calibration_item") and not x.get("human_reviewed")) for x in out["items"]),"routine_review_items":sum(bool(x.get("review_sample") is True and not x.get("human_reviewed")) for x in out["items"]),"needs_review":sum(x.get("classification_status")=="needs_review" for x in out["items"])}))
     if selected_codes and ok!=len(selected_sources):
         raise SystemExit("One or more selected official news sections failed; inspect the saved checkpoint before retrying.")
-    if not args.classify_only and not selected_codes and ok==0:
+    if not args.classify_only and not selected_codes and selected_sources and ok==0:
         raise SystemExit("Every ready official news section failed; no source cursor advanced.")
 
 if __name__ == "__main__": main()

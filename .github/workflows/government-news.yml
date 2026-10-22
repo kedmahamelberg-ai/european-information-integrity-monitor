@@ -1,9 +1,13 @@
 name: Daily government communications
 on:
-  # Supabase pg_cron dispatches this workflow at 15:00 Europe/Amsterdam.
+  # Supabase pg_cron dispatches the early pass and 15:00 retry in Amsterdam.
   # See ops/government-daily-clock.md; no duplicate GitHub cron triggers.
   workflow_dispatch:
     inputs:
+      daily_phase:
+        description: Scheduler phase (early or retry); leave blank for a manual full run
+        required: false
+        type: string
       since:
         description: Start date for bounded backfill (YYYY-MM-DD)
         required: false
@@ -64,6 +68,7 @@ jobs:
       COLLECTION_COUNTRIES: ${{ inputs.countries }}
       CLASSIFY_ONLY: ${{ inputs.classify_only }}
       DISCOVERY_ONLY: ${{ inputs.discovery_only }}
+      DAILY_PHASE: ${{ inputs.daily_phase }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -97,6 +102,7 @@ jobs:
       - name: Collect, translate and classify official government news
         env:
           DAILY_MODE: ${{ steps.daily.outputs.mode }}
+          DAILY_SKIP: ${{ steps.daily.outputs.skip }}
         run: |
           args=()
           if [ -n "$DAILY_UNTIL" ]; then args+=(--until "$DAILY_UNTIL"); fi
@@ -106,7 +112,11 @@ jobs:
           if [ -n "$COLLECTION_COUNTRIES" ]; then args+=(--countries "$COLLECTION_COUNTRIES"); fi
           if [ "$CLASSIFY_ONLY" = "true" ]; then args+=(--classify-only); fi
           if [ "$DISCOVERY_ONLY" = "true" ]; then args+=(--discovery-only); fi
+          if [ -n "$DAILY_SKIP" ] && [ -z "$COLLECTION_COUNTRIES" ]; then args+=(--skip-countries "$DAILY_SKIP"); fi
           python scripts/collect_government_news.py "${args[@]}"
+      - name: Summarize source access
+        if: always()
+        run: python scripts/report_government_sources.py
       - name: Save collection checkpoint
         if: always()
         uses: actions/cache/save@v4
@@ -122,6 +132,7 @@ jobs:
           path: |
             build/government-review-queue.json
             build/government-data.json
+            build/government-source-diagnostics.json
             data/government_state.json
           retention-days: 30
       - uses: actions/configure-pages@v5
