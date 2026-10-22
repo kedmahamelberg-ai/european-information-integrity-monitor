@@ -21,6 +21,7 @@
   const wall = document.querySelector("#camera-wall");
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let cameras = [], slots = [], paused = reduceMotion, hold = reduceMotion, booted = false;
+  let playerApiPromise = null, playerApiRetryAfter = 0;
   const failures = new Map();
   const byId = id => document.getElementById(id);
   const safe = text => String(text ?? "").replace(/[&<>"']/g, c =>
@@ -36,11 +37,43 @@
     slot.root.querySelector(".camera-state").textContent = text;
     slot.root.querySelector(".camera-state").classList.toggle("playing", playing);
   }
+  function loadPlayerApi() {
+    if (window.YT?.Player) return Promise.resolve();
+    if (playerApiPromise) return playerApiPromise;
+    if (Date.now() < playerApiRetryAfter) return Promise.reject(new Error("Player API cooling down"));
+    playerApiPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      const previousReady = window.onYouTubeIframeAPIReady;
+      let settled = false;
+      const finish = error => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        window.onYouTubeIframeAPIReady = previousReady;
+        if (error) {
+          script.remove();
+          playerApiRetryAfter = Date.now() + 300000;
+          playerApiPromise = null;
+          reject(error);
+        } else resolve();
+      };
+      window.onYouTubeIframeAPIReady = () => {
+        if (typeof previousReady === "function") previousReady();
+        finish(window.YT?.Player ? null : new Error("Player API unavailable"));
+      };
+      script.src = "https://www.youtube.com/iframe_api";
+      script.async = true;
+      script.onerror = () => finish(new Error("Player API failed to load"));
+      const timeout = setTimeout(() => finish(new Error("Player API timed out")), 12000);
+      document.head.appendChild(script);
+    });
+    return playerApiPromise;
+  }
   function destroy(slot) {
     clearTimeout(slot.watchdog);
     if (slot.player) { try { slot.player.destroy(); } catch {} }
     slot.player = null;
-    slot.direct = false;
+    slot.apiUnavailable = false;
   }
   function armWatchdog(slot, generation) {
     clearTimeout(slot.watchdog);
@@ -55,6 +88,7 @@
       .filter(s => availableCamera(cameras[s.index], now))
       .map(s => cameras[s.index].country_code));
     const index = nextCamera(cameras, slot.index, occupied, failures, now);
+    slot.generation++;
     destroy(slot);
     slot.index = index;
     slot.elapsed = 0;
@@ -66,28 +100,23 @@
   }
   function mount(slot) {
     const c = cameras[slot.index];
+    const generation = ++slot.generation;
     slot.autoplayBlocked = false;
-    slot.root.innerHTML = `<div class="camera-caption"><div><strong>${safe(c.city)} / ${safe(c.country_code)}</strong><small>${safe(c.view)}</small></div><div><span class="camera-state">CONNECTING</span><div class="camera-clock"></div></div></div><div class="camera-player pending"><div id="camera-player-${slot.number}"></div></div><button class="camera-start" hidden>Start stream</button><div class="camera-bottom"><a href="${safe(c.source_url)}" target="_blank" rel="noopener" title="${safe(c.operator)}">${safe(c.operator)} ↗</a><button class="camera-next">Next country →</button></div><div class="camera-progress"><span></span></div>`;
+    slot.apiUnavailable = false;
+    slot.root.innerHTML = `<div class="camera-caption"><div><strong>${safe(c.city)} / ${safe(c.country_code)}</strong><small>${safe(c.view)}</small></div><div><span class="camera-state">CONNECTING</span><div class="camera-clock"></div></div></div><div class="camera-player pending" data-message="Checking live stream…"><div id="camera-player-${slot.number}"></div></div><button class="camera-start" hidden>Start stream</button><div class="camera-bottom"><a href="${safe(c.source_url)}" target="_blank" rel="noopener" title="${safe(c.operator)}">${safe(c.operator)} ↗</a><button class="camera-next">Next country →</button></div><div class="camera-progress"><span></span></div>`;
     slot.root.querySelector(".camera-next").onclick = () => advance(slot);
     slot.root.querySelector(".camera-start").onclick = () => {
+      if (slot.apiUnavailable) { playerApiRetryAfter = 0; mount(slot); return; }
       paused = false; controls();
       slot.autoplayBlocked = false;
+      slot.root.querySelector(".camera-player").dataset.message = "Checking live stream…";
       armWatchdog(slot, slot.generation);
       slot.player?.mute(); slot.player?.playVideo();
     };
     if (!active()) { badge(slot, "PAUSED"); return; }
-    const generation = ++slot.generation;
-    if (!window.YT?.Player) {
-      // A direct muted embed keeps the street views visible when the optional
-      // YouTube player API does not initialize in a visitor's browser.
-      slot.root.querySelector(`#camera-player-${slot.number}`).innerHTML =
-        `<iframe title="${safe(c.city)}, ${safe(c.country)}: ${safe(c.view)}" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(c.video_id)}?autoplay=1&mute=1&playsinline=1&controls=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="eager"></iframe>`;
-      slot.direct = true;
-      slot.root.querySelector(".camera-player").classList.remove("pending");
-      badge(slot, "● LIVE SOURCE", true);
-      return;
-    }
-    slot.player = new YT.Player(`camera-player-${slot.number}`, {
+    loadPlayerApi().then(() => {
+      if (generation !== slot.generation || !active()) return;
+      slot.player = new window.YT.Player(`camera-player-${slot.number}`, {
       host: "https://www.youtube-nocookie.com",
       width: "100%", height: "200", videoId: c.video_id,
       playerVars: {autoplay:1, mute:1, playsinline:1, controls:1, rel:0, origin:location.origin},
@@ -108,7 +137,7 @@
             slot.root.querySelector(".camera-start").hidden = true;
           } else if (event.data === 0) fail(slot);
           else if (event.data === 2) badge(slot, "PAUSED");
-          else if (event.data === 3) { slot.root.querySelector(".camera-player").classList.add("pending"); badge(slot, "BUFFERING"); armWatchdog(slot, generation); }
+          else if (event.data === 3) { slot.root.querySelector(".camera-player").classList.add("pending"); slot.root.querySelector(".camera-player").dataset.message = "Reconnecting live stream…"; badge(slot, "BUFFERING"); armWatchdog(slot, generation); }
         },
         onError() { if (generation === slot.generation) fail(slot); },
         onAutoplayBlocked() {
@@ -116,28 +145,34 @@
           clearTimeout(slot.watchdog);
           slot.autoplayBlocked = true;
           badge(slot, "PRESS START");
+          slot.root.querySelector(".camera-player").dataset.message = "Autoplay blocked. Press Start stream.";
           slot.root.querySelector(".camera-start").hidden = false;
         }
       }
+      });
+      armWatchdog(slot, generation);
+    }).catch(() => {
+      if (generation !== slot.generation) return;
+      playerApiRetryAfter = Math.max(playerApiRetryAfter, Date.now() + 300000);
+      slot.apiUnavailable = true;
+      slot.root.querySelector(".camera-player").classList.remove("pending");
+      slot.root.querySelector(".camera-player").innerHTML = '<p class="camera-message">Live player unavailable in this browser. Open the operator source below, or retry here.</p>';
+      badge(slot, "PLAYER UNAVAILABLE");
+      const retry = slot.root.querySelector(".camera-start");
+      retry.textContent = "Retry live player";
+      retry.hidden = false;
     });
-    armWatchdog(slot, generation);
   }
   function fail(slot) {
     if (slot.index >= 0) failures.set(cameras[slot.index].id, Date.now() + 300000);
-    slot.generation++;
     advance(slot);
   }
   function resumeVisibility() {
     for (const slot of slots) {
       if (!active()) {
         slot.player?.pauseVideo?.(); clearTimeout(slot.watchdog);
-        if (slot.direct) {
-          slot.root.querySelector(".camera-player")?.replaceChildren();
-          slot.direct = false;
-          badge(slot, "PAUSED");
-        }
       }
-      else if (slot.direct) continue;
+      else if (slot.apiUnavailable) { if (Date.now() >= playerApiRetryAfter) mount(slot); }
       else if (!slot.player && slot.index >= 0) mount(slot);
       else { slot.player?.playVideo?.(); if (!slot.autoplayBlocked) armWatchdog(slot, slot.generation); }
     }
@@ -151,7 +186,7 @@
       root.className = "camera-tile";
       root.setAttribute("aria-label", `Live city view ${number + 1}`);
       wall.appendChild(root);
-      return {number,root,index:-1,player:null,direct:false,elapsed:0,duration:60+number*15,generation:0,autoplayBlocked:false};
+      return {number,root,index:-1,player:null,apiUnavailable:false,elapsed:0,duration:60+number*15,generation:0,autoplayBlocked:false};
     });
     // Only mounted cameras reserve countries, so initialization cannot reserve a phantom slot.
     slots[1].index = -1;
@@ -166,6 +201,7 @@
         }
         if (!active()) continue;
         if (s.index < 0) { if (++s.elapsed >= 60) advance(s); continue; }
+        if (s.apiUnavailable) { if (Date.now() >= playerApiRetryAfter) mount(s); continue; }
         if (hold || s.root.matches(":hover") || s.root.contains(document.activeElement) || byId("source-dialog").open) continue;
         s.elapsed++;
         const bar=s.root.querySelector(".camera-progress span");
