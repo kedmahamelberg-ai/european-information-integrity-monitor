@@ -93,6 +93,7 @@ test('cameras wait for verified playback before claiming live', async () => {
   window.onYouTubeIframeAPIReady();
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(players.length, 2);
+  assert.ok(players.every(player => player.options.host === 'https://www.youtube.com'));
   assert.ok(wall.tiles.every(tile => !tile.querySelector('.camera-state').textContent.includes('LIVE')));
 
   players[0].options.events.onStateChange({data: 1});
