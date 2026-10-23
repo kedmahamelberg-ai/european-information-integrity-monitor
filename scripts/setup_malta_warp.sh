@@ -22,14 +22,14 @@ sudo warp-cli --accept-tos connect
 
 connected=false
 for attempt in {1..25}; do
-  if warp-cli status | grep -q 'Status update: Connected'; then
+  if warp-cli --accept-tos status | grep -q 'Status update: Connected'; then
     connected=true
     break
   fi
   sleep 2
 done
 if [[ "$connected" != true ]]; then
-  warp-cli status
+  warp-cli --accept-tos status
   echo '::error::Cloudflare WARP did not connect.'
   exit 1
 fi
