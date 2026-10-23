@@ -11,7 +11,12 @@ GitHub scheduled events arrived hours late on October 19. Supabase pg_cron dispa
 4. Verify the named cron job is active. Inspect cron job history and HTTP response status after 15:00. A queued HTTP request alone does not confirm a successful workflow dispatch.
 5. The GitHub cron entries are removed to avoid redundant dispatches. Keep the existing workflow concurrency and checkpoints.
 
-Each function sends at most one dispatch per Amsterdam calendar day, in a five-minute window starting at its local target time. The early and afternoon dispatches fix collection cutoffs to 09:00 and 15:00 respectively. They supply no country overrides: the existing 39-country collector allowlist remains authoritative and the 12 pending countries stay disabled. A source successfully checked at 09:00 resumes from that checkpoint the following morning; its new afternoon publications are delayed, not skipped.
+Each function sends at most one dispatch per Amsterdam calendar day, in a five-minute window starting at its local target time. The early and afternoon dispatches fix collection cutoffs to 09:00 and 15:00 respectively. They supply no country overrides: the collector allowlist remains authoritative. A source successfully checked at 09:00 resumes from that checkpoint the following morning; its new afternoon publications are delayed, not skipped.
+
+## Malta route
+Malta's official DOI SharePoint archive provides dated, paginated releases and article text. The collector checks its archive through Cloudflare WARP's local SOCKS proxy on a GitHub runner; the other sources and classifier retain the normal runner route. The workflow first checks that WARP reports connected, that Cloudflare's trace says `warp=on`, and that the Malta API returns JSON through the proxy. A failed VPN setup leaves the other countries' collection running and records Malta's source failure.
+
+The runner registration accepts Cloudflare WARP's terms. Keep repository variable `MALTA_WARP_TERMS_APPROVED` unset until the account owner has approved that acceptance for automated GitHub runners; set it to `true` only then. A connected WARP client on the owner's Mac does not configure the GitHub runner. WARP does not provide a selectable Malta exit country, so the route is an alternate network path, not a Maltese IP. An isolated Malta `workflow_dispatch` pilot should verify access before relying on the daily schedule.
 
 ## Inspection
 ```sql
