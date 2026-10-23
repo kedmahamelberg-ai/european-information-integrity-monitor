@@ -10,26 +10,29 @@ fi
 
 . /etc/os-release
 test -n "${VERSION_CODENAME:-}"
-curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --dearmor --yes --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+echo 'Configuring the Cloudflare package repository.'
+curl -fsSL --max-time 20 https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --dearmor --yes --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ ${VERSION_CODENAME} main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list >/dev/null
-sudo apt-get update -qq
-sudo apt-get install -y -qq cloudflare-warp
+echo 'Installing the Cloudflare WARP client.'
+timeout 60s sudo apt-get update -qq
+timeout 90s sudo apt-get install -y -qq cloudflare-warp
 
-sudo warp-cli --accept-tos registration new
-sudo warp-cli --accept-tos mode proxy
-sudo warp-cli --accept-tos proxy port 40000
-sudo warp-cli --accept-tos connect
+echo 'Registering and connecting the WARP proxy.'
+timeout 20s sudo warp-cli --accept-tos registration new
+timeout 20s sudo warp-cli --accept-tos mode proxy
+timeout 20s sudo warp-cli --accept-tos proxy port 40000
+timeout 20s sudo warp-cli --accept-tos connect
 
 connected=false
-for attempt in {1..25}; do
-  if warp-cli --accept-tos status | grep -q 'Status update: Connected'; then
+for attempt in {1..15}; do
+  if timeout 5s warp-cli --accept-tos status | grep -q 'Status update: Connected'; then
     connected=true
     break
   fi
   sleep 2
 done
 if [[ "$connected" != true ]]; then
-  warp-cli --accept-tos status
+  timeout 5s warp-cli --accept-tos status || true
   echo '::error::Cloudflare WARP did not connect.'
   exit 1
 fi
