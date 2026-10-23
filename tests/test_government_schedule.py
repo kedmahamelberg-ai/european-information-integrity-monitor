@@ -46,7 +46,7 @@ class GovernmentScheduleTests(unittest.TestCase):
     def test_empty_allowlist_never_counts_as_completed(self):
         self.assertEqual(schedule.collection_mode({}, set(), "2026-10-19T15:00:00+02:00"), "collect")
 
-    def test_afternoon_retries_only_sources_without_today_checkpoint(self):
+    def test_afternoon_checks_every_ready_source_after_morning_pass(self):
         state = {"source_cursors": {
             "NL": "2026-10-22T07:00:00+00:00",
             "DE": "2026-10-21T13:00:00+00:00",
@@ -54,25 +54,33 @@ class GovernmentScheduleTests(unittest.TestCase):
         }}
         self.assertEqual(schedule.daily_plan(state, {"NL", "DE", "BE"}, "retry",
                                              "2026-10-22T15:00:00+02:00"),
-                         {"mode": "collect", "skip": "BE,NL"})
+                         {"mode": "collect"})
 
-    def test_missing_early_checkpoint_retries_every_source(self):
+    def test_afternoon_checks_sources_when_morning_checkpoints_are_complete(self):
+        state = {"source_cursors": {"NL": "2026-10-22T07:00:00+00:00",
+                                    "DE": "2026-10-22T07:00:00+00:00"}}
+        self.assertEqual(schedule.daily_plan(state, {"NL", "DE"}, "retry",
+                                             "2026-10-22T15:00:00+02:00"),
+                         {"mode": "collect"})
+
+    def test_missing_early_checkpoint_still_checks_every_source(self):
         state = {"source_cursors": {"NL": "2026-10-21T13:00:00+00:00"}}
         self.assertEqual(schedule.daily_plan(state, {"NL", "DE"}, "retry",
                                              "2026-10-22T15:00:00+02:00"),
-                         {"mode": "collect", "skip": ""})
+                         {"mode": "collect"})
 
-    def test_winter_midnight_is_used_for_retry_selection(self):
+    def test_winter_afternoon_also_checks_every_source(self):
         state = {"source_cursors": {"NL": "2026-10-24T22:30:00+00:00",
                                     "DE": "2026-10-24T21:30:00+00:00"}}
-        self.assertEqual(schedule.covered_today_codes(state, {"NL", "DE"},
-                                                       "2026-10-25T15:00:00+01:00"), {"NL"})
+        self.assertEqual(schedule.daily_plan(state, {"NL", "DE"}, "retry",
+                                             "2026-10-25T15:00:00+01:00"),
+                         {"mode": "collect"})
 
     def test_manual_run_does_not_skip_sources(self):
         state = {"source_cursors": {"NL": "2026-10-22T07:00:00+00:00"}}
         self.assertEqual(schedule.daily_plan(state, {"NL"}, "",
                                              "2026-10-22T15:00:00+02:00"),
-                         {"mode": "collect", "skip": ""})
+                         {"mode": "collect"})
 
     def test_pending_countries_are_not_enabled(self):
         root = Path(__file__).resolve().parents[1]
