@@ -133,5 +133,5 @@ about = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 </body></html>""".replace("REV", revision).replace("BODY", (out / "methodology.html").read_text())
 (out / "about.html").write_text(about)
 (out / "robots.txt").write_text("User-agent: *\nAllow: /\nSitemap: https://monitor.hamelberg-ai.com/sitemap.xml\n")
-(out / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://monitor.hamelberg-ai.com/</loc></url><url><loc>https://monitor.hamelberg-ai.com/about.html</loc></url></urlset>')
+(out / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://monitor.hamelberg-ai.com/</loc></url><url><loc>https://monitor.hamelberg-ai.com/about.html</loc></url><url><loc>https://monitor.hamelberg-ai.com/research.html</loc></url></urlset>')
 print("Public website built in build/")
