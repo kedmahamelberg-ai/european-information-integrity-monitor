@@ -2383,7 +2383,7 @@ def translate_document(source_text):
 
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument("--since",default=""); ap.add_argument("--until",default=""); ap.add_argument("--countries",default="",help="Comma-separated ISO country codes for an isolated source check"); ap.add_argument("--skip-countries",default="",help="Already checked countries to omit from the scheduled retry"); ap.add_argument("--discovery-only",action="store_true"); ap.add_argument("--classify-only",action="store_true",help="Classify pending checkpoint items without re-fetching source archives"); args=ap.parse_args()
+    ap=argparse.ArgumentParser(); ap.add_argument("--since",default=""); ap.add_argument("--until",default=""); ap.add_argument("--countries",default="",help="Comma-separated ISO country codes for an isolated source check"); ap.add_argument("--skip-countries",default="",help="Optional country codes to omit from a manual run"); ap.add_argument("--discovery-only",action="store_true"); ap.add_argument("--classify-only",action="store_true",help="Classify pending checkpoint items without re-fetching source archives"); args=ap.parse_args()
     if args.discovery_only and args.classify_only: ap.error("--discovery-only and --classify-only cannot be combined")
     now=dt.datetime.now(dt.timezone.utc).replace(microsecond=0)
     state=json.loads(STATE.read_text()) if STATE.exists() else {"last_successful_collection_end":None,"items":[]}
@@ -2488,10 +2488,20 @@ def main():
         # GOVERNMENT_CALIBRATION_READY is explicitly enabled after corrections.
         calibrating=not calibration_complete
         candidates.sort(key=lambda x: hashlib.sha256(x["id"].encode()).hexdigest())
-        # Limit each run to a small checkpointed tranche; a slow article cannot
-        # turn a short discovery window into an hour-long classification job.
-        cap=max(1,(len(candidates)+9)//10) if calibrating and not calibration_ids else (0 if calibrating else min(20 if selected_codes else 30,len(candidates)))
+        # The 15:00 pass drains the checkpoint as far as the runner's time
+        # budget permits. Other runs retain small checkpointed tranches.
+        afternoon_full_pass=os.environ.get("DAILY_PHASE")=="retry" and not selected_codes
+        if calibrating and not calibration_ids:
+            cap=max(1,(len(candidates)+9)//10)
+        elif calibrating:
+            cap=0
+        else:
+            cap=len(candidates) if afternoon_full_pass else min(20 if selected_codes else 30,len(candidates))
+        classification_deadline=time.monotonic()+42*60 if afternoon_full_pass else None
         for position,item in enumerate(candidates[:cap],1):
+            if classification_deadline is not None and time.monotonic()>=classification_deadline:
+                print(f"Afternoon classification time budget reached; {len(candidates)-position+1} items remain queued",flush=True)
+                break
             print(f"Classifying {position}/{cap}: {item['country_code']} {item['id']}",flush=True)
             try:
                 text=article_text(item)
