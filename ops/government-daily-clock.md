@@ -1,8 +1,8 @@
 # Independent government collection clock
 
-Status: 15:00 clock activated October 19, 2026. The 09:00 clock and retry phase are added by `government-early-retry-clock.sql`. Vault token expires November 18, 2026; renew before that date. Authenticated read of the workflow endpoint returned HTTP 200.
+Status: 15:00 clock activated October 19, 2026. The 09:00 clock and afternoon phase are added by `government-early-retry-clock.sql`. Vault token expires November 18, 2026; renew before that date. Authenticated read of the workflow endpoint returned HTTP 200.
 
-GitHub scheduled events arrived hours late on October 19. Supabase pg_cron dispatches the main-branch workflow at 09:00 and 15:00 Europe/Amsterdam (including daylight-saving changes). GitHub runner queues can still delay actual job start; this removes dependence on GitHub's cron event delivery. The 09:00 pass checks all ready sources. The 15:00 pass uses restored per-source checkpoints to retry only sources without a successful check that day. If the early run or its cache is missing, the afternoon run checks all ready sources.
+GitHub scheduled events arrived hours late on October 19. Supabase pg_cron dispatches the main-branch workflow at 09:00 and 15:00 Europe/Amsterdam (including daylight-saving changes). GitHub runner queues can still delay actual job start; this removes dependence on GitHub's cron event delivery. Both passes check all ready sources. The 15:00 pass starts from each source's saved checkpoint, so a successful 09:00 check does not suppress afternoon publications. If the early run or its cache is missing, the afternoon run still checks all ready sources. The scheduler continues to send `daily_phase=retry` as the identifier for the afternoon full pass.
 
 ## Activation
 1. Create a fine-grained GitHub token with access only to this repository and Actions read/write. No Contents write permission is needed. Set an expiry and a renewal reminder.
@@ -11,7 +11,7 @@ GitHub scheduled events arrived hours late on October 19. Supabase pg_cron dispa
 4. Verify the named cron job is active. Inspect cron job history and HTTP response status after 15:00. A queued HTTP request alone does not confirm a successful workflow dispatch.
 5. The GitHub cron entries are removed to avoid redundant dispatches. Keep the existing workflow concurrency and checkpoints.
 
-Each function sends at most one dispatch per Amsterdam calendar day, in a five-minute window starting at its local target time. The early and afternoon dispatches fix collection cutoffs to 09:00 and 15:00 respectively. They supply no country overrides: the collector allowlist remains authoritative. A source successfully checked at 09:00 resumes from that checkpoint the following morning; its new afternoon publications are delayed, not skipped.
+Each function sends at most one dispatch per Amsterdam calendar day, in a five-minute window starting at its local target time. The early and afternoon dispatches fix collection cutoffs to 09:00 and 15:00 respectively. They supply no country overrides: the collector allowlist remains authoritative. A source successfully checked at 09:00 resumes from that checkpoint at 15:00, then from its afternoon checkpoint the following morning.
 
 ## Malta route
 Malta's official DOI SharePoint archive provides dated, paginated releases and article text. The collector checks its archive through Cloudflare WARP's local SOCKS proxy on a GitHub runner; the other sources and classifier retain the normal runner route. The workflow first checks that WARP reports connected, that Cloudflare's trace says `warp=on`, and that the Malta API returns JSON through the proxy. A failed VPN setup leaves the other countries' collection running and records Malta's source failure.
