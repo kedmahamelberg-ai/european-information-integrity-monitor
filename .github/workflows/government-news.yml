@@ -69,6 +69,7 @@ jobs:
       CLASSIFY_ONLY: ${{ inputs.classify_only }}
       DISCOVERY_ONLY: ${{ inputs.discovery_only }}
       DAILY_PHASE: ${{ inputs.daily_phase }}
+      MALTA_WARP_TERMS_APPROVED: ${{ vars.MALTA_WARP_TERMS_APPROVED }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -99,6 +100,25 @@ jobs:
       - name: Check saved daily progress
         id: daily
         run: python scripts/government_schedule.py collect
+      - name: Check whether Malta needs its VPN route
+        id: malta_route
+        env:
+          DAILY_MODE: ${{ steps.daily.outputs.mode }}
+          DAILY_SKIP: ${{ steps.daily.outputs.skip }}
+        run: |
+          enabled=true
+          if [[ "$DAILY_MODE" == "classify-only" || "$CLASSIFY_ONLY" == "true" ]]; then enabled=false; fi
+          if [[ -n "$COLLECTION_COUNTRIES" && ",$COLLECTION_COUNTRIES," != *",MT,"* ]]; then enabled=false; fi
+          if [[ -z "$COLLECTION_COUNTRIES" && ",$DAILY_SKIP," == *",MT,"* ]]; then enabled=false; fi
+          echo "enabled=$enabled" >> "$GITHUB_OUTPUT"
+      - name: Connect a local WARP proxy for Malta
+        id: malta_warp
+        if: steps.malta_route.outputs.enabled == 'true' && vars.MALTA_WARP_TERMS_APPROVED == 'true'
+        continue-on-error: true
+        run: bash scripts/setup_malta_warp.sh
+      - name: Warn if the Malta VPN route is unavailable
+        if: steps.malta_route.outputs.enabled == 'true' && steps.malta_warp.outcome != 'success'
+        run: echo '::warning::Malta VPN route is unavailable; the collector will attempt its normal route and record any source failure.'
       - name: Collect, translate and classify official government news
         env:
           DAILY_MODE: ${{ steps.daily.outputs.mode }}

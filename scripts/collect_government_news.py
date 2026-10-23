@@ -53,6 +53,7 @@ ZAGREB = ZoneInfo("Europe/Zagreb")
 SOFIA = ZoneInfo("Europe/Sofia")
 LONDON = ZoneInfo("Europe/London")
 ROME = ZoneInfo("Europe/Rome")
+MALTA = ZoneInfo("Europe/Malta")
 BERLIN = ZoneInfo("Europe/Berlin")
 COPENHAGEN = ZoneInfo("Europe/Copenhagen")
 LJUBLJANA = ZoneInfo("Europe/Ljubljana")
@@ -75,10 +76,10 @@ KYIV = ZoneInfo("Europe/Kyiv")
 ZURICH = ZoneInfo("Europe/Zurich")
 OSLO = ZoneInfo("Europe/Oslo")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AM": YEREVAN, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BE": BRUSSELS, "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
-                    "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME,
+                    "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME, "MT": MALTA,
                     "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "NO": OSLO, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE, "ES": MADRID, "TR": ISTANBUL, "UA": KYIV, "CH": ZURICH}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AM","AT","AZ","BA","BE","BG","BY","CH","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","NL","PL","PT","RS","SE","SI","SK","SM","TR","VA","XK"}
+COLLECTOR_READY_CODES = {"AD","AM","AT","AZ","BA","BE","BG","BY","CH","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","MT","NL","PL","PT","RS","SE","SI","SK","SM","TR","VA","XK"}
 
 
 # Verified publisher rename: retain the existing classified canonical record.
@@ -192,6 +193,17 @@ class HiddenFormInputs(HTMLParser):
         item=dict(attrs)
         if item.get("name") and item.get("type", "hidden") in {"hidden","text"}:
             self.values[item["name"]]=item.get("value", "")
+
+
+class MaltaContent(HTMLParser):
+    """Read the public SharePoint article field without markup or scripts."""
+    def __init__(self): super().__init__(); self.parts=[]; self.skip=0
+    def handle_starttag(self, tag, attrs):
+        if tag in {"script","style"}: self.skip+=1
+    def handle_endtag(self, tag):
+        if tag in {"script","style"}: self.skip=max(0,self.skip-1)
+    def handle_data(self, data):
+        if not self.skip and data.strip(): self.parts.append(data.strip())
 
 
 def official_article_text(body):
@@ -1879,6 +1891,78 @@ def discover_san_marino(country,start,end):
     return entries,country["url"]
 
 
+MALTA_API = "https://www.gov.mt/en/Government/DOI/Press%20Releases/_api/web/lists/getbytitle('Pages')/items"
+MALTA_RELEASE_PATH = re.compile(r"^/en/Government/DOI/Press Releases/Pages/(\d{4})/(\d{2})/(\d{2})/(PR\d{6}(?:en)?)\.aspx$",re.I)
+
+
+def fetch_malta_json(url):
+    """Use the WARP local proxy on runners; a connected Mac can use its full tunnel."""
+    if not url.startswith(MALTA_API+"?"):
+        raise RuntimeError("Malta archive pagination left the official API")
+    proxy=os.getenv("MALTA_WARP_PROXY","")
+    command=["curl","-fsSL","--compressed","--max-time","20","--max-filesize","5000000",
+             "-H","Accept: application/json;odata=nometadata","-A",UA]
+    if proxy:
+        parsed=urllib.parse.urlsplit(proxy)
+        if parsed.scheme!="socks5h" or parsed.hostname!="127.0.0.1" or not parsed.port or parsed.username or parsed.password:
+            raise RuntimeError("Malta WARP proxy must be a local SOCKS5 endpoint")
+        command.extend(["--proxy",proxy])
+    response=subprocess.run(command+[url],capture_output=True,timeout=23)
+    if response.returncode:
+        raise RuntimeError(f"Malta archive fetch failed: {response.stderr.decode('utf-8','replace')[:180]}")
+    body=response.stdout
+    if len(body)>5_000_000: raise RuntimeError("Malta archive page exceeds the size limit")
+    return json.loads(body)
+
+
+def discover_malta(country,start,end):
+    """Page through the official dated SharePoint archive, including full release text."""
+    first,last=start.astimezone(MALTA).date(),end.astimezone(MALTA).date()
+    lower=dt.datetime.combine(first,dt.time.min,MALTA).astimezone(dt.timezone.utc)
+    upper=dt.datetime.combine(last+dt.timedelta(days=1),dt.time.min,MALTA).astimezone(dt.timezone.utc)
+    date_filter=(f"ArticleStartDate ge datetime'{lower:%Y-%m-%dT%H:%M:%SZ}' and "
+                 f"ArticleStartDate lt datetime'{upper:%Y-%m-%dT%H:%M:%SZ}'")
+    query=urllib.parse.urlencode({"$select":"Id,FileRef,Title,ArticleStartDate,Gov_MainContent,Gov_PublicationNumber,FileSystemObjectType",
+                                  "$filter":date_filter,"$orderby":"Id desc","$top":"100"})
+    url=MALTA_API+"?"+query
+    pages=set(); entries={}
+    while url:
+        if url in pages or len(pages)>=100: raise RuntimeError("Malta archive pagination is incomplete")
+        pages.add(url)
+        payload=fetch_malta_json(url)
+        rows=payload.get("value")
+        if not isinstance(rows,list): raise RuntimeError("Malta archive returned no release list")
+        for row in rows:
+            if row.get("FileSystemObjectType")!=0: continue
+            path=urllib.parse.unquote(row.get("FileRef") or "")
+            match=MALTA_RELEASE_PATH.fullmatch(path)
+            published=date_value(row.get("ArticleStartDate"))
+            number=(row.get("Gov_PublicationNumber") or "").strip().lower()
+            slug=match.group(4).lower() if match else ""
+            # The publisher sometimes omits "en" in its number field or adds a space.
+            if not match or not published or not number or slug.removesuffix("en")!=number.removesuffix("en"):
+                raise RuntimeError("Malta release has invalid official metadata")
+            day=published.astimezone(MALTA).date()
+            if day!=dt.date(int(match.group(1)),int(match.group(2)),int(match.group(3))) or not first<=day<=last:
+                raise RuntimeError("Malta release date differs from its official URL")
+            title=re.sub(r"\s+"," ",html.unescape(row.get("Title") or "")).strip()
+            parser=MaltaContent(); parser.feed(row.get("Gov_MainContent") or "")
+            body=re.sub(r"\s+"," ",html.unescape(" ".join(parser.parts))).strip()
+            if not title or len(body)<40: raise RuntimeError("Malta release has no usable title or article text")
+            article_url="https://www.gov.mt"+urllib.parse.quote(path,safe="/")
+            key=slug.removesuffix("en")
+            item={"country":country["name"],"country_code":"MT","url":article_url,"title":title,
+                  "published_at":published.isoformat(),"published_date":day.isoformat(),
+                  "publication_precision":"day","text":body}
+            previous=entries.get(key)
+            is_english=slug.endswith("en")
+            if previous and previous[0]==is_english and previous[1]["url"]!=article_url:
+                raise RuntimeError("Malta archive repeated a release number")
+            if not previous or is_english: entries[key]=(is_english,item)
+        url=payload.get("odata.nextLink")
+    return [item for _,item in entries.values()],country["url"]
+
+
 NORWAY_MINISTRY_IDS=(875,165,298,810,750,216,380,421,463,668,504,545,586,627,709,791,833,-1)
 
 
@@ -1921,6 +2005,7 @@ def discover(country,start,end):
     if country["iso2"]=="BE": return discover_belgium(country,start,end)
     if country["iso2"]=="NO": return discover_norway(country,start,end)
     if country["iso2"]=="SM": return discover_san_marino(country,start,end)
+    if country["iso2"]=="MT": return discover_malta(country,start,end)
     if country["iso2"]=="CH": return discover_switzerland(country,start,end)
     if country["iso2"]=="UA": return discover_ukraine(country,start,end)
     if country["iso2"]=="TR": return discover_turkiye(country,start,end)
@@ -1984,6 +2069,10 @@ def article_text(item):
     if item["country_code"]=="SM":
         body=item.get("text","")
         if len(body)<40: raise RuntimeError("San Marino official communication has no usable body text")
+        return body
+    if item["country_code"]=="MT":
+        body=item.get("text","")
+        if len(body)<40: raise RuntimeError("Malta official release has no usable body text")
         return body
     if item["country_code"]=="UA":
         _,body=fetch(item["url"],timeout=20)
@@ -2432,7 +2521,9 @@ def main():
             except ModelRateLimit as error:
                 item["classification_status"]="pending_classification"
                 item["classification_error"]=error.code
-                item.pop("text",None)
+                # Malta's article body comes from the archive response. Keep it
+                # in the private checkpoint for a later classify-only retry.
+                if item["country_code"]!="MT": item.pop("text",None)
                 existing[item["id"]]=item
                 STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
                 print(f"Model API limit ({error.code}); {item['country_code']} {item['id']} and later items remain pending",flush=True)
@@ -2444,7 +2535,10 @@ def main():
                 continue
             item.update(labels); item["related"]=labels["relevance"]=="related"; item["primary_narrative"]=(labels["topics"] or ["none_unclear"])[0]; item["secondary_narratives"]=labels["topics"][1:]; item["classification_status"]="provisional"; item["classifier_prompt_version"]=CLASSIFIER_PROMPT_VERSION; item["review_sample"]=(int(item["id"][:8],16)%100<3); item["calibration_item"]=bool(calibrating and not calibration_ids); item["source_text_chars"]=len(text); item["translated_text_chars"]=len(item["english_translation"]); item["translation_complete"]=True; item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item; STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
             print(f"Classified {position}/{cap}: {item['country_code']} {item['id']} {labels['relevance']} {','.join(labels['topics'])}",flush=True)
-        for item in candidates[cap:]: item["classification_status"]="awaiting_calibration" if calibrating else "pending_classification"; item.pop("text",None); existing[item["id"]]=item
+        for item in candidates[cap:]:
+            item["classification_status"]="awaiting_calibration" if calibrating else "pending_classification"
+            if item["country_code"]!="MT": item.pop("text",None)
+            existing[item["id"]]=item
     calibration_ids={x["id"] for x in existing.values() if x.get("calibration_item")}
     calibration_complete=bool(correction_map) or bool(state.get("calibration_complete")) or bool(calibration_ids and calibration_ids.issubset(correction_map))
     out={"as_of":end.isoformat(),"window_start":start.isoformat(),"window_end":end.isoformat(),"taxonomy_version":HYBRID["version"],"sources":sources_status,"items":sorted(existing.values(),key=lambda x:x.get("published_at",""),reverse=True),"review":{"routine_sample_percent":3,"calibration_tranche_percent":10,"calibration_ready":calibration_complete}}
