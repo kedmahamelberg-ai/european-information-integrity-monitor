@@ -5,12 +5,18 @@ from eiim.hybrid import COMMENT_VERSION, VERSION, ROOT
 
 class CommentPromptTests(unittest.TestCase):
     def test_celebratory_emoji_rule_is_versioned_and_explicit(self):
-        self.assertEqual(COMMENT_VERSION, "hybrid-comments-1.7")
+        self.assertEqual(COMMENT_VERSION, "hybrid-comments-1.8")
         prompt = (ROOT / "prompts" / (COMMENT_VERSION + ".txt")).read_text()
         self.assertIn("equivalent positive reactions", prompt)
-        self.assertIn("presumptively main_message + supports", prompt)
+        self.assertIn("default to main_message + supports", prompt)
         self.assertIn("Words are not required", prompt)
         self.assertIn("bare national flag", prompt)
+        self.assertIn("reported event/action", prompt)
+        self.assertIn("not production praise or proof", prompt)
+        self.assertIn("rhetorical question that contradicts the claim", prompt)
+        self.assertIn("A joking policy remedy can be mixed", prompt)
+        self.assertIn("criticism of a rejected action", prompt)
+        self.assertIn("In multiple_viewpoints content, first identify", prompt)
         self.assertIn("Agreement and sentiment are independent", prompt)
         self.assertIn("viewpoint_ids", prompt)
         self.assertIn("multiple_viewpoints content", prompt)
