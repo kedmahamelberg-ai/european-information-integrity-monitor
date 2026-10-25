@@ -2,6 +2,8 @@
 
 GitHub collects on Sunday at 00:37 Europe/Amsterdam. It freezes the weekly sample, retrieves available text, classifies usable evidence and publishes through the workflow completion trigger. Missing text is explicitly reported as awaiting transcripts; it is not a classifier failure. Actual classification errors and budget stops still fail.
 
+English audio recovery now uses one local multilingual Whisper `medium` pass. Full audio duration, English translation mode and detected-speech coverage are required; unresolved speech stays unclassified. The existing 900-second worker and four-hour session limits remain. See `docs/ENGLISH-TRANSCRIPT-VALIDATION.md` for the paired local trial. Do not change an active recovery checkout mid-session; install runtime changes only while its process lock is free.
+
 ## Mac recovery checkpoints
 
 The Codex heartbeat runs on this Mac on Sunday at 07:30, 12:30, 15:30, 18:30 and 22:30 Amsterdam. Recovery work runs at the first four checkpoints; 22:30 is the linked video/comment review handoff. A Monday 18:30 checkpoint covers unfinished eligible work, retry cooldowns and the review fallback. Each recovery session is bounded to four hours plus its final worker, uses the process lock, and never overlaps an existing worker. The Mac and Codex must be available, online and signed in. A blocked/offline Mac is a reported dependency, not a successful run. The 80-source/45-minute limit is a chunk boundary, not the end of the queue: the local helper automatically starts the next chunk while retaining its lock. No manual restart is needed at that boundary.

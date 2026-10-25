@@ -15,10 +15,76 @@ from .core import now
 from .language_access import declared_access, primary_language
 from .youtube_session import cookie_file
 
-VERSION = "whisper-audio-1.0"
-MODEL = "small"
+VERSION = "whisper-audio-1.1"
+MODEL = "medium"
 MAX_DURATION = 7200
 MAX_BYTES = 256 * 1024 * 1024
+TIMESTAMP_TOLERANCE = 0.25
+
+
+def speech_coverage(regions, segments):
+    """Account for every VAD speech interval, allowing timestamp precision only."""
+    intervals = sorted((max(0, s["start"] - TIMESTAMP_TOLERANCE),
+                        s["end"] + TIMESTAMP_TOLERANCE) for s in segments)
+    gaps = []
+    total = sum(r["end"] - r["start"] for r in regions)
+    for region in regions:
+        cursor = region["start"]
+        for start, end in intervals:
+            if end <= cursor:
+                continue
+            if start >= region["end"]:
+                break
+            if start > cursor:
+                gaps.append({"start": cursor, "end": min(start, region["end"])})
+            cursor = max(cursor, end)
+            if cursor >= region["end"]:
+                break
+        if cursor < region["end"]:
+            gaps.append({"start": cursor, "end": region["end"]})
+    gaps = [g for g in gaps if g["end"] - g["start"] > 0.02]
+    missing = sum(g["end"] - g["start"] for g in gaps)
+    return {"complete": total > 0 and not gaps, "speech_seconds": total,
+            "uncovered_seconds": missing, "uncovered_spans": gaps,
+            "timestamp_tolerance_seconds": TIMESTAMP_TOLERANCE}
+
+
+def assess_segments(segments, regions):
+    """Silence is not missing speech; uncertain speech is never silently removed."""
+    kept, rejected, silence = [], [], 0
+    for segment in segments:
+        s = vars(segment) if hasattr(segment, "__dict__") else segment
+        start, end = s["start"], s["end"]
+        if (type(start) not in (int, float) or type(end) not in (int, float)
+                or not math.isfinite(start) or not math.isfinite(end)
+                or not 0 <= start < end):
+            raise ValueError("Invalid transcription interval")
+        overlaps_speech = any(min(end, r["end"]) > max(start, r["start"]) for r in regions)
+        scores = [s["avg_logprob"], s["no_speech_prob"], s["compression_ratio"]]
+        if any(type(v) not in (int, float) or not math.isfinite(v) for v in scores):
+            raise ValueError("Invalid transcription confidence")
+        # Require agreement between independent VAD and Whisper before calling
+        # a discarded segment silence. Keep confident words at quiet boundaries.
+        if not overlaps_speech and s["no_speech_prob"] > .6 and s["avg_logprob"] < -1:
+            silence += 1
+            continue
+        # A high no-speech probability alone does not veto confident speech.
+        # Match Whisper's joint silence/confidence test, while still rejecting
+        # unresolved low-confidence or repetitive speech after decoding fallback.
+        reason = None
+        if s["avg_logprob"] < -1:
+            reason = "uncertain_speech"
+        elif s["compression_ratio"] > 2.4:
+            reason = "repetitive_speech"
+        elif not s["text"].strip():
+            reason = "empty_speech"
+        if reason:
+            rejected.append({"start": start, "end": end, "reason": reason})
+        else:
+            kept.append({"text": s["text"].strip(), "start": start, "end": end})
+    return {"segments": kept, "discarded_segments": len(rejected),
+            "rejected_speech_spans": rejected, "ignored_non_speech_segments": silence,
+            "speech_coverage": speech_coverage(regions, kept)}
 
 
 def english_result(video, speech):
@@ -26,12 +92,17 @@ def english_result(video, speech):
     result = declared_access(video)
     result.update(eligible=False, transcript_checked=True,
                   audio_recovery_version=VERSION, caption_provider="faster-whisper",
-                  caption_retrieval_mode="public_audio", transcription_model=MODEL,
-                  caption_is_generated=True)
+                  caption_retrieval_mode="public_audio", transcription_model=speech.get("model", MODEL),
+                  caption_is_generated=True, transcript_complete=False)
     language = speech.get("language", "und")
     confidence = speech.get("language_probability", 0)
-    if not re.fullmatch(r"[a-z]{2,3}", language) or language == "und" or not isinstance(confidence, (int, float)) or not 0.6 <= confidence <= 1:
+    if not isinstance(language, str) or not re.fullmatch(r"[a-z]{2,3}", language) or language == "und" or type(confidence) not in (int, float) or not 0.6 <= confidence <= 1:
         return dict(result, failure_reason="AudioLanguageUncertain")
+    if speech.get("task") != "translate" or speech.get("output_language") != "en":
+        return dict(result, failure_reason="AudioEnglishTranslationRequired")
+    duration = speech.get("duration")
+    if type(duration) not in (int, float) or not math.isfinite(duration) or not 0 < duration <= MAX_DURATION + 1:
+        return dict(result, failure_reason="AudioInvalidSegments")
     segments = speech.get("segments", [])
     if not segments:
         return dict(result, failure_reason="AudioNoUsableSpeech")
@@ -41,16 +112,27 @@ def english_result(video, speech):
         start, end = s.get("start"), s.get("end")
         if (not text or type(start) not in (int, float) or type(end) not in (int, float)
                 or not math.isfinite(start) or not math.isfinite(end)
-                or not 0 <= start < end <= MAX_DURATION + 1
+                or not 0 <= start < end <= duration + TIMESTAMP_TOLERANCE
                 or (clean and start < clean[-1]["start"])):
             return dict(result, failure_reason="AudioInvalidSegments")
         clean.append({"text": text, "start": start, "duration": end - start})
     words = re.findall(r"\w+", " ".join(s["text"] for s in clean).casefold())
-    if len(words) < 20 or len(set(words)) < 10:
+    if not words or (len(words) >= 20 and len(set(words)) < 10):
         return dict(result, failure_reason="AudioNoUsableSpeech")
     if result["original_language"] == "und":
         result.update(original_language=language, language_basis="whisper_language_detection")
-    complete = not speech.get("discarded_segments", 0)
+    coverage = speech.get("speech_coverage", {})
+    # Removing the fixed word minimum must not admit a few words standing in
+    # for a long speech interval. This is a low-density safety gate, not a
+    # requirement that short clips contain twenty words.
+    speech_seconds = coverage.get("speech_seconds", 0)
+    plausible_density = (type(speech_seconds) in (int, float)
+                         and math.isfinite(speech_seconds)
+                         and 0 < speech_seconds <= duration
+                         and len(words) >= speech_seconds / 3)
+    complete = (speech.get("audio_complete") is True
+                and speech.get("speech_coverage", {}).get("complete") is True
+                and speech.get("discarded_segments") == 0 and plausible_density)
     return dict(result, eligible=complete,
                 status="english_audio_transcription" if complete else "english_audio_incomplete",
                 failure_reason="AudioIncompleteTranscript" if not complete else None,
@@ -60,7 +142,11 @@ def english_result(video, speech):
                 transcript_complete=complete,
                 transcription_language_probability=confidence,
                 transcription_quality="automatic_unreviewed",
-                audio_duration_seconds=speech.get("duration"))
+                audio_duration_seconds=duration,
+                transcript_validation=dict({k: speech.get(k) for k in (
+                    "audio_complete", "expected_duration", "speech_coverage",
+                    "rejected_speech_spans", "ignored_non_speech_segments")},
+                    plausible_speech_density=plausible_density))
 
 
 class AudioTranscripts:
@@ -140,10 +226,9 @@ class AudioTranscripts:
         return result
 
 
-def transcribe_public_audio(video_id, folder):
+def download_public_audio(video_id, folder):
     try:
         import yt_dlp
-        from faster_whisper import WhisperModel
     except ImportError:
         return {"failure_reason": "AudioDependenciesUnavailable"}
 
@@ -195,24 +280,52 @@ def transcribe_public_audio(video_id, folder):
                 break
         return {"failure_reason": "AudioAccessBlocked" if blocked else "AudioDownloadUnavailable",
                 "audio_download_error": category}
+    return {"path": str(media[0]), "duration": duration}
+
+
+def transcribe_audio_file(path, expected_duration, *, model_name=MODEL):
+    """One translation pass over the full audio; no paid API or retry model."""
     try:
-        model = WhisperModel(MODEL, device="cpu", compute_type="int8", cpu_threads=2, num_workers=1)
+        from faster_whisper import WhisperModel
+        from faster_whisper.audio import decode_audio
+        from faster_whisper.vad import get_speech_timestamps, VadOptions
+        model = WhisperModel(model_name, device="cpu", compute_type="int8", cpu_threads=2, num_workers=1)
     except Exception:
         return {"failure_reason": "AudioModelUnavailable"}
     try:
-        segments, info = model.transcribe(str(media[0]), task="translate", beam_size=5,
-                                         vad_filter=True, condition_on_previous_text=False)
-        kept, discarded = [], 0
-        for s in segments:
-            if s.no_speech_prob > 0.6 or s.avg_logprob < -1 or s.compression_ratio > 2.4:
-                discarded += 1
-                continue
-            kept.append({"text": s.text.strip(), "start": s.start, "end": s.end})
-        return {"segments": kept, "language": info.language,
-                "language_probability": info.language_probability,
-                "duration": info.duration, "discarded_segments": discarded}
+        waveform = decode_audio(path, sampling_rate=16000)
+        duration = len(waveform) / 16000
+        # Unpadded speech intervals provide a separate coverage check. Model VAD
+        # keeps its normal context padding, so words at boundaries are retained.
+        spans = get_speech_timestamps(waveform, VadOptions(min_silence_duration_ms=500, speech_pad_ms=0))
+        regions = [{"start": s["start"] / 16000, "end": s["end"] / 16000} for s in spans]
+        if not regions:
+            return {"failure_reason": "AudioNoUsableSpeech"}
+        segments, info = model.transcribe(waveform, task="translate", beam_size=5,
+                                         vad_filter=True, vad_parameters={"min_silence_duration_ms": 500},
+                                         condition_on_previous_text=False)
+        # Language detection is available before decoding the generator. Do not
+        # spend the whole worker budget on speech that cannot pass this gate.
+        if not math.isfinite(info.language_probability) or info.language_probability < 0.6:
+            return {"failure_reason": "AudioLanguageUncertain", "model": model_name,
+                    "language": info.language, "language_probability": info.language_probability,
+                    "duration": duration}
+        assessed = assess_segments(list(segments), regions)
+        return dict(assessed, language=info.language,
+                model=model_name, task="translate", output_language="en",
+                expected_duration=expected_duration,
+                audio_complete=abs(duration - expected_duration) <= max(.75, min(2, expected_duration * .002)),
+                language_probability=info.language_probability,
+                duration=duration)
     except Exception:
         return {"failure_reason": "AudioTranscriptionFailed"}
+
+
+def transcribe_public_audio(video_id, folder):
+    audio = download_public_audio(video_id, folder)
+    if audio.get("failure_reason"):
+        return audio
+    return transcribe_audio_file(audio["path"], audio["duration"])
 
 
 if __name__ == "__main__":

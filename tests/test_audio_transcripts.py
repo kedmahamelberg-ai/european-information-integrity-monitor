@@ -1,11 +1,12 @@
 import json
 import subprocess
+import sys
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from eiim.audio_transcripts import AudioTranscripts, english_result
+from eiim.audio_transcripts import AudioTranscripts, assess_segments, english_result, speech_coverage, transcribe_audio_file
 from eiim.hybrid import retrieve_retained_captions
 from eiim.language_access import caption_state, EnglishCaptionAccess, access_records, usable_english_transcript
 from eiim.reclassification import evidence_input
@@ -14,10 +15,122 @@ from eiim.storage import MemoryStore, record
 VIDEO = {"video_id": "abcDEFG1234", "original_audio_language": "de"}
 TEXT = "The parliament debated a new energy agreement with neighbouring countries and discussed how households would be protected during winter if supplies were interrupted."
 SPEECH = {"language": "de", "language_probability": .95, "duration": 20,
-          "segments": [{"text": TEXT, "start": 1, "end": 19}], "discarded_segments": 0}
+          "segments": [{"text": TEXT, "start": 1, "end": 19}], "discarded_segments": 0,
+          "task": "translate", "output_language": "en", "model": "small",
+          "audio_complete": True, "speech_coverage": {"complete": True,"speech_seconds":18}}
 
 
 class AudioTests(unittest.TestCase):
+    def test_complete_short_speech_is_valid_without_twenty_words(self):
+        speech = dict(SPEECH, duration=4, speech_coverage={"complete":True,"speech_seconds":4},
+                      segments=[{"text":"We demand fair elections.","start":0,"end":4}])
+        self.assertTrue(usable_english_transcript(english_result(VIDEO, speech)))
+
+    def test_few_words_cannot_stand_in_for_a_long_speech(self):
+        speech=dict(SPEECH,duration=100,speech_coverage={"complete":True,"speech_seconds":100},
+                    segments=[{"text":"We demand fair elections.","start":0,"end":100}])
+        self.assertFalse(english_result(VIDEO,speech)["eligible"])
+
+    def test_silence_does_not_turn_complete_short_speech_into_missing_evidence(self):
+        raw = [dict(text="We demand fair elections.", start=1., end=4., avg_logprob=-.2,
+                    no_speech_prob=.9, compression_ratio=1.),
+               dict(text="Thank you.", start=8., end=10., avg_logprob=-2.,
+                    no_speech_prob=.99, compression_ratio=1.)]
+        assessed = assess_segments(raw, [{"start":1., "end":4.}])
+        self.assertEqual(assessed["discarded_segments"], 0)
+        self.assertEqual(assessed["ignored_non_speech_segments"], 1)
+        self.assertTrue(usable_english_transcript(english_result(VIDEO, dict(SPEECH, **assessed))))
+
+    def test_low_confidence_speech_cannot_be_relabelled_as_silence(self):
+        raw = [dict(text="A disputed sentence.", start=1., end=4., avg_logprob=-1.1,
+                    no_speech_prob=.9, compression_ratio=1.)]
+        assessed = assess_segments(raw, [{"start":1.,"end":4.}])
+        self.assertEqual(assessed["discarded_segments"], 1)
+        self.assertFalse(assessed["speech_coverage"]["complete"])
+
+    def test_confident_quiet_boundary_words_are_retained(self):
+        raw = [dict(text="Thank you.",start=0.,end=.2,avg_logprob=-.2,no_speech_prob=.1,compression_ratio=1.),
+               dict(text=TEXT,start=1.,end=19.,avg_logprob=-.2,no_speech_prob=.1,compression_ratio=1.)]
+        assessed=assess_segments(raw,[{"start":1.,"end":19.}])
+        self.assertEqual(len(assessed["segments"]),2)
+        self.assertEqual(assessed["ignored_non_speech_segments"],0)
+
+    def test_untranscribed_beginning_middle_or_end_blocks_full_evidence(self):
+        region = [{"start":0.,"end":20.}]
+        for spans in [[(2,20)], [(0,9),(11,20)], [(0,18)]]:
+            segments=[{"start":a,"end":b,"text":TEXT} for a,b in spans]
+            coverage=speech_coverage(region,segments)
+            self.assertFalse(coverage["complete"])
+            result=english_result(VIDEO,dict(SPEECH,segments=segments,speech_coverage=coverage))
+            self.assertFalse(result["eligible"])
+            self.assertFalse(result["transcript_complete"])
+
+    def test_full_audio_and_explicit_english_translation_are_required(self):
+        for changed in [dict(audio_complete=False), dict(audio_complete=None),
+                        dict(speech_coverage={}), dict(output_language="de"), dict(task="transcribe")]:
+            self.assertFalse(english_result(VIDEO,dict(SPEECH,**changed))["eligible"])
+
+    def test_timestamps_past_actual_audio_end_are_invalid(self):
+        result=english_result(VIDEO,dict(SPEECH,segments=[{"text":TEXT,"start":1,"end":24}]))
+        self.assertEqual(result["failure_reason"],"AudioInvalidSegments")
+
+    def test_only_timestamp_precision_is_tolerated_in_speech_coverage(self):
+        self.assertTrue(speech_coverage([{"start":0.,"end":4.}], [{"start":.2,"end":3.8}])["complete"])
+        self.assertFalse(speech_coverage([{"start":0.,"end":4.}], [{"start":.6,"end":3.8}])["complete"])
+
+    def test_repetition_and_nonfinite_confidence_are_not_usable(self):
+        raw=dict(text=TEXT,start=1.,end=19.,avg_logprob=-.2,no_speech_prob=.1,compression_ratio=3.)
+        self.assertEqual(assess_segments([raw],[{"start":1.,"end":19.}])["discarded_segments"],1)
+        with self.assertRaises(ValueError):
+            assess_segments([dict(raw,avg_logprob=float('nan'))],[{"start":1.,"end":19.}])
+
+    def test_provenance_names_the_model_actually_used(self):
+        self.assertEqual(english_result(VIDEO,dict(SPEECH,model="medium"))["transcription_model"],"medium")
+
+    def test_partial_worker_result_is_never_counted_as_saved(self):
+        def partial(command, **kwargs):
+            Path(command[-1],"result.json").write_text(json.dumps(dict(SPEECH,discarded_segments=1)))
+            return SimpleNamespace(returncode=0)
+        audio=AudioTranscripts(runner=partial)
+        self.assertFalse(audio.check(VIDEO)["eligible"])
+        self.assertEqual(audio.saved,0)
+
+    def test_single_full_audio_translation_and_decode_failure_is_closed(self):
+        segment=dict(text="We demand fair elections.",start=0.,end=4.,avg_logprob=-.2,
+                     no_speech_prob=.1,compression_ratio=1.)
+        calls=[]
+        loaded=[]
+        def transcribe(waveform,**kwargs):
+            calls.append(kwargs)
+            return iter([segment]),SimpleNamespace(language="en",language_probability=.95)
+        modules={
+            "faster_whisper": SimpleNamespace(WhisperModel=lambda name,**k:(loaded.append(name) or SimpleNamespace(transcribe=transcribe))),
+            "faster_whisper.audio": SimpleNamespace(decode_audio=lambda *a,**k:[0]*64000),
+            "faster_whisper.vad": SimpleNamespace(VadOptions=lambda **k:k,
+                get_speech_timestamps=lambda *a,**k:[{"start":0,"end":64000}]),
+        }
+        with patch.dict(sys.modules,modules):
+            speech=transcribe_audio_file("private-audio",4)
+            self.assertTrue(english_result(VIDEO,speech)["eligible"])
+            self.assertEqual(len(calls),1)
+            self.assertEqual(loaded,["medium"])
+            self.assertEqual(calls[0]["task"],"translate")
+            truncated=transcribe_audio_file("private-audio",20,model_name="medium")
+            self.assertFalse(english_result(VIDEO,truncated)["eligible"])
+            def broken():
+                yield segment
+                raise ValueError("decoder failed after the first segment")
+            modules["faster_whisper"].WhisperModel=lambda *a,**k:SimpleNamespace(
+                transcribe=lambda *a,**k:(broken(),SimpleNamespace(language="en",language_probability=.95)))
+            failed=transcribe_audio_file("private-audio",4,model_name="medium")
+            self.assertEqual(failed["failure_reason"],"AudioTranscriptionFailed")
+            self.assertNotIn("segments",failed)
+            modules["faster_whisper"].WhisperModel=lambda *a,**k:SimpleNamespace(
+                transcribe=lambda *a,**k:(broken(),SimpleNamespace(language="en",language_probability=.2)))
+            uncertain=transcribe_audio_file("private-audio",4,model_name="medium")
+            self.assertEqual(uncertain["failure_reason"],"AudioLanguageUncertain")
+            self.assertNotIn("segments",uncertain)
+
     def test_later_network_failure_cannot_erase_saved_evidence(self):
         saved = english_result(VIDEO, SPEECH)
         failure = dict(saved, eligible=False, transcript_english=[], checked_at="9999-01-01", failure_reason="IpBlocked")
