@@ -222,10 +222,18 @@ def validate_label(value, document):
             )
         evidence(viewpoint["evidence"], True, f"viewpoints[{index}].evidence")
     reference = value["content_reference"]
-    if not all(reference[k].strip() for k in ["summary", "speaker", "target"]):
-        errors.append(
-            "A main message, attributed speaker (or unidentified) and target (or unspecified) are required"
-        )
+    reference_requirements = {
+        "summary": "a concise proposition grounded in the supplied transcript",
+        "speaker": "the attributed speaker, or narrator/unidentified when not identified",
+        "target": "the described/evaluated topic, or unspecified when genuinely unknown",
+    }
+    for field, requirement in reference_requirements.items():
+        if not reference[field].strip():
+            errors.append(
+                f"content_reference.{field} is empty: return {requirement}. "
+                "This field is required even for not_related or unclear videos. "
+                "For single_viewpoint, copy the corresponding field from viewpoints[0]."
+            )
     evidence(reference["evidence"], True, "content_reference.evidence")
     ids = [c["comment_id"] for c in value["comments"]]
     expected = [c["comment_id"] for c in document["comments"]]
