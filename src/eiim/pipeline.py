@@ -521,8 +521,16 @@ class Pipeline:
                 )
             )
             self.store.write(self.id, rows)
+            metadata[v["video_id"]] = rows[-1]["record"]["payload"]
         if mark_complete:
-            self.store.write(self.id, [], "comments_complete")
+            selected = {
+                s["video_id"] for s in self.values("sampled_videos")
+                if s.get("selected_for_sample")
+            }
+            # An empty/partial English-access subset is not a completed sample.
+            # Persisted per-video outcomes also cover disabled or absent comments.
+            if selected and selected <= metadata.keys():
+                self.store.write(self.id, [], "comments_complete")
 
     def classify_videos(self):
         """Make source labels available for review before comment processing finishes."""
