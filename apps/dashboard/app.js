@@ -310,6 +310,13 @@ function getGovernmentHighlights(items){
  return governmentWatchHighlights;
 }
 
+function updateGovernmentTickerSpeed(){
+ const track=$('#government-ticker .ticker-track');
+ // Hidden routes have no measurable width. Measure again after Situation Room is shown.
+ if(!track||$('#monitor').hidden||!track.scrollWidth)return;
+ track.style.animationDuration=Math.max(120,Math.ceil(track.scrollWidth/2/28))+'s';
+}
+
 function renderGovernment(){
  updateTrendCountries();updateTrendTopics();renderGovernmentTrends();
  const items=(governmentData.items||[]).filter(x=>['provisional','human_reviewed'].includes(x.classification_status)), related=items.filter(x=>x.related===true);
@@ -319,7 +326,7 @@ function renderGovernment(){
  if(pendingSources.length)$('#government-pending-open').onclick=()=>$('#government-pending-dialog').showModal();
  const highlights=getGovernmentHighlights(governmentData.items||[]);
  $('#government-ticker').innerHTML=highlights.length?'<span class="ticker-label">GOVERNMENT WATCH · '+highlights.length+' COUNTRIES</span><div class="ticker-window"><div class="ticker-track">'+[...highlights,...highlights].map(x=>'<a href="'+esc(x.url)+'" target="_blank" rel="noopener" title="'+esc(x.country)+' · '+esc(x.title)+'"><b>'+esc(x.country)+'</b> '+esc(x.ticker_message||x.english_summary||x.title)+'</a>').join('')+'</div></div>':'<span class="ticker-label">GOVERNMENT WATCH</span><span class="ticker-empty">No classified related government communications in this collection window.</span>';
- const tickerTrack=$('#government-ticker .ticker-track');if(tickerTrack)tickerTrack.style.animationDuration=Math.max(120,Math.ceil(tickerTrack.scrollWidth/2/28))+'s';
+ updateGovernmentTickerSpeed();
  const country=$('#government-country')?.value||'all', narrative=$('#government-narrative')?.value||'all', review=$('#government-review')?.value||'all';
  const filtered=items.filter(x=>(country==='all'||x.country_code===country)&&(narrative==='all'||[x.primary_narrative,...(x.secondary_narratives||[])].includes(narrative))&&(review==='all'||x.classification_status===review));
  const dates=filtered.map(x=>x.published_date||collectionDate(x.published_at)).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x)).sort();
@@ -368,7 +375,7 @@ function showSource(key){const v=inventory.find(x=>x.batch+'|'+x.id===key);if(!v
  $("#source-detail").innerHTML=`<span class="source-state">${esc(state(v))}</span><h2>${esc(v.title)}</h2><iframe title="${esc(v.title)}" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.id)}" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe><p class="small">${esc(v.channel)} · ${esc(v.countries.join(' / '))} · original language: ${esc(v.original_language||'und')}</p>${v.transcript_method==='faster-whisper'?'<p class="small">Evidence was automatically transcribed from public audio using Whisper. Translation and speech recognition can contain errors.</p>':''}${v.label?`<p>${esc(human(v.label.relevance))} · ${esc(v.label.topics.map(t=>data.topic_labels?.[t]||human(t)).join(' / '))}</p>${v.label.roles.map(r=>`<span class="tag">${icons[r.role]||''} ${esc(r.entity)} · ${esc(data.role_labels?.[r.role]||human(r.role))}</span>`).join('')}`:'<p class="small">Content labels require a successfully saved English transcript. This source is visible as part of the sampled inventory.</p>'}<p><a href="https://www.youtube.com/watch?v=${encodeURIComponent(v.id)}" target="_blank" rel="noopener">Open original video ↗</a></p>`;
  $("#source-dialog").showModal();
 }
-function route(){const r=['evidence','government','methodology'].includes(location.hash.slice(1))?location.hash.slice(1):'monitor';for(const id of ['monitor','evidence','government','methodology'])$('#'+id).hidden=id!==r;document.querySelectorAll('nav a').forEach(a=>a.setAttribute('aria-current',a.hash==='#'+r?'page':'false'));}
+function route(){const r=['evidence','government','methodology'].includes(location.hash.slice(1))?location.hash.slice(1):'monitor';for(const id of ['monitor','evidence','government','methodology'])$('#'+id).hidden=id!==r;document.querySelectorAll('nav a').forEach(a=>a.setAttribute('aria-current',a.hash==='#'+r?'page':'false'));if(r==='monitor')updateGovernmentTickerSpeed();}
 async function init(){try{
  const rev=document.documentElement.dataset.build||Date.now();const result=await Promise.all(['data.json','countries.json','assets/world.json','methodology.html','government-data.json','government-sources.json'].map(async p=>{const r=await fetch(`${p}?v=${rev}`);if(!r.ok&&p==='government-data.json')return {items:[]};if(!r.ok)throw Error('Snapshot unavailable');return p.endsWith('.html')?r.text():r.json()}));
  data=result[0];countries=result[1];governmentData=result[4];governmentSourceDirectory=result[5];countries=countries.countries||countries;
