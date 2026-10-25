@@ -495,7 +495,10 @@ def discover_georgia(country,start,end):
             oldest=published if oldest is None or published<oldest else oldest
             if not start<=published<=end: continue
             slug=row.get("slug","")
-            if not re.fullmatch(r"\d{6}-[a-z0-9-]+",slug): raise RuntimeError("Unexpected Georgian article slug")
+            # The ministry also publishes ID-only paths (for example /news/320426).
+            # Keep the publisher's exact path so saved URL hashes remain stable.
+            if not isinstance(slug,str) or not re.fullmatch(r"\d{6}(?:-[a-z0-9-]+)?",slug):
+                raise RuntimeError("Unexpected Georgian article slug")
             entries.append({"country":country["name"],"country_code":country["iso2"],"url":f"https://mfa.gov.ge/news/{slug}","title":row["title"],"published_at":published.isoformat(),"text":""})
         if not rows or (oldest is not None and oldest<start): break
         if page_number>=int(content["pageCount"]): break
