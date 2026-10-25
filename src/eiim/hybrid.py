@@ -794,8 +794,10 @@ def collect_week(store):
         for s in pipe.values("sampled_videos")
         if s.get("selected_for_sample") and s["video_id"] in eligible
     ]
-    if "comments_complete" not in done:
-        pipe.comments()
+    # Text recovery can make new sources eligible after an earlier comment pass.
+    # Trust per-video outcomes, including no-comments outcomes, rather than the
+    # historical batch stage bit. Repeated passes do not refetch saved pools.
+    pipe.comments(refresh_policy=True, mark_complete="comments_complete" not in done)
     return reclassify(store, pipe.id, pipe.classifier)
 
 
