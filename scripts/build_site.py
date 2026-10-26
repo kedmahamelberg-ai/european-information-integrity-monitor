@@ -104,7 +104,7 @@ from check_public_counts import check
 check(json.loads((out / "data.json").read_text()))
 # Bind code, styles and the data snapshot to one deployment revision.
 revision = hashlib.sha256(
-    b"".join((out / name).read_bytes() for name in ["map-data.js", "app.js", "live.js", "visitor-count.js", "style.css", "data.json", "cameras.json", "government-data.json", "government-sources.json"])
+    b"".join((out / name).read_bytes() for name in ["map-data.js", "app.js", "live.js", "visitor-count.js", "ads.js", "style.css", "data.json", "cameras.json", "government-data.json", "government-sources.json"])
 ).hexdigest()[:16]
 page = out / "index.html"
 html = page.read_text().replace(
@@ -116,6 +116,7 @@ html = html.replace('src="app.js"', f'src="app.js?v={revision}"').replace(
 html = html.replace('src="live.js"', f'src="live.js?v={revision}"')
 html = html.replace('src="visitor-count.js"', f'src="visitor-count.js?v={revision}"')
 html = html.replace('src="map-data.js"', f'src="map-data.js?v={revision}"')
+html = html.replace('src="ads.js"', f'src="ads.js?v={revision}"')
 page.write_text(html)
 # A stable, server-rendered authorship page is readable without JavaScript.
 about = """<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -133,5 +134,5 @@ about = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 </body></html>""".replace("REV", revision).replace("BODY", (out / "methodology.html").read_text())
 (out / "about.html").write_text(about)
 (out / "robots.txt").write_text("User-agent: *\nAllow: /\nSitemap: https://monitor.hamelberg-ai.com/sitemap.xml\n")
-(out / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://monitor.hamelberg-ai.com/</loc></url><url><loc>https://monitor.hamelberg-ai.com/about.html</loc></url><url><loc>https://monitor.hamelberg-ai.com/research.html</loc></url></urlset>')
+(out / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://monitor.hamelberg-ai.com/</loc></url><url><loc>https://monitor.hamelberg-ai.com/about.html</loc></url><url><loc>https://monitor.hamelberg-ai.com/research.html</loc></url><url><loc>https://monitor.hamelberg-ai.com/privacy.html</loc></url></urlset>')
 print("Public website built in build/")
