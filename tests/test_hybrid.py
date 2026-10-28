@@ -96,6 +96,27 @@ def label():
 
 
 class HybridTests(unittest.TestCase):
+    def test_comment_batches_share_schema_and_restore_original_ids(self):
+        class Fake:
+            def __init__(self):
+                self.shapes = []
+            def request(self, text, prompt, shape, kind):
+                doc = json.loads(text)
+                self.shapes.append(shape)
+                items = []
+                for comment in doc["comments"]:
+                    item = copy.deepcopy(label()["comments"][0])
+                    item["comment_id"] = comment["comment_id"]
+                    items.append(item)
+                return {"parsed": {"comments": items}, "model_version": "test"}
+        fake = Fake()
+        base = {"viewpoints": label()["viewpoints"], "sections": document()["sections"]}
+        for ids in (["a", "b"], ["x", "y"]):
+            source = dict(base, comments=[{"comment_id": i, "text_english": "Agreed"} for i in ids])
+            output, _ = classify_comment_batch(fake, source, "prompt")
+            self.assertEqual([c["comment_id"] for c in output], ids)
+        self.assertEqual(fake.shapes[0], fake.shapes[1])
+
     def test_comment_batch_shape_failure_falls_back_to_single_comments(self):
         class Fake:
             def __init__(self):
