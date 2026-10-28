@@ -2324,7 +2324,8 @@ def ask_openai(text, classification=True, examples=None, validation_note="", sou
     example_text=""
     if classification and examples:
         example_text="\nResearcher corrections from earlier source reviews (use as calibration examples):\n"+json.dumps(examples[-30:],ensure_ascii=False)
-    req={"model":os.getenv("GOVERNMENT_MODEL","gpt-4.1-mini"),"input":[{"role":"system","content":task+"\nTopic codes and meanings: "+json.dumps(HYBRID["topic_labels"],ensure_ascii=False)+example_text+validation_note},{"role":"user","content":text}],"text":{"format":{"type":"json_schema","name":"government_item","strict":True,"schema":schema}}}
+    req={"model":os.getenv("GOVERNMENT_MODEL","gpt-6-luna"),"input":[{"role":"system","content":task+"\nTopic codes and meanings: "+json.dumps(HYBRID["topic_labels"],ensure_ascii=False)+example_text+validation_note},{"role":"user","content":text}],"text":{"format":{"type":"json_schema","name":"government_item","strict":True,"schema":schema}}}
+    if req["model"] == "gpt-6-luna": req["reasoning"] = {"effort": "none"}
     http=urllib.request.Request("https://api.openai.com/v1/responses",data=json.dumps(req).encode(),headers={"Authorization":"Bearer "+os.environ["OPENAI_API_KEY"],"Content-Type":"application/json"})
     last_problem="empty response"
     for attempt in range(5):

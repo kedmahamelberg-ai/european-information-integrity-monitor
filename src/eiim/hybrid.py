@@ -423,17 +423,27 @@ def classify_comment_batch(classifier, comment_input, prompt):
     malformed sibling cannot prevent valid comments from being saved.
     """
     ids = [c["comment_id"] for c in comment_input["comments"]]
-    try:
+    if len(set(ids)) != len(ids):
+        raise ValueError("Input comment IDs must be unique")
+
+    def request_batch(source):
+        # Stable per-position IDs let the output schema and shared video prefix
+        # be reused across batches. Real IDs are restored before persistence.
+        aliases = {f"comment_{i}": c["comment_id"] for i, c in enumerate(source["comments"])}
+        aliased = dict(source, comments=[
+            dict(c, comment_id=f"comment_{i}") for i, c in enumerate(source["comments"])
+        ])
         result = classifier.request(
-            json.dumps(comment_input, ensure_ascii=False),
-            prompt,
-            comment_schema(ids),
-            "hybrid_comments",
+            json.dumps(aliased, ensure_ascii=False), prompt,
+            comment_schema(list(aliases)), "hybrid_comments",
         )
-        return (
-            validate_comments(result["parsed"], comment_input)["comments"],
-            [result["model_version"]],
-        )
+        parsed = validate_comments(result["parsed"], aliased)
+        restored = [{**c, "comment_id": aliases[c["comment_id"]]} for c in parsed["comments"]]
+        return validate_comments({"comments": restored}, source)["comments"], result["model_version"]
+
+    try:
+        comments, model = request_batch(comment_input)
+        return comments, [model]
     except ClassificationUnavailable:
         if len(ids) <= 1:
             raise
@@ -442,14 +452,9 @@ def classify_comment_batch(classifier, comment_input, prompt):
     models = []
     for comment in comment_input["comments"]:
         single_input = dict(comment_input, comments=[comment])
-        result = classifier.request(
-            json.dumps(single_input, ensure_ascii=False),
-            prompt,
-            comment_schema([comment["comment_id"]]),
-            "hybrid_comments",
-        )
-        comments.extend(validate_comments(result["parsed"], single_input)["comments"])
-        models.append(result["model_version"])
+        classified, model = request_batch(single_input)
+        comments.extend(classified)
+        models.append(model)
     return comments, models
 
 
