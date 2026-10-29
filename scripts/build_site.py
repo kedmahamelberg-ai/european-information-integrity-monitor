@@ -32,7 +32,7 @@ if not gov_public.exists():
         state = json.loads(gov_state.read_text())
         snapshot = {
             "as_of": state.get("last_successful_collection_end"),
-            "items": [{k: v for k, v in item.items() if k != "english_translation"}
+            "items": [{k: v for k, v in item.items() if k not in {"text", "english_translation", "translation_checkpoint"}}
                       for item in state.get("items", [])],
         }
 if not gov_public.exists() and ("--live" in sys.argv or "--camera-only" in sys.argv or "--government-only" in sys.argv):
