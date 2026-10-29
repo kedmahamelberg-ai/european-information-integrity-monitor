@@ -110,6 +110,22 @@ class GovernmentModelRecoveryTests(unittest.TestCase):
             self.assertEqual(collector.translate_document(text,checkpoint),("First.\nSecond.","Recovered summary."))
             call.assert_called_once_with("A short summary.\nA short summary.",False,summary_only=True)
 
+    def test_overlong_summary_is_shortened_without_retranslating(self):
+        text="a"*6000+"b"*1409; checkpoint={}; overlong="word "*60
+        outputs=[translation("First."),translation("Second."),
+                 {"short_english_summary":overlong},{"short_english_summary":"Concise summary."}]
+        with patch.object(collector,"ask_openai",side_effect=outputs) as call,contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(collector.translate_document(text,checkpoint),("First.\nSecond.","Concise summary."))
+            self.assertEqual(call.call_count,4)
+            call.assert_called_with(overlong,False,summary_only=True)
+
+    def test_summary_shortening_has_a_fixed_retry_limit(self):
+        outputs=[translation("First."),translation("Second.")]+[{"short_english_summary":"word "*60}]*3
+        with patch.object(collector,"ask_openai",side_effect=outputs) as call,contextlib.redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(collector.ModelOutputError,"summary_exceeds_45_words"):
+                collector.translate_document("a"*6000+"b"*1409)
+            self.assertEqual(call.call_count,5)
+
     def test_one_failed_item_does_not_block_publication_or_publish_private_chunks(self):
         records=[{"id":str(i),"url":f"https://example.gov/{i}","country_code":"BA","country":"Bosnia and Herzegovina","title":"News","published_at":"2026-10-29T10:00:00+00:00","classification_status":"pending_classification"} for i in range(2)]
         # canonical_government_items uses URL-based IDs; match its processing order.
