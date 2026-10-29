@@ -28,6 +28,12 @@ def summary(report):
         for row in article_failures:
             lines.append(f"| {row['country_code']} | {row.get('http_status') or '—'} | "
                          f"{row.get('error_category', 'unknown')} | {row['url']} |")
+    model_failures = report.get("model_failures", [])
+    if model_failures:
+        lines.extend(["", f"Model processing deferred {len(model_failures)} item(s). Saved progress will be reused on the next pass.", "",
+                      "| Country | Item | Reason |", "| --- | --- | --- |"])
+        for row in model_failures:
+            lines.append(f"| {row['country_code']} | {row['id']} | {row['error']} |")
     lines.extend(["", "These labels describe this runner's observation. To distinguish blocking "
                   "from an outage, compare the exact official section URL at the same time from an "
                   "independent network. A successful second fetch supports an egress or access issue; "
