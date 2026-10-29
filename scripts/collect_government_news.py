@@ -213,6 +213,19 @@ def official_article_text(body):
 
 
 def fetch(url, limit=2_000_000, timeout=8, user_agent=UA):
+    """Retry transient source-network failures without accepting a failed archive."""
+    for attempt in range(3):
+        try:
+            return _fetch_once(url,limit,timeout,user_agent)
+        except urllib.error.HTTPError as error:
+            if error.code not in {408,429,500,502,503,504} or attempt==2: raise
+            error.close()
+        except (urllib.error.URLError,TimeoutError,ConnectionError):
+            if attempt==2: raise
+        time.sleep(2**attempt)
+
+
+def _fetch_once(url, limit=2_000_000, timeout=8, user_agent=UA):
     req=urllib.request.Request(url, headers={"User-Agent":user_agent,"Accept":"text/html,application/rss+xml,application/atom+xml,application/xml,*/*"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
@@ -1201,7 +1214,9 @@ def discover_czechia(country,start,end):
             if day<first: older=True; continue
             if day>last: continue
             article_url=urllib.parse.urljoin(country["url"],html.unescape(link.group(1)))
-            if not article_url.startswith("https://vlada.gov.cz/cz/media-centrum/aktualne/"):
+            # The official press archive also links dated Government Office events.
+            if not article_url.startswith(("https://vlada.gov.cz/cz/media-centrum/aktualne/",
+                                           "https://vlada.gov.cz/cz/urad-vlady/akce/")):
                 raise RuntimeError("Unexpected Czech cabinet press URL")
             if article_url in seen: raise RuntimeError("Czech cabinet press archive repeated an article")
             seen.add(article_url)
@@ -2300,6 +2315,16 @@ class ModelRateLimit(RuntimeError):
         super().__init__(code)
 
 
+class ModelProcessingError(RuntimeError):
+    """An item could not be processed; preserve it without blocking other items."""
+
+
+class ModelOutputError(ModelProcessingError):
+    def __init__(self, code, *, splittable=False):
+        self.splittable = splittable
+        super().__init__(code)
+
+
 def ask_openai(text, classification=True, examples=None, validation_note="", source_country_code=""):
     string={"type":"string"}
     def obj(fields): return {"type":"object","properties":fields,"required":list(fields),"additionalProperties":False}
@@ -2324,18 +2349,39 @@ def ask_openai(text, classification=True, examples=None, validation_note="", sou
     example_text=""
     if classification and examples:
         example_text="\nResearcher corrections from earlier source reviews (use as calibration examples):\n"+json.dumps(examples[-30:],ensure_ascii=False)
-    req={"model":os.getenv("GOVERNMENT_MODEL","gpt-6-luna"),"input":[{"role":"system","content":task+"\nTopic codes and meanings: "+json.dumps(HYBRID["topic_labels"],ensure_ascii=False)+example_text+validation_note},{"role":"user","content":text}],"text":{"format":{"type":"json_schema","name":"government_item","strict":True,"schema":schema}}}
+    context=("\nTopic codes and meanings: "+json.dumps(HYBRID["topic_labels"],ensure_ascii=False)+example_text+validation_note) if classification else ""
+    req={"model":os.getenv("GOVERNMENT_MODEL","gpt-6-luna"),"input":[{"role":"system","content":task+context},{"role":"user","content":text}],"text":{"format":{"type":"json_schema","name":"government_item","strict":True,"schema":schema}},"max_output_tokens":8192}
     if req["model"] == "gpt-6-luna": req["reasoning"] = {"effort": "none"}
     http=urllib.request.Request("https://api.openai.com/v1/responses",data=json.dumps(req).encode(),headers={"Authorization":"Bearer "+os.environ["OPENAI_API_KEY"],"Content-Type":"application/json"})
     last_problem="empty response"
     for attempt in range(5):
         try:
-            with urllib.request.urlopen(http,timeout=90) as r: result=json.load(r)
+            with urllib.request.urlopen(http,timeout=90) as r:
+                try: result=json.load(r)
+                except json.JSONDecodeError:
+                    raise ModelOutputError("invalid_response_envelope") from None
+            # Never accept partial JSON, even if the returned prefix happens to parse.
+            if result.get("status")=="incomplete":
+                reason=(result.get("incomplete_details") or {}).get("reason","unknown")
+                raise ModelOutputError("incomplete_"+str(reason),splittable=reason=="max_output_tokens")
+            if any(x.get("type")=="refusal" for o in result.get("output",[]) for x in o.get("content",[])):
+                raise ModelOutputError("model_refusal")
+            if result.get("status") in {"failed","cancelled"}:
+                raise ModelOutputError("response_"+result["status"])
             out=result.get("output_text") or "".join(x.get("text","") for o in result.get("output",[]) for x in o.get("content",[]) if x.get("type")=="output_text")
             if out.strip():
-                try: return json.loads(out)
-                except json.JSONDecodeError as exc: last_problem=f"invalid JSON at character {exc.pos}"
-            else: last_problem=f"empty response (status={result.get('status')}, incomplete={result.get('incomplete_details')}, error={result.get('error')})"
+                try: parsed=json.loads(out)
+                except json.JSONDecodeError as exc:
+                    raise ModelOutputError(f"invalid_json_at_{exc.pos}",splittable=True) from None
+                if not isinstance(parsed,dict) or any(key not in parsed for key in schema["required"]):
+                    raise ModelOutputError("missing_output_fields",splittable=True)
+                if not classification and any(not isinstance(parsed[key],str) or not parsed[key].strip() for key in schema["required"]):
+                    raise ModelOutputError("empty_translation_or_summary",splittable=True)
+                return parsed
+            raise ModelOutputError("empty_model_output",splittable=True)
+        except ModelOutputError:
+            # A smaller translation is useful; five identical malformed calls are not.
+            if not classification or attempt>=1: raise
         except urllib.error.HTTPError as exc:
             if exc.code in {429,503}:
                 try:
@@ -2356,33 +2402,51 @@ def ask_openai(text, classification=True, examples=None, validation_note="", sou
                 continue
             last_problem=f"HTTP Error {exc.code}"
             exc.close()
+            if exc.code<500:
+                raise RuntimeError(f"OpenAI configuration/request failure: {last_problem}") from None
         except (urllib.error.URLError,TimeoutError) as exc:
             last_problem=f"{type(exc).__name__}: {exc}"
         if attempt<4: time.sleep(2**attempt)
-    raise RuntimeError(f"OpenAI response could not be parsed after 5 attempts: {last_problem}")
-    out=result.get("output_text") or "".join(x.get("text","") for o in result.get("output",[]) for x in o.get("content",[]) if x.get("type")=="output_text")
-    return json.loads(out)
+    raise ModelProcessingError(f"Model request failed after 5 attempts: {last_problem}")
 
 
-def translate_document(source_text):
+def translate_document(source_text, checkpoint=None, on_progress=None):
     """Translate every character in bounded calls, then summarize the whole document."""
+    checkpoint=checkpoint if checkpoint is not None else {}
+    def translate_chunk(chunk,depth=0):
+        key=hashlib.sha256((os.getenv("GOVERNMENT_MODEL","gpt-6-luna")+"\ntranslation-v2\n"+chunk).encode()).hexdigest()
+        if key in checkpoint: return checkpoint[key]
+        try:
+            result=ask_openai(chunk,False)
+        except ModelOutputError as error:
+            if not error.splittable or depth>=3 or len(chunk)<=1000: raise
+            middle=len(chunk)//2
+            boundary=chunk.rfind(" ",len(chunk)//3,middle)
+            if boundary>0: middle=boundary
+            print(f"Translation output {error}; splitting {len(chunk)} source characters",flush=True)
+            left=translate_chunk(chunk[:middle],depth+1)
+            right=translate_chunk(chunk[middle:],depth+1)
+            result={"english_translation":left["english_translation"].strip()+"\n"+right["english_translation"].strip(),
+                    "short_english_summary":left["short_english_summary"].strip()+"\n"+right["short_english_summary"].strip()}
+        checkpoint[key]=result
+        if on_progress: on_progress()
+        return result
     chunks=[]; position=0
     while position<len(source_text):
-        end=min(len(source_text),position+12000)
+        end=min(len(source_text),position+6000)
         if end<len(source_text):
-            boundary=source_text.rfind(" ",position+6000,end)
+            boundary=source_text.rfind(" ",position+3000,end)
             if boundary>position: end=boundary
         chunks.append(source_text[position:end].strip())
         position=end
     translated=[]; summaries=[]
     for index,chunk in enumerate(chunks,1):
         print(f"Translating chunk {index}/{len(chunks)} ({len(chunk)} source characters)",flush=True)
-        result=ask_openai(chunk,False)
-        if not result.get("english_translation","").strip():
-            raise RuntimeError(f"English translation is empty for chunk {index}/{len(chunks)}")
+        result=translate_chunk(chunk)
         translated.append(result["english_translation"].strip())
         summaries.append(result["short_english_summary"].strip())
-    summary=summaries[0] if len(summaries)==1 else ask_openai("\n".join(summaries),False)["short_english_summary"]
+    if not summaries: raise ModelOutputError("empty_source_text")
+    summary=summaries[0] if len(summaries)==1 and len(summaries[0].split())<=45 else translate_chunk("\n".join(summaries))["short_english_summary"]
     return "\n".join(translated),summary
 
 
@@ -2406,7 +2470,7 @@ def main():
     source_cursors=dict(state.get("source_cursors") or {})
     starts_by_code={source["iso2"]:requested_start or date_value(source_cursors.get(source["iso2"])) or initial_start for source in selected_sources}
     start=min(starts_by_code.values(),default=requested_start or initial_start)
-    existing=canonical_government_items(state.get("items",[])); sources_status=[]; candidates=[]; discovered_links={}; article_failures=[]
+    existing=canonical_government_items(state.get("items",[])); sources_status=[]; candidates=[]; discovered_links={}; article_failures=[]; model_failures=[]
     corrections=json.loads(CORRECTIONS.read_text()) if CORRECTIONS.exists() else []
     correction_map={x["id"]:x for x in corrections if x.get("id")}
     calibration_ids={x["id"] for x in existing.values() if x.get("calibration_item")}
@@ -2522,7 +2586,10 @@ def main():
             item.pop("classification_error",None)
             if not text: item["classification_status"]="no_text"; existing[item["id"]]=item; continue
             try:
-                item["english_translation"],item["english_summary"]=translate_document(text)
+                def save_translation_progress():
+                    existing[item["id"]]=item
+                    STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
+                item["english_translation"],item["english_summary"]=translate_document(text,item.setdefault("translation_checkpoint",{}),save_translation_progress)
                 examples=[{**correction,"title":correction.get("source_title") or existing.get(ident,{}).get("title"),"summary":correction.get("source_summary") or existing.get(ident,{}).get("english_summary")} for ident,correction in correction_map.items()]
                 validation_note=""
                 for validation_attempt in range(2):
@@ -2532,16 +2599,19 @@ def main():
                     valid=valid and all(role.get("entity_code") in ROLE_ENTITY_CODES for role in labels["roles"])
                     if valid: break
                     validation_note="\nThe previous classification was internally inconsistent. Re-evaluate the source: related requires one or more directly supported topics; not_related/unclear require empty topics and roles; every role needs a valid nonempty ISO3, EU, or OTHER entity code. Do not remove a supported security topic merely to satisfy the schema."
-            except ModelRateLimit as error:
+            except (ModelRateLimit,ModelProcessingError) as error:
                 item["classification_status"]="pending_classification"
-                item["classification_error"]=error.code
+                item["classification_error"]=error.code if isinstance(error,ModelRateLimit) else str(error)
+                model_failures.append({"country_code":item["country_code"],"id":item["id"],"url":item["url"],"error":item["classification_error"]})
                 # Malta's article body comes from the archive response. Keep it
                 # in the private checkpoint for a later classify-only retry.
                 if item["country_code"]!="MT": item.pop("text",None)
                 existing[item["id"]]=item
                 STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
-                print(f"Model API limit ({error.code}); {item['country_code']} {item['id']} and later items remain pending",flush=True)
-                break
+                print(f"::warning::Model processing deferred {item['country_code']} {item['id']}: {item['classification_error']}",flush=True)
+                if isinstance(error,ModelRateLimit): break
+                continue
+            item.pop("translation_checkpoint",None)
             if not valid:
                 item.update(labels); item["classification_status"]="needs_review"; item["classification_error"]="inconsistent_relevance_topics_roles"; item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item
                 print(f"Needs review: {item['country_code']} {item['id']} inconsistent relevance/topics/roles",flush=True)
@@ -2560,12 +2630,12 @@ def main():
     cursor=end.isoformat() if collection_complete else state.get("last_successful_collection_end")
     STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":cursor,"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":out["items"]},ensure_ascii=False,indent=2)+"\n")
     PUBLIC.parent.mkdir(exist_ok=True)
-    public={**out,"items":[{k:v for k,v in item.items() if k not in {"text","english_translation"}} for item in out["items"]]}
+    public={**out,"items":[{k:v for k,v in item.items() if k not in {"text","english_translation","translation_checkpoint"}} for item in out["items"]]}
     PUBLIC.write_text(json.dumps(public,ensure_ascii=False,indent=2)+"\n")
     (PUBLIC.parent / "government-source-diagnostics.json").write_text(json.dumps({
         "observed_at":now.isoformat(),"window_start":start.isoformat(),"window_end":end.isoformat(),
         "attempted_sources":len(selected_sources),"skipped_after_early_success":sorted(skipped_codes),
-        "sources":sources_status,"article_failures":article_failures,
+        "sources":sources_status,"article_failures":article_failures,"model_failures":model_failures,
         "interpretation":"A single runner cannot prove a site is offline or that collection is blocked. Compare the exact section URL from an independent network before assigning a cause."
     },ensure_ascii=False,indent=2)+"\n")
     REVIEW_QUEUE.parent.mkdir(exist_ok=True)
