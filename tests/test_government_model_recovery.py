@@ -57,7 +57,7 @@ class GovernmentModelRecoveryTests(unittest.TestCase):
     def test_long_translation_splits_without_losing_source(self):
         text=" ".join(f"word{i}" for i in range(2400))
         accepted=[]
-        def model(chunk,*args):
+        def model(chunk,*args,**kwargs):
             if len(chunk)>3000:
                 raise collector.ModelOutputError("invalid_json",splittable=True)
             if chunk.lstrip().startswith("word"): accepted.append(chunk)
@@ -71,19 +71,44 @@ class GovernmentModelRecoveryTests(unittest.TestCase):
     def test_rate_limit_reuses_completed_chunks_and_invalidates_changed_source(self):
         checkpoint={}; calls=[]
         text="a"*6000+"b"*6000
-        def model(chunk,*args):
+        def model(chunk,*args,**kwargs):
             calls.append(chunk)
             if chunk.startswith("b"): raise collector.ModelRateLimit("rate_limit_exceeded")
             return translation(chunk)
         with patch.object(collector,"ask_openai",side_effect=model),contextlib.redirect_stdout(io.StringIO()):
             with self.assertRaises(collector.ModelRateLimit): collector.translate_document(text,checkpoint)
         self.assertEqual(len(checkpoint),1)
-        with patch.object(collector,"ask_openai",side_effect=lambda chunk,*args: translation(chunk)) as call,contextlib.redirect_stdout(io.StringIO()):
+        with patch.object(collector,"ask_openai",side_effect=lambda chunk,*args,**kwargs: translation(chunk)) as call,contextlib.redirect_stdout(io.StringIO()):
             translated,_=collector.translate_document(text,checkpoint)
             self.assertNotIn("a"*6000,[c.args[0] for c in call.call_args_list])
             self.assertEqual(translated.replace("\n",""),text)
             collector.translate_document("changed source",checkpoint)
             self.assertEqual(call.call_args.args[0],"changed source")
+
+    def test_summary_stage_accepts_summary_without_redundant_translation(self):
+        text="a"*6000+"b"*1409
+        outputs=[translation("First translated section."),translation("Second translated section."),
+                 {"short_english_summary":"Both sections summarized."}]
+        responses=[self.response({"status":"completed","output_text":json.dumps(output)}) for output in outputs]
+        checkpoint={}
+        with patch.dict(os.environ,OPENAI_API_KEY="test"),patch.object(collector.urllib.request,"urlopen",side_effect=responses) as call,contextlib.redirect_stdout(io.StringIO()):
+            translated,summary=collector.translate_document(text,checkpoint)
+            self.assertEqual(translated,"First translated section.\nSecond translated section.")
+            self.assertEqual(summary,"Both sections summarized.")
+            summary_request=json.loads(call.call_args.args[0].data)
+            self.assertEqual(summary_request["text"]["format"]["schema"]["required"],["short_english_summary"])
+            self.assertNotIn("Topic codes and meanings",summary_request["input"][0]["content"])
+            self.assertEqual(collector.translate_document(text,checkpoint),(translated,summary))
+            self.assertEqual(call.call_count,3)
+
+    def test_failed_summary_reuses_translations_on_next_pass(self):
+        text="a"*6000+"b"*1409; checkpoint={}
+        with patch.object(collector,"ask_openai",side_effect=[translation("First."),translation("Second."),collector.ModelOutputError("empty_summary")]),contextlib.redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(collector.ModelOutputError,"empty_summary"):
+                collector.translate_document(text,checkpoint)
+        with patch.object(collector,"ask_openai",return_value={"short_english_summary":"Recovered summary."}) as call,contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(collector.translate_document(text,checkpoint),("First.\nSecond.","Recovered summary."))
+            call.assert_called_once_with("A short summary.\nA short summary.",False,summary_only=True)
 
     def test_one_failed_item_does_not_block_publication_or_publish_private_chunks(self):
         records=[{"id":str(i),"url":f"https://example.gov/{i}","country_code":"BA","country":"Bosnia and Herzegovina","title":"News","published_at":"2026-10-29T10:00:00+00:00","classification_status":"pending_classification"} for i in range(2)]
