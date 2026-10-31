@@ -225,8 +225,25 @@ def fetch(url, limit=2_000_000, timeout=8, user_agent=UA):
         time.sleep(2**attempt)
 
 
+def transport_url(url):
+    """Encode a source URL for HTTP without changing its public citation URL."""
+    parts=urllib.parse.urlsplit(url)
+    if parts.scheme not in {"http","https"} or not parts.hostname:
+        raise ValueError("Official article URL is not an absolute HTTP URL")
+    netloc=parts.netloc
+    if not netloc.isascii():
+        if parts.username or parts.password:
+            raise ValueError("Official article URL contains unsupported credentials")
+        host=parts.hostname.encode("idna").decode("ascii")
+        netloc=host+(f":{parts.port}" if parts.port is not None else "")
+    path=urllib.parse.quote(parts.path,safe="/%:@!$&'()*+,;=-._~")
+    query=urllib.parse.quote(parts.query,safe="/%?:@!$&'()*+,;=-._~")
+    return urllib.parse.urlunsplit((parts.scheme,netloc,path,query,""))
+
+
 def _fetch_once(url, limit=2_000_000, timeout=8, user_agent=UA):
-    req=urllib.request.Request(url, headers={"User-Agent":user_agent,"Accept":"text/html,application/rss+xml,application/atom+xml,application/xml,*/*"})
+    request_url=transport_url(url)
+    req=urllib.request.Request(request_url, headers={"User-Agent":user_agent,"Accept":"text/html,application/rss+xml,application/atom+xml,application/xml,*/*"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             if r.status >= 400: raise RuntimeError(f"HTTP {r.status}")
@@ -236,7 +253,7 @@ def _fetch_once(url, limit=2_000_000, timeout=8, user_agent=UA):
         # while the runner's curl trust store validates it. Keep TLS enabled.
         if not isinstance(error.reason,ssl.SSLCertVerificationError): raise
         response=subprocess.run(["curl","-fsSL","--max-time",str(timeout),"--max-filesize",str(limit),
-                                 "-A",user_agent,url],capture_output=True,timeout=timeout+2)
+                                 "-A",user_agent,request_url],capture_output=True,timeout=timeout+2)
         if response.returncode: raise RuntimeError(f"Verified curl fetch failed: {response.stderr.decode('utf-8','replace')[:180]}") from error
         return url,response.stdout
 
@@ -244,7 +261,7 @@ def _fetch_once(url, limit=2_000_000, timeout=8, user_agent=UA):
 def fetch_ipv4(url, limit=2_000_000, timeout=20):
     """Reach official hosts whose IPv6 route is unavailable on GitHub runners."""
     response=subprocess.run(["curl","-4","-fsSL","--max-time",str(timeout),"--max-filesize",str(limit),
-                             "-A",UA,url],capture_output=True,timeout=timeout+2)
+                             "-A",UA,transport_url(url)],capture_output=True,timeout=timeout+2)
     if response.returncode:
         raise RuntimeError(f"IPv4 fetch failed: {response.stderr.decode('utf-8','replace')[:180]}")
     return url,response.stdout
@@ -2596,7 +2613,7 @@ def main():
             print(f"Classifying {position}/{cap}: {item['country_code']} {item['id']}",flush=True)
             try:
                 text=article_text(item)
-            except (TimeoutError, urllib.error.URLError, OSError, RuntimeError) as error:
+            except (TimeoutError, urllib.error.URLError, OSError, RuntimeError, UnicodeError, ValueError, http.client.InvalidURL) as error:
                 # Preserve this URL for a later retry without stopping the batch.
                 item["classification_status"]="needs_review" if isinstance(error,RuntimeError) else "pending_classification"
                 item["classification_error"]=type(error).__name__
