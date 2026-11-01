@@ -32,6 +32,11 @@ class ClassificationExitTests(unittest.TestCase):
         self.assertIn('"Classify saved Monitor evidence"', site)
         self.assertNotIn('"Transcript-based conflict classification"', site)
 
+    def test_sunday_does_not_retry_known_hosted_youtube_audio_block(self):
+        workflow = (Path(__file__).parents[1] / ".github/workflows/weekly.yml").read_text()
+        self.assertIn('EIIM_ENABLE_AUDIO_TRANSCRIPTION: "false"', workflow)
+        self.assertNotIn('YOUTUBE_COOKIES_TXT', workflow)
+
     def test_retention_skips_unchanged_daily_publication(self):
         workflow = (
             Path(__file__).parents[1] / ".github/workflows/retention.yml"
