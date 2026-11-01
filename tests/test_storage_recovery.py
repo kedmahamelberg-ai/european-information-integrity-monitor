@@ -19,11 +19,33 @@ class StorageRecoveryTests(unittest.TestCase):
         with patch('eiim.storage.urllib.request.urlopen', side_effect=[
             self.http(500), self.http(503), io.BytesIO(b'[{"id":"saved"}]')
         ]) as request:
-            self.assertEqual(self.client().read('pipeline_runs', 'b'), [{'id':'saved'}])
+            self.assertEqual(self.client().read('comments', 'b'), [{'id':'saved'}])
             self.assertEqual(request.call_count, 3)
             self.assertEqual(sleep.call_count, 2)
             self.assertEqual(json.loads(request.call_args.args[0].data),
-                             {'p_table':'pipeline_runs', 'p_batch':'b'})
+                             {'p_table':'comments', 'p_batch':'b'})
+
+    def test_private_pipeline_read_uses_validated_keyset_pages(self):
+        store = self.client()
+        first = [{'id': f'{i:04d}', 'batch_id': 'b'} for i in range(200)]
+        last = [{'id': '0200', 'batch_id': 'b'}]
+        with patch.object(store, 'rpc', side_effect=[first, last]) as rpc:
+            rows = store.read('pipeline_runs', 'b')
+            self.assertEqual(len(rows), 201)
+            self.assertEqual(len(store.read('pipeline_runs', 'b')), 201)
+        self.assertEqual(rpc.call_count, 2)
+        self.assertEqual(rpc.call_args_list[0].args, ('eiim_read_pipeline_page',
+            {'p_batch': 'b', 'p_after': '', 'p_limit': 200}))
+        self.assertEqual(rpc.call_args_list[1].args[1]['p_after'], '0199')
+
+    def test_pipeline_read_rejects_invalid_or_partial_pages_without_caching(self):
+        for bad in ([{'id': '0000', 'batch_id': 'other'}],
+                    [{'id': '0000', 'batch_id': 'b'}, {'id': '0000', 'batch_id': 'b'}]):
+            store = self.client()
+            with patch.object(store, 'rpc', return_value=bad):
+                with self.assertRaises(ValueError):
+                    store.read('pipeline_runs', 'b')
+            self.assertNotIn(('pipeline_runs', 'b'), store._read_cache)
 
     @patch('eiim.storage.time.sleep')
     def test_persistent_failure_is_bounded_and_redacted(self, sleep):
