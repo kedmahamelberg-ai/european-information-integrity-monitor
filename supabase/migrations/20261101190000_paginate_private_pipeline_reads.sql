@@ -1,7 +1,7 @@
 -- Keep private evidence reads below the PostgREST statement timeout.
 -- The caller still receives every retained row, but in bounded keyset pages.
 create index if not exists pipeline_runs_batch_id_id
-  on eiim.pipeline_runs (batch_id, id);
+  on eiim.pipeline_runs (batch_id, id collate "C");
 
 create or replace function public.eiim_read_pipeline_page(
   p_batch text, p_after text default '', p_limit integer default 200
@@ -21,13 +21,13 @@ begin
     'id', r.id, 'batch_id', r.batch_id, 'video_id', r.video_id,
     'payload', r.payload, 'payload_hash', r.payload_hash,
     'purged_at', r.purged_at
-  ) order by r.id), '[]'::jsonb)
+  ) order by r.id collate "C"), '[]'::jsonb)
   into result
   from (
     select id, batch_id, video_id, payload, payload_hash, purged_at
     from eiim.pipeline_runs
-    where batch_id = p_batch and id > p_after
-    order by id
+    where batch_id = p_batch and id collate "C" > p_after collate "C"
+    order by id collate "C"
     limit p_limit
   ) r;
   return result;
