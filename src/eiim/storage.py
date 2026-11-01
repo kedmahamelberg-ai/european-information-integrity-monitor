@@ -5,6 +5,7 @@ import json, os, time, urllib.request, urllib.error
 from .core import digest
 
 WRITE_CHUNK_SIZE = 200
+READ_PAGE_SIZE = 200
 
 
 class Store:
@@ -40,6 +41,7 @@ class Store:
         attempts = 3 if name in {
             "eiim_read",
             "eiim_read_pipeline_public",
+            "eiim_read_pipeline_page",
             "eiim_progress",
             "eiim_write",
             "upsert_government_news_links",
@@ -80,6 +82,27 @@ class Store:
                 self._read_cache[key] = self.rpc(
                     "eiim_read_pipeline_public", {"p_batch": batch}
                 )
+            elif table == "pipeline_runs" and batch is not None:
+                # A whole retained batch can contain >15,000 private records.
+                # Aggregating it in one RPC exceeds PostgREST's statement timeout.
+                # Only cache a complete, validated keyset walk; partial reads must
+                # never be mistaken for a complete evidence set.
+                rows, after = [], ""
+                while True:
+                    page = self.rpc("eiim_read_pipeline_page", {
+                        "p_batch": batch, "p_after": after,
+                        "p_limit": READ_PAGE_SIZE,
+                    })
+                    if not isinstance(page, list) or len(page) > READ_PAGE_SIZE:
+                        raise ValueError("Invalid pipeline read page")
+                    for row in page:
+                        if not isinstance(row, dict) or row.get("batch_id") != batch or not isinstance(row.get("id"), str) or row["id"] <= after:
+                            raise ValueError("Invalid pipeline read cursor")
+                        after = row["id"]
+                    rows.extend(page)
+                    if len(page) < READ_PAGE_SIZE:
+                        self._read_cache[key] = rows
+                        break
             else:
                 self._read_cache[key] = self.rpc(
                     "eiim_read", {"p_table": table, "p_batch": batch}
