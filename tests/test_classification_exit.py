@@ -95,7 +95,7 @@ class ClassificationExitTests(unittest.TestCase):
             self.assertEqual(code, expected)
             self.assertIn('awaiting_transcripts', output.getvalue())
 
-    def test_sunday_zero_usable_text_is_not_a_successful_website_update(self):
+    def test_sunday_zero_usable_text_is_a_visible_recovery_handoff(self):
         report = {'status': 'awaiting_transcripts', 'classification_status': 'complete',
                   'failures': [], 'coverage': {'sampled_videos': 367,
                   'saved_transcripts': 0, 'awaiting_transcripts': 367}}
@@ -103,7 +103,6 @@ class ClassificationExitTests(unittest.TestCase):
              patch('eiim.hybrid.Store', return_value=MemoryStore()), \
              patch('eiim.hybrid.collect_week', return_value=report), \
              contextlib.redirect_stdout(io.StringIO()) as output:
-            with self.assertRaises(SystemExit) as stopped:
-                main()
-        self.assertEqual(stopped.exception.code, 1)
+            main()
+        self.assertIn('::warning::', output.getvalue())
         self.assertIn('zero sources have usable English text', output.getvalue())
