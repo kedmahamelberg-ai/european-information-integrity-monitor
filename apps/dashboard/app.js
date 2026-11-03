@@ -20,6 +20,22 @@ const human = (s) =>
     v == null
       ? "Unavailable"
       : Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 });
+function batchOrder(a,b){
+ const parse=id=>{const m=String(id||'').match(/^(\\d{4})-W(\\d{1,2})$/);return m?{year:Number(m[1]),week:Number(m[2])}:null;};
+ const aa=parse(a?.id),bb=parse(b?.id);
+ if(aa&&bb)return aa.year-bb.year||aa.week-bb.week;
+ return String(a?.id||'').localeCompare(String(b?.id||''),undefined,{numeric:true});
+}
+function orderBatches(items){return [...(items||[])].sort(batchOrder);}
+function renderBatchOptions(){
+ data.batches=orderBatches(data.batches);
+ for(const id of ['batch','archive-batch']){
+  const select=$('#'+id),selected=select.value;
+  select.querySelectorAll('option:not([value="all"])').forEach(option=>option.remove());
+  select.insertAdjacentHTML('beforeend',data.batches.map(b=>`<option value="${esc(b.id)}">${esc(b.id)}</option>`).join(''));
+  select.value=data.batches.some(b=>b.id===selected)?selected:'all';
+ }
+}
 function collectionDate(value){
  if(!value)return '';
  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Amsterdam',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(value)).map(part=>[part.type,part.value]));
@@ -383,8 +399,7 @@ async function init(){try{
  $('#methodology').innerHTML=result[3];$('#geography').innerHTML=result[2].features.map(f=>`<path d="${geometry(f.geometry)}"/>`).join('');
  $('#country').insertAdjacentHTML('beforeend',countries.map(c=>`<option value="${esc(c.iso2)}">${esc(c.country_name)}</option>`).join(''));
  $('#archive-country').insertAdjacentHTML('beforeend',countries.map(c=>`<option value="${esc(c.iso2)}">${esc(c.country_name)}</option>`).join(''));
- $('#batch').insertAdjacentHTML('beforeend',data.batches.map(b=>`<option value="${esc(b.id)}">${esc(b.id)}</option>`).join(''));
- $('#archive-batch').insertAdjacentHTML('beforeend',data.batches.map(b=>`<option value="${esc(b.id)}">${esc(b.id)}</option>`).join(''));
+ renderBatchOptions();
  $('#topic').insertAdjacentHTML('beforeend',Object.entries(data.topic_labels||{}).map(([c,n])=>`<option value="${esc(c)}">${esc(n)}</option>`).join(''));
  $('#government-country').insertAdjacentHTML('beforeend',countries.map(c=>`<option value="${esc(c.iso2)}">${esc(c.country_name)}</option>`).join(''));
  const governmentLabels=[...new Set((governmentData.items||[]).flatMap(x=>[x.primary_narrative,...(x.secondary_narratives||[])].filter(Boolean)))];$('#government-narrative').insertAdjacentHTML('beforeend',governmentLabels.map(n=>`<option value="${esc(n)}">${esc(human(n))}</option>`).join(''));
@@ -431,12 +446,15 @@ async function refreshSnapshot(){
     const response=await fetch(`data.json?refresh=${Date.now()}`,{cache:'no-store'});
     if(!response.ok)return;
     const updated=await response.json();
-    if(!Array.isArray(updated.videos)||!Array.isArray(updated.batches)||updated.as_of<=data.as_of)return;
+    if(!Array.isArray(updated.videos)||!Array.isArray(updated.batches))return;
+    const oldBatchOrder=orderBatches(data.batches).map(b=>b.id).join('|');
+    const newBatchOrder=orderBatches(updated.batches).map(b=>b.id).join('|');
+    const snapshotAdvanced=Date.parse(updated.as_of||'')>Date.parse(data.as_of||'');
+    if(!snapshotAdvanced&&oldBatchOrder===newBatchOrder)return;
     data=updated;
+    renderBatchOptions();
     const coded=new Map(data.videos.map(v=>[v.batch+'|'+v.id,v]));
     inventory=(data.inventory||data.videos).map(v=>({...v,...coded.get(v.batch+'|'+v.id)}));
-    const existing=new Set([...$('#batch').options].map(o=>o.value));
-    for(const b of data.batches)if(!existing.has(b.id)){const option=`<option value="${esc(b.id)}">${esc(b.id)}</option>`;$('#batch').insertAdjacentHTML('beforeend',option);$('#archive-batch').insertAdjacentHTML('beforeend',option);}
     configureDateInputs();
     render();
   }catch{/* Retain the last successfully loaded snapshot during network failures. */}
