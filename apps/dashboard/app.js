@@ -21,7 +21,7 @@ const human = (s) =>
       ? "Unavailable"
       : Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 });
 function batchOrder(a,b){
- const parse=id=>{const m=String(id||'').match(/^(\\d{4})-W(\\d{1,2})$/);return m?{year:Number(m[1]),week:Number(m[2])}:null;};
+ const parse=id=>{const m=String(id||'').match(/^(\d{4})-W(\d{1,2})$/);return m?{year:Number(m[1]),week:Number(m[2])}:null;};
  const aa=parse(a?.id),bb=parse(b?.id);
  if(aa&&bb)return aa.year-bb.year||aa.week-bb.week;
  return String(a?.id||'').localeCompare(String(b?.id||''),undefined,{numeric:true});
