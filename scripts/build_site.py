@@ -1,6 +1,6 @@
 """Copy only public assets; research source and secrets never enter Pages output."""
 
-import hashlib, json, shutil, sys, os, urllib.error, urllib.request
+import hashlib, json, shutil, sys, os, time, urllib.error, urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -41,8 +41,22 @@ if not gov_public.exists() and ("--live" in sys.argv or "--camera-only" in sys.a
         headers={"Cache-Control": "no-cache", "User-Agent": "EIIM-government-snapshot/1.0"},
     )
     try:
-        with urllib.request.urlopen(request, timeout=20) as response:
-            payload=response.read(10_000_001)
+        # Scheduled publication depends on the existing public snapshot. A slow
+        # response should be retried, not treated as a permanent build failure.
+        for attempt in range(3):
+            try:
+                with urllib.request.urlopen(request, timeout=20) as response:
+                    payload = response.read(10_000_001)
+                break
+            except (TimeoutError, urllib.error.URLError) as error:
+                if isinstance(error, urllib.error.HTTPError):
+                    if error.code not in (429, 500, 502, 503, 504):
+                        raise
+                if attempt == 2:
+                    raise
+                delay = 2 ** (attempt + 1)
+                print(f"Government snapshot request failed ({type(error).__name__}); retrying in {delay}s", flush=True)
+                time.sleep(delay)
         if len(payload)>10_000_000: raise RuntimeError("Published government snapshot exceeds camera refresh limit")
         published=json.loads(payload)
         if not isinstance(published,dict) or not isinstance(published.get("items"),list):
