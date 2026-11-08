@@ -1,7 +1,9 @@
 name: Refresh comments under corrected minimum
 on:
   schedule:
-    - cron: "17 19 * * 0"
+    - cron: "17 15,19 * * 0"
+      timezone: "Europe/Amsterdam"
+    - cron: "17 19 * * 1"
       timezone: "Europe/Amsterdam"
   workflow_dispatch:
     inputs:
