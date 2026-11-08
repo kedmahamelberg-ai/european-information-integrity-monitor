@@ -42,6 +42,7 @@ class Store:
             "eiim_read",
             "eiim_read_pipeline_public",
             "eiim_read_pipeline_page",
+            "eiim_read_candidate_page",
             "eiim_progress",
             "eiim_write",
             "upsert_government_news_links",
@@ -82,14 +83,15 @@ class Store:
                 self._read_cache[key] = self.rpc(
                     "eiim_read_pipeline_public", {"p_batch": batch}
                 )
-            elif table == "pipeline_runs" and batch is not None:
-                # A whole retained batch can contain >15,000 private records.
-                # Aggregating it in one RPC exceeds PostgREST's statement timeout.
-                # Only cache a complete, validated keyset walk; partial reads must
-                # never be mistaken for a complete evidence set.
+            elif table in {"pipeline_runs", "candidate_videos"} and batch is not None:
+                # Large retained evidence tables exceed the PostgREST statement
+                # timeout when aggregated into one JSON response. Cache only a
+                # complete, validated keyset walk.
+                page_rpc = ("eiim_read_pipeline_page" if table == "pipeline_runs"
+                            else "eiim_read_candidate_page")
                 rows, after = [], ""
                 while True:
-                    page = self.rpc("eiim_read_pipeline_page", {
+                    page = self.rpc(page_rpc, {
                         "p_batch": batch, "p_after": after,
                         "p_limit": READ_PAGE_SIZE,
                     })
