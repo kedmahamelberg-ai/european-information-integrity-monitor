@@ -482,6 +482,9 @@ class Pipeline:
                 if v["comment_count"] >= self.cfg["minimum_available_comments"]
                 else ([], "below_metadata_threshold")
             )
+            # Empty YouTube comment bodies carry no language or viewpoint evidence.
+            # Exclude them before the retained sample and minimum are calculated.
+            pool = [c for c in pool if (c.get("text_original") or "").strip()]
             retained = rank_comments(pool, self.cfg)
             eligible = len(pool) >= self.cfg["minimum_available_comments"]
             retained = retained if eligible else []
