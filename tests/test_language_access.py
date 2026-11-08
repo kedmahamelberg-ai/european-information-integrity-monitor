@@ -60,6 +60,17 @@ class LanguageAccessTests(unittest.TestCase):
         self.assertEqual(result["status"], "english_access_unverified")
         self.assertEqual(result["failure_reason"], "IpBlocked")
 
+    def test_emoji_only_comment_keeps_sentiment_without_model_translation(self):
+        source = {"comment_id": "emoji", "text_original": "😂🤣",
+                  "original_language": "und"}
+        model = SimpleNamespace(
+            translate=lambda text: self.fail("Emoji comment should not call model")
+        )
+        translated = translated_comment(source, model)
+        self.assertEqual(translated["text_english"], "😂🤣")
+        self.assertEqual(translated["translation_status"], "nonlexical_preserved")
+        self.assertEqual(source["text_original"], "😂🤣")
+
     def test_comment_translation_does_not_overwrite_original(self):
         source = {
             "comment_id": "one",

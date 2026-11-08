@@ -213,6 +213,20 @@ def translated_comment(comment, classifier):
     """Keep the original text/language and provide separate English labeling text."""
     original = comment["text_original"]
     language = comment.get("original_language", comment.get("language", "und"))
+    # Emoji and punctuation can carry sentiment, but have no words to translate.
+    # Preserve them exactly without asking the model to invent English text.
+    if original.strip() and not any(char.isalnum() for char in original):
+        return {
+            "comment_translation_id": comment["comment_id"],
+            "original_language": language,
+            "translation_detected_language": "und",
+            "text_english": original,
+            "translation_version": TRANSLATION_VERSION,
+            "translation_status": "nonlexical_preserved",
+            "translation_model": "deterministic_nonlexical",
+            "translated_at": now(),
+            "label_language": "en",
+        }
     result = classifier.translate(original)
     return {
         "comment_translation_id": comment["comment_id"],
