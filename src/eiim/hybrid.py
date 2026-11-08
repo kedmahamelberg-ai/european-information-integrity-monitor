@@ -494,6 +494,7 @@ def retained_inputs(store, batch):
         r["payload"]
         for r in store.read("comments", batch)
         if not r.get("purged_at") and r["video_id"] in videos
+        and (r["payload"].get("text_original") or "").strip()
     ]
     translations = {
         r["payload"]["comment_translation_id"]: r["payload"]
