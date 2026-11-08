@@ -29,6 +29,21 @@ class ResearchHealthTests(unittest.TestCase):
         }
         self.assertIn("1 classified of 1", check(data, AT))
 
+    def test_saved_english_source_without_label_fails(self):
+        data = {
+            "batches": [{"id": "2026-W45"}],
+            "inventory": [
+                {"batch": "2026-W45", "id": "coded", "caption_state": "saved"},
+                {"batch": "2026-W45", "id": "pending", "caption_state": "saved"},
+                {"batch": "2026-W45", "id": "blocked", "caption_state": "blocked"},
+            ],
+            "videos": [
+                {"batch": "2026-W45", "id": "coded", "label": {"topics": []}}
+            ],
+        }
+        with self.assertRaisesRegex(ValueError, "1 of 2 saved-English"):
+            check(data, AT)
+
     def test_missing_week_fails(self):
         with self.assertRaisesRegex(ValueError, "missing"):
             check({"batches": [], "inventory": [], "videos": []}, AT)

@@ -32,6 +32,20 @@ def check(data, at):
             f"{batch}: {sampled} videos sampled but none classified; "
             "check transcript recovery, saved-text classification and publication"
         )
+    saved_ids = {
+        row.get("id") for row in data.get("inventory", [])
+        if row.get("batch") == batch and row.get("caption_state") == "saved"
+    }
+    classified_ids = {
+        row.get("id") for row in data.get("videos", [])
+        if row.get("batch") == batch and row.get("label")
+    }
+    missing = saved_ids - classified_ids
+    if missing:
+        raise ValueError(
+            f"{batch}: {len(missing)} of {len(saved_ids)} saved-English sources "
+            "still lack a published classification"
+        )
     return f"{batch}: {classified} classified of {sampled} sampled sources"
 
 
