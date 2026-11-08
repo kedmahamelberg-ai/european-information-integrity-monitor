@@ -38,6 +38,18 @@ class StorageRecoveryTests(unittest.TestCase):
             {'p_batch': 'b', 'p_after': '', 'p_limit': 200}))
         self.assertEqual(rpc.call_args_list[1].args[1]['p_after'], '0199')
 
+    def test_candidate_video_read_uses_bounded_keyset_pages(self):
+        store = self.client()
+        first = [{'id': f'{i:04d}', 'batch_id': 'b'} for i in range(200)]
+        last = [{'id': '0200', 'batch_id': 'b'}]
+        with patch.object(store, 'rpc', side_effect=[first, last]) as rpc:
+            self.assertEqual(len(store.read('candidate_videos', 'b')), 201)
+            self.assertEqual(len(store.read('candidate_videos', 'b')), 201)
+        self.assertEqual(rpc.call_count, 2)
+        self.assertEqual(rpc.call_args_list[0].args, ('eiim_read_candidate_page',
+            {'p_batch': 'b', 'p_after': '', 'p_limit': 200}))
+        self.assertEqual(rpc.call_args_list[1].args[1]['p_after'], '0199')
+
     def test_pipeline_read_rejects_invalid_or_partial_pages_without_caching(self):
         for bad in ([{'id': '0000', 'batch_id': 'other'}],
                     [{'id': '0000', 'batch_id': 'b'}, {'id': '0000', 'batch_id': 'b'}]):
