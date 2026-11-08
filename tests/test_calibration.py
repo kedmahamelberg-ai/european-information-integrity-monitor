@@ -1,4 +1,5 @@
 import copy
+from datetime import datetime, timezone
 import unittest
 from unittest.mock import patch
 from eiim.core import digest
@@ -14,10 +15,13 @@ from eiim.calibration import (
 from test_hybrid import label
 
 
+RECENT_BATCH_TIMESTAMP = datetime.now(timezone.utc).isoformat()
+
+
 class CalibrationTests(unittest.TestCase):
     def current_fixture(self):
         s = MemoryStore()
-        s.batch({"id": "b", "collection_timestamp": "2026-10-05T00:00:00Z"}, "config")
+        s.batch({"id": "b", "collection_timestamp": RECENT_BATCH_TIMESTAMP}, "config")
         p = {
             "hybrid_version": VERSION,
             "label": label(),
@@ -47,7 +51,7 @@ class CalibrationTests(unittest.TestCase):
         s.batch(
             {
                 "id": "b",
-                "collection_timestamp": "2026-10-05T00:00:00Z",
+                "collection_timestamp": RECENT_BATCH_TIMESTAMP,
             },
             "config",
         )
