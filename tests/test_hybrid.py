@@ -391,6 +391,32 @@ class HybridTests(unittest.TestCase):
     def test_english_audio_requires_transcript(self):
         self.make_transcript_store()
 
+    def test_empty_retained_comment_does_not_block_video_label(self):
+        s = self.make_transcript_store()
+        s.batch({"id": "2026-W40"}, "test")
+        s.write("2026-W40", [record("comments", "2026-W40", "blank", {
+            "comment_id": "blank", "video_id": "v", "text_original": ""
+        }, "v")])
+
+        class Fake:
+            cfg = {"model": "test"}
+
+            def translate(self, text):
+                raise AssertionError("Empty comment must not be translated")
+
+            def request(self, text, prompt, shape, kind):
+                result = label()
+                result["comments"] = []
+                return {"parsed": result, "model_name": "test",
+                        "model_version": "test",
+                        "classification_timestamp": "2026-10-04T00:00:00Z"}
+
+        self.assertEqual(retained_inputs(s, "2026-W40")[1], [])
+        report = reclassify(s, "2026-W40", Fake())
+        self.assertEqual(report["classified_videos"], 1)
+        self.assertEqual(report["classified_comments"], 0)
+        self.assertEqual(report["failures"], [])
+
     def test_restart_does_not_reclassify_or_collect(self):
         s = self.make_transcript_store()
         s.batch({"id": "2026-W40"}, "test")
