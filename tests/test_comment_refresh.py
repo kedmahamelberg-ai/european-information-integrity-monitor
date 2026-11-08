@@ -93,7 +93,11 @@ class CommentMinimumTests(unittest.TestCase):
 
             def comments(self, vid):
                 self.calls.append(vid)
-                return super().comments(vid)
+                pool, status = super().comments(vid)
+                if vid == "target":
+                    pool = [{"comment_id": "blank", "text_original": " ",
+                             "like_count": 0, "reply_count": 0}, *pool]
+                return pool, status
 
         pipe.yt = CountingYouTube()
         pipe.cfg["minimum_available_comments"] = 2
@@ -101,6 +105,7 @@ class CommentMinimumTests(unittest.TestCase):
                       only_video_ids={"target"})
         self.assertEqual(pipe.yt.calls, ["target"])
         self.assertEqual({r["video_id"] for r in store.read("comments")}, {"target"})
+        self.assertNotIn("blank", {r["payload"]["comment_id"] for r in store.read("comments")})
 
     def test_two_comment_boundary_and_revisit_old_exclusions_without_rewriting(self):
         store = MemoryStore()
