@@ -1,5 +1,8 @@
 name: Refresh comments under corrected minimum
 on:
+  push:
+    branches: [main]
+    paths: [".github/research-refresh.trigger"]
   schedule:
     - cron: "17 15,19 * * 0"
       timezone: "Europe/Amsterdam"
@@ -52,24 +55,33 @@ jobs:
           fi
           test -n "$REVIEW_BATCH" || { echo '::error::No retained batch is available'; exit 1; }
           echo "REVIEW_BATCH=$REVIEW_BATCH" >> "$GITHUB_ENV"
+          if [ -z "$REVIEW_VIDEO_IDS" ]; then
+            REVIEW_VIDEO_IDS=$(PYTHONPATH=src python - <<'PY'
+          import os
+          from eiim.hybrid import retained_inputs
+          from eiim.storage import Store
+          print(",".join(sorted(retained_inputs(Store(), os.environ["REVIEW_BATCH"])[0])))
+          PY
+            )
+            echo "REVIEW_VIDEO_IDS=$REVIEW_VIDEO_IDS" >> "$GITHUB_ENV"
+          fi
       - name: Refresh retained comments within existing budget
         shell: bash
         run: |
-          if [ -n "$REVIEW_VIDEO_IDS" ]; then
-            PYTHONPATH=src python -m eiim.cli refresh-comments --batch "$REVIEW_BATCH" --video-ids="$REVIEW_VIDEO_IDS" > /tmp/comment-refresh.json
-          else
-            PYTHONPATH=src python -m eiim.cli refresh-comments --batch "$REVIEW_BATCH" > /tmp/comment-refresh.json
+          if [ -z "$REVIEW_VIDEO_IDS" ]; then
+            echo 'No transcript-eligible sources yet; comment refresh remains pending.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
           fi
+          PYTHONPATH=src python -m eiim.cli refresh-comments --batch "$REVIEW_BATCH" --video-ids="$REVIEW_VIDEO_IDS" > /tmp/comment-refresh.json
           cat /tmp/comment-refresh.json >> "$GITHUB_STEP_SUMMARY"
       - name: Attach refreshed comments to Monitor classifications
         shell: bash
         run: |
+          if [ -z "$REVIEW_VIDEO_IDS" ]; then
+            exit 0
+          fi
           run_hybrid() {
-            if [ -n "$REVIEW_VIDEO_IDS" ]; then
-              PYTHONPATH=src python -m eiim.hybrid --batch "$REVIEW_BATCH" --video-ids="$REVIEW_VIDEO_IDS" | tee /tmp/hybrid-report.json
-            else
-              PYTHONPATH=src python -m eiim.hybrid --batch "$REVIEW_BATCH" | tee /tmp/hybrid-report.json
-            fi
+            PYTHONPATH=src python -m eiim.hybrid --batch "$REVIEW_BATCH" --video-ids="$REVIEW_VIDEO_IDS" | tee /tmp/hybrid-report.json
             return "${PIPESTATUS[0]}"
           }
 
