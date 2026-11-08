@@ -110,7 +110,7 @@ function render(){
  // Repeated weekly observations of one video must not inflate cumulative views.
  const uniqueRelated=[...related.reduce((m,x)=>{const old=m.get(x.id);if(!old||(x.engagement?.captured_at||'')>(old.engagement?.captured_at||''))m.set(x.id,x);return m;},new Map()).values()];
  const relevantViews=sum(uniqueRelated,"views"), relevantLikes=sum(uniqueRelated,"likes");
- $("#stats").innerHTML=`<div class="stat"><span>Security-related videos</span><b>${pendingSelection?"Pending":num(uniqueRelated.length)}</b><small>${pendingSelection?`${selectedCoverage.sampled} sources sampled; classification is still pending`:`of ${num(selectedCoverage.classified)} classified sources in this selection`}</small></div><div class="stat stat-hero"><span>Views on security-related videos</span><b>${pendingSelection?"Pending":num(relevantViews.value)}</b><small>${pendingSelection?"English evidence and classification are still in progress":`Lifetime views · ${relevantViews.n}/${uniqueRelated.length} counters available · not unique viewers`}</small></div><div class="stat"><span>Likes on related videos</span><b>${pendingSelection?"Pending":num(relevantLikes.value)}</b><small>${pendingSelection?"No coded video totals are available yet":`${relevantLikes.n}/${uniqueRelated.length} counters available`}</small></div>`;
+ $("#stats").innerHTML=`<div class="stat"><span>Security-related videos</span><b>${pendingSelection?"Pending":num(uniqueRelated.length)}</b><small><a href="#evidence">Browse ${num(selectedCoverage.sampled)} sampled videos ↗</a> · ${pendingSelection?"classification is still pending":`of ${num(selectedCoverage.classified)} classified sources in this selection`}</small></div><div class="stat stat-hero"><span>Views on security-related videos</span><b>${pendingSelection?"Pending":num(relevantViews.value)}</b><small>${pendingSelection?"English evidence and classification are still in progress":`Lifetime views · ${relevantViews.n}/${uniqueRelated.length} counters available · not unique viewers`}</small></div><div class="stat"><span>Likes on related videos</span><b>${pendingSelection?"Pending":num(relevantLikes.value)}</b><small>${pendingSelection?"No coded video totals are available yet":`${relevantLikes.n}/${uniqueRelated.length} counters available`}</small></div>`;
  const missingText=Math.max(0,selectedCoverage.sampled-selectedCoverage.saved), pendingCoding=Math.max(0,selectedCoverage.saved-selectedCoverage.classified);
  $(".coverage-details summary").textContent=`Data coverage · ${selectedCoverage.classified} of ${selectedCoverage.sampled} sampled sources classified · ${uniqueRelated.length} security-related · ${missingText} need English text · ${pendingCoding} have text and await valid classification`;
  const country=countries.find(x=>x.iso2===$("#country").value)?.country_name || "Europe";
@@ -407,7 +407,8 @@ async function init(){try{
  configureDateInputs();
  render();route();
  }catch(e){$('#data-status').textContent='Snapshot unavailable. Please refresh or check the publishing workflow.';console.error(e);}}
-for(const id of ['batch','country','topic','metric','response-metric'])$('#'+id).onchange=render;
+for(const id of ['country','topic','metric','response-metric'])$('#'+id).onchange=render;
+$('#batch').onchange=()=>{$('#archive-batch').value=$('#batch').value;render();};
  for(const id of ['government-country','government-narrative','government-review'])$('#'+id).onchange=renderGovernment;
  $('#trend-range').onchange=()=>{document.querySelectorAll('.trend-custom-date').forEach(el=>el.hidden=$('#trend-range').value!=='custom');activeTrendLine=null;renderGovernmentTrends();};
  $('#trend-topic').onchange=()=>{activeTrendLine=null;renderGovernmentTrends();};
