@@ -10,7 +10,7 @@ SOURCE_FIELDS = (
 )
 REVIEW_FIELDS = (
     "roles", "viewpoint_structure", "viewpoints", "evidence_status",
-    "evidence_quote", "short_rationale", "ticker_message",
+    "evidence_quote", "short_rationale", "ticker_message", "english_summary",
 )
 
 
