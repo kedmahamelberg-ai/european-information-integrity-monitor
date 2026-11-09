@@ -46,6 +46,15 @@ class GovernmentReviewTests(unittest.TestCase):
         self.assertEqual((applied, stale), ([], ["source-1"]))
         self.assertEqual(self.item["classification_status"], "provisional")
 
+    def test_confirmed_review_can_correct_a_misleading_summary(self):
+        correction = {
+            "id": "source-1", "source_fingerprint": source_fingerprint(self.item),
+            "english_summary": "A proposal to improve ambulance staff safety.",
+        }
+        applied, stale = apply_confirmed_corrections([self.item], [correction])
+        self.assertEqual((applied, stale), (["source-1"], []))
+        self.assertEqual(self.item["english_summary"], correction["english_summary"])
+
     def test_label_changes_do_not_invalidate_source_fingerprint(self):
         original = source_fingerprint(self.item)
         self.item["topics"] = ["health_biosecurity"]
