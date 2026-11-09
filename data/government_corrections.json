@@ -1268,5 +1268,55 @@
     "evidence_quote": "The Justice Minister's agenda includes work against organized crime and the EU's internal security... Ministers will also discuss implementing the EU's strategic framework on drugs and threats posed by organized drug crime... On migration, ministers will also discuss how the EU can strengthen situational awareness and improve early warning capabilities for migration-related crises... focus on better using existing systems and analytical tools to identify risks and prevent crises.",
     "short_rationale": "The meeting addresses EU internal security risks from organized crime, migration crises, and hybrid threats linked to the Ukraine war, focusing on cooperation and resilience.",
     "ticker_message": "EU ministers meet to strengthen internal security, combat organized crime, and manage migration challenges."
+  },
+  {
+    "id": "159f13d3ab922009e071",
+    "source_url": "https://www.gov.bg/bg/prestsentar/novini/rumen-radev-po-dobrata-svarzanost-na-veliko-tarnovo-ima-strategichesko-znachenie-za-svarzanostta-na-tsyala-severna-balgaria",
+    "source_title": "Румен Радев: По-добрата свързаност на Велико Търново има стратегическо значение за свързаността на цяла Северна България",
+    "source_summary": "The official source describes funding road design around Veliko Tarnovo and talks on regional development spending, not a new defence priority.",
+    "review_decision": "correct_source_mismatch",
+    "relevance": "not_related",
+    "topics": [],
+    "english_summary": "Bulgaria's prime minister announced €2 million for road-design work around Veliko Tarnovo and discussed preserving regional development funding.",
+    "ticker_message": "Bulgaria plans road-design funding around Veliko Tarnovo.",
+    "short_rationale": "The official communication concerns regional road projects and budget talks; it does not report a defence initiative.",
+    "evidence_quote": "",
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Prime Minister Rumen Radev",
+        "summary": "The government plans to accelerate road design around Veliko Tarnovo and preserve regional development programs.",
+        "target": "Regional road projects and budget talks",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": ""
+      }
+    ]
+  },
+  {
+    "id": "ddfc66244555e81b13b9",
+    "source_url": "https://www.gov.sm/pub1/EsteriSM/dettaglio_notizia.html?idItem=72d68e7e-e14b-4108-99ca-1d83de5a9c5c",
+    "source_title": "Pubblicata la Risoluzione Conclusiva della 53ª Consulta dei cittadini sammarinesi all'estero",
+    "source_summary": "The resolution asks for equal healthcare protections for overseas citizens visiting San Marino; it does not announce a government commitment to provide them.",
+    "review_decision": "correct_proposal_as_outcome",
+    "relevance": "related",
+    "topics": [
+      "health_biosecurity"
+    ],
+    "english_summary": "A council of San Marino citizens abroad asks that all citizens receive the same healthcare protections as residents during temporary visits. The resolution says the European health network is expected from 2027, while people living outside Europe would need separate agreements.",
+    "ticker_message": "Overseas San Marino citizens ask for equal healthcare protection during visits; the change is not yet adopted.",
+    "short_rationale": "The official publication reports a citizens' council request and a prospective European arrangement, not an enacted guarantee.",
+    "evidence_quote": "La Consulta chiede che tutti i cittadini sammarinesi ovunque risiedano, quando si trovano in Repubblica per periodi temporanei, abbiano le stesse tutele sanitarie dei cittadini residenti.",
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Council of San Marino citizens abroad",
+        "summary": "The council requests equal healthcare protection for overseas citizens during temporary visits.",
+        "target": "Healthcare coverage for citizens living abroad",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "La Consulta chiede che tutti i cittadini sammarinesi ovunque risiedano, quando si trovano in Repubblica per periodi temporanei, abbiano le stesse tutele sanitarie dei cittadini residenti."
+      }
+    ]
   }
 ]
