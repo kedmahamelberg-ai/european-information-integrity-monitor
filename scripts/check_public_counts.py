@@ -37,6 +37,18 @@ def check(data):
     require(c['classified_comments']==sum(v['responses']['total'] for v in videos),'global comments')
     require(c['reviewed_comments']==sum(v['responses']['human_reviewed'] for v in videos),'global reviewed comments')
     require(c['retained_comments']==sum(v['retained_comments'] for v in videos),'global retained comments')
+    history = data.get('history', [])
+    require(len({week['id'] for week in history}) == len(history), 'duplicate history weeks')
+    for week in history:
+        counts = [week[key] for key in ('sampled_videos', 'classified_videos', 'security_related_videos')]
+        require(all(type(count) is int and count >= 0 for count in counts), 'history count type')
+        require(counts[2] <= counts[1] <= counts[0], 'history count bounds')
+        sampled = sum(v['batch'] == week['id'] for v in inventory)
+        if sampled == week['sampled_videos']:
+            coded = [v for v in videos if v['batch'] == week['id'] and v.get('label')]
+            require(len(coded) == week['classified_videos'], 'retained history classified count')
+            require(sum(v['label']['relevance'] == 'related' for v in coded) == week['security_related_videos'], 'retained history related count')
+    require(not ({week['id'] for week in history} & set(data.get('history_missing', []))), 'history gap overlaps saved week')
 
 
 if __name__ == '__main__':

@@ -27,6 +27,13 @@ jobs:
         id: purge
         run: |
           if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_SECRET_KEY" ]; then
+            PYTHONPATH=src python - <<'PY'
+            from pathlib import Path
+            from eiim.hybrid_public import export_public
+            from eiim.storage import Store
+
+            export_public(Store(public_pipeline_only=True), Path('/tmp/eiim-public-before-purge.json'))
+            PY
             PYTHONPATH=src python -m eiim.cli purge > /tmp/eiim-purge.json
             cat /tmp/eiim-purge.json
             PURGED=$(python -c 'import json; print(int(json.load(open("/tmp/eiim-purge.json")).get("purged", 0)))')
