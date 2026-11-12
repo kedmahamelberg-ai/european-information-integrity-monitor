@@ -56,6 +56,8 @@ def export_public(store, path):
         "caption_recovery": [],
         "learning": "Human corrections guide prompts and retained calibration examples; this is not model fine-tuning.",
         "batches": [],
+        "history": [],
+        "history_missing": [],
         "status": "human_review_pending",
         "collection": {
             "sampled_videos": 0,
@@ -91,6 +93,7 @@ def export_public(store, path):
                 reviews[queue_record_id] = review
     for b in retained_batches:
         batch = b["id"]
+        first_public_video = len(output["videos"])
         videos, comments, _, _ = retained_inputs(store, batch)
         sampled = {
             r["video_id"]
@@ -238,6 +241,33 @@ def export_public(store, path):
                     ),
                 }
             )
+        # Preserve counts before the 30-day source purge. Only three bounded
+        # integers survive; neither source IDs nor comments enter this record.
+        public_videos = output["videos"][first_public_video:]
+        summary = {
+            "sampled_videos": len(sampled),
+            "classified_videos": sum(bool(v["label"]) for v in public_videos),
+            "security_related_videos": sum(
+                v["label"] is not None and v["label"]["relevance"] == "related"
+                for v in public_videos
+            ),
+        }
+        previous = b.get("public_summary")
+        # A partially purged batch must never replace its fuller saved total.
+        if (previous is None or summary["sampled_videos"] >= previous["sampled_videos"]) and summary != previous:
+            store.save_public_summary(batch, summary)
+            b["public_summary"] = summary
+    output["history"] = [
+        {"id": b["id"], **b["public_summary"]}
+        for b in sorted(retained_batches, key=lambda b: b["id"])
+        if b.get("public_summary") is not None
+    ]
+    if output["history"]:
+        latest_summary = output["history"][-1]["id"]
+        output["history_missing"] = [
+            b["id"] for b in retained_batches
+            if b["id"] < latest_summary and b.get("public_summary") is None
+        ]
     output["caption_health"] = dict(caption_health)
     output["collection"]["awaiting_transcript"] = (
         output["collection"]["sampled_videos"]

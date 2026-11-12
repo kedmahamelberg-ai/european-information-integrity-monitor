@@ -12,6 +12,31 @@ import test_hybrid as fixtures
 
 
 class PublicCoverageTests(unittest.TestCase):
+    def test_weekly_counts_survive_detail_retention(self):
+        s = fixtures.HybridTests().make_transcript_store()
+        s.batch({'id': '2026-W40'}, 'test')
+        s.write('2026-W40', [record('pipeline_runs', '2026-W40', 'coded', {
+            'hybrid_version': VERSION, 'video_id': 'v', 'label': fixtures.label(),
+            'classified_at': '2026-10-04T00:00:00Z', 'model_version': 'test',
+            'transcript_truncated': False,
+        }, 'v')])
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / 'public.json'
+            export_public(s, p)
+            first = json.loads(p.read_text())
+            self.assertEqual(first['history'], [{
+                'id': '2026-W40', 'sampled_videos': 1,
+                'classified_videos': 1, 'security_related_videos': 1,
+            }])
+            s.tables['sampled_videos']['v']['purged_at'] = '2026-11-04T00:00:00Z'
+            s.tables['sampled_videos']['v']['payload'] = {'retention_deleted': True}
+            export_public(s, p)
+            expired = json.loads(p.read_text())
+        self.assertEqual(expired['history'], first['history'])
+        self.assertEqual(expired['collection']['sampled_videos'], 0)
+        self.assertEqual(expired['videos'], [])
+        self.assertEqual(expired['inventory'], [])
+
     def test_internal_viewpoints_are_not_exported_publicly(self):
         s = fixtures.HybridTests().make_transcript_store()
         s.batch({'id': '2026-W40'}, 'test')

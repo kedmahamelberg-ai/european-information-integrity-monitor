@@ -45,6 +45,7 @@ class Store:
             "eiim_read_candidate_page",
             "eiim_progress",
             "eiim_write",
+            "eiim_save_public_summary",
             "upsert_government_news_links",
         } else 1
         for attempt in range(attempts):
@@ -153,6 +154,14 @@ class Store:
     def progress(self):
         return self.rpc("eiim_progress", {})
 
+    def save_public_summary(self, batch, summary):
+        result = self.rpc("eiim_save_public_summary", {
+            "p_batch": batch, "p_summary": summary,
+        })
+        self._read_cache.pop(("weekly_batches", None), None)
+        self._read_cache.pop(("weekly_batches", batch), None)
+        return result
+
     def purge(self, days=30):
         result = self.rpc("eiim_purge", {"p_days": days})
         self._read_cache.clear()
@@ -223,6 +232,12 @@ class MemoryStore:
             if batch is None
             or (r["id"] if table == "weekly_batches" else r["batch_id"]) == batch
         ]
+
+    def save_public_summary(self, batch, summary):
+        if batch not in self.batches:
+            raise ValueError("Unknown batch")
+        self.batches[batch]["public_summary"] = copy.deepcopy(summary)
+        return summary
 
     def write(self, batch, rows, stage=None):
         import copy
