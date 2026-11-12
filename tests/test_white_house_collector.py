@@ -36,6 +36,7 @@ class WhiteHouseCollectorTest(unittest.TestCase):
             items, home = collector.discover_united_states(self.source, self.start, self.end)
         self.assertEqual(home, self.source["url"])
         self.assertEqual({x["title"] for x in items}, {"security-statement", "fire-prevention"})
+        self.assertEqual({x["published_date"] for x in items}, {"2026-10-09", "2026-10-05"})
         self.assertEqual(mocked.call_count, 3)  # two archive pages and a full article
 
     def test_rejects_links_outside_official_article_section(self):
