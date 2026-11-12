@@ -10,6 +10,10 @@ const end = app.indexOf('function renderGovernmentTrends()', start);
 assert.ok(start >= 0 && end > start);
 const scope = {governmentTopicCodes: item => item.topics};
 vm.runInNewContext(app.slice(start, end) + '\nthis.series=trendCountrySeries;this.selected=trendSelectedCountries;', scope);
+const labelStart = app.indexOf('const governmentCountryLabel=');
+const labelEnd = app.indexOf('function getGovernmentHighlights(', labelStart);
+assert.ok(labelStart >= 0 && labelEnd > labelStart);
+vm.runInNewContext(app.slice(labelStart, labelEnd) + '\nthis.countryLabel=governmentCountryLabel;', scope);
 
 test('Europe totals exclude the USA benchmark while USA keeps its own denominator', () => {
   const items = [
@@ -32,4 +36,9 @@ test('the USA benchmark remains selected for every European selection', () => {
   assert.deepEqual(Array.from(scope.selected(['all', 'none', 'none'])), ['all', 'US']);
   assert.deepEqual(Array.from(scope.selected(['NL', 'DE', 'US'])), ['NL', 'DE', 'US']);
   assert.deepEqual(Array.from(scope.selected(['US', 'none', 'none'])), ['all', 'US']);
+});
+
+test('government source and ticker labels identify the USA benchmark', () => {
+  assert.equal(scope.countryLabel({country_code: 'US', country: 'United States'}), 'USA · BENCHMARK (White House)');
+  assert.equal(scope.countryLabel({country_code: 'NL', country: 'Netherlands'}), 'Netherlands');
 });
