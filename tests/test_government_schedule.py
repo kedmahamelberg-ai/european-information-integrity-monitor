@@ -85,6 +85,7 @@ class GovernmentScheduleTests(unittest.TestCase):
     def test_pending_countries_are_not_enabled(self):
         root = Path(__file__).resolve().parents[1]
         codes = schedule.ready_codes(root / "scripts/collect_government_news.py")
-        self.assertEqual(len(codes), 40)
+        self.assertEqual(len(codes), 41)
         self.assertIn("MT", codes)
+        self.assertIn("US", codes)
         self.assertFalse(codes & {"AL","CY","FI","FR","IE","LV","LT","NO","RO","RU","UA"})

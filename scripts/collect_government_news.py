@@ -32,6 +32,7 @@ HYBRID = json.loads((ROOT / "config/hybrid.json").read_text())
 TOPICS = HYBRID["topics"]
 COUNTRY_ISO3 = {country["iso2"]: country["iso3"] for country in
                 json.loads((ROOT / "config/countries.json").read_text())["countries"]}
+COUNTRY_ISO3["US"] = "USA"
 ROLE_ENTITY_CODES = set(COUNTRY_ISO3.values()) | {"EU", "OTHER"}
 STATE = ROOT / "data/government_state.json"
 PUBLIC = ROOT / "build/government-data.json"
@@ -77,9 +78,9 @@ ZURICH = ZoneInfo("Europe/Zurich")
 OSLO = ZoneInfo("Europe/Oslo")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AM": YEREVAN, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BE": BRUSSELS, "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME, "MT": MALTA,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "NO": OSLO, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE, "ES": MADRID, "TR": ISTANBUL, "UA": KYIV, "CH": ZURICH}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "NO": OSLO, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE, "ES": MADRID, "TR": ISTANBUL, "UA": KYIV, "CH": ZURICH, "US": ZoneInfo("America/New_York")}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AM","AT","AZ","BA","BE","BG","BY","CH","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","MT","NL","PL","PT","RS","SE","SI","SK","SM","TR","VA","XK"}
+COLLECTOR_READY_CODES = {"AD","AM","AT","AZ","BA","BE","BG","BY","CH","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","MT","NL","PL","PT","RS","SE","SI","SK","SM","TR","US","VA","XK"}
 
 
 # Verified publisher rename: retain the existing classified canonical record.
@@ -184,6 +185,35 @@ class BelarusCards(HTMLParser):
             if not self.depth:
                 if not all(self.current.get(key) for key in ("url","title","published_at")): raise RuntimeError("Belarusian event card has missing metadata")
                 self.cards.append(self.current); self.current=None
+
+
+class WhiteHouseCards(HTMLParser):
+    """Read dated post cards and the next link from the official archive."""
+    def __init__(self):
+        super().__init__(); self.cards=[]; self.current=None; self.depth=0; self.title_depth=0; self.title_parts=[]; self.next_url=""
+    def handle_starttag(self,tag,attrs):
+        attrs=dict(attrs); classes=attrs.get("class","").split()
+        if tag=="link" and attrs.get("rel")=="next": self.next_url=attrs.get("href","")
+        if tag=="li" and "wp-block-post" in classes and not self.depth:
+            self.current={}; self.depth=1; return
+        if not self.depth: return
+        if tag=="li": self.depth+=1
+        if tag=="h2": self.title_depth+=1
+        if tag=="a" and self.title_depth:
+            self.current["url"]=attrs.get("href",""); self.title_parts=[]
+        if tag=="time": self.current["published_at"]=attrs.get("datetime","")
+    def handle_endtag(self,tag):
+        if self.depth and tag=="h2":
+            self.title_depth=max(0,self.title_depth-1)
+            if self.title_parts: self.current["title"]=" ".join(" ".join(self.title_parts).split())
+        if self.depth and tag=="li":
+            self.depth-=1
+            if not self.depth:
+                if not all(self.current.get(key) for key in ("url","title","published_at")):
+                    raise RuntimeError("White House archive card has missing metadata")
+                self.cards.append(self.current); self.current=None
+    def handle_data(self,data):
+        if self.depth and self.title_depth and data.strip(): self.title_parts.append(data.strip())
 
 
 class HiddenFormInputs(HTMLParser):
@@ -2035,7 +2065,41 @@ def discover_norway(country,start,end):
     return entries,country["url"]
 
 
+WHITE_HOUSE_ARTICLE = re.compile(r"https://www\.whitehouse\.gov/briefings-statements/20\d{2}/(?:0?[1-9]|1[0-2])/[a-z0-9-]+/\Z")
+WHITE_HOUSE_ARCHIVE = re.compile(r"https://www\.whitehouse\.gov/briefings-statements/(?:page/[1-9]\d*/)?\Z")
+US_BENCHMARK_START = dt.datetime(2026,10,4,tzinfo=SOURCE_TIMEZONES["US"]).astimezone(dt.timezone.utc)
+
+
+def discover_united_states(country,start,end):
+    """Traverse the White House's dated Briefings & Statements archive."""
+    start=max(start,US_BENCHMARK_START)
+    first_day=start.astimezone(SOURCE_TIMEZONES["US"]).date()
+    last_day=end.astimezone(SOURCE_TIMEZONES["US"]).date()
+    url=country["url"]; entries=[]; seen=set()
+    for _ in range(30):
+        if not WHITE_HOUSE_ARCHIVE.fullmatch(url): raise RuntimeError("White House pagination left the official archive")
+        _,body=fetch(url,timeout=20)
+        parser=WhiteHouseCards(); parser.feed(body.decode("utf-8","replace"))
+        if not parser.cards: raise RuntimeError("White House archive returned no dated cards")
+        dates=[]
+        for card in parser.cards:
+            article_url=urllib.parse.urljoin(url,html.unescape(card["url"]))
+            published=date_value(card["published_at"])
+            if not WHITE_HOUSE_ARTICLE.fullmatch(article_url) or not published:
+                raise RuntimeError("White House archive card has an invalid article URL or date")
+            day=published.astimezone(SOURCE_TIMEZONES["US"]).date(); dates.append(day)
+            if first_day<=day<=last_day and start<=published<=end and article_url not in seen:
+                seen.add(article_url)
+                entries.append({"country":country["name"],"country_code":"US","url":article_url,"title":card["title"],"published_at":published.isoformat(),"text":""})
+        if min(dates)<first_day or not parser.next_url: break
+        url=urllib.parse.urljoin(url,html.unescape(parser.next_url))
+    else: raise RuntimeError("White House archive exceeded pagination safety limit")
+    if entries: article_text(entries[0])
+    return entries,country["url"]
+
+
 def discover(country,start,end):
+    if country["iso2"]=="US": return discover_united_states(country,start,end)
     if country["iso2"]=="AM": return discover_armenia(country,start,end)
     if country["iso2"]=="BE": return discover_belgium(country,start,end)
     if country["iso2"]=="NO": return discover_norway(country,start,end)
@@ -2083,6 +2147,13 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="US":
+        if not WHITE_HOUSE_ARTICLE.fullmatch(item["url"]): raise RuntimeError("White House article URL is outside the verified archive")
+        _,body=fetch(item["url"],timeout=20)
+        parser=ClassText("wp-block-post-content"); parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        if len(article)<40: raise RuntimeError("White House statement has no usable article body")
+        return article
     if item["country_code"]=="AM":
         _, body = fetch(item["url"], timeout=20)
         parser = ClassText("news-text"); parser.feed(body.decode("utf-8", "replace"))
@@ -2508,7 +2579,7 @@ def main():
     if selected_codes-{source["iso2"] for source in matching_sources}: raise SystemExit("Country selection contains missing or unverified codes")
     selected_sources=[] if args.classify_only else matching_sources
     source_cursors=dict(state.get("source_cursors") or {})
-    starts_by_code={source["iso2"]:requested_start or date_value(source_cursors.get(source["iso2"])) or initial_start for source in selected_sources}
+    starts_by_code={source["iso2"]:requested_start or date_value(source_cursors.get(source["iso2"])) or (US_BENCHMARK_START if source["iso2"]=="US" else initial_start) for source in selected_sources}
     start=min(starts_by_code.values(),default=requested_start or initial_start)
     existing=canonical_government_items(state.get("items",[])); sources_status=[]; candidates=[]; discovered_links={}; article_failures=[]; model_failures=[]
     corrections=json.loads(CORRECTIONS.read_text()) if CORRECTIONS.exists() else []
