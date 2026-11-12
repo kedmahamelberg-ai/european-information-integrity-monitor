@@ -2090,7 +2090,7 @@ def discover_united_states(country,start,end):
             day=published.astimezone(SOURCE_TIMEZONES["US"]).date(); dates.append(day)
             if first_day<=day<=last_day and start<=published<=end and article_url not in seen:
                 seen.add(article_url)
-                entries.append({"country":country["name"],"country_code":"US","url":article_url,"title":card["title"],"published_at":published.isoformat(),"text":""})
+                entries.append({"country":country["name"],"country_code":"US","url":article_url,"title":card["title"],"published_at":published.isoformat(),"published_date":day.isoformat(),"publication_precision":"instant","text":""})
         if min(dates)<first_day or not parser.next_url: break
         url=urllib.parse.urljoin(url,html.unescape(parser.next_url))
     else: raise RuntimeError("White House archive exceeded pagination safety limit")
