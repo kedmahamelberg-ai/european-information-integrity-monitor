@@ -32,10 +32,10 @@ test('Europe totals exclude the USA benchmark while USA keeps its own denominato
   assert.equal(usa.series.get('cyber')[0], 50);
 });
 
-test('the USA benchmark remains selected for every European selection', () => {
-  assert.deepEqual(Array.from(scope.selected(['all', 'none', 'none'])), ['all', 'US']);
+test('the USA benchmark appears only when selected', () => {
+  assert.deepEqual(Array.from(scope.selected(['all', 'none', 'none'])), ['all']);
   assert.deepEqual(Array.from(scope.selected(['NL', 'DE', 'US'])), ['NL', 'DE', 'US']);
-  assert.deepEqual(Array.from(scope.selected(['US', 'none', 'none'])), ['all', 'US']);
+  assert.deepEqual(Array.from(scope.selected(['US', 'none', 'none'])), ['US']);
 });
 
 test('government source and ticker labels identify the USA benchmark', () => {

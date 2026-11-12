@@ -27,13 +27,24 @@ function batchOrder(a,b){
  return String(a?.id||'').localeCompare(String(b?.id||''),undefined,{numeric:true});
 }
 function orderBatches(items){return [...(items||[])].sort(batchOrder);}
+const MONITOR_START_DATE='2026-10-04', MONITOR_START_WEEK='2026-W40';
+function weekSpan(items){
+ const ordered=orderBatches(items),first=ordered[0]?.id,last=ordered.at(-1)?.id;
+ return first?first===last?first:`${first}–${last}`:'none available';
+}
+function availableWeeks(batches,history){
+ const detailed=new Set((batches||[]).map(b=>b.id));
+ return orderBatches([...(batches||[]),...(history||[]).filter(b=>!detailed.has(b.id))]);
+}
 function renderBatchOptions(){
  data.batches=orderBatches(data.batches);
+ const detailed=new Set(data.batches.map(b=>b.id));
+ const allWeeks=availableWeeks(data.batches,data.history);
  for(const id of ['batch','archive-batch']){
-  const select=$('#'+id),selected=select.value;
+  const select=$('#'+id),selected=select.value,options=id==='batch'?allWeeks:data.batches;
   select.querySelectorAll('option:not([value="all"])').forEach(option=>option.remove());
-  select.insertAdjacentHTML('beforeend',data.batches.map(b=>`<option value="${esc(b.id)}">${esc(b.id)}</option>`).join(''));
-  select.value=data.batches.some(b=>b.id===selected)?selected:'all';
+  select.insertAdjacentHTML('beforeend',options.map(b=>`<option value="${esc(b.id)}">${esc(b.id)}${!detailed.has(b.id)?' · weekly totals only':''}</option>`).join(''));
+  select.value=options.some(b=>b.id===selected)?selected:'all';
  }
 }
 function collectionDate(value){
@@ -82,6 +93,19 @@ function rows(geo=true, all=false) {
     (!geo || $("#country").value === "all" || v.countries.includes($("#country").value)) &&
     ($("#topic").value === "all" || v.label?.topics?.includes($("#topic").value)));
 }
+function archivedWeek(){
+ const selected=$('#batch').value;
+ return selected!=='all'&&!data.batches.some(b=>b.id===selected)?(data.history||[]).find(b=>b.id===selected):null;
+}
+function renderArchivedWeek(week){
+ const counts=[['Sampled videos',week.sampled_videos],['Classified videos',week.classified_videos],['Security-related videos',week.security_related_videos]];
+ $('#stats').innerHTML=counts.map(([label,value])=>`<div class="stat"><span>${esc(label)}</span><b>${num(value)}</b><small>Verified weekly total · ${esc(week.id)}</small></div>`).join('');
+ $('#situation-brief').innerHTML=`<strong>${esc(week.id)} · ARCHIVED WEEK</strong><span>${num(week.security_related_videos)} security-related of ${num(week.classified_videos)} classified videos</span><span>Only verified weekly totals remain.</span>`;
+ $('#historical-week-summary').innerHTML=`<h2>${esc(week.id)} · weekly totals</h2><p>The three counts above were preserved before the 30-day source retention period ended. Video links, engagement, comments, country and topic breakdowns are unavailable for this week. Choose a detailed week for the map and source panels.</p>${(data.history_missing||[]).includes(MONITOR_START_WEEK)?`<p>Monitoring began 4 October 2026 (${MONITOR_START_WEEK}); that launch week's totals could not be verified after retention.</p>`:''}`;
+ $('#historical-week-summary').hidden=false;
+ $('#snapshot').textContent=`ARCHIVED WEEKLY TOTAL · ${week.id}`;
+ renderGovernment();
+}
 function sum(v,k){const ns=v.map(x=>x.engagement?.[k]).filter(x=>x!=null);return {value:ns.length?ns.reduce((a,b)=>a+b,0):null,n:ns.length};}
 function dateLabel(){
  const mode=$('#date-range').value;
@@ -100,12 +124,18 @@ function bar(name,n,d){return `<div class="bar-row"><span>${esc(name)}</span><di
 function state(v){return v.classification_status==="human_reviewed"?"Human validated":v.label?"AI · provisional":v.caption_state==="saved"?"Awaiting AI coding":v.caption_state==="incomplete"?"English transcript incomplete":v.caption_state==="blocked"?"Captions · access blocked":v.caption_state==="unavailable"?"English captions unavailable":"Captions · unverified";}
 function thumbnail(v){return `https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/mqdefault.jpg`;}
 function render(){
+ const summary=archivedWeek();
+ $('#stats').classList.toggle('historical-stats',Boolean(summary));
+ for(const id of ['date-range','country','topic','date-from','date-to'])$('#'+id).disabled=Boolean(summary);
+ for(const selector of ['.command-grid','.ranking-panel','.coverage-details','.bottom-strip'])$(selector).hidden=Boolean(summary);
+ $('#historical-week-summary').hidden=!summary;
+ if(summary){renderArchivedWeek(summary);return;}
  const v=MonitorMap.unique(rows()), all=MonitorMap.latest(rows(true,true)), coded=v.filter(x=>x.label), related=coded.filter(x=>x.label.relevance==="related"), c=data.collection;
  const selectedInventory=MonitorMap.latest(rows(true,true)), selectedSaved=selectedInventory.filter(x=>x.caption_state==="saved").length;
  const selectedCoverage={sampled:selectedInventory.length,classified:selectedInventory.filter(x=>x.label).length,saved:selectedSaved,reviewed:selectedInventory.filter(x=>x.classification_status==="human_reviewed").length};
  const selectedResponses=MonitorMap.responses(v);
  const pendingSelection=selectedCoverage.sampled>0 && selectedCoverage.classified===0;
- $("#edition").textContent=data.batches.map(b=>b.id).join(" / ") || "NO BATCH";
+ $("#edition").textContent=`VERIFIED ${weekSpan(data.history)} · DETAIL ${weekSpan(data.batches)}`;
  $("#snapshot").textContent=`SNAPSHOT ${new Date(data.as_of).toLocaleString()}`;
  // Repeated weekly observations of one video must not inflate cumulative views.
  const uniqueRelated=[...related.reduce((m,x)=>{const old=m.get(x.id);if(!old||(x.engagement?.captured_at||'')>(old.engagement?.captured_at||''))m.set(x.id,x);return m;},new Map()).values()];
@@ -217,7 +247,7 @@ function governmentTopicCodes(item){
 function updateTrendCountries(){
  const available=new Set((governmentData.items||[]).filter(x=>x.related===true&&['provisional','human_reviewed'].includes(x.classification_status)).map(x=>x.country_code));
  const options=countries.filter(c=>available.has(c.iso2)).sort((a,b)=>a.country_name.localeCompare(b.country_name));
- options.push({iso2:'US',country_name:'USA · benchmark (White House)'});
+ options.unshift({iso2:'US',country_name:'USA · benchmark (White House)'});
  for(const id of ['trend-country-1','trend-country-2','trend-country-3']){
   const select=$('#'+id),previous=select.value,initial=id==='trend-country-1'?'<option value="all">Europe · all countries</option>':'<option value="none">No comparison</option>';
   select.innerHTML=initial+options.map(c=>`<option value="${esc(c.iso2)}">${esc(c.country_name)}</option>`).join('');
@@ -241,15 +271,14 @@ function trendCountrySeries(code,topics,items,days){
  return {code,items:matching.length,total,counts,series};
 }
 function trendSelectedCountries(chosen){
- const distinct=[...new Set(chosen.filter(code=>code&&code!=='none'))];
- return [...new Set([...(distinct.every(code=>code==='US')?['all']:[]),...distinct.filter(code=>code!=='US'),'US'])];
+ return [...new Set(chosen.filter(code=>code&&code!=='none'))];
 }
 function renderGovernmentTrends(){
  const coded=(governmentData.items||[]).filter(x=>x.related===true&&['provisional','human_reviewed'].includes(x.classification_status)&&governmentTopicCodes(x).length);
  const dated=coded.map(x=>({...x,chartDate:(x.published_date||x.published_at||'').slice(0,10)})).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x.chartDate));
  const chartHost=$('#government-trend-charts'),legend=$('#government-trend-legend'),note=$('#government-trend-note');
  if(!dated.length){chartHost.innerHTML='<p class="empty">Narrative dynamics will appear when related government communications are classified.</p>';legend.innerHTML='';note.textContent='';return;}
- const allDates=dated.map(x=>x.chartDate).sort(),first=allDates[0],lastPublished=allDates.at(-1),collectionDate=(governmentData.as_of||'').slice(0,10),last=/^\d{4}-\d{2}-\d{2}$/.test(collectionDate)&&collectionDate>lastPublished?collectionDate:lastPublished,range=$('#trend-range').value;
+ const allDates=dated.map(x=>x.chartDate).sort(),first=allDates[0]<MONITOR_START_DATE?MONITOR_START_DATE:allDates[0],last=allDates.at(-1),range=$('#trend-range').value;
  let from=first,to=last;
  if(range==='7'||range==='30')from=new Date(Date.parse(last+'T00:00:00Z')-(Number(range)-1)*86400000).toISOString().slice(0,10);
  if(range==='custom'){from=$('#trend-from').value||first;to=$('#trend-to').value||last;}
@@ -261,12 +290,13 @@ function renderGovernmentTrends(){
  const colorFor=(topic)=>{const index=Object.keys(data.topic_labels||{}).sort().indexOf(topic);return `hsl(${Math.round(((index<0?topic.split('').reduce((n,c)=>n+c.charCodeAt(0),0):index)*137.508)%360)} 78% 68%)`;};
  const countryName=code=>code==='all'?'Europe · all collected countries':code==='US'?'USA · BENCHMARK (White House)':countries.find(c=>c.iso2===code)?.country_name||code;
  const comparison=selectedCountries.length>1,cohorts=selectedCountries.map(code=>trendCountrySeries(code,topics,selected,days));
- const frequency=new Map(topics.map(t=>[t,selected.reduce((n,item)=>n+Number(governmentTopicCodes(item).includes(t)),0)]));
+ const cohortItems=selected.filter(item=>selectedCountries.some(code=>code==='all'?item.country_code!=='US':item.country_code===code));
+ const frequency=new Map(topics.map(t=>[t,cohortItems.reduce((n,item)=>n+Number(governmentTopicCodes(item).includes(t)),0)]));
  const ranked=topics.filter(t=>frequency.get(t)>0).sort((a,b)=>frequency.get(b)-frequency.get(a)||(data.topic_labels?.[a]||a).localeCompare(data.topic_labels?.[b]||b));
  const comparedRanked=topics.filter(t=>cohorts.some(c=>(c.counts.get(t)||0)>0)).sort((a,b)=>cohorts.filter(c=>(c.counts.get(b)||0)>0).length-cohorts.filter(c=>(c.counts.get(a)||0)>0).length||cohorts.reduce((n,c)=>n+(c.counts.get(b)||0)-(c.counts.get(a)||0),0));
  let choice=$('#trend-topic').value;
  if(comparison&&(choice==='top'||choice==='all')&&comparedRanked.length){choice=comparedRanked[0];$('#trend-topic').value=choice;activeTrendLine=null;}
- $('#government-trends-description').textContent='Compare one narrative across the selected European countries and the USA benchmark. The USA line uses White House Briefings & Statements only; each line uses its own related topic labels as the denominator.';
+ $('#government-trends-description').textContent=comparison?'Compare one narrative across the selected countries. Each line uses its own related topic labels as the denominator.':'Each line shows a narrative’s cumulative share of related topic labels for the selected country or Europe.';
  const visibleTopics=choice==='top'?ranked.slice(0,8):choice==='all'?ranked:topics.includes(choice)?[choice]:[];
  const countryColors=['#86dafa','#cc9df3','#80b9db'];
  const cohortColor=(cohort,i)=>cohort.code==='US'?'#ffce62':countryColors[i%countryColors.length];
@@ -277,8 +307,8 @@ function renderGovernmentTrends(){
  const formatPercent=v=>v.toFixed(1)+'%';
  const tickStep=axisMax<=2?0.5:axisMax<=5?1:axisMax<=10?2:axisMax<=25?5:axisMax<=50?10:25;
  const grid=Array.from({length:Math.floor(axisMax/tickStep)+1},(_,i)=>i*tickStep).map(v=>`<line x1="${left}" y1="${y(v)}" x2="${w-right}" y2="${y(v)}" class="trend-grid"/><text x="${left-10}" y="${y(v)+4}" text-anchor="end" class="trend-axis">${formatPercent(v)}</text>`).join('');
- const step=Math.max(1,Math.ceil(days.length/7)),tickIndexes=[...new Set([...days.keys()].filter(i=>i%step===0).concat(days.length-1))];
- const ticks=tickIndexes.map(i=>`<text x="${x(i)}" y="${h-14}" text-anchor="middle" class="trend-axis">${esc(days[i].slice(5))}</text>`).join('');
+ const intervals=Math.min(5,days.length-1),tickIndexes=intervals?[...new Set(Array.from({length:intervals+1},(_,i)=>Math.round(i*(days.length-1)/intervals)))]:[0];
+ const ticks=tickIndexes.map(i=>`<text x="${x(i)}" y="${h-14}" text-anchor="${i===0?'start':i===days.length-1?'end':'middle'}" class="trend-axis">${esc(new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'short',timeZone:'UTC'}).format(new Date(days[i]+'T12:00:00Z')))}</text>`).join('');
  const paths=seriesDefs.map(s=>{
   const points=s.values.map((v,i)=>v===null?null:[i,v]).filter(Boolean),path=points.map(([i,v],j)=>`${j?'L':'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' '),final=s.values.at(-1),active=activeTrendLine===s.key;
   return `<path d="${path}" fill="none" stroke="${s.color}" stroke-width="${active?5:s.benchmark?4:2.5}" stroke-dasharray="${s.dash}" stroke-linecap="round" stroke-linejoin="round" opacity="${active||!activeTrendLine?'1':'.3'}"/><path d="${path}" class="trend-hit" data-trend-key="${esc(s.key)}" tabindex="0" role="button" aria-label="${esc(s.label)}: ${formatPercent(final)}"><title>${esc(s.label)} · ${formatPercent(final)} · ${s.count} labels</title></path><circle cx="${x(days.length-1)}" cy="${y(final)}" r="${active?6:s.benchmark?5:3.5}" fill="${s.color}"/>`;
@@ -286,12 +316,16 @@ function renderGovernmentTrends(){
  const active=seriesDefs.find(s=>s.key===activeTrendLine);
  const focus=active?`<div class="trend-focus" role="status"><strong>${esc(active.label)}</strong><b>${formatPercent(active.values.at(-1))}</b><span>${active.count} related topic labels · cumulative through ${esc(to)}</span></div>`:'<p class="trend-hint">Select a line or a label below to see its name, share and count.</p>';
  const barMax=Math.max(1,...cohorts.map(c=>c.series.get(choice)?.at(-1)||0));
- const bars=comparison?`<div class="trend-compare-bars"><h3>Share at period end · ${esc(data.topic_labels?.[choice]||human(choice))}</h3>${cohorts.map((cohort,i)=>{const share=cohort.series.get(choice)?.at(-1),count=cohort.counts.get(choice)||0;return `<div class="trend-bar-row ${cohort.code==='US'?'trend-benchmark':''}"><span>${esc(countryName(cohort.code))}</span><div class="trend-bar-track"><i style="width:${100*(share||0)/barMax}%;background:${cohortColor(cohort,i)}"></i></div><b>${share===null?'—':formatPercent(share)}</b><small>${count} labels</small></div>`;}).join('')}<p>Bar lengths are scaled to the highest country share; printed percentages use each country's full set of related labels. A dash means no classified benchmark labels in this period.</p></div>`:'';
- const title=comparison?`Compare with USA benchmark · ${esc(data.topic_labels?.[choice]||human(choice))}`:countryName(cohorts[0].code);
+ const bars=comparison?`<div class="trend-compare-bars"><h3>Share at period end · ${esc(data.topic_labels?.[choice]||human(choice))}</h3>${cohorts.map((cohort,i)=>{const share=cohort.series.get(choice)?.at(-1),count=cohort.counts.get(choice)||0;return `<div class="trend-bar-row ${cohort.code==='US'?'trend-benchmark':''}"><span>${esc(countryName(cohort.code))}</span><div class="trend-bar-track"><i style="width:${100*(share||0)/barMax}%;background:${cohortColor(cohort,i)}"></i></div><b>${share==null?'—':formatPercent(share)}</b><small>${count} labels</small></div>`;}).join('')}<p>Bar lengths are scaled to the highest country share; printed percentages use each country's full set of related labels. A dash means no related labels in this period.</p></div>`:'';
+ const title=comparison?`Country comparison · ${esc(data.topic_labels?.[choice]||human(choice))}`:countryName(cohorts[0].code);
  const meta=comparison?'Same topic · one shared time axis · each country has its own denominator':`${num(cohorts[0].items)} related communications · ${num(cohorts[0].total)} topic labels`;
  chartHost.innerHTML=`<div class="trend-panel"><div class="trend-panel-title"><strong>${title}</strong><span>${esc(meta)}</span></div>${seriesDefs.length?`<svg viewBox="0 0 ${w} ${h}" role="group" aria-label="Daily cumulative narrative shares, ${esc(from)} to ${esc(to)}">${grid}${ticks}${paths}</svg>${focus}${bars}`:'<p class="empty">No related narrative labels match this selection.</p>'}</div>`;
- legend.innerHTML=seriesDefs.map(s=>`<button type="button" class="${s.benchmark?'trend-benchmark':''}" data-trend-key="${esc(s.key)}" aria-pressed="${activeTrendLine===s.key}"><i style="background:${s.color}"></i><span>${esc(s.label)}</span><b>${formatPercent(s.values.at(-1))}</b></button>`).join('')+(seriesDefs.some(s=>s.code==='US')?'':'<span class="trend-benchmark-pending">USA · BENCHMARK (White House) · No classified labels for this narrative and period</span>');
- note.textContent=`${from} to ${to} · Daily cumulative shares by source publication date. The USA benchmark begins 4 October 2026 and is excluded from the Europe aggregate. Each related topic label contributes once to its cohort denominator. ${to>lastPublished?`The collection extends through ${to}; no related source was published after ${lastPublished}, so the lines carry forward unchanged. `:''}Updated with each published collection.`;
+ legend.innerHTML=seriesDefs.map(s=>`<button type="button" class="${s.benchmark?'trend-benchmark':''}" data-trend-key="${esc(s.key)}" aria-pressed="${activeTrendLine===s.key}"><i style="background:${s.color}"></i><span>${esc(s.label)}</span><b>${formatPercent(s.values.at(-1))}</b></button>`).join('')+(selectedCountries.includes('US')&&!seriesDefs.some(s=>s.code==='US')?'<span class="trend-benchmark-pending">USA · No related labels for this narrative and period</span>':'');
+ const sourceDate=item=>(item.published_date||item.published_at||'').slice(0,10);
+ const coverage=selectedCountries.map(code=>{const entries=(governmentData.items||[]).filter(item=>(code==='all'?item.country_code!=='US':item.country_code===code)&&sourceDate(item)>=from&&sourceDate(item)<=to&&['provisional','human_reviewed'].includes(item.classification_status));const dates=entries.map(sourceDate).filter(Boolean).sort();return `${countryName(code)}: ${entries.length} classified official posts, ${entries.filter(item=>item.related===true).length} security-related${dates.length?` · published ${dates[0]} to ${dates.at(-1)}`:''}`;});
+ const checked=governmentData.as_of?new Intl.DateTimeFormat('en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:'Europe/Amsterdam'}).format(new Date(governmentData.as_of))+' Amsterdam time':'unavailable';
+ $('#government-trend-coverage').innerHTML=`<strong>Source coverage · ${esc(from)} to ${esc(to)}</strong><span>${coverage.map(esc).join('<br>')}</span><small>Archive checked ${esc(checked)}. Dates on the graph are publication dates; zero share means no matching topic labels, not that the source was unchecked. The White House archive was included from the 4 October launch; its first captured post was published 5 October.</small>`;
+ note.textContent=`${from} to ${to} · Daily cumulative shares by source publication date. ${selectedCountries.includes('US')?'The USA benchmark uses White House Briefings & Statements and is excluded from the Europe aggregate. ':''}Each related topic label contributes once to its cohort denominator. Latest publication date: ${last}. Archive check: ${checked}.`;
 }
 // Pick one related story per country, with a new weighted draw on each page visit.
 // Recency, citizen-facing security topics and explicit European scope guide placement;
@@ -415,7 +449,7 @@ async function init(){try{
  render();route();
  }catch(e){$('#data-status').textContent='Snapshot unavailable. Please refresh or check the publishing workflow.';console.error(e);}}
 for(const id of ['country','topic','metric','response-metric'])$('#'+id).onchange=render;
-$('#batch').onchange=()=>{$('#archive-batch').value=$('#batch').value;render();};
+$('#batch').onchange=()=>{$('#archive-batch').value=data.batches.some(b=>b.id===$('#batch').value)?$('#batch').value:'all';render();};
  for(const id of ['government-country','government-narrative','government-review'])$('#'+id).onchange=renderGovernment;
  $('#trend-range').onchange=()=>{document.querySelectorAll('.trend-custom-date').forEach(el=>el.hidden=$('#trend-range').value!=='custom');activeTrendLine=null;renderGovernmentTrends();};
  $('#trend-topic').onchange=()=>{activeTrendLine=null;renderGovernmentTrends();};
@@ -456,8 +490,8 @@ async function refreshSnapshot(){
     if(!response.ok)return;
     const updated=await response.json();
     if(!Array.isArray(updated.videos)||!Array.isArray(updated.batches))return;
-    const oldBatchOrder=orderBatches(data.batches).map(b=>b.id).join('|');
-    const newBatchOrder=orderBatches(updated.batches).map(b=>b.id).join('|');
+    const oldBatchOrder=orderBatches([...(data.batches||[]),...(data.history||[])]).map(b=>b.id).join('|');
+    const newBatchOrder=orderBatches([...(updated.batches||[]),...(updated.history||[])]).map(b=>b.id).join('|');
     const snapshotAdvanced=Date.parse(updated.as_of||'')>Date.parse(data.as_of||'');
     if(!snapshotAdvanced&&oldBatchOrder===newBatchOrder)return;
     data=updated;
