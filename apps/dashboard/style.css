@@ -61,8 +61,6 @@ footer nav{display:flex;flex-wrap:wrap;gap:12px 20px;letter-spacing:0;text-trans
 .government-trends-heading{display:flex;align-items:end;justify-content:space-between;gap:18px;flex-wrap:wrap}
 .government-trends-heading h2{font:700 20px var(--mono);margin:8px 0 0}
 .government-trends-heading p{max-width:620px;margin:0;color:var(--muted);font:10px/1.6 var(--mono)}
-.trend-benchmark-explainer{border-left:4px solid #ffce62;background:#211d16;color:#e8d9b9;padding:10px 13px;margin:18px 0 0;font:10px/1.6 var(--mono)}
-.trend-benchmark-explainer strong{color:#ffce62;margin-right:8px}
 .trend-controls{display:flex;align-items:end;flex-wrap:wrap;gap:10px;margin:20px 0 14px}
 .trend-controls label{display:flex;flex-direction:column;gap:6px;min-width:160px;color:var(--muted);font:9px var(--mono);text-transform:uppercase}
 .trend-controls label[hidden]{display:none}
