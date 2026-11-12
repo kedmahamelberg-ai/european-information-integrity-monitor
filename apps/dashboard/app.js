@@ -54,7 +54,7 @@ function collectionDate(value){
 }
 let feedQueue=[], feedIndex=0, feedPaused=matchMedia("(prefers-reduced-motion: reduce)").matches;
 let data = {videos:[], inventory:[], batches:[], collection:{}}, governmentData={items:[]}, governmentSourceDirectory={sources:[]}, countries=[], inventory=[], zoom=1;
-let activeTrendLine=null;
+let activeTrendLine=null, trendAutoChoice=null;
 let sceneIndex=0;
 const roles=["readiness","projecting_power","under_pressure"], colors={coverage:"#b9ee74", related:"#b9ee74", readiness:"#61d7bc", projecting_power:"#efb85b", under_pressure:"#f17a69"}, icons={readiness:"🛡", projecting_power:"⚔", under_pressure:"🎯"};
 function project(lon, lat) {
@@ -276,14 +276,14 @@ function trendSelectedCountries(chosen){
 function renderGovernmentTrends(){
  const coded=(governmentData.items||[]).filter(x=>x.related===true&&['provisional','human_reviewed'].includes(x.classification_status)&&governmentTopicCodes(x).length);
  const dated=coded.map(x=>({...x,chartDate:(x.published_date||x.published_at||'').slice(0,10)})).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x.chartDate));
- const chartHost=$('#government-trend-charts'),legend=$('#government-trend-legend'),note=$('#government-trend-note');
- if(!dated.length){chartHost.innerHTML='<p class="empty">Narrative dynamics will appear when related government communications are classified.</p>';legend.innerHTML='';note.textContent='';return;}
+ const chartHost=$('#government-trend-charts'),legend=$('#government-trend-legend');
+ if(!dated.length){chartHost.innerHTML='<p class="empty">Narrative dynamics will appear when related government communications are classified.</p>';legend.innerHTML='';return;}
  const allDates=dated.map(x=>x.chartDate).sort(),first=allDates[0]<MONITOR_START_DATE?MONITOR_START_DATE:allDates[0],last=allDates.at(-1),range=$('#trend-range').value;
  let from=first,to=last;
  if(range==='7'||range==='30')from=new Date(Date.parse(last+'T00:00:00Z')-(Number(range)-1)*86400000).toISOString().slice(0,10);
  if(range==='custom'){from=$('#trend-from').value||first;to=$('#trend-to').value||last;}
  from=from<first?first:from;to=to>last?last:to;
- if(from>to){chartHost.innerHTML='<p class="empty">Choose a start date on or before the end date.</p>';legend.innerHTML='';note.textContent='';return;}
+ if(from>to){chartHost.innerHTML='<p class="empty">Choose a start date on or before the end date.</p>';legend.innerHTML='';return;}
  const days=[];for(let d=Date.parse(from+'T00:00:00Z'),end=Date.parse(to+'T00:00:00Z');d<=end;d+=86400000)days.push(new Date(d).toISOString().slice(0,10));
  const selected=dated.filter(x=>x.chartDate>=from&&x.chartDate<=to),topics=[...new Set(selected.flatMap(governmentTopicCodes))].sort();
  const selectedCountries=trendSelectedCountries(['trend-country-1','trend-country-2','trend-country-3'].map(id=>$('#'+id).value));
@@ -295,7 +295,7 @@ function renderGovernmentTrends(){
  const ranked=topics.filter(t=>frequency.get(t)>0).sort((a,b)=>frequency.get(b)-frequency.get(a)||(data.topic_labels?.[a]||a).localeCompare(data.topic_labels?.[b]||b));
  const comparedRanked=topics.filter(t=>cohorts.some(c=>(c.counts.get(t)||0)>0)).sort((a,b)=>cohorts.filter(c=>(c.counts.get(b)||0)>0).length-cohorts.filter(c=>(c.counts.get(a)||0)>0).length||cohorts.reduce((n,c)=>n+(c.counts.get(b)||0)-(c.counts.get(a)||0),0));
  let choice=$('#trend-topic').value;
- if(comparison&&(choice==='top'||choice==='all')&&comparedRanked.length){choice=comparedRanked[0];$('#trend-topic').value=choice;activeTrendLine=null;}
+ if(comparison&&(choice==='top'||choice==='all')&&comparedRanked.length){trendAutoChoice=choice;choice=comparedRanked[0];$('#trend-topic').value=choice;activeTrendLine=null;}
  $('#government-trends-description').textContent=comparison?'Compare one narrative across the selected countries. Each line uses its own related topic labels as the denominator.':'Each line shows a narrative’s cumulative share of related topic labels for the selected country or Europe.';
  const visibleTopics=choice==='top'?ranked.slice(0,8):choice==='all'?ranked:topics.includes(choice)?[choice]:[];
  const countryColors=['#86dafa','#cc9df3','#80b9db'];
@@ -321,11 +321,6 @@ function renderGovernmentTrends(){
  const meta=comparison?'Same topic · one shared time axis · each country has its own denominator':`${num(cohorts[0].items)} related communications · ${num(cohorts[0].total)} topic labels`;
  chartHost.innerHTML=`<div class="trend-panel"><div class="trend-panel-title"><strong>${title}</strong><span>${esc(meta)}</span></div>${seriesDefs.length?`<svg viewBox="0 0 ${w} ${h}" role="group" aria-label="Daily cumulative narrative shares, ${esc(from)} to ${esc(to)}">${grid}${ticks}${paths}</svg>${focus}${bars}`:'<p class="empty">No related narrative labels match this selection.</p>'}</div>`;
  legend.innerHTML=seriesDefs.map(s=>`<button type="button" class="${s.benchmark?'trend-benchmark':''}" data-trend-key="${esc(s.key)}" aria-pressed="${activeTrendLine===s.key}"><i style="background:${s.color}"></i><span>${esc(s.label)}</span><b>${formatPercent(s.values.at(-1))}</b></button>`).join('')+(selectedCountries.includes('US')&&!seriesDefs.some(s=>s.code==='US')?'<span class="trend-benchmark-pending">USA · No related labels for this narrative and period</span>':'');
- const sourceDate=item=>(item.published_date||item.published_at||'').slice(0,10);
- const coverage=selectedCountries.map(code=>{const entries=(governmentData.items||[]).filter(item=>(code==='all'?item.country_code!=='US':item.country_code===code)&&sourceDate(item)>=from&&sourceDate(item)<=to&&['provisional','human_reviewed'].includes(item.classification_status));const dates=entries.map(sourceDate).filter(Boolean).sort();return `${countryName(code)}: ${entries.length} classified official posts, ${entries.filter(item=>item.related===true).length} security-related${dates.length?` · published ${dates[0]} to ${dates.at(-1)}`:''}`;});
- const checked=governmentData.as_of?new Intl.DateTimeFormat('en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:'Europe/Amsterdam'}).format(new Date(governmentData.as_of))+' Amsterdam time':'unavailable';
- $('#government-trend-coverage').innerHTML=`<strong>Source coverage · ${esc(from)} to ${esc(to)}</strong><span>${coverage.map(esc).join('<br>')}</span><small>Archive checked ${esc(checked)}. Dates on the graph are publication dates; zero share means no matching topic labels, not that the source was unchecked. The White House archive was included from the 4 October launch; its first captured post was published 5 October.</small>`;
- note.textContent=`${from} to ${to} · Daily cumulative shares by source publication date. ${selectedCountries.includes('US')?'The USA benchmark uses White House Briefings & Statements and is excluded from the Europe aggregate. ':''}Each related topic label contributes once to its cohort denominator. Latest publication date: ${last}. Archive check: ${checked}.`;
 }
 // Pick one related story per country, with a new weighted draw on each page visit.
 // Recency, citizen-facing security topics and explicit European scope guide placement;
@@ -452,8 +447,12 @@ for(const id of ['country','topic','metric','response-metric'])$('#'+id).onchang
 $('#batch').onchange=()=>{$('#archive-batch').value=data.batches.some(b=>b.id===$('#batch').value)?$('#batch').value:'all';render();};
  for(const id of ['government-country','government-narrative','government-review'])$('#'+id).onchange=renderGovernment;
  $('#trend-range').onchange=()=>{document.querySelectorAll('.trend-custom-date').forEach(el=>el.hidden=$('#trend-range').value!=='custom');activeTrendLine=null;renderGovernmentTrends();};
- $('#trend-topic').onchange=()=>{activeTrendLine=null;renderGovernmentTrends();};
- for(const id of ['trend-from','trend-to','trend-country-1','trend-country-2','trend-country-3'])$('#'+id).onchange=()=>{activeTrendLine=null;renderGovernmentTrends();};
+ $('#trend-topic').onchange=()=>{trendAutoChoice=null;activeTrendLine=null;renderGovernmentTrends();};
+ for(const id of ['trend-from','trend-to'])$('#'+id).onchange=()=>{activeTrendLine=null;renderGovernmentTrends();};
+ for(const id of ['trend-country-1','trend-country-2','trend-country-3'])$('#'+id).onchange=()=>{
+  if(trendAutoChoice&&trendSelectedCountries(['trend-country-1','trend-country-2','trend-country-3'].map(key=>$('#'+key).value)).length===1){$('#trend-topic').value=trendAutoChoice;trendAutoChoice=null;}
+  activeTrendLine=null;renderGovernmentTrends();
+ };
  const focusTrend=e=>{const target=e.target.closest('[data-trend-key]');if(!target)return;activeTrendLine=target.dataset.trendKey;renderGovernmentTrends();if(e.type==='keydown'){[...$('#government-trend-legend').querySelectorAll('[data-trend-key]')].find(el=>el.dataset.trendKey===activeTrendLine)?.focus();}};
  $('#government-trend-charts').onclick=focusTrend;
  $('#government-trend-charts').onkeydown=e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest('[data-trend-key]')){e.preventDefault();focusTrend(e);}};
