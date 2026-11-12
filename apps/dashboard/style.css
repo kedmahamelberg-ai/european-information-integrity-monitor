@@ -61,6 +61,8 @@ footer nav{display:flex;flex-wrap:wrap;gap:12px 20px;letter-spacing:0;text-trans
 .government-trends-heading{display:flex;align-items:end;justify-content:space-between;gap:18px;flex-wrap:wrap}
 .government-trends-heading h2{font:700 20px var(--mono);margin:8px 0 0}
 .government-trends-heading p{max-width:620px;margin:0;color:var(--muted);font:10px/1.6 var(--mono)}
+.trend-benchmark-explainer{border-left:4px solid #ffce62;background:#211d16;color:#e8d9b9;padding:10px 13px;margin:18px 0 0;font:10px/1.6 var(--mono)}
+.trend-benchmark-explainer strong{color:#ffce62;margin-right:8px}
 .trend-controls{display:flex;align-items:end;flex-wrap:wrap;gap:10px;margin:20px 0 14px}
 .trend-controls label{display:flex;flex-direction:column;gap:6px;min-width:160px;color:var(--muted);font:9px var(--mono);text-transform:uppercase}
 .trend-controls label[hidden]{display:none}
@@ -79,6 +81,9 @@ footer nav{display:flex;flex-wrap:wrap;gap:12px 20px;letter-spacing:0;text-trans
 .trend-legend button{display:inline-flex;align-items:center;gap:8px;border:1px solid #35443f;background:#111b1d;padding:7px 9px;color:#dbe6dd;font:10px var(--mono);text-align:left}
 .trend-legend button:hover,.trend-legend button[aria-pressed="true"]{border-color:#b9ee74;background:#1c2926}
 .trend-legend button b{color:#fff;margin-left:3px;font-weight:700}
+.trend-legend .trend-benchmark,.trend-compare-bars .trend-benchmark{border:1px solid #ffce62;background:#2b2417;color:#ffe2a2;padding:7px 9px}
+.trend-legend .trend-benchmark b,.trend-compare-bars .trend-benchmark span{color:#ffce62}
+.trend-benchmark-pending{display:inline-flex;align-items:center;border:1px solid #8c7040;background:#211d16;padding:7px 9px;color:#ffce62;font:10px var(--mono)}
 .trend-legend i{display:block;width:22px;height:4px;border-radius:2px;flex:none}
 .trend-focus{display:flex;flex-wrap:wrap;align-items:center;gap:9px 16px;border-left:3px solid var(--green);background:#192722;padding:11px 14px;font:11px var(--mono)}
 .trend-focus strong{color:#fff}.trend-focus b{color:var(--green);font-size:17px}.trend-focus span{color:#b7c8bb}

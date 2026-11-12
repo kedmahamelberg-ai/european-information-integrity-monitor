@@ -323,6 +323,13 @@
       "scope_note": "Prime Minister's Office, 10 Downing Street communications only; the unfiltered government news page includes other bodies."
     },
     {
+      "iso2": "US",
+      "name": "United States",
+      "url": "https://www.whitehouse.gov/briefings-statements/",
+      "verification_status": "verified",
+      "scope_note": "Benchmark outside the European aggregate. White House Briefings & Statements only, from 4 October 2026; not all United States government communications."
+    },
+    {
       "iso2": "VA",
       "name": "Vatican City",
       "url": "https://vaticanstate.va/it/component/content/category/comunicato-stampa.html?Itemid=312",
