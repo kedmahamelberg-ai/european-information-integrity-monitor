@@ -54,6 +54,15 @@ class GovernmentModelRecoveryTests(unittest.TestCase):
                 collector.translate_document("Source "*500)
         self.assertEqual(call.call_count,1)
 
+    def test_one_http_400_is_deferred_with_safe_error_code(self):
+        body=io.BytesIO(json.dumps({"error":{"code":"invalid_prompt","message":"private source text"}}).encode())
+        denied=urllib.error.HTTPError("https://api.openai.com/v1/responses",400,"Bad Request",{},body)
+        with patch.dict(os.environ,OPENAI_API_KEY="test"),patch.object(collector.urllib.request,"urlopen",side_effect=denied) as call:
+            with self.assertRaisesRegex(collector.ModelRequestError,"http_400_invalid_prompt") as caught:
+                collector.ask_openai("Source",False)
+        self.assertNotIn("private source text",str(caught.exception))
+        self.assertEqual(call.call_count,1)
+
     def test_long_translation_splits_without_losing_source(self):
         text=" ".join(f"word{i}" for i in range(2400))
         accepted=[]
@@ -126,7 +135,7 @@ class GovernmentModelRecoveryTests(unittest.TestCase):
                 collector.translate_document("a"*6000+"b"*1409)
             self.assertEqual(call.call_count,5)
 
-    def test_one_failed_item_does_not_block_publication_or_publish_private_chunks(self):
+    def test_one_rejected_item_does_not_block_publication_or_publish_private_chunks(self):
         records=[{"id":str(i),"url":f"https://example.gov/{i}","country_code":"BA","country":"Bosnia and Herzegovina","title":"News","published_at":"2026-10-29T10:00:00+00:00","classification_status":"pending_classification"} for i in range(2)]
         # canonical_government_items uses URL-based IDs; match its processing order.
         records=list(collector.canonical_government_items(records).values())
@@ -135,7 +144,7 @@ class GovernmentModelRecoveryTests(unittest.TestCase):
         def translate(text,checkpoint,on_progress):
             checkpoint["private"] = translation("PRIVATE TRANSLATION")
             on_progress()
-            if text==records[0]["url"]: raise collector.ModelOutputError("invalid_json",splittable=True)
+            if text==records[1]["url"]: raise collector.ModelRequestError("http_400_invalid_prompt")
             return "English text","Summary"
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp); state=root/"state.json"; public=root/"government-data.json"
@@ -143,15 +152,28 @@ class GovernmentModelRecoveryTests(unittest.TestCase):
             with patch.multiple(collector,STATE=state,PUBLIC=public,CORRECTIONS=root/"none.json",REVIEW_QUEUE=root/"review.json"),patch.object(sys,"argv",["collector","--classify-only"]),patch.object(collector,"article_text",side_effect=lambda item:item["url"]),patch.object(collector,"translate_document",side_effect=translate),patch.object(collector,"ask_openai",return_value=labels),contextlib.redirect_stdout(io.StringIO()):
                 collector.main()
             saved={r["id"]:r for r in json.loads(state.read_text())["items"]}
-            self.assertEqual(saved[records[0]["id"]]["classification_status"],"pending_classification")
-            self.assertIn("translation_checkpoint",saved[records[0]["id"]])
-            self.assertEqual(saved[records[1]["id"]]["classification_status"],"provisional")
-            self.assertNotIn("translation_checkpoint",saved[records[1]["id"]])
+            self.assertEqual(saved[records[0]["id"]]["classification_status"],"provisional")
+            self.assertNotIn("translation_checkpoint",saved[records[0]["id"]])
+            self.assertEqual(saved[records[1]["id"]]["classification_status"],"needs_review")
+            self.assertIn("translation_checkpoint",saved[records[1]["id"]])
             self.assertNotIn("PRIVATE TRANSLATION",public.read_text())
             self.assertNotIn("translation_checkpoint",public.read_text())
             report=json.loads((root/"government-source-diagnostics.json").read_text())
             self.assertEqual(len(report["model_failures"]),1)
+            self.assertEqual(report["model_failures"][0]["error"],"http_400_invalid_prompt")
             self.assertIn("Model processing deferred 1",reports.summary(report))
+
+    def test_repeated_http_400_without_success_fails_instead_of_reporting_green(self):
+        records=[{"id":str(i),"url":f"https://example.gov/{i}","country_code":"BA","country":"Bosnia and Herzegovina","title":"News","published_at":"2026-10-29T10:00:00+00:00","classification_status":"pending_classification"} for i in range(3)]
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);state=root/"state.json"
+            state.write_text(json.dumps({"items":records,"calibration_complete":True}))
+            with patch.multiple(collector,STATE=state,PUBLIC=root/"public.json",CORRECTIONS=root/"none.json",REVIEW_QUEUE=root/"review.json"),patch.object(sys,"argv",["collector","--classify-only"]),patch.object(collector,"article_text",return_value="Source"),patch.object(collector,"translate_document",side_effect=collector.ModelRequestError("http_400_invalid_prompt")),contextlib.redirect_stdout(io.StringIO()):
+                with self.assertRaisesRegex(RuntimeError,"Three model requests rejected"):
+                    collector.main()
+            saved=json.loads(state.read_text())["items"]
+            self.assertEqual(len(saved),3)
+            self.assertTrue(all(item["classification_status"]=="pending_classification" for item in saved))
 
     def test_network_reset_retries_and_http_denial_remains_visible(self):
         reset=urllib.error.URLError(ConnectionResetError("Connection reset by peer"))
