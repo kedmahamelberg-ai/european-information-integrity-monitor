@@ -36,3 +36,5 @@ jobs:
         run: |
           go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
           "$(go env GOPATH)/bin/actionlint" -shellcheck= -pyflakes=
+      - name: Check reusable workflow token permissions
+        run: python scripts/check_reusable_workflow_permissions.py
