@@ -2,7 +2,7 @@
   'use strict';
   // Only the public production site may send advertising requests.
   if (location.protocol !== 'https:' || location.hostname !== 'monitor.hamelberg-ai.com') return;
-  const publisher = 'pub-5170234738371400';
+  const publisher = 'pub-5706650912346516';
   let enabled = false;
   window.adsbygoogle = window.adsbygoogle || [];
   window.adsbygoogle.pauseAdRequests = 1;
