@@ -10,6 +10,9 @@ const end = app.indexOf('function renderGovernmentTrends()', start);
 assert.ok(start >= 0 && end > start);
 const scope = {governmentTopicCodes: item => item.topics};
 vm.runInNewContext(app.slice(start, end) + '\nthis.series=trendCountrySeries;this.selected=trendSelectedCountries;', scope);
+const firstStart = app.indexOf('function firstPublishedDate(');
+assert.ok(firstStart >= 0 && firstStart < start);
+vm.runInNewContext('const MONITOR_START_DATE="2026-10-04";'+app.slice(firstStart,start)+'\nthis.firstPublished=firstPublishedDate;',scope);
 const labelStart = app.indexOf('const governmentCountryLabel=');
 const labelEnd = app.indexOf('function getGovernmentHighlights(', labelStart);
 assert.ok(labelStart >= 0 && labelEnd > labelStart);
@@ -36,6 +39,18 @@ test('the USA benchmark appears only when selected', () => {
   assert.deepEqual(Array.from(scope.selected(['all', 'none', 'none'])), ['all']);
   assert.deepEqual(Array.from(scope.selected(['NL', 'DE', 'US'])), ['NL', 'DE', 'US']);
   assert.deepEqual(Array.from(scope.selected(['US', 'none', 'none'])), ['US']);
+});
+
+test('the shared launch date does not invent a USA share before its first official post', () => {
+  const items=[
+    {country_code:'NL',chartDate:'2026-10-04',published_date:'2026-10-04',classification_status:'provisional',topics:['cyber']},
+    {country_code:'US',chartDate:'2026-10-05',published_date:'2026-10-05',classification_status:'provisional',topics:['cyber']},
+  ];
+  assert.equal(scope.firstPublished(items,'US'),'2026-10-05');
+  assert.equal(scope.firstPublished(items,'NL'),'2026-10-04');
+  const usa=scope.series('US',['cyber'],items,['2026-10-04','2026-10-05']);
+  assert.equal(usa.series.get('cyber')[0],null);
+  assert.equal(usa.series.get('cyber')[1],100);
 });
 
 test('government source and ticker labels identify the USA benchmark', () => {

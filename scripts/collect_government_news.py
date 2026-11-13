@@ -2413,6 +2413,10 @@ class ModelOutputError(ModelProcessingError):
         super().__init__(code)
 
 
+class ModelRequestError(ModelProcessingError):
+    """One source was rejected by the model API; retain it for later review."""
+
+
 def ask_openai(text, classification=True, examples=None, validation_note="", source_country_code="", *, summary_only=False):
     if summary_only and classification:
         raise ValueError("Summary-only requests cannot classify")
@@ -2494,6 +2498,16 @@ def ask_openai(text, classification=True, examples=None, validation_note="", sou
                     raise ModelRateLimit("retry_after_exceeds_run_budget") from None
                 time.sleep((retry_after if retry_after>0 else 5*(2**attempt))+random.uniform(0,1))
                 continue
+            if exc.code==400:
+                try:
+                    error=json.loads(exc.read(16_384)).get("error") or {}
+                    code=error.get("code") or error.get("type") or "request_rejected"
+                    if not isinstance(code,str) or not re.fullmatch(r"[A-Za-z0-9_]{1,64}",code):
+                        code="request_rejected"
+                except (ValueError,TypeError,OSError):
+                    code="request_rejected"
+                exc.close()
+                raise ModelRequestError("http_400_"+code) from None
             last_problem=f"HTTP Error {exc.code}"
             exc.close()
             if exc.code<500:
@@ -2661,6 +2675,7 @@ def main():
             if prior is None or end>prior: source_cursors[code]=end.isoformat()
     STATE.parent.mkdir(exist_ok=True)
     STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
+    successful_classifications=0; request_rejections=0
     if not args.discovery_only:
         # The first tenth of a backfill is a calibration tranche. It is published
         # for researcher review; the workflow keeps subsequent items queued until
@@ -2711,7 +2726,9 @@ def main():
                     if valid: break
                     validation_note="\nThe previous classification was internally inconsistent. Re-evaluate the source: related requires one or more directly supported topics; not_related/unclear require empty topics and roles; every role needs a valid nonempty ISO3, EU, or OTHER entity code. Do not remove a supported security topic merely to satisfy the schema."
             except (ModelRateLimit,ModelProcessingError) as error:
-                item["classification_status"]="pending_classification"
+                # A rejected article should enter the review queue once the
+                # same run has proved that the model configuration works.
+                item["classification_status"]="needs_review" if isinstance(error,ModelRequestError) and successful_classifications else "pending_classification"
                 item["classification_error"]=error.code if isinstance(error,ModelRateLimit) else str(error)
                 model_failures.append({"country_code":item["country_code"],"id":item["id"],"url":item["url"],"error":item["classification_error"]})
                 # Malta's article body comes from the archive response. Keep it
@@ -2720,6 +2737,10 @@ def main():
                 existing[item["id"]]=item
                 STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
                 print(f"::warning::Model processing deferred {item['country_code']} {item['id']}: {item['classification_error']}",flush=True)
+                if isinstance(error,ModelRequestError):
+                    request_rejections+=1
+                    if not successful_classifications and request_rejections>=3:
+                        raise RuntimeError("Three model requests rejected before any successful classification; check the model configuration") from None
                 if isinstance(error,ModelRateLimit): break
                 continue
             item.pop("translation_checkpoint",None)
@@ -2730,6 +2751,7 @@ def main():
                 continue
             item.update(labels); item["related"]=labels["relevance"]=="related"; item["primary_narrative"]=(labels["topics"] or ["none_unclear"])[0]; item["secondary_narratives"]=labels["topics"][1:]; item["classification_status"]="provisional"; item["classifier_prompt_version"]=CLASSIFIER_PROMPT_VERSION; item["review_sample"]=(int(item["id"][:8],16)%100<3); item["calibration_item"]=bool(calibrating and not calibration_ids); item["source_text_chars"]=len(text); item["translated_text_chars"]=len(item["english_translation"]); item["translation_complete"]=True; item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item; STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
             print(f"Classified {position}/{cap}: {item['country_code']} {item['id']} {labels['relevance']} {','.join(labels['topics'])}",flush=True)
+            successful_classifications+=1
         for item in candidates[cap:]:
             item["classification_status"]="awaiting_calibration" if calibrating else "pending_classification"
             if item["country_code"]!="MT": item.pop("text",None)
@@ -2753,6 +2775,8 @@ def main():
     REVIEW_QUEUE.write_text(json.dumps({"instructions":"Review every calibration_item before calibration is complete, every needs_review conflict, and thereafter the 3% routine sample. Return corrections as a JSON array with id, relevance, topics, roles and viewpoints where changed. Corrections calibrate later batches.","items":[{k:v for k,v in item.items() if k in {"id","country","country_code","url","title","published_at","english_summary","relevance","topics","evidence_status","evidence_quote","roles","viewpoint_structure","viewpoints","ticker_message","short_rationale","calibration_item","review_sample","classification_status","classification_error"}} for item in out["items"] if (item.get("calibration_item") and not item.get("human_reviewed")) or item.get("classification_status")=="needs_review" or (item.get("classification_status")=="provisional" and item.get("review_sample") and not item.get("human_reviewed"))]},ensure_ascii=False,indent=2)+"\n")
     ok=sum(x["status"]=="discovered" for x in sources_status)
     print(json.dumps({"window_start":out["window_start"],"window_end":out["window_end"],"sources_ok":ok,"sources_unavailable":sum(x["status"]!="discovered" for x in sources_status),"batch_items":len(candidates),"classified_this_run":sum(x.get("classification_status")=="provisional" for x in candidates[:cap]),"stored_items":len(existing),"awaiting_calibration":sum(x.get("classification_status")=="awaiting_calibration" for x in out["items"]),"pending_classification":sum(x.get("classification_status")=="pending_classification" for x in out["items"]),"calibration_review_items":sum(bool(x.get("calibration_item") and not x.get("human_reviewed")) for x in out["items"]),"routine_review_items":sum(bool(x.get("review_sample") is True and not x.get("human_reviewed")) for x in out["items"]),"needs_review":sum(x.get("classification_status")=="needs_review" for x in out["items"])}))
+    if request_rejections and not successful_classifications:
+        raise SystemExit("No model classification succeeded after request rejections; inspect saved model failures")
     if selected_codes and ok!=len(selected_sources):
         raise SystemExit("One or more selected official news sections failed; inspect the saved checkpoint before retrying.")
     if not args.classify_only and not selected_codes and selected_sources and ok==0:

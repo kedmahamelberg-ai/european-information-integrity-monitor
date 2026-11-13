@@ -260,6 +260,11 @@ function updateTrendTopics(){
  select.innerHTML='<option value="top">Main narratives</option><option value="all">All active narratives</option>'+codes.map(code=>`<option value="${esc(code)}">${esc(data.topic_labels?.[code]||human(code))}</option>`).join('');
  if([...select.options].some(o=>o.value===previous))select.value=previous;
 }
+function firstPublishedDate(items,code){
+ const dates=(items||[]).filter(item=>item.country_code===code&&['provisional','human_reviewed'].includes(item.classification_status))
+  .map(item=>(item.published_date||item.published_at||'').slice(0,10)).filter(date=>/^\d{4}-\d{2}-\d{2}$/.test(date)&&date>=MONITOR_START_DATE).sort();
+ return dates[0]||null;
+}
 function trendCountrySeries(code,topics,items,days){
  const matching=items.filter(x=>code==='all'?x.country_code!=='US':x.country_code===code),daily=new Map(days.map(day=>[day,[]]));
  for(const item of matching)daily.get(item.chartDate).push(...governmentTopicCodes(item));
@@ -318,7 +323,9 @@ function renderGovernmentTrends(){
  const barMax=Math.max(1,...cohorts.map(c=>c.series.get(choice)?.at(-1)||0));
  const bars=comparison?`<div class="trend-compare-bars"><h3>Share at period end · ${esc(data.topic_labels?.[choice]||human(choice))}</h3>${cohorts.map((cohort,i)=>{const share=cohort.series.get(choice)?.at(-1),count=cohort.counts.get(choice)||0;return `<div class="trend-bar-row ${cohort.code==='US'?'trend-benchmark':''}"><span>${esc(countryName(cohort.code))}</span><div class="trend-bar-track"><i style="width:${100*(share||0)/barMax}%;background:${cohortColor(cohort,i)}"></i></div><b>${share==null?'—':formatPercent(share)}</b><small>${count} labels</small></div>`;}).join('')}<p>Bar lengths are scaled to the highest country share; printed percentages use each country's full set of related labels. A dash means no related labels in this period.</p></div>`:'';
  const title=comparison?`Country comparison · ${esc(data.topic_labels?.[choice]||human(choice))}`:countryName(cohorts[0].code);
- const meta=comparison?'Same topic · one shared time axis · each country has its own denominator':`${num(cohorts[0].items)} related communications · ${num(cohorts[0].total)} topic labels`;
+ const firstUS=selectedCountries.includes('US')?firstPublishedDate(governmentData.items,'US'):null;
+ const usStartNote=firstUS&&from<firstUS?` · USA first post ${new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(firstUS+'T12:00:00Z'))}`:'';
+ const meta=(comparison?'Same topic · one shared time axis · each country has its own denominator':`${num(cohorts[0].items)} related communications · ${num(cohorts[0].total)} topic labels`)+usStartNote;
  chartHost.innerHTML=`<div class="trend-panel"><div class="trend-panel-title"><strong>${title}</strong><span>${esc(meta)}</span></div>${seriesDefs.length?`<svg viewBox="0 0 ${w} ${h}" role="group" aria-label="Daily cumulative narrative shares, ${esc(from)} to ${esc(to)}">${grid}${ticks}${paths}</svg>${focus}${bars}`:'<p class="empty">No related narrative labels match this selection.</p>'}</div>`;
  legend.innerHTML=seriesDefs.map(s=>`<button type="button" class="${s.benchmark?'trend-benchmark':''}" data-trend-key="${esc(s.key)}" aria-pressed="${activeTrendLine===s.key}"><i style="background:${s.color}"></i><span>${esc(s.label)}</span><b>${formatPercent(s.values.at(-1))}</b></button>`).join('')+(selectedCountries.includes('US')&&!seriesDefs.some(s=>s.code==='US')?'<span class="trend-benchmark-pending">USA · No related labels for this narrative and period</span>':'');
 }
