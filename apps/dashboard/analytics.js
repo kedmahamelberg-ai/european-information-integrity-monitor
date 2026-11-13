@@ -4,6 +4,9 @@
   // Dedicated European Security Monitor Google Analytics 4 stream.
   const MEASUREMENT_ID = "G-1JQ1MNNVKR";
   if (!/^G-[A-Z0-9]+$/.test(MEASUREMENT_ID) || !/^https?:$/.test(location.protocol)) return;
+  if (window.matchMedia?.('(max-width: 700px)')?.matches ||
+      window.navigator?.userAgentData?.mobile ||
+      /Android|iPhone|iPad|iPod/i.test(window.navigator?.userAgent || '')) return;
 
   window.dataLayer = window.dataLayer || [];
   window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };

@@ -1,6 +1,13 @@
 (() => {
   "use strict";
 
+  if (window.matchMedia?.('(max-width: 700px)')?.matches ||
+      window.navigator?.userAgentData?.mobile ||
+      /Android|iPhone|iPad|iPod/i.test(window.navigator?.userAgent || '')) {
+    document.querySelector('.visitor-count')?.remove();
+    return;
+  }
+
   const message = document.getElementById("visitor-message");
   const number = document.getElementById("visitor-number");
   if (!message || !number || !globalThis.crypto?.randomUUID) return;

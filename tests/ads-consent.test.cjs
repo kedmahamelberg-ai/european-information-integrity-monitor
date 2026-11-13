@@ -5,10 +5,14 @@ const vm = require('node:vm');
 const path = require('node:path');
 const source = fs.readFileSync(path.join(__dirname, '../apps/dashboard/ads.js'), 'utf8');
 
-function harness(hostname = 'monitor.hamelberg-ai.com') {
+function harness(hostname = 'monitor.hamelberg-ai.com', {mobile = false, userAgent = ''} = {}) {
   const scripts = [];
   let tcf, reloads = 0;
-  const window = {__tcfapi: (command, version, listener) => { tcf = listener; }};
+  const window = {
+    __tcfapi: (command, version, listener) => { tcf = listener; },
+    matchMedia: () => ({matches: mobile}),
+    navigator: {userAgent}
+  };
   const location = {protocol: 'https:', hostname, reload: () => reloads++};
   const document = {createElement: () => ({}), head: {appendChild: s => scripts.push(s)}, querySelectorAll: () => []};
   vm.runInNewContext(source, {window, location, document});
@@ -49,10 +53,38 @@ test('previews do not load consent service or enable advertising', () => {
   assert.equal(h.window.adsbygoogle, undefined);
 });
 
-test('public ad pages pause before loading AdSense and expose privacy choices', () => {
+test('mobile screens and phones load no ad or consent scripts', () => {
+  for (const options of [{mobile: true}, {userAgent: 'iPhone'}]) {
+    const h = harness('monitor.hamelberg-ai.com', options);
+    assert.equal(h.scripts.length, 0);
+    assert.equal(h.window.adsbygoogle, undefined);
+  }
+});
+
+test('mobile screens do not start analytics or the visit counter', () => {
+  const window = {matchMedia: () => ({matches: true}), navigator: {userAgent: ''}};
+  const analytics = fs.readFileSync(path.join(__dirname, '../apps/dashboard/analytics.js'), 'utf8');
+  vm.runInNewContext(analytics, {window, location: {protocol: 'https:'}});
+  assert.equal(window.gtag, undefined);
+  let removed = false;
+  const visitor = fs.readFileSync(path.join(__dirname, '../apps/dashboard/visitor-count.js'), 'utf8');
+  vm.runInNewContext(visitor, {window, document: {querySelector: () => ({remove: () => { removed = true; }})}});
+  assert.equal(removed, true);
+});
+
+test('desktop pauses before injecting AdSense; public pages expose privacy choices', () => {
+  const h = harness();
+  assert.equal(h.window.adsbygoogle.pauseAdRequests, 1);
+  assert.equal(h.scripts.length, 2);
+  assert.match(h.scripts[0].src, /fundingchoicesmessages\.google\.com/);
+  assert.match(h.scripts[1].src, /pagead2\.googlesyndication\.com/);
   for (const name of ['index.html', 'research.html']) {
     const html = fs.readFileSync(path.join(__dirname, '../apps/dashboard', name), 'utf8');
-    assert.ok(html.indexOf('pauseAdRequests=1') < html.indexOf('pagead2.googlesyndication.com'));
+    assert.doesNotMatch(html, /pagead2\.googlesyndication\.com/);
+    assert.match(html, /src="ads\.js" defer/);
+    const publisher = html.match(/name="google-adsense-account" content="ca-(pub-\d+)"/)?.[1];
+    assert.ok(publisher);
+    assert.ok(h.scripts[1].src.endsWith(`client=ca-${publisher}`));
     assert.match(html, /data-ad-privacy/);
     assert.match(html, /href="privacy.html"/);
   }

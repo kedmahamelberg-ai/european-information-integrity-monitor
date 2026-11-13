@@ -2,6 +2,10 @@
   'use strict';
   // Only the public production site may send advertising requests.
   if (location.protocol !== 'https:' || location.hostname !== 'monitor.hamelberg-ai.com') return;
+  // Mobile visitors do not receive ads, so do not load Google's consent service.
+  if (window.matchMedia?.('(max-width: 700px)')?.matches ||
+      window.navigator?.userAgentData?.mobile ||
+      /Android|iPhone|iPad|iPod/i.test(window.navigator?.userAgent || '')) return;
   const publisher = 'pub-5706650912346516';
   let enabled = false;
   window.adsbygoogle = window.adsbygoogle || [];
@@ -38,6 +42,11 @@
   message.async = true;
   message.src = 'https://fundingchoicesmessages.google.com/i/' + publisher + '?ers=1';
   document.head.appendChild(message);
+  const ads = document.createElement('script');
+  ads.async = true;
+  ads.crossOrigin = 'anonymous';
+  ads.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-' + publisher;
+  document.head.appendChild(ads);
   document.querySelectorAll('[data-ad-privacy]').forEach(button => {
     button.hidden = false;
     button.addEventListener('click', () => {

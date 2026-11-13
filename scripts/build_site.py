@@ -104,7 +104,7 @@ from check_public_counts import check
 check(json.loads((out / "data.json").read_text()))
 # Bind code, styles and the data snapshot to one deployment revision.
 revision = hashlib.sha256(
-    b"".join((out / name).read_bytes() for name in ["map-data.js", "app.js", "live.js", "visitor-count.js", "ads.js", "style.css", "data.json", "cameras.json", "government-data.json", "government-sources.json"])
+    b"".join((out / name).read_bytes() for name in ["map-data.js", "app.js", "live.js", "analytics.js", "visitor-count.js", "ads.js", "style.css", "data.json", "cameras.json", "government-data.json", "government-sources.json"])
 ).hexdigest()[:16]
 page = out / "index.html"
 html = page.read_text().replace(
@@ -115,9 +115,12 @@ html = html.replace('src="app.js"', f'src="app.js?v={revision}"').replace(
 )
 html = html.replace('src="live.js"', f'src="live.js?v={revision}"')
 html = html.replace('src="visitor-count.js"', f'src="visitor-count.js?v={revision}"')
+html = html.replace('src="analytics.js"', f'src="analytics.js?v={revision}"')
 html = html.replace('src="map-data.js"', f'src="map-data.js?v={revision}"')
 html = html.replace('src="ads.js"', f'src="ads.js?v={revision}"')
 page.write_text(html)
+research_page = out / "research.html"
+research_page.write_text(research_page.read_text().replace('src="ads.js"', f'src="ads.js?v={revision}"'))
 # A stable, server-rendered authorship page is readable without JavaScript.
 about = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
