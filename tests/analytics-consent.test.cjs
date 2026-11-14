@@ -35,7 +35,7 @@ function page({saved, mobile = false, userAgent = '', blocked = false, hostname 
   vm.runInNewContext(analytics, ctx);
   vm.runInNewContext(visitor, ctx);
   return {ctx, nodes, ids, store, requests, reloads: () => reloads,
-    ga: () => nodes.filter(n => n.src?.includes('googletagmanager.com')),
+    ga: () => nodes.filter(n => n.src && new URL(n.src).origin === 'https://www.googletagmanager.com'),
     banner: () => nodes.find(n => n.id === 'monitor-cookie-choice')};
 }
 for (const [name, options] of [['phone', {mobile: true, userAgent: 'iPhone'}], ['tablet', {userAgent: 'iPad'}], ['narrow desktop', {mobile: true}], ['desktop', {}]]) {
