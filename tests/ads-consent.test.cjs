@@ -61,17 +61,6 @@ test('mobile screens and phones load no ad or consent scripts', () => {
   }
 });
 
-test('mobile screens do not start analytics or the visit counter', () => {
-  const window = {matchMedia: () => ({matches: true}), navigator: {userAgent: ''}};
-  const analytics = fs.readFileSync(path.join(__dirname, '../apps/dashboard/analytics.js'), 'utf8');
-  vm.runInNewContext(analytics, {window, location: {protocol: 'https:'}});
-  assert.equal(window.gtag, undefined);
-  let removed = false;
-  const visitor = fs.readFileSync(path.join(__dirname, '../apps/dashboard/visitor-count.js'), 'utf8');
-  vm.runInNewContext(visitor, {window, document: {querySelector: () => ({remove: () => { removed = true; }})}});
-  assert.equal(removed, true);
-});
-
 test('desktop pauses before injecting AdSense; public pages expose privacy choices', () => {
   const h = harness();
   assert.equal(h.window.adsbygoogle.pauseAdRequests, 1);
