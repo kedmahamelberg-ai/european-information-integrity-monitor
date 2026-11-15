@@ -1490,5 +1490,167 @@
     "source_summary": "The Government’s youth social media and mental health council reported on nationwide student workshops and research into school rules. Young people generally favored moderate restrictions, citing online harms but also concerns about strict bans. The council will continue its analysis and publish recommendations in December.",
     "english_summary": "Estonia’s youth council says students favor moderate social-media limits. Workshops identified AI misuse, misinformation and online scams among digital risks; the council will publish recommendations in December.",
     "ticker_message": "Estonian youth council flags AI misuse and online scams while weighing moderate social-media limits."
+  },
+  {
+    "id": "ae9cd58e643feeeb74cd",
+    "source_title": "Ocenění inspirativních projektů a osobností veřejné správy",
+    "source_summary": "The 2025 Public Service Initiative of the Year awards recognized ten projects and public servants from 103 nominations, including the jury’s first Special Prize. The initiative promotes innovation, collaboration, digitalization, better public services and sharing good practices across government institutions.",
+    "relevance": "related",
+    "topics": [
+      "health_biosecurity"
+    ],
+    "short_rationale": "The official notice is a public-service award list; one AI grant-checking app is incidental, and the awards are not an AI security measure."
+  },
+  {
+    "id": "9524016a6841e970ad49",
+    "source_title": "Sigurnost, gospodarstvo i demografija u fokusu odluka koje će odrediti budućnost kontinenta",
+    "source_summary": "Croatian Prime Minister Andrej Plenković received the Pan-European Medal for advancing European unity and values. He highlighted complex EU challenges including security, migration, and economic relations with the US, Russia, and China, emphasizing smart leadership, demographic renewal, and Croatia’s stable politics and growth in strengthening Europe’s future.",
+    "relevance": "related",
+    "topics": [
+      "political_institutions",
+      "sovereignty_borders",
+      "military_defence",
+      "economic_financial_security",
+      "migration_displacement",
+      "diplomacy_alliances",
+      "climate_environment"
+    ],
+    "short_rationale": "The medal speech lists AI investment as one future EU budget topic, without a substantive AI measure or risk."
+  },
+  {
+    "id": "64e8616d3b23b83670cc",
+    "source_title": "Pröll / Wiederkehr / Holzleitner: Bundesregierung bringt Reformen im Bildungsbereich auf den Weg",
+    "source_summary": "On October 7, 2026, Austrian ministers announced education reforms including delaying digital device distribution to sixth grade, modernizing the Matura exams with flexible final projects, and legislating university protection measures against violence as part of efforts to support children's development and safety.",
+    "relevance": "related",
+    "topics": [
+      "political_institutions"
+    ],
+    "short_rationale": "The official Austrian education-reform release discusses device timing, exams and campus safety, not an AI measure or risk."
+  },
+  {
+    "id": "d419481684da4f0e1b2a",
+    "source_title": "Hrvatska poštuje europska pravila i štiti schengensku granicu, ali neće prihvatiti migrantske centre",
+    "source_summary": "Croatia hosted the EU MED9 summit in Split, focusing on Mediterranean security, sustainability, and migration. PM Plenković highlighted trade ties, EU budget discussions, and opposition politicization of local waste issues, while addressing regional cooperation, energy challenges, and Bosnia-Herzegovina's EU integration progress.",
+    "relevance": "related",
+    "topics": [
+      "sovereignty_borders",
+      "migration_displacement",
+      "energy",
+      "economic_financial_security",
+      "military_defence"
+    ],
+    "short_rationale": "The MED9 interview lists AI among many broad EU budget priorities, without a substantive AI measure or risk."
+  },
+  {
+    "id": "2a8e7651f908d61757c8",
+    "source_title": "Joint Declaration on a Strategic Partnership between the United Kingdom of Great Britain and Northern Ireland and the Republic of Azerbaijan",
+    "source_summary": "The UK and Azerbaijan adopted a Strategic Partnership Declaration in Dublin on 12 November 2026, covering security, trade, connectivity, clean energy, education, innovation and sustainable peace between Azerbaijan and Armenia. They will promote exchanges and review priorities annually, subject to available resources and domestic laws.",
+    "english_summary": "The UK and Azerbaijan agreed to exchange expertise on AI, digital governance and innovation under a new strategic partnership. The declaration also covers security, trade, energy and regional peace.",
+    "ticker_message": "UK and Azerbaijan add AI expertise exchange to their strategic partnership."
+  },
+  {
+    "id": "607c8db40269b90ba99a",
+    "source_title": "PRESS RELEASE BY THE OFFICE OF THE SPEAKER The Speaker participates in the Paris Peace Forum, highlighting the importance of protecting children in the digital world and strengthening democracy and security through international cooperation",
+    "source_summary": "Carmelo Abela addressed child safety online and parliament’s role in balancing security with social needs at the Paris Peace Forum 2026. He called for shared responsibility, democratic safeguards, international cooperation and diplomacy, and attended an official dinner hosted by French President Emmanuel Macron.",
+    "english_summary": "At the Paris Peace Forum, Malta’s Speaker discussed security and children’s online safety, warning that AI and other emerging technologies add risks requiring democratic safeguards and international cooperation.",
+    "ticker_message": "Malta’s Speaker warns of AI-related security risks and urges democratic safeguards."
+  },
+  {
+    "id": "278e70e88147bb2c9b11",
+    "source_title": "Gilles Roth a participé aux réunions de l'Eurogroupe et du Conseil ECOFIN à Bruxelles",
+    "source_summary": "Finance Minister Gilles Roth attended Eurogroup and ECOFIN meetings in Brussels, where ministers discussed economic and banking developments, the digital euro, European security, tobacco taxation, Ukraine, EU legislation and G20 outcomes. The tobacco-taxation package was not adopted; negotiations will continue under the Irish Presidency.",
+    "english_summary": "At Eurogroup and ECOFIN meetings, Luxembourg’s finance minister discussed AI’s effects on banking and ways to strengthen financial resilience. Ministers also considered European security, Ukraine and EU legislation.",
+    "ticker_message": "Luxembourg discusses AI’s effects on banking and financial resilience at Eurogroup."
+  },
+  {
+    "id": "b1b34cf07234fcc1fe5a",
+    "source_title": "Нұрлыбек Нәлібаев «Londian Wason» және «NAIKAN» компанияларының басшыларымен инвестициялық ынтымақтастық мәселелерін талқылады",
+    "source_summary": "First Deputy Prime Minister Nurlibek Nalibayev met with executives from Londian Wason and NAIKAN to discuss a jointly implemented copper-foil plant in Kazakhstan. The $810 million facility is planned to begin production in 2029 and reach annual capacity of 50,000 tonnes by 2031.",
+    "english_summary": "Kazakhstan announced an $810 million copper-foil plant planned to make material for batteries and circuit boards used in AI servers and data centres. Production is expected to begin in 2029.",
+    "ticker_message": "Kazakhstan plans copper foil for AI server boards at an $810 million plant."
+  },
+  {
+    "id": "b7253d5b8a98f9276516",
+    "source_title": "Espot situa la digitalització, la resiliència climàtica i la inclusió entre les prioritats d’Andorra a la XXX la Cimera Iberoamericana",
+    "source_summary": "Andorra’s Head of Government Xavier Espot addressed the Ibero-American Summit on inclusive multilateralism, digital equity, climate resilience, and social inclusion. He announced Andorra’s 2027 rotating presidency of a disaster-risk network and held bilateral meetings with Colombia, Ecuador, and Ukraine, reaffirming support for Ukraine.",
+    "english_summary": "At the Ibero-American Summit, Andorra highlighted the launch of a regional AI alliance alongside disaster-risk cooperation, digital equity and support for Ukraine. It will chair the disaster-risk network in 2027.",
+    "ticker_message": "Andorra backs a new Ibero-American AI alliance alongside disaster-risk cooperation."
+  },
+  {
+    "id": "8c86ef7bdfce5d86b178",
+    "source_title": "Ανακοίνωση του Υφυπουργού παρά τω Πρωθυπουργώ και Κυβερνητικού Εκπροσώπου Παύλου Μαρινάκη για την συνεδρίαση του Υπουργικού Συμβουλίου της 2ας Νοεμβρίου 2026",
+    "source_summary": "The Cabinet reviewed 90 deliverables across 20 ministries for 2026–27 and considered bills on platform-work protections, the Judicial Police’s conversion into an armed Security Corps, alignment with the 2027 WADA Code, and targeted Interior Ministry and investment-project changes, including faster decisions and shorter post-completion obligations.",
+    "english_summary": "Greece’s cabinet considered a bill setting rules for AI use in the labour market and protections for platform workers. It also reviewed defence, policing, emergency-service and investment measures.",
+    "ticker_message": "Greek cabinet considers labour-market AI rules and platform-worker protections."
+  },
+  {
+    "id": "62347da91db6a9358ce8",
+    "source_title": "Demokracija, vladavina prava i sigurnost temelji su otporne i snažne Europe",
+    "source_summary": "At the World Forum for Democracy in Strasbourg, Prime Minister Andrej Plenković discussed Croatia’s European path, support for Ukraine, democratic security, multilateralism, Western Balkans reconciliation, migration, energy security and social cohesion, emphasizing crisis response, citizens’ trust and cooperation with the Council of Europe.",
+    "english_summary": "At the World Forum for Democracy, Croatia’s prime minister warned that AI can aid innovation but, without safeguards, can enable manipulation and threaten human rights. He also discussed Ukraine and democratic security.",
+    "ticker_message": "Croatia’s prime minister warns AI manipulation could threaten democracy and rights."
+  },
+  {
+    "id": "5abd7ccdc15dc716ae13",
+    "source_title": "Serge Wilmes à la COP17 sur la biodiversité à Erevan, en Arménie",
+    "source_summary": "Luxembourg’s environment minister attended COP17 in Yerevan, promoting biodiversity finance and climate-nature initiatives. Delegates assessed progress toward global biodiversity targets, discussed financing and Indigenous and local community participation, and reached an agreement after extended negotiations, while finding the world off track to meet 2030 goals.",
+    "english_summary": "At COP17, Luxembourg promoted biodiversity finance, including an AI-based platform designed to attract capital to projects benefiting climate, biodiversity and communities. Delegates also reviewed lagging progress toward 2030 nature goals.",
+    "ticker_message": "Luxembourg highlights an AI platform for biodiversity and climate finance."
+  },
+  {
+    "id": "19970664ea8e6f384e43",
+    "source_title": "Kabinet steunt EU Kids Act, maar uit zorgen over privacy en grondrechten",
+    "source_summary": "The Dutch government supports the EU Kids Act’s goal of safer online services and platform accountability. It backs a proposed age-15 minimum but seeks scrutiny of effects on rights and privacy, later reassessment of necessity, and safeguards against excessive reliance on parental consent and monitoring.",
+    "english_summary": "The Dutch government supports the EU Kids Act’s safety rules for social media, games and AI chatbots, while seeking closer scrutiny of children’s rights, privacy and reliance on parental monitoring.",
+    "ticker_message": "Netherlands considers EU rules for child safety on social media and AI chatbots."
+  },
+  {
+    "id": "e6b2633a1a881dafde66",
+    "source_title": "Pröll zu Smartglasses: \"Keine heimlichen Aufnahmen. Das Motto muss sein: Je sensibler der Ort, desto strenger der Schutz.\"",
+    "source_summary": "Austrian State Secretary Alexander Pröll proposes three levels of rules for smart glasses: prohibit use in highly sensitive places, ban recordings in protected venues, and require visible recording indicators in public. He calls for binding manufacturer safeguards and a parliamentary enquiry.",
+    "english_summary": "Austria proposed tiered privacy rules for smart glasses with cameras, microphones and AI functions. The plan would bar use in sensitive places and require visible recording indicators in public.",
+    "ticker_message": "Austria proposes privacy rules for AI-enabled smart glasses and covert recording."
+  },
+  {
+    "id": "4903511d02b5bfbbb5a8",
+    "source_title": "Sameiginleg yfirlýsing forsætisráðherra Norðurlanda um áhrif nýrrar tækni á börn og ungmenni",
+    "source_summary": "Nordic prime ministers adopted a statement on protecting young people’s health and wellbeing amid new technology, discussing social media rules, age limits and school phone-free policies. They also addressed Nordic cooperation treaty revision and regional security, including a recent Greenland-Denmark-US security and defence agreement.",
+    "english_summary": "Nordic prime ministers agreed to protect children amid social media, smart devices and AI, discussing age limits and phone-free schools. They also addressed regional security and Nordic cooperation.",
+    "ticker_message": "Nordic leaders discuss children’s safety amid social media, smart devices and AI."
+  },
+  {
+    "id": "7b92f5eb993c070eca4b",
+    "source_title": "UK-Oman joint statement on Omani State Visit",
+    "source_summary": "During Sultan Haitham bin Tarik's 2026 UK visit, both nations reaffirmed their historic friendship, agreeing to modernize their security partnership, expand economic ties in green industries and technology, cooperate on regional stability, and deepen people-to-people links, aligning with Oman’s Vision 2040 and UK growth goals.",
+    "english_summary": "The UK and Oman agreed to deepen cooperation on AI, data centres, critical minerals and space through exchanges and technical meetings. Their wider partnership also covers defence, green industries and regional stability.",
+    "ticker_message": "UK and Oman agree to deepen AI and critical-technology cooperation."
+  },
+  {
+    "id": "aff3133d705c8e5cb3f0",
+    "source_title": "First Lady Melania Trump Champions New U.S. Women’s Health Initiative",
+    "source_summary": "The White House says an executive order will establish a women’s health task force and an NIH division, promote research and treatment development, and improve access to care. Melania Trump outlined five priorities, including targeted research, advanced technology, safety, affordability, and open discussion.",
+    "english_summary": "The White House announced a women’s health initiative that calls for using super intelligence to improve understanding of female biology and speed medical discoveries. An executive order also creates a task force and NIH division.",
+    "ticker_message": "White House women’s health plan proposes super-intelligence tools for medical research."
+  },
+  {
+    "id": "ba0a721a1f904eea1284",
+    "source_title": "First Lady Melania Trump Launches 2027 Presidential SI Challenge and Establishes First Lady Seal of SI Readiness",
+    "source_summary": "Melania Trump launched the 2027 Presidential Super Intelligence Challenge for K–12 students and introduced a school readiness seal. Participating schools can earn the seal by meeting and documenting readiness milestones; the challenge continues to promote student projects addressing real-world problems.",
+    "english_summary": "The White House launched a K–12 Super Intelligence challenge and school readiness seal for student projects. The program invites schools to document readiness milestones and support student work on real-world problems.",
+    "ticker_message": "White House launches a student Super Intelligence challenge and school readiness seal."
+  },
+  {
+    "id": "a5a7bb5ac6185bae2903",
+    "source_title": "Joint Statement Germany – United Kingdom",
+    "source_summary": "UK and Germany ratified the Kensington Treaty and agreed to deepen bilateral cooperation across technology, hybrid threat defense, space, quantum research, and regional economic growth, with initiatives including an Industrial Tech Corridor, counter-hybrid partnership, space collaboration, increased quantum funding, and a Regional Growth Forum.",
+    "english_summary": "The UK and Germany agreed on an Industrial Tech Corridor linking AI and critical-technology startups with industry demand. Their wider cooperation covers hybrid threats, space, quantum research and regional growth.",
+    "ticker_message": "UK and Germany plan an industrial corridor for AI and critical-technology startups."
+  },
+  {
+    "id": "26342734b3f9df7e2513",
+    "source_title": "Приветствие участникам Контртеррористического форума в Минске",
+    "source_summary": "Belarusian President Lukashenko greeted the Counter-Terrorism Forum in Minsk, emphasizing the global threat of terrorism and advocating collective efforts through international cooperation. He highlighted Belarus's initiative for a unified anti-terrorist front and the forum's role in advancing regional security and trust among intelligence agencies.",
+    "english_summary": "At a Minsk counterterrorism forum, Belarus’s president warned that terrorist groups use AI alongside drones, cryptocurrency and closed online networks for propaganda, recruitment and funding. He called for stronger international cooperation.",
+    "ticker_message": "Belarus cites terrorist use of AI and drones in call for counterterrorism cooperation."
   }
 ]
