@@ -1,0 +1,17 @@
+# Government AI topic source audit — 2026-11-15
+
+The live Monitor export contained 2,898 official communications. We screened every exported title, English summary, ticker and rationale for AI-related claims, then checked 189 candidate official source URLs: all 124 records then carrying `artificial_intelligence` and 65 records without that topic whose exported text suggested AI. The accompanying CSV identifies every candidate, its official URL, fetch result, and topic decision. Of 189 fetches, 164 returned HTTP 200. Some official sites blocked or timed out; no topic was removed solely because a source could not be fetched. The audit is a targeted review of AI labels, not a claim that all 2,898 source bodies were accessible or individually reread.
+
+## Corrections
+
+Ten AI topics were removed. Iceland `71d90ca03de75aa9ce0c`, Denmark `98bc0ac5ebc08d929d74`, Sweden `86c3188c00271db6fa55`, Portugal `437064355675a5927575`, Luxembourg `bed05a40fa6ac5a09c27`, Malta `cb2083817c398390b4fa`, and Hungary `7ad3aaabe846edc6dba5` had no substantive source-backed AI security proposition. The Swedish record supersedes an earlier erroneous human correction: a Nvidia-based computer launch alone does not establish an AI narrative. The Netherlands ETCI investment `4b17b4aed93075756ee4` concerns strategic technology funding, but the working official duplicate article does not name AI; its Monitor URL also returns 404. Belarus CSTO `fcc7f24b350f296891b7` and Minsk conference `0e0533db45de78e78dee` have only passing AI references in much broader security speeches. Their other security topics remain intact.
+
+Four already-related communications gained AI topics after checking explicit, substantive official-source passages: UK wildfire response `80fe0d2b2dc9532f9e29`, Dutch AI-powered scams `fef43dfa7e748f727604`, Kazakh transport-network monitoring `53bed82538ab94c28daf`, and Greek concern about AI-generated election videos `01fe81c9712582479724`.
+
+Two correctly labelled records received source-grounded English summaries and ticker messages that explain the AI link visible in the Brief: Kazakhstan COP31 hazard forecasting `b1f70657a865d02bf9c2` and Estonia's youth social-media council `5f4fb3551ad7e6c5b6b6`. Their official texts explicitly discuss AI. Display wording remains within the Monitor's 45-word summary and 18-word ticker limits.
+
+The classifier instruction now requires a substantive AI use, risk, policy, investment, research effort or cooperation in the security narrative. A passing mention, Nvidia product, supercomputer, generic device or acronym cannot alone justify the AI topic. Its prompt version is unchanged, avoiding a mass reclassification of completed records; explicit human corrections preserve reviewed labels in subsequent checkpoints.
+
+## Limits and follow-up
+
+This source audit reviewed the AI topic and the two user-flagged summaries, not every non-AI security topic or viewpoint in the entire Monitor corpus. Direct source retrieval was unavailable for some official pages, including Georgia and Poland. Their AI topics remain as previously classified; the CSV shows the access result. The Brief importer remains a deterministic mirror of the corrected Monitor feed: it must not make a second AI judgment or fetch government archives.
