@@ -1985,8 +1985,11 @@ def fetch_malta_html(url, expect_html=True):
             not (parsed.path=="/en/search/press-releases" or MALTA_ARTICLE_PATH.fullmatch(parsed.path))):
         raise RuntimeError("Malta fetch left the official press-release site")
     proxy=os.getenv("MALTA_WARP_PROXY","")
+    # The DOI currently accepts curl's standard request through WARP but may
+    # return HTTP 403 for the collector's research User-Agent. Keep this fetch
+    # identical to the archive check in setup_malta_warp.sh.
     command=["curl","-fsSL","--compressed","--max-time","20","--max-filesize","2000000",
-             "--retry","2","--retry-all-errors","--retry-delay","1","-A",UA]
+             "--retry","2","--retry-all-errors","--retry-delay","1"]
     if proxy:
         parsed=urllib.parse.urlsplit(proxy)
         if parsed.scheme!="socks5h" or parsed.hostname!="127.0.0.1" or not parsed.port or parsed.username or parsed.password:
