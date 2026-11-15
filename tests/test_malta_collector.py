@@ -1,4 +1,4 @@
-"""Check the current DOI archive, bilingual releases, and article text."""
+"""Check the DOI archive, RSS fallback, and per-article retrieval."""
 import datetime as dt
 import importlib.util
 from pathlib import Path
@@ -19,6 +19,7 @@ def card(number, title, day="14/11/2026"):
 
 
 ARTICLE = '<html><main><div class="flex flex-col items-stretch justify-start gap-2 pb-5"><p>Official government communication with enough article text for a full classification.</p></div></main></html>'
+ENGLISH_URL = "https://departmentofinformation.gov.mt/press-release/2026/pr261925en"
 
 
 class MaltaCollectorTests(unittest.TestCase):
@@ -27,24 +28,43 @@ class MaltaCollectorTests(unittest.TestCase):
         self.start = dt.datetime(2026, 11, 9, tzinfo=collector.MALTA)
         self.end = dt.datetime(2026, 11, 15, 23, tzinfo=collector.MALTA)
 
-    def test_paginates_prefers_english_and_reads_full_article(self):
+    def test_paginates_prefers_english_and_uses_rss_text(self):
         first = ('<html>' + card("PR261925", "Maltese title") +
                  '<a href="/en/search/press-releases?p=2">2</a></html>')
         second = '<html>' + card("PR261925EN", "English title") + card("PR261926", "Other title") + '</html>'
-        with patch.object(collector, "fetch_malta_html", side_effect=[first, second, ARTICLE, ARTICLE]) as fetch:
+        feed = {ENGLISH_URL: "Official government communication with enough article text for a full classification."}
+        with patch.object(collector, "fetch_malta_html", side_effect=[first, second]) as fetch, \
+             patch.object(collector, "malta_rss_text", return_value=feed):
             items, home = collector.discover_malta(self.country, self.start, self.end)
         self.assertEqual(len(items), 2)
         self.assertEqual(home, self.country["url"])
         self.assertEqual(items[0]["title"], "English title")
         self.assertEqual(items[0]["published_date"], "2026-11-14")
-        self.assertIn("pr261925en", items[0]["url"])
+        self.assertEqual(items[0]["url"], ENGLISH_URL)
         self.assertIn("Official government communication", items[0]["text"])
-        self.assertEqual(fetch.call_count, 4)
+        self.assertEqual(fetch.call_count, 2)  # No article fetch can abort discovery.
+
+    def test_fetches_article_body_when_rss_does_not_cover_it(self):
+        item = {"country_code": "MT", "url": ENGLISH_URL, "text": ""}
+        with patch.object(collector, "fetch_malta_html", return_value=ARTICLE):
+            body = collector.article_text(item)
+        self.assertIn("Official government communication", body)
+        self.assertEqual(item["text"], body)
 
     def test_rejects_incomplete_article(self):
-        with patch.object(collector, "fetch_malta_html", side_effect=['<html>'+card("PR261925EN", "English title")+'</html>', '<html>No article</html>']):
-            with self.assertRaisesRegex(RuntimeError, "usable article text"):
-                collector.discover_malta(self.country, self.start, self.end)
+        item = {"country_code": "MT", "url": ENGLISH_URL, "text": ""}
+        with patch.object(collector, "fetch_malta_html", return_value="<html>No article</html>"):
+            with self.assertRaisesRegex(RuntimeError, "usable article body"):
+                collector.article_text(item)
+
+    def test_reads_full_text_from_official_rss(self):
+        rss = ('<rss xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><item>'
+               f'<link>{ENGLISH_URL}</link><content:encoded><![CDATA[<p>Official government communication with enough article text for a full classification.</p>]]></content:encoded>'
+               '</item></channel></rss>')
+        with patch.object(collector, "fetch_malta_html", return_value=rss):
+            result = collector.malta_rss_text()
+        self.assertIn(ENGLISH_URL, result)
+        self.assertIn("Official government communication", result[ENGLISH_URL])
 
     def test_rejects_nonofficial_url(self):
         with self.assertRaisesRegex(RuntimeError, "left the official"):
