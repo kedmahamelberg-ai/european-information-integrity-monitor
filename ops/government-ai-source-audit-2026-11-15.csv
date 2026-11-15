@@ -13,7 +13,7 @@ eefc381d2bfb99dc1716,SE,False,False,200,https://www.regeringen.se/pressmeddeland
 3090da02f395b8809131,SI,True,True,200,https://www.gov.si/novice/2026-11-12-19-redna-seja-vlade-republike-slovenije/
 2e8803a578995adb3b60,ES,True,True,200,https://www.lamoncloa.gob.es/serviciosdeprensa/notasprensa/igualdad/Paginas/2026/121126-campana-eliminacion-violencia-genero.aspx
 21c715fcacb767b80ea4,HR,False,False,200,https://vlada.gov.hr/dublin-okupio-europske-celnike-na-razgovorima-o-buducnosti-europe-u-trenutku-velikih-geopolitickih-izazova/47591
-ae9cd58e643feeeb74cd,CZ,True,True,200,https://vlada.gov.cz/cz/media-centrum/aktualne/oceneni-inspirativnich-projektu-a-osobnosti-verejne-spravy-230052/
+ae9cd58e643feeeb74cd,CZ,True,False,200,https://vlada.gov.cz/cz/media-centrum/aktualne/oceneni-inspirativnich-projektu-a-osobnosti-verejne-spravy-230052/
 df72482125e7867a1e98,CZ,True,True,200,https://vlada.gov.cz/cz/media-centrum/tiskove-zpravy/umetac-cesty-pro-excelentni-vyzkum--narodni-cenu-vlady-ceska-hlava-ziskal-informatik-jan-cernocky-230076/
 4ac0ebf3abad1250f159,MT,False,False,403,https://departmentofinformation.gov.mt/press-release/2026/pr261912
 b1f70657a865d02bf9c2,KZ,True,True,200,https://primeminister.kz/kz/news/olzhas-bektenov-prezidenttin-tapsyrmasy-boyynsha-antaliyadagy-cop31-sammitine-katysty-32111
@@ -90,7 +90,7 @@ f92a6806561702ce4a03,BG,False,False,200,https://www.gov.bg/bg/prestsentar/novini
 cb6a9b5c25183ee1c8e8,KZ,False,False,200,https://primeminister.kz/kz/news/olzhas-bektenov-respublika-kuni-karsanynda-prezident-atynan-memlekettik-nagradalardy-tabys-etti-32030
 066566daa57489d292a6,DE,True,True,200,https://www.bundesregierung.de/breg-de/aktuelles/pressemitteilungen/pressemitteilungen/historisches-kulturerbe-vor-ki-faelschungen-schuetzen-bkm-und-google-org-foerdern-die-global-authentic-memory-initiative--2458124
 224d8adb32197a7b24a9,IS,False,False,200,https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/markviss-sokn-i-grunnfaerni-og-studning-vid-hvert-barn
-9524016a6841e970ad49,HR,True,True,200,https://vlada.gov.hr/sigurnost-gospodarstvo-i-demografija-u-fokusu-odluka-koje-ce-odrediti-buducnost-kontinenta/47479
+9524016a6841e970ad49,HR,True,False,200,https://vlada.gov.hr/sigurnost-gospodarstvo-i-demografija-u-fokusu-odluka-koje-ce-odrediti-buducnost-kontinenta/47479
 80fe0d2b2dc9532f9e29,GB,False,True,200,https://www.gov.uk/government/news/military-planes-and-helicopters-to-fight-wildfires-from-the-sky
 413f9afd025da12cc97d,KZ,False,False,200,https://primeminister.kz/kz/news/kgir-2026-olzhas-bektenov-sheteldik-investorlarmen-birlesken-zhobalardy-zhuzege-asyru-maselelerin-talkylady-32024
 8fddb8a43c6f356dcea1,SE,True,True,200,https://www.regeringen.se/pressmeddelanden/2026/10/nasta-steg-i-satsningen-pa-europeiska-ai-gigafabriker/
@@ -156,8 +156,8 @@ f60fb01beaf7ccf3229c,IS,True,True,200,https://www.stjornarradid.is/efst-a-baugi/
 04d742c3ae8b90993965,AT,True,True,200,https://www.bundeskanzleramt.gv.at/bundeskanzleramt/nachrichten-der-bundesregierung/2026/10/oesterreich-fordert-mehr-rechtssicherheit-und-innovationskraft-im-europaeischen-datenrecht.html
 014cdec8dae789cc4862,SK,False,False,200,https://www.vlada.gov.sk/tlacove-spravy/r-fico-nova-nemocnica-v-martine-ma-hotovu-hrubu-stavbu-a-vlada-garantuje-pokracovanie-vystavby-aj-v-roku-2027/
 26342734b3f9df7e2513,BY,True,True,200,https://president.gov.by/ru/events/privetstvie-ucastnikam-kontrterroristiceskogo-foruma-v-minske
-64e8616d3b23b83670cc,AT,True,True,200,https://www.bundeskanzleramt.gv.at/bundeskanzleramt/nachrichten-der-bundesregierung/2026/10/proell-wiederkehr-holzleitner-bundesregierung-bringt-reformen-im-bildungsbereich-auf-den-weg.html
-d419481684da4f0e1b2a,HR,True,True,200,https://vlada.gov.hr/hrvatska-postuje-europska-pravila-i-stiti-schengensku-granicu-ali-nece-prihvatiti-migrantske-centre/47399
+64e8616d3b23b83670cc,AT,True,False,200,https://www.bundeskanzleramt.gv.at/bundeskanzleramt/nachrichten-der-bundesregierung/2026/10/proell-wiederkehr-holzleitner-bundesregierung-bringt-reformen-im-bildungsbereich-auf-den-weg.html
+d419481684da4f0e1b2a,HR,True,False,200,https://vlada.gov.hr/hrvatska-postuje-europska-pravila-i-stiti-schengensku-granicu-ali-nece-prihvatiti-migrantske-centre/47399
 8518710d06e83dae0210,HR,True,True,200,https://vlada.gov.hr/usvojena-splitska-deklaracija/47397
 505541bb63ef36d88ded,MT,True,True,403,https://www.gov.mt/en/Government/DOI/Press%20Releases/Pages/2026/10/07/PR261657.aspx
 cb2083817c398390b4fa,MT,True,False,403,https://www.gov.mt/en/Government/DOI/Press%20Releases/Pages/2026/10/07/PR261650.aspx
