@@ -40,9 +40,8 @@ fi
 proxy='socks5h://127.0.0.1:40000'
 curl -fsS --max-time 10 --proxy "$proxy" https://www.cloudflare.com/cdn-cgi/trace | grep -qx 'warp=on'
 curl -fsS --compressed --max-time 10 --proxy "$proxy" \
-  -H 'Accept: application/json;odata=nometadata' \
-  'https://www.gov.mt/en/Government/DOI/Press%20Releases/_api/web/lists/getbytitle(%27Pages%27)/items?%24top=1' \
-  | python3 -c 'import json,sys; assert isinstance(json.load(sys.stdin)["value"],list)'
+  'https://departmentofinformation.gov.mt/en/search/press-releases' \
+  | python3 -c 'import sys; assert "href=\"/press-release/" in sys.stdin.read()'
 
 echo "MALTA_WARP_PROXY=$proxy" >> "$GITHUB_ENV"
 echo 'Malta archive is reachable through the verified WARP proxy.'
