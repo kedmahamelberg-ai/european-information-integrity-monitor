@@ -226,14 +226,20 @@ class HiddenFormInputs(HTMLParser):
 
 
 class MaltaContent(HTMLParser):
-    """Read the public SharePoint article field without markup or scripts."""
-    def __init__(self): super().__init__(); self.parts=[]; self.skip=0
+    """Read the article body from the DOI's current press-release page."""
+    def __init__(self): super().__init__(); self.parts=[]; self.depth=0; self.found=False; self.done=False; self.skip=0
     def handle_starttag(self, tag, attrs):
+        if self.depth and tag=="div": self.depth+=1
+        elif not self.done and tag=="div" and {"gap-2","pb-5","items-stretch"}.issubset(set(dict(attrs).get("class","").split())):
+            self.depth=1; self.found=True
         if tag in {"script","style"}: self.skip+=1
     def handle_endtag(self, tag):
+        if tag=="div" and self.depth:
+            self.depth-=1
+            if not self.depth: self.done=True
         if tag in {"script","style"}: self.skip=max(0,self.skip-1)
     def handle_data(self, data):
-        if not self.skip and data.strip(): self.parts.append(data.strip())
+        if self.depth and not self.skip and data.strip(): self.parts.append(data.strip())
 
 
 def official_article_text(body):
@@ -1263,6 +1269,7 @@ def discover_czechia(country,start,end):
             article_url=urllib.parse.urljoin(country["url"],html.unescape(link.group(1)))
             # The official press archive also links dated Government Office events.
             if not article_url.startswith(("https://vlada.gov.cz/cz/media-centrum/aktualne/",
+                                           "https://vlada.gov.cz/cz/media-centrum/tiskove-zpravy/",
                                            "https://vlada.gov.cz/cz/urad-vlady/akce/")):
                 raise RuntimeError("Unexpected Czech cabinet press URL")
             if article_url in seen: raise RuntimeError("Czech cabinet press archive repeated an article")
@@ -1928,12 +1935,23 @@ def discover_switzerland(country,start,end):
 def discover_san_marino(country,start,end):
     """Use the active foreign ministry News e Comunicati archive and its own JSON feed."""
     api="https://www.gov.sm/pub1/.rest/delivery/esteri-news?lang=it"
-    # This full archive is already about 11 MB; slower routes can exceed 25 s.
-    _,body=fetch(api,limit=12_000_000,timeout=60)
-    payload=json.loads(body)
-    rows=payload.get("results")
-    if not isinstance(rows,list) or payload.get("total")!=len(rows):
-        raise RuntimeError("San Marino foreign ministry archive is incomplete")
+    # The API caps each response at 1,000 items, even when total is larger.
+    rows=[]; total=None; page_size=1000
+    for offset in range(0,100_000,page_size):
+        _,body=fetch(f"{api}&limit={page_size}&offset={offset}",limit=12_000_000,timeout=60)
+        payload=json.loads(body)
+        page=payload.get("results")
+        reported_total=payload.get("total")
+        if (not isinstance(page,list) or not isinstance(reported_total,int) or
+                reported_total<0 or payload.get("offset")!=offset or
+                payload.get("limit")!=page_size or
+                len(page)!=min(page_size,reported_total-offset)):
+            raise RuntimeError("San Marino foreign ministry archive is incomplete")
+        if total is None: total=reported_total
+        elif reported_total!=total: raise RuntimeError("San Marino archive changed during pagination")
+        rows.extend(page)
+        if len(rows)==total: break
+    else: raise RuntimeError("San Marino foreign ministry archive exceeded 100 pages")
     entries=[]; seen=set()
     first,last=start.astimezone(ROME).date(),end.astimezone(ROME).date()
     for row in rows:
@@ -1956,76 +1974,76 @@ def discover_san_marino(country,start,end):
     return entries,country["url"]
 
 
-MALTA_API = "https://www.gov.mt/en/Government/DOI/Press%20Releases/_api/web/lists/getbytitle('Pages')/items"
-MALTA_RELEASE_PATH = re.compile(r"^/en/Government/DOI/Press Releases/Pages/(\d{4})/(\d{2})/(\d{2})/(PR\d{6}(?:en)?)\.aspx$",re.I)
+MALTA_ARCHIVE = "https://departmentofinformation.gov.mt/en/search/press-releases"
+MALTA_ARTICLE_PATH = re.compile(r"/press-release/20\d{2}/[^/?#]+\Z")
 
 
-def fetch_malta_json(url):
-    """Use the WARP local proxy on runners; a connected Mac can use its full tunnel."""
-    if not url.startswith(MALTA_API+"?"):
-        raise RuntimeError("Malta archive pagination left the official API")
+def fetch_malta_html(url):
+    """Use the WARP proxy for the DOI's current official archive and articles."""
+    parsed=urllib.parse.urlsplit(url)
+    if (parsed.scheme!="https" or parsed.netloc!="departmentofinformation.gov.mt" or
+            not (parsed.path=="/en/search/press-releases" or MALTA_ARTICLE_PATH.fullmatch(parsed.path))):
+        raise RuntimeError("Malta fetch left the official press-release site")
     proxy=os.getenv("MALTA_WARP_PROXY","")
-    command=["curl","-fsSL","--compressed","--max-time","20","--max-filesize","5000000",
-             "-H","Accept: application/json;odata=nometadata","-A",UA]
+    command=["curl","-fsSL","--compressed","--max-time","20","--max-filesize","2000000","-A",UA]
     if proxy:
         parsed=urllib.parse.urlsplit(proxy)
         if parsed.scheme!="socks5h" or parsed.hostname!="127.0.0.1" or not parsed.port or parsed.username or parsed.password:
             raise RuntimeError("Malta WARP proxy must be a local SOCKS5 endpoint")
         command.extend(["--proxy",proxy])
-    response=subprocess.run(command+[url],capture_output=True,timeout=23)
+    response=subprocess.run(command+[transport_url(url)],capture_output=True,timeout=23)
     if response.returncode:
-        raise RuntimeError(f"Malta archive fetch failed: {response.stderr.decode('utf-8','replace')[:180]}")
-    body=response.stdout
-    if len(body)>5_000_000: raise RuntimeError("Malta archive page exceeds the size limit")
-    return json.loads(body)
+        raise RuntimeError(f"Malta press-release fetch failed: {response.stderr.decode('utf-8','replace')[:180]}")
+    page=response.stdout.decode("utf-8","replace")
+    if "<html" not in page.lower(): raise RuntimeError("Malta press-release response is not HTML")
+    return page
 
 
 def discover_malta(country,start,end):
-    """Page through the official dated SharePoint archive, including full release text."""
+    """Page the DOI's dated archive and prefer English versions of each release."""
     first,last=start.astimezone(MALTA).date(),end.astimezone(MALTA).date()
-    lower=dt.datetime.combine(first,dt.time.min,MALTA).astimezone(dt.timezone.utc)
-    upper=dt.datetime.combine(last+dt.timedelta(days=1),dt.time.min,MALTA).astimezone(dt.timezone.utc)
-    date_filter=(f"ArticleStartDate ge datetime'{lower:%Y-%m-%dT%H:%M:%SZ}' and "
-                 f"ArticleStartDate lt datetime'{upper:%Y-%m-%dT%H:%M:%SZ}'")
-    query=urllib.parse.urlencode({"$select":"Id,FileRef,Title,ArticleStartDate,Gov_MainContent,Gov_PublicationNumber,FileSystemObjectType",
-                                  "$filter":date_filter,"$orderby":"Id desc","$top":"100"})
-    url=MALTA_API+"?"+query
-    pages=set(); entries={}
-    while url:
-        if url in pages or len(pages)>=100: raise RuntimeError("Malta archive pagination is incomplete")
-        pages.add(url)
-        payload=fetch_malta_json(url)
-        rows=payload.get("value")
-        if not isinstance(rows,list): raise RuntimeError("Malta archive returned no release list")
-        for row in rows:
-            if row.get("FileSystemObjectType")!=0: continue
-            path=urllib.parse.unquote(row.get("FileRef") or "")
-            match=MALTA_RELEASE_PATH.fullmatch(path)
-            published=date_value(row.get("ArticleStartDate"))
-            number=(row.get("Gov_PublicationNumber") or "").strip().lower()
-            slug=match.group(4).lower() if match else ""
-            # The publisher sometimes omits "en" in its number field or adds a space.
-            if not match or not published or not number or slug.removesuffix("en")!=number.removesuffix("en"):
-                raise RuntimeError("Malta release has invalid official metadata")
-            day=published.astimezone(MALTA).date()
-            if day!=dt.date(int(match.group(1)),int(match.group(2)),int(match.group(3))) or not first<=day<=last:
-                raise RuntimeError("Malta release date differs from its official URL")
-            title=re.sub(r"\s+"," ",html.unescape(row.get("Title") or "")).strip()
-            parser=MaltaContent(); parser.feed(row.get("Gov_MainContent") or "")
-            body=re.sub(r"\s+"," ",html.unescape(" ".join(parser.parts))).strip()
-            if not title or len(body)<40: raise RuntimeError("Malta release has no usable title or article text")
-            article_url="https://www.gov.mt"+urllib.parse.quote(path,safe="/")
-            key=slug.removesuffix("en")
-            item={"country":country["name"],"country_code":"MT","url":article_url,"title":title,
-                  "published_at":published.isoformat(),"published_date":day.isoformat(),
-                  "publication_precision":"day","text":body}
-            previous=entries.get(key)
-            is_english=slug.endswith("en")
+    entries={}
+    for page_number in range(1,101):
+        url=MALTA_ARCHIVE+(f"?p={page_number}" if page_number>1 else "")
+        page=fetch_malta_html(url)
+        cards=re.findall(r'<a href="(/press-release/20\d{2}/[^"]+)"[^>]*>(.*?)</a>',page,re.S)
+        if not cards: raise RuntimeError("Malta press-release archive has no dated cards")
+        older=False
+        for raw_path,card in cards:
+            date_match=re.search(r"\b(\d{2})/(\d{2})/(20\d{2})\b",card)
+            number_match=re.search(r"<span[^>]*>\s*(PR\d{6}(?:EN)?)\s*</span>",card,re.I)
+            spans=re.findall(r"<span[^>]*>(.*?)</span>",card,re.S)
+            if not date_match or not number_match or len(spans)<2:
+                raise RuntimeError("Malta press-release card lacks date, number, or title")
+            day=dt.date(int(date_match.group(3)),int(date_match.group(2)),int(date_match.group(1)))
+            if day<first: older=True; continue
+            if day>last: continue
+            path=html.unescape(raw_path)
+            article_url=urllib.parse.urljoin("https://departmentofinformation.gov.mt",path)
+            if not MALTA_ARTICLE_PATH.fullmatch(urllib.parse.urlsplit(article_url).path):
+                raise RuntimeError("Malta press-release card has an unexpected URL")
+            number=number_match.group(1).lower(); key=number.removesuffix("en")
+            title=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",spans[-1]))).strip()
+            if not title: raise RuntimeError("Malta press-release card has no title")
+            previous=entries.get(key); is_english=number.endswith("en")
             if previous and previous[0]==is_english and previous[1]["url"]!=article_url:
                 raise RuntimeError("Malta archive repeated a release number")
-            if not previous or is_english: entries[key]=(is_english,item)
-        url=payload.get("odata.nextLink")
-    return [item for _,item in entries.values()],country["url"]
+            if not previous or is_english:
+                published=dt.datetime.combine(day,dt.time.min,MALTA).astimezone(dt.timezone.utc)
+                entries[key]=(is_english,{"country":country["name"],"country_code":"MT","url":article_url,
+                                          "title":title,"published_at":published.isoformat(),
+                                          "published_date":day.isoformat(),"publication_precision":"day","text":""})
+        if older or not re.search(r'href="/en/search/press-releases\?p='+str(page_number+1)+r'"',page): break
+    else: raise RuntimeError("Malta press-release archive exceeded 100 pages")
+    items=[]
+    for _,item in entries.values():
+        article=fetch_malta_html(item["url"])
+        parser=MaltaContent(); parser.feed(article)
+        body=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        if not parser.found or len(body)<40: raise RuntimeError("Malta release has no usable article text")
+        item["text"]=body
+        items.append(item)
+    return items,country["url"]
 
 
 NORWAY_MINISTRY_IDS=(875,165,298,810,750,216,380,421,463,668,504,545,586,627,709,791,833,-1)

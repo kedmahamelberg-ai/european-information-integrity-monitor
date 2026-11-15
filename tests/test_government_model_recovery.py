@@ -184,7 +184,7 @@ class GovernmentModelRecoveryTests(unittest.TestCase):
             with self.assertRaises(urllib.error.HTTPError):collector.fetch("url")
             self.assertEqual(call.call_count,1)
 
-    def test_czech_office_events_are_official_but_external_hosts_rejected(self):
+    def test_czech_office_events_and_press_releases_are_official_but_external_hosts_rejected(self):
         country={"url":"https://vlada.gov.cz/scripts/detail.php?pgid=1305","name":"Czechia"}
         article="https://vlada.gov.cz/cz/urad-vlady/akce/strakova-akademie-229507/"
         def page(url):return f'<div class="list__item"><div class="post__date"><p>28. 10. 2026</p></div><a href="{url}" class="post__link">Official event</a>'.encode()
@@ -192,6 +192,10 @@ class GovernmentModelRecoveryTests(unittest.TestCase):
         with patch.object(collector,"fetch",return_value=(country["url"],page(article))):
             items,_=collector.discover_czechia(country,start,end)
             self.assertEqual(items[0]["url"],article)
+        press="https://vlada.gov.cz/cz/media-centrum/tiskove-zpravy/official-229507/"
+        with patch.object(collector,"fetch",return_value=(country["url"],page(press))):
+            items,_=collector.discover_czechia(country,start,end)
+            self.assertEqual(items[0]["url"],press)
         with patch.object(collector,"fetch",return_value=(country["url"],page(article.replace("vlada.gov.cz/","vlada.gov.cz.evil.example/")))):
             with self.assertRaisesRegex(RuntimeError,"Unexpected Czech"):
                 collector.discover_czechia(country,start,end)

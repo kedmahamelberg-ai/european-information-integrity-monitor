@@ -131,6 +131,9 @@ jobs:
           if [ "$CLASSIFY_ONLY" = "true" ]; then args+=(--classify-only); fi
           if [ "$DISCOVERY_ONLY" = "true" ]; then args+=(--discovery-only); fi
           python scripts/collect_government_news.py "${args[@]}"
+      - name: Disconnect the Malta WARP proxy
+        if: always() && steps.malta_warp.outcome == 'success'
+        run: sudo warp-cli --accept-tos disconnect
       - name: Summarize source access
         if: always()
         run: python scripts/report_government_sources.py
