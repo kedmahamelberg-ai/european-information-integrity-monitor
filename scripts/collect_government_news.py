@@ -1978,25 +1978,48 @@ MALTA_ARCHIVE = "https://departmentofinformation.gov.mt/en/search/press-releases
 MALTA_ARTICLE_PATH = re.compile(r"/press-release/20\d{2}/[^/?#]+\Z")
 
 
-def fetch_malta_html(url):
+def fetch_malta_html(url, expect_html=True):
     """Use the WARP proxy for the DOI's current official archive and articles."""
     parsed=urllib.parse.urlsplit(url)
     if (parsed.scheme!="https" or parsed.netloc!="departmentofinformation.gov.mt" or
             not (parsed.path=="/en/search/press-releases" or MALTA_ARTICLE_PATH.fullmatch(parsed.path))):
         raise RuntimeError("Malta fetch left the official press-release site")
     proxy=os.getenv("MALTA_WARP_PROXY","")
-    command=["curl","-fsSL","--compressed","--max-time","20","--max-filesize","2000000","-A",UA]
+    command=["curl","-fsSL","--compressed","--max-time","20","--max-filesize","2000000",
+             "--retry","2","--retry-all-errors","--retry-delay","1","-A",UA]
     if proxy:
         parsed=urllib.parse.urlsplit(proxy)
         if parsed.scheme!="socks5h" or parsed.hostname!="127.0.0.1" or not parsed.port or parsed.username or parsed.password:
             raise RuntimeError("Malta WARP proxy must be a local SOCKS5 endpoint")
         command.extend(["--proxy",proxy])
-    response=subprocess.run(command+[transport_url(url)],capture_output=True,timeout=23)
+    try:
+        response=subprocess.run(command+[transport_url(url)],capture_output=True,timeout=65)
+    except subprocess.TimeoutExpired as error:
+        raise TimeoutError("Malta press-release fetch timed out") from error
     if response.returncode:
-        raise RuntimeError(f"Malta press-release fetch failed: {response.stderr.decode('utf-8','replace')[:180]}")
+        path=urllib.parse.urlsplit(url).path
+        raise RuntimeError(f"Malta press-release fetch failed for {path}: {response.stderr.decode('utf-8','replace')[:180]}")
     page=response.stdout.decode("utf-8","replace")
-    if "<html" not in page.lower(): raise RuntimeError("Malta press-release response is not HTML")
+    if expect_html and "<html" not in page.lower(): raise RuntimeError("Malta press-release response is not HTML")
     return page
+
+
+def malta_rss_text():
+    """Use DOI's full-text RSS for recent releases when article pages are restricted."""
+    feed=fetch_malta_html(MALTA_ARCHIVE+"?handler=rss",expect_html=False)
+    root=ET.fromstring(feed)
+    posts=root.findall("./channel/item")
+    if not posts: raise RuntimeError("Malta press-release RSS has no items")
+    text_by_url={}
+    for post in posts:
+        url=post.findtext("link") or ""
+        parsed=urllib.parse.urlsplit(url)
+        if parsed.scheme!="https" or parsed.netloc!="departmentofinformation.gov.mt" or not MALTA_ARTICLE_PATH.fullmatch(parsed.path):
+            raise RuntimeError("Malta RSS contains a nonofficial article URL")
+        markup=post.findtext("{http://purl.org/rss/1.0/modules/content/}encoded") or ""
+        body=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",markup))).strip()
+        if len(body)>=40: text_by_url[canonical_source_url(url)]=body
+    return text_by_url
 
 
 def discover_malta(country,start,end):
@@ -2035,13 +2058,14 @@ def discover_malta(country,start,end):
                                           "published_date":day.isoformat(),"publication_precision":"day","text":""})
         if older or not re.search(r'href="/en/search/press-releases\?p='+str(page_number+1)+r'"',page): break
     else: raise RuntimeError("Malta press-release archive exceeded 100 pages")
+    try:
+        feed_text=malta_rss_text()
+    except (RuntimeError,ET.ParseError,TimeoutError) as error:
+        print(f"::warning::Malta RSS fallback unavailable: {type(error).__name__}",flush=True)
+        feed_text={}
     items=[]
     for _,item in entries.values():
-        article=fetch_malta_html(item["url"])
-        parser=MaltaContent(); parser.feed(article)
-        body=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
-        if not parser.found or len(body)<40: raise RuntimeError("Malta release has no usable article text")
-        item["text"]=body
+        item["text"]=feed_text.get(canonical_source_url(item["url"]),"")
         items.append(item)
     return items,country["url"]
 
@@ -2196,6 +2220,12 @@ def article_text(item):
         return body
     if item["country_code"]=="MT":
         body=item.get("text","")
+        if len(body)<40:
+            article=fetch_malta_html(item["url"])
+            parser=MaltaContent(); parser.feed(article)
+            body=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+            if not parser.found: raise RuntimeError("Malta release has no usable article body")
+            item["text"]=body
         if len(body)<40: raise RuntimeError("Malta official release has no usable body text")
         return body
     if item["country_code"]=="UA":
@@ -2719,7 +2749,9 @@ def main():
                 text=article_text(item)
             except (TimeoutError, urllib.error.URLError, OSError, RuntimeError, UnicodeError, ValueError, http.client.InvalidURL) as error:
                 # Preserve this URL for a later retry without stopping the batch.
-                item["classification_status"]="needs_review" if isinstance(error,RuntimeError) else "pending_classification"
+                transient_malta_fetch=(item["country_code"]=="MT" and isinstance(error,RuntimeError)
+                                       and "press-release fetch failed" in str(error))
+                item["classification_status"]="needs_review" if isinstance(error,RuntimeError) and not transient_malta_fetch else "pending_classification"
                 item["classification_error"]=type(error).__name__
                 article_failures.append({"country_code":item["country_code"],"url":item["url"],
                                          "error":type(error).__name__,**source_failure_diagnostic(error)})
