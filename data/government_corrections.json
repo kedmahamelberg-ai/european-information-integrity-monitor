@@ -401,11 +401,8 @@
     "id": "86c3188c00271db6fa55",
     "source_title": "Ebba Busch deltar på lanseringen av superdator",
     "source_summary": "Energy and Industry Minister Ebba Busch will inaugurate Sferical's Nvidia-based supercomputer on October 15. Media access is provided; press secretary Axel Vide is the contact person.",
-    "source_fingerprint": "0dd7dc35764abed2d097b76dd12439c8ed4173ff1b71baeded4beab906e103c6",
-    "relevance": "related",
-    "topics": [
-      "artificial_intelligence"
-    ],
+    "relevance": "not_related",
+    "topics": [],
     "roles": [],
     "viewpoint_structure": "single_viewpoint",
     "viewpoints": [
@@ -419,7 +416,7 @@
     ],
     "evidence_status": "reported",
     "evidence_quote": "Minister for Energy and Industry Ebba Busch will participate in the inauguration of Sferical's new supercomputer, built with Nvidia technology.",
-    "short_rationale": "The announcement concerns a tech event opening without stating any national or collective security, resource, sovereignty, or resilience implications.",
+    "short_rationale": "The official notice only announces a minister attending a Nvidia-based supercomputer launch; it does not describe AI or a security implication.",
     "ticker_message": "Swedish Minister to inaugurate Sferical's Nvidia-based supercomputer; event open to media."
   },
   {
@@ -1318,5 +1315,180 @@
         "evidence_quote": "La Consulta chiede che tutti i cittadini sammarinesi ovunque risiedano, quando si trovano in Repubblica per periodi temporanei, abbiano le stesse tutele sanitarie dei cittadini residenti."
       }
     ]
+  },
+  {
+    "id": "71d90ca03de75aa9ce0c",
+    "source_title": "Dagur íslenskrar tungu: Verðlaunaafhending í Eddu og ákall til Apple",
+    "source_summary": "The ministry announces Icelandic Language Day events, including the 31st Jónas Hallgrímsson Award ceremony and a public call urging Apple to add Icelandic to its operating system. It also lists cultural and academic events for Icelandic Week, 16–22 November 2026.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "short_rationale": "The official Icelandic Language Day notice requests operating-system language support but states no AI measure or collective security action.",
+    "ticker_message": "Iceland's culture minister urges Apple to add Icelandic language support to its operating system."
+  },
+  {
+    "id": "98bc0ac5ebc08d929d74",
+    "source_title": "De nordiske lande forpligter sig til bedre digital beskyttelse af børn og unge",
+    "source_summary": "Nordic leaders from Denmark, Greenland, Faroe Islands, Sweden, Norway, Finland, Åland, and Iceland adopt the \"Marienborg Manifesto\" to enhance children and youth's digital protection, advocating tougher regulation of tech giants, social media age limits, and banning private smart devices in schools.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "short_rationale": "The official Nordic child-safety manifesto concerns social media and devices; it does not make an AI claim or a qualifying security proposition.",
+    "ticker_message": "Nordic leaders unite to regulate tech giants and strengthen online protections for children and youth."
+  },
+  {
+    "id": "437064355675a5927575",
+    "source_title": "Portugal e China retomam Comissão Mista de Ciência e Tecnologia e definem áreas prioritárias de cooperação",
+    "source_summary": "Portugal's Minister of Education, Science, and Innovation and Secretary of State begin an official China visit to resume the Mixed Science and Technology Committee, define cooperation priorities, and advance mutual academic recognition, aiming for a joint science and innovation plan through 2030.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "short_rationale": "The official Portugal-China notice lists broad science cooperation; AI2 is an agency acronym, not an AI initiative or security measure.",
+    "ticker_message": "Portugal and China advance joint science and innovation cooperation with focus on education and tech partnerships."
+  },
+  {
+    "id": "bed05a40fa6ac5a09c27",
+    "source_title": "Eric Thill en Corée du Sud: coopération culturelle, industries créatives et devoir de mémoire",
+    "source_summary": "In October 2026, Luxembourg's Culture Minister Eric Thill led a delegation to South Korea, signing a cooperation agreement between Luxembourg's Film Fund and KOFIC to boost audiovisual partnerships. The visit included industry networking, cultural exchanges, and a commemorative tribute to Korean War volunteers, reinforcing historical ties and creative collaboration.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "short_rationale": "The official South Korea visit concerns film, cultural exchange and remembrance; it contains no AI initiative or security proposition.",
+    "ticker_message": "Luxembourg and South Korea solidify cultural ties and historical memory, reinforcing peace and creative industry collaboration."
+  },
+  {
+    "id": "cb2083817c398390b4fa",
+    "source_title": "STQARRIJA MILL-MINISTERU GĦAT-TURIŻMU Malta fiċ-ċentru tal-industrija globali tat-turiżmu hekk kif ingħata bidu għall-WTTC Global Summit",
+    "source_summary": "Malta hosts the WTTC Global Summit with over 1,000 delegates, highlighting its strong tourism growth. The event focuses on investment, innovation, and sustainability, recognizing tourism's economic importance to Malta and Europe. Malta aims to develop quality, sustainable tourism and strengthen its global industry role.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "short_rationale": "The official Malta WTTC summit notice discusses tourism, investment and sustainability; it does not describe AI or a qualifying security measure.",
+    "ticker_message": "Malta hosts global tourism summit emphasizing sustainable growth and innovation in a key economic sector."
+  },
+  {
+    "id": "7ad3aaabe846edc6dba5",
+    "source_title": "Állami kitüntetéseket adtak át október 23-a alkalmából",
+    "source_summary": "To mark the 1956 revolution's 70th anniversary, Hungary honored notable citizens across various fields for their contributions to culture, science, and public service through prestigious state awards.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "short_rationale": "This official state-awards list mentions an AI-related honoree but announces no AI policy, use, risk or security action.",
+    "ticker_message": "Hungary awards state honors recognizing contributions to culture, security, health, and education."
+  },
+  {
+    "id": "4b17b4aed93075756ee4",
+    "source_title": "Nieuwe ronde investeringsfonds startups ETCI, kabinet investeert €200 miljoen",
+    "source_summary": "The Netherlands is investing €200 million in ETCI’s second round to help startups scale up. The initiative pools public and European investment to fund private investment funds. The first round supported seven Dutch startups, including biotech company Azafaros.",
+    "relevance": "related",
+    "topics": [
+      "economic_financial_security",
+      "technology_supply_chains"
+    ],
+    "short_rationale": "The working official ETCI announcement concerns startup investment and strategic technology funding but does not specify AI."
+  },
+  {
+    "id": "fcc7f24b350f296891b7",
+    "source_title": "Участие в сессии Совета коллективной безопасности ОДКБ",
+    "source_summary": "At a Kremlin CSTO summit, Alexander Lukashenko urged stronger military and counterterrorism cooperation, technological readiness, and support for member states, while warning of Western militarization and hybrid threats. The summit signed about two dozen documents, including a counterterrorism strategy through 2030.",
+    "relevance": "related",
+    "topics": [
+      "military_defence",
+      "diplomacy_alliances",
+      "cyber",
+      "information_influence",
+      "sovereignty_borders",
+      "terrorism_organised_crime",
+      "critical_infrastructure",
+      "armed_conflict"
+    ],
+    "short_rationale": "The CSTO speech contains only a passing AI aside; its substantive proposals concern defence, terrorism and allied security cooperation."
+  },
+  {
+    "id": "0e0533db45de78e78dee",
+    "source_title": "Участие в IV Минской международной конференции по евразийской безопасности",
+    "source_summary": "At the Minsk conference, Alexander Lukashenko called for dialogue, compromise and cooperation, including an early Ukraine peace agreement, and warned of escalation and Belarus’s involvement. He criticized Western sanctions, militarization and international organizations, and advocated a broadly developed Eurasian Charter for security and cooperation.",
+    "relevance": "related",
+    "topics": [
+      "military_defence",
+      "armed_conflict",
+      "nuclear_cbrn",
+      "diplomacy_alliances",
+      "sovereignty_borders",
+      "energy",
+      "food_security",
+      "climate_environment",
+      "terrorism_organised_crime",
+      "migration_displacement",
+      "civil_protection"
+    ],
+    "short_rationale": "The Eurasian security speech lists AI among many risks but makes no substantive AI proposal; retain its directly evidenced security topics."
+  },
+  {
+    "id": "80fe0d2b2dc9532f9e29",
+    "source_title": "Military planes and helicopters to fight wildfires from the sky",
+    "source_summary": "The UK government is investing in aerial firefighting, specialist equipment, landscape restoration, and AI to strengthen wildfire response and prevention. A new Wildfire Action Plan and cross-government coordination aim to enhance resilience amid growing climate risks, supported by industry partnerships and funding.",
+    "relevance": "related",
+    "topics": [
+      "climate_environment",
+      "civil_protection",
+      "technology_supply_chains",
+      "artificial_intelligence"
+    ],
+    "short_rationale": "The official communication substantively describes AI as part of its stated collective safety, infrastructure or information-security response."
+  },
+  {
+    "id": "fef43dfa7e748f727604",
+    "source_title": "We twijfelen allemaal, maar klikken toch: 4 op de 10 heeft weleens klikspijt",
+    "source_summary": "A 2026 Dutch government campaign urges people to take three seconds before clicking suspicious links to combat widespread online crime. Research shows 94% doubt message reliability, yet many click hastily, leading to regret and risks like data theft and financial loss.",
+    "relevance": "related",
+    "topics": [
+      "cyber",
+      "information_influence",
+      "civil_protection",
+      "artificial_intelligence"
+    ],
+    "short_rationale": "The official communication substantively describes AI as part of its stated collective safety, infrastructure or information-security response."
+  },
+  {
+    "id": "53bed82538ab94c28daf",
+    "source_title": "Цифрландыру шекарада жүк күту уақытын 10 есеге қысқартты",
+    "source_summary": "At a government meeting, Kazakhstan's Transport Minister outlined progress on the Digital Qazaqstan strategy, highlighting digital freight passports, AI-based monitoring, reduced waiting times at checkpoints, and plans to integrate with international platforms to enhance transport efficiency and service delivery.",
+    "relevance": "related",
+    "topics": [
+      "technology_supply_chains",
+      "economic_financial_security",
+      "critical_infrastructure",
+      "artificial_intelligence"
+    ],
+    "short_rationale": "The official communication substantively describes AI as part of its stated collective safety, infrastructure or information-security response."
+  },
+  {
+    "id": "01fe81c9712582479724",
+    "source_title": "Σημεία συζήτησης του Υφυπουργού παρά τω Πρωθυπουργώ και Κυβερνητικού Εκπροσώπου Παύλου Μαρινάκη με τον δημοσιογράφο Γιώργο Ευγενίδη στο 1ο AthensMedia & Communications Summit",
+    "source_summary": "The spokesperson calls for credible media, user ID on social media, and European action against misinformation ahead of elections, emphasizing labeling AI videos. He highlights economic gains without added debt and outlines plans for job creation and tax support to aid citizens financially.",
+    "relevance": "related",
+    "topics": [
+      "information_influence",
+      "political_institutions",
+      "civil_protection",
+      "technology_supply_chains",
+      "artificial_intelligence"
+    ],
+    "short_rationale": "The official communication substantively describes AI as part of its stated collective safety, infrastructure or information-security response."
+  },
+  {
+    "id": "b1f70657a865d02bf9c2",
+    "source_title": "Олжас Бектенов Президенттің тапсырмасы бойынша Анталиядағы COP31 саммитіне қатысты",
+    "source_summary": "Prime Minister Olzhas Bektenov attended COP31 in Antalya, outlining Kazakhstan’s environmental and climate initiatives, energy goals, and proposals for international cooperation. Kazakhstan also presented projects at its national pavilion and signed approximately $1.2 billion in agreements on renewable energy and gas infrastructure.",
+    "english_summary": "At COP31, Kazakhstan said it is introducing AI and space monitoring to forecast natural hazards and prevent emergencies. Prime Minister Bektenov also presented climate and energy projects and international cooperation proposals.",
+    "ticker_message": "Kazakhstan says AI and space monitoring will help forecast natural hazards and prevent emergencies."
+  },
+  {
+    "id": "5f4fb3551ad7e6c5b6b6",
+    "source_title": "Noorte sotsiaalmeedia nõukoda: noored eelistavad mõõdukaid piiranguid lauskeeldudele",
+    "source_summary": "The Government’s youth social media and mental health council reported on nationwide student workshops and research into school rules. Young people generally favored moderate restrictions, citing online harms but also concerns about strict bans. The council will continue its analysis and publish recommendations in December.",
+    "english_summary": "Estonia’s youth council says students favor moderate social-media limits. Workshops identified AI misuse, misinformation and online scams among digital risks; the council will publish recommendations in December.",
+    "ticker_message": "Estonian youth council flags AI misuse and online scams while weighing moderate social-media limits."
   }
 ]
