@@ -1557,7 +1557,17 @@
     "source_title": "PRESS RELEASE BY THE OFFICE OF THE SPEAKER The Speaker participates in the Paris Peace Forum, highlighting the importance of protecting children in the digital world and strengthening democracy and security through international cooperation",
     "source_summary": "Carmelo Abela addressed child safety online and parliament’s role in balancing security with social needs at the Paris Peace Forum 2026. He called for shared responsibility, democratic safeguards, international cooperation and diplomacy, and attended an official dinner hosted by French President Emmanuel Macron.",
     "english_summary": "At the Paris Peace Forum, Malta’s Speaker discussed security and children’s online safety, warning that AI and other emerging technologies add risks requiring democratic safeguards and international cooperation.",
-    "ticker_message": "Malta’s Speaker warns of AI-related security risks and urges democratic safeguards."
+    "ticker_message": "Malta’s Speaker warns of AI-related security risks and urges democratic safeguards.",
+    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review",
+    "short_rationale": "The Paris Peace Forum release mentions AI only in a list of emerging security challenges. It reports no AI-specific action, position or proposal.",
+    "topics": [
+      "cyber",
+      "civil_protection",
+      "military_defence",
+      "sovereignty_borders",
+      "diplomacy_alliances",
+      "political_institutions"
+    ]
   },
   {
     "id": "278e70e88147bb2c9b11",
@@ -1821,5 +1831,22 @@
     "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
     "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
     "ticker_message": "Malta's PM discusses AI strategy and training at European leaders' summit."
+  },
+  {
+    "id": "6d4549f0ede5286da450",
+    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review",
+    "short_rationale": "The bilateral meeting release lists AI among digital transformation work areas but identifies no AI measure, project or cooperation commitment.",
+    "topics": [
+      "cyber",
+      "technology_supply_chains"
+    ]
+  },
+  {
+    "id": "d5bd8dc30815b44a0518",
+    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review",
+    "short_rationale": "The meeting release lists the telecom firm's AI capabilities among several technologies but reports no AI investment or specific agreement.",
+    "topics": [
+      "cyber"
+    ]
   }
 ]
