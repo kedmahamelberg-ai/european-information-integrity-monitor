@@ -1,6 +1,6 @@
 # Independent government collection clock
 
-Status: 15:00 clock activated October 19, 2026. The 09:00 clock and afternoon phase are added by `government-early-retry-clock.sql`. Vault token expires November 18, 2026; renew before that date. Authenticated read of the workflow endpoint returned HTTP 200.
+Status: 15:00 clock activated October 19, 2026. The 09:00 clock and afternoon phase are added by `government-early-retry-clock.sql`. Vault token expiration was renewed to February 10, 2027; verified from GitHub's authenticated response header on November 17, 2026. Authenticated read of the workflow endpoint returned HTTP 200.
 
 GitHub scheduled events arrived hours late on October 19. Supabase pg_cron dispatches the main-branch workflow at 09:00 and 15:00 Europe/Amsterdam (including daylight-saving changes). GitHub runner queues can still delay actual job start; this removes dependence on GitHub's cron event delivery. Both passes check all ready sources. The 15:00 pass starts from each source's saved checkpoint, so a successful 09:00 check does not suppress afternoon publications. If the early run or its cache is missing, the afternoon run still checks all ready sources. The scheduler continues to send `daily_phase=retry` as the identifier for the afternoon full pass.
 
