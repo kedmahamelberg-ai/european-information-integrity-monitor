@@ -850,7 +850,7 @@
     "short_rationale": "AI's economic impact is one item on an upcoming meeting agenda; the source reports no AI decision or position.",
     "ticker_message": "Sweden's Finance Minister leads final Development Committee meeting focusing on global economic risks and growth.",
     "review_decision": "remove_artificial_intelligence_topic_after_full_source_review",
-    "source_fingerprint": "9880779492c6a0b9a2b05d07c5554c1ce8162a43eb9b6a3e6947cc2c2bc6b900"
+    "english_summary": "Finance Minister Elisabeth Svantesson will chair her final World Bank and IMF Development Committee meeting in Bangkok. The agenda covers job creation, private capital, economic imbalances and other global growth issues."
   },
   {
     "id": "80694c292343f0cea53b",
@@ -1556,8 +1556,8 @@
     "id": "607c8db40269b90ba99a",
     "source_title": "PRESS RELEASE BY THE OFFICE OF THE SPEAKER The Speaker participates in the Paris Peace Forum, highlighting the importance of protecting children in the digital world and strengthening democracy and security through international cooperation",
     "source_summary": "Carmelo Abela addressed child safety online and parliament’s role in balancing security with social needs at the Paris Peace Forum 2026. He called for shared responsibility, democratic safeguards, international cooperation and diplomacy, and attended an official dinner hosted by French President Emmanuel Macron.",
-    "english_summary": "At the Paris Peace Forum, Malta’s Speaker discussed security and children’s online safety, warning that AI and other emerging technologies add risks requiring democratic safeguards and international cooperation.",
-    "ticker_message": "Malta’s Speaker warns of AI-related security risks and urges democratic safeguards.",
+    "english_summary": "At the Paris Peace Forum, Malta's Speaker urged stronger protection for children online and said security measures should respect democratic values. He cited cyberbullying, harmful content, privacy and the need for cooperation among governments, families, educators and technology companies.",
+    "ticker_message": "Malta's Speaker calls for child online safety and democratic safeguards at Paris Peace Forum.",
     "review_decision": "remove_artificial_intelligence_topic_after_full_source_review",
     "short_rationale": "The Paris Peace Forum release mentions AI only in a list of emerging security challenges. It reports no AI-specific action, position or proposal.",
     "topics": [
@@ -1694,7 +1694,8 @@
       "health_biosecurity"
     ],
     "short_rationale": "The broad budget speech mentions AI among future investment areas but gives no AI measure or specific commitment.",
-    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review"
+    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review",
+    "english_summary": "Prime Minister Robert Abela presented Malta's 2027 Budget, emphasising stable energy prices, tax cuts, social benefits and capital projects. He framed the package as support for families and businesses amid wider European economic pressures."
   },
   {
     "id": "c884c90063d14488df22",
@@ -1707,7 +1708,8 @@
       "civil_protection"
     ],
     "short_rationale": "The EPC release lists AI among bilateral discussion topics without a distinct AI action, position or outcome.",
-    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review"
+    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review",
+    "english_summary": "At the EPC meeting in Dublin, Brigitte Haas discussed European security, cyber threats, Ukraine, democratic protection and digital sovereignty. She also held bilateral talks on resilient public-sector digitalisation and European cooperation."
   },
   {
     "id": "697ba1defa9052c086a6",
@@ -1717,7 +1719,8 @@
       "political_institutions"
     ],
     "short_rationale": "The architecture remarks mention possible AI assistance; reported security actions concern public order and waste, with no AI action announced.",
-    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review"
+    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review",
+    "english_summary": "Croatia's Deputy Prime Minister Branko Bačić discussed architectural policy to improve construction quality and preserve spatial identity. He backed police action following unrest in Split and updated reporters on hazardous-waste remediation in Gospić."
   },
   {
     "id": "3b4f33c624edce8d650c",
@@ -1726,7 +1729,8 @@
       "political_institutions"
     ],
     "short_rationale": "AI is named as a future challenge for higher-education quality evaluation, without a specific AI measure or action.",
-    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review"
+    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review",
+    "ticker_message": "Andorra joins European higher-education quality governance and strengthens its evaluation standards."
   },
   {
     "id": "6b81efe72d632959d31f",
@@ -1839,7 +1843,9 @@
     "topics": [
       "cyber",
       "technology_supply_chains"
-    ]
+    ],
+    "ticker_message": "Azerbaijan discusses digital cooperation and cybersecurity with Digital Cooperation Organization.",
+    "english_summary": "Azerbaijan's Prime Minister met the Digital Cooperation Organization's Secretary-General to discuss digital transformation and international cooperation. The government described work on digital infrastructure, public services, cybersecurity and innovation, with prospects for knowledge exchange and joint initiatives."
   },
   {
     "id": "d5bd8dc30815b44a0518",
@@ -1847,6 +1853,8 @@
     "short_rationale": "The meeting release lists the telecom firm's AI capabilities among several technologies but reports no AI investment or specific agreement.",
     "topics": [
       "cyber"
-    ]
+    ],
+    "ticker_message": "North Macedonia and Deutsche Telekom discuss digital investment and cybersecurity cooperation.",
+    "english_summary": "Prime Minister Hristijan Mickoski and his delegation met Deutsche Telekom executives to discuss digital investment and cooperation. The talks covered communications, cloud services, cybersecurity, smart cities and Europe's digital resilience and competitiveness."
   }
 ]
