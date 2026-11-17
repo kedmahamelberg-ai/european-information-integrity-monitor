@@ -829,12 +829,10 @@
     "id": "2ef8b32ccea37b779106",
     "source_title": "Finansministern till IMF:s och Världsbankens årsmöten i Bangkok",
     "source_summary": "Finance Minister Elisabeth Svantesson will lead her final meeting as chair of the World Bank and IMF Development Committee during the IMF and World Bank annual meetings in Bangkok, discussing global economic issues including job creation, private capital mobilization, economic imbalances, and AI's impact.",
-    "source_fingerprint": "9880779492c6a0b9a2b05d07c5554c1ce8162a43eb9b6a3e6947cc2c2bc6b900",
     "relevance": "related",
     "topics": [
       "economic_financial_security",
-      "diplomacy_alliances",
-      "artificial_intelligence"
+      "diplomacy_alliances"
     ],
     "roles": [],
     "viewpoint_structure": "single_viewpoint",
@@ -849,8 +847,10 @@
     ],
     "evidence_status": "reported",
     "evidence_quote": "During the annual meetings, the global economic situation, conditions for economic development, and risks in the global economy will be discussed. The World Bank will focus on how to mobilize more private capital to create jobs, while the IMF will focus on global economic imbalances, rising government debt interest rates, and the economic consequences of AI.",
-    "short_rationale": "The official highlights engagement with global economic risks and development, focusing on managing financial challenges and supporting growth, relevant to economic and diplomatic security.",
-    "ticker_message": "Sweden's Finance Minister leads final Development Committee meeting focusing on global economic risks and growth."
+    "short_rationale": "AI's economic impact is one item on an upcoming meeting agenda; the source reports no AI decision or position.",
+    "ticker_message": "Sweden's Finance Minister leads final Development Committee meeting focusing on global economic risks and growth.",
+    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review",
+    "source_fingerprint": "9880779492c6a0b9a2b05d07c5554c1ce8162a43eb9b6a3e6947cc2c2bc6b900"
   },
   {
     "id": "80694c292343f0cea53b",
@@ -1448,7 +1448,9 @@
       "civil_protection",
       "artificial_intelligence"
     ],
-    "short_rationale": "The official communication substantively describes AI as part of its stated collective safety, infrastructure or information-security response."
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "english_summary": "The Dutch government's campaign asks people to pause three seconds before clicking suspicious links. It says criminals use AI and leaked data to make scams more convincing; survey respondents often recognised doubts only after clicking."
   },
   {
     "id": "53bed82538ab94c28daf",
@@ -1461,7 +1463,9 @@
       "critical_infrastructure",
       "artificial_intelligence"
     ],
-    "short_rationale": "The official communication substantively describes AI as part of its stated collective safety, infrastructure or information-security response."
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "ticker_message": "Kazakhstan uses AI-powered e-KOLIK system to monitor freight and transport networks."
   },
   {
     "id": "01fe81c9712582479724",
@@ -1553,7 +1557,17 @@
     "source_title": "PRESS RELEASE BY THE OFFICE OF THE SPEAKER The Speaker participates in the Paris Peace Forum, highlighting the importance of protecting children in the digital world and strengthening democracy and security through international cooperation",
     "source_summary": "Carmelo Abela addressed child safety online and parliament’s role in balancing security with social needs at the Paris Peace Forum 2026. He called for shared responsibility, democratic safeguards, international cooperation and diplomacy, and attended an official dinner hosted by French President Emmanuel Macron.",
     "english_summary": "At the Paris Peace Forum, Malta’s Speaker discussed security and children’s online safety, warning that AI and other emerging technologies add risks requiring democratic safeguards and international cooperation.",
-    "ticker_message": "Malta’s Speaker warns of AI-related security risks and urges democratic safeguards."
+    "ticker_message": "Malta’s Speaker warns of AI-related security risks and urges democratic safeguards.",
+    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review",
+    "short_rationale": "The Paris Peace Forum release mentions AI only in a list of emerging security challenges. It reports no AI-specific action, position or proposal.",
+    "topics": [
+      "cyber",
+      "civil_protection",
+      "military_defence",
+      "sovereignty_borders",
+      "diplomacy_alliances",
+      "political_institutions"
+    ]
   },
   {
     "id": "278e70e88147bb2c9b11",
@@ -1652,5 +1666,187 @@
     "source_summary": "Belarusian President Lukashenko greeted the Counter-Terrorism Forum in Minsk, emphasizing the global threat of terrorism and advocating collective efforts through international cooperation. He highlighted Belarus's initiative for a unified anti-terrorist front and the forum's role in advancing regional security and trust among intelligence agencies.",
     "english_summary": "At a Minsk counterterrorism forum, Belarus’s president warned that terrorist groups use AI alongside drones, cryptocurrency and closed online networks for propaganda, recruitment and funding. He called for stronger international cooperation.",
     "ticker_message": "Belarus cites terrorist use of AI and drones in call for counterterrorism cooperation."
+  },
+  {
+    "id": "9b77279893d759e215ed",
+    "topics": [
+      "climate_environment",
+      "critical_infrastructure",
+      "civil_protection"
+    ],
+    "short_rationale": "The source names the Ministry of Artificial Intelligence and Digital Development as an agency asked to modernise a flood information system; it does not describe AI use, policy or investment in the flood response.",
+    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review"
+  },
+  {
+    "id": "a23130a9897763be79c1",
+    "topics": [
+      "economic_financial_security",
+      "technology_supply_chains"
+    ],
+    "short_rationale": "The release lists AI among many startup sectors but identifies no AI-specific grant, recipient, action or outcome.",
+    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review"
+  },
+  {
+    "id": "31d97d70094a93bb3534",
+    "topics": [
+      "energy",
+      "economic_financial_security",
+      "health_biosecurity"
+    ],
+    "short_rationale": "The broad budget speech mentions AI among future investment areas but gives no AI measure or specific commitment.",
+    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review"
+  },
+  {
+    "id": "c884c90063d14488df22",
+    "topics": [
+      "cyber",
+      "information_influence",
+      "armed_conflict",
+      "political_institutions",
+      "diplomacy_alliances",
+      "civil_protection"
+    ],
+    "short_rationale": "The EPC release lists AI among bilateral discussion topics without a distinct AI action, position or outcome.",
+    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review"
+  },
+  {
+    "id": "697ba1defa9052c086a6",
+    "topics": [
+      "climate_environment",
+      "civil_protection",
+      "political_institutions"
+    ],
+    "short_rationale": "The architecture remarks mention possible AI assistance; reported security actions concern public order and waste, with no AI action announced.",
+    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review"
+  },
+  {
+    "id": "3b4f33c624edce8d650c",
+    "topics": [
+      "technology_supply_chains",
+      "political_institutions"
+    ],
+    "short_rationale": "AI is named as a future challenge for higher-education quality evaluation, without a specific AI measure or action.",
+    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review"
+  },
+  {
+    "id": "6b81efe72d632959d31f",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "english_summary": "Prime Minister Bektenov reviewed Pavlodar's Data Processing Centers Valley, including a 164 MW Firebird AI data centre under construction. Its first phase totals 304 MW across three centres. Officials were told to expand computing and power infrastructure and meet commissioning deadlines."
+  },
+  {
+    "id": "09fa9f199791dc447452",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "ticker_message": "Bulgaria plans its first AI gigafactory alongside increased science funding."
+  },
+  {
+    "id": "4b50327151948d74ac97",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "english_summary": "Croatia's Justice Minister proposed Criminal Code changes addressing online harassment and the non-consensual sharing of sexual deepfakes created with AI. The wider package also covers cyberstalking, explicit-image sharing and a separate law to protect minors online."
+  },
+  {
+    "id": "b2ef7fd09c67c3755618",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "ticker_message": "Georgia calls for AI oversight in Black Sea maritime security.",
+    "english_summary": "At a UN Security Council debate, Deputy Foreign Minister Totladze linked AI, modern monitoring and unmanned technologies to maritime security. She urged safeguards, oversight and accountability while citing threats from Russia's occupation of Georgian regions and war against Ukraine."
+  },
+  {
+    "id": "03f1c1d34f736656216a",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "ticker_message": "Luxembourg calls for patient-centred health AI at WHO Europe meeting."
+  },
+  {
+    "id": "1f54f33f92f0bd0fe08b",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "english_summary": "Estonia's cabinet agenda sets out its position on EU cloud and AI regulation: expand European computing capacity, define public-cloud trust levels, strengthen critical-sector security and reduce reliance on providers outside the EU. The agenda also covers domestic and foreign policy."
+  },
+  {
+    "id": "6fb4ad90738712d3ecac",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "ticker_message": "Netherlands backs AI-guided therapies and robotics in MedTech 2035 plan."
+  },
+  {
+    "id": "2c731ece44e2ceb3c59b",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "english_summary": "Portugal and China agreed to develop a 2027–2030 education action plan that includes AI-supported cooperation. They also plan talks on recognising higher-education qualifications and designated Portugal guest of honour at China's 2027 education exhibitions."
+  },
+  {
+    "id": "1a6e6a1257d7a963e080",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "english_summary": "At a health regulation conference, Malta's Deo Debattista said AI and digital tools can support care but cannot replace professional judgment and human empathy. He connected that principle to person-centred services, regulatory quality and Malta's active-ageing work."
+  },
+  {
+    "id": "e594c7311f82e803b4b7",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "ticker_message": "Switzerland's draft platform law covers major AI search engines and youth safeguards."
+  },
+  {
+    "id": "dfcdaa07e65074e914cf",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "english_summary": "Czech and Israeli experts discussed online threats to children, including risks linked to AI, and Israel's Unit 105 response model. Czech officials plan a coordinated protection system with a 24-hour reporting channel by 2028."
+  },
+  {
+    "id": "d002d8608028a6b07f70",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "ticker_message": "Poland and Norway commit to AI cooperation and risk safeguards in strategic partnership.",
+    "english_summary": "Their declaration commits to bilateral and international AI cooperation while managing risks from advanced systems, including transparent safety protocols. The wider partnership also covers defence, energy, cyber threats and support for Ukraine."
+  },
+  {
+    "id": "dedcc4dc5b8c1407eb65",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "ticker_message": "Bulgaria urges EU AI investment and help on Black Sea security."
+  },
+  {
+    "id": "7bad4878624d642efcbb",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "ticker_message": "Bulgaria cites its AI institute in pitch for high-value US investment."
+  },
+  {
+    "id": "8518710d06e83dae0210",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "ticker_message": "MED9 leaders call for AI investment and EU AI Act enforcement amid wider security agenda."
+  },
+  {
+    "id": "7caba08fbe4c1a5e96fb",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "english_summary": "Austria's municipal reform package includes a Public AI Initiative: shared infrastructure, governance and training coordinated across federal, state and local administrations. The wider package also proposes a municipal data platform, digital workshops and simpler procedures."
+  },
+  {
+    "id": "4b9b0f2cc0b30ae13056",
+    "review_decision": "retain_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The official source describes a substantive AI measure or risk; the saved display text states the specific connection.",
+    "ticker_message": "Malta's PM discusses AI strategy and training at European leaders' summit."
+  },
+  {
+    "id": "6d4549f0ede5286da450",
+    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review",
+    "short_rationale": "The bilateral meeting release lists AI among digital transformation work areas but identifies no AI measure, project or cooperation commitment.",
+    "topics": [
+      "cyber",
+      "technology_supply_chains"
+    ]
+  },
+  {
+    "id": "d5bd8dc30815b44a0518",
+    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review",
+    "short_rationale": "The meeting release lists the telecom firm's AI capabilities among several technologies but reports no AI investment or specific agreement.",
+    "topics": [
+      "cyber"
+    ]
   }
 ]
