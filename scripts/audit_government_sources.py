@@ -185,7 +185,7 @@ def main():
                   ": " + str(error), flush=True)
             save_progress()
             continue
-        checked[ident] = {"fingerprint": source_evidence_fingerprint(item),
+        checked[ident] = {"fingerprint": audit_fingerprint(item),
                           "checked_at": now, "source_url": item["url"],
                           "issue_count": len(issues)}
         if issues:

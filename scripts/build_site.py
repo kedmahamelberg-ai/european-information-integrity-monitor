@@ -60,6 +60,9 @@ if not gov_public.exists():
     _, stale = apply_confirmed_corrections(snapshot["items"], corrections)
     if stale:
         print(f"Skipped {len(stale)} government reviews whose source evidence changed")
+    # Publication time must advance for source-only repairs and review-only builds,
+    # even when the full-collection cursor and item count have not changed.
+    snapshot["as_of"] = datetime.now(timezone.utc).isoformat()
     gov_public.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2) + "\n")
 if "--live" in sys.argv:
     sys.path.insert(0, str(ROOT / "src"))

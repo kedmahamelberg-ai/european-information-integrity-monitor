@@ -1,11 +1,14 @@
 """Verify source-audit cursor, date checks and change detection."""
 import datetime as dt
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+import audit_government_sources as audit
 from audit_government_sources import audit_fingerprint, audit_one, select_batch
 
 
@@ -49,6 +52,23 @@ class SourceAuditTests(unittest.TestCase):
             issues = audit_one(self.item)
         self.assertTrue(any(issue["field"] == "published_at" for issue in issues))
 
+    def test_saved_cursor_skips_unchanged_item_on_next_run(self):
+        with tempfile.TemporaryDirectory() as directory:
+            state = Path(directory) / "state.json"
+            report = Path(directory) / "report.json"
+            with patch.object(audit, "STATE", state), \
+                 patch.object(audit, "REPORT", report), \
+                 patch.object(audit, "fetch_snapshot", return_value={
+                     "as_of": "2026-11-18T20:00:00+00:00", "items": [self.item]}), \
+                 patch.object(audit, "audit_one", return_value=[]) as review, \
+                 patch.object(sys, "argv", ["audit_government_sources.py", "--limit", "1"]):
+                audit.main()
+                audit.main()
+            self.assertEqual(review.call_count, 1)
+            self.assertEqual(json.loads(state.read_text())["checked"]["example-id"]
+                             ["fingerprint"], audit_fingerprint(self.item))
+
 
 if __name__ == "__main__":
     unittest.main()
+
