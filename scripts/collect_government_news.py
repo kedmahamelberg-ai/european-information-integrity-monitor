@@ -2485,6 +2485,8 @@ def article_text(item):
         if marker<0: raise RuntimeError("German press release has no article content")
         parser=ClassText("bpa-richtext"); parser.feed(page[marker:])
         article=re.sub(r'\s+',' ',' '.join(parser.parts)).strip()
+        if re.fullmatch(r"Die Pressemitteilung finden Sie im Anhang\.?", article, re.I):
+            raise RuntimeError("German page is an attachment notice without usable article text")
         if len(article)<40: raise RuntimeError("German press release has no usable body text")
         return article
     if item["country_code"]=="SE":
@@ -2900,7 +2902,7 @@ def main():
                     existing[item["id"]]=item
                     STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
                 item["english_translation"],item["english_summary"]=translate_document(text,item.setdefault("translation_checkpoint",{}),save_translation_progress)
-                examples=[{**correction,"title":correction.get("source_title") or existing.get(ident,{}).get("title"),"summary":correction.get("source_summary") or existing.get(ident,{}).get("english_summary")} for ident,correction in correction_map.items()]
+                examples=[{**correction,"title":correction.get("source_title") or existing.get(ident,{}).get("title"),"summary":correction.get("source_summary") or existing.get(ident,{}).get("english_summary")} for ident,correction in correction_map.items() if not correction.get("withhold_reason")]
                 validation_note=""
                 for validation_attempt in range(2):
                     labels=ask_openai(item["english_translation"],True,examples,validation_note,item["country_code"])
