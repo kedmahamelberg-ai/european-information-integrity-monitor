@@ -115,12 +115,24 @@ def audit_one(item):
     return issues
 
 
-def select_batch(items, checked, limit):
+def select_batch(items, checked, attempted, limit, now):
     ordered = sorted(items, key=lambda item: (
         item.get("country_code") not in BENCHMARKS, item.get("id", "")))
-    return [item for item in ordered
-            if checked.get(item.get("id"), {}).get("fingerprint") !=
-               source_evidence_fingerprint(item)][:limit]
+    pending = []
+    for item in ordered:
+        ident = item.get("id")
+        fingerprint = source_evidence_fingerprint(item)
+        if checked.get(ident, {}).get("fingerprint") == fingerprint:
+            continue
+        previous = attempted.get(ident, {})
+        if previous.get("fingerprint") == fingerprint:
+            elapsed = now - dt.datetime.fromisoformat(previous["at"])
+            if elapsed < dt.timedelta(hours=24):
+                continue
+        pending.append(item)
+        if len(pending) == limit:
+            break
+    return pending
 
 
 def main():
@@ -133,10 +145,13 @@ def main():
     state = json.loads(STATE.read_text()) if STATE.exists() else {
         "version": 1, "checked": {}, "findings": {}}
     checked, findings = state["checked"], state["findings"]
-    batch = select_batch(snapshot["items"], checked, args.limit)
-    now = dt.datetime.now(dt.timezone.utc).isoformat()
+    attempted = state.setdefault("attempted", {})
+    now_time = dt.datetime.now(dt.timezone.utc)
+    now = now_time.isoformat()
+    batch = select_batch(snapshot["items"], checked, attempted, args.limit, now_time)
     for item in batch:
         ident = item["id"]
+        attempted[ident] = {"fingerprint": source_evidence_fingerprint(item), "at": now}
         print("Auditing " + item.get("country_code", "") + " " + ident, flush=True)
         try:
             issues = audit_one(item)
