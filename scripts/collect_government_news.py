@@ -2157,8 +2157,20 @@ def canada_release_date(url):
     match=CANADA_ISSUED.search(markup)
     if not match: raise RuntimeError("Canada release has no original issued date")
     parser=ClassText("news-release-container");parser.feed(markup)
-    if len(" ".join(parser.parts))<80: raise RuntimeError("Canada release has no usable full article body")
-    return dt.date.fromisoformat(match.group(1))
+    article=" ".join(parser.parts)
+    if len(article)<80: raise RuntimeError("Canada release has no usable full article body")
+    issued=dt.date.fromisoformat(match.group(1))
+    # Some Canada.ca releases have an updated dcterms.issued value while the
+    # visible dateline and the page-details date retain the actual release day.
+    dateline=re.search(r"\\b(January|February|March|April|May|June|July|August|September|October|November|December)\\s+(\\d{1,2}),?\\s+(20\\d{2})\\b",article[:900],re.I)
+    if dateline:
+        visible=dt.datetime.strptime(" ".join(dateline.groups()).replace(",",""),"%B %d %Y").date()
+        if visible!=issued:
+            details=re.search(r'<time\\b[^>]*\\bproperty=["\\\']dateModified["\\\'][^>]*>(20\\d{2}-\\d{2}-\\d{2})</time>',markup,re.I)
+            if not details or dt.date.fromisoformat(details.group(1))!=visible:
+                raise RuntimeError("Canada release date metadata conflicts with dateline; source review required")
+            return visible
+    return issued
 
 
 def discover_canada(country,start,end):
