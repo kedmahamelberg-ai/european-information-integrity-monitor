@@ -2515,8 +2515,10 @@ def article_text(item):
         return article
     if item["country_code"]=="HR":
         _,body=fetch(item["url"])
-        parser=ClassText("article-content"); parser.feed(body.decode("utf-8","replace"))
-        article=re.sub(r'\s+',' ',' '.join(parser.parts)).strip()
+        page=body.decode("utf-8","replace")
+        intro=ClassText("article-intro"); intro.feed(page)
+        content=ClassText("article-content"); content.feed(page)
+        article=re.sub(r'\s+',' ',' '.join(intro.parts+content.parts)).strip()
         if len(article)<40: raise RuntimeError("Croatian government article has no usable text")
         return article
     if item["country_code"]=="MD":

@@ -2256,5 +2256,55 @@
     "source_url": "https://www.bundesregierung.de/breg-de/aktuelles/pressemitteilungen/pressemitteilungen/wettbewerb-fuer-das-denkmal-zur-mahnung-und-erinnerung-an-die-opfer-der-kommunistischen-diktatur-in-deutschland-entschieden-2461476",
     "published_field": "english_summary, ticker_message, classification_status",
     "evidence": "The exact Bundesregierung page dated 2026-11-17 contains only Die Pressemitteilung finden Sie im Anhang. The HTML response has no usable attachment link; 42 extracted characters produced a provisional model response about missing text. A full official BKM article exists at https://kulturstaatsminister.de/presse/wettbewerb-fuer-das-denkmal-zur-mahnung-und-erinnerung-an-die-opfer-der-kommunistischen-diktatur-in-deutschland-entschieden, but this record has not been re-extracted and classified from that full source."
+  },
+  {
+    "id": "006eabe20e778f7bb041",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "41b13208debf233672a8d77db3887c6abeeced3ed04121b47b6f0b1d37bb488a",
+    "fault_type": "source_extraction_and_editorial",
+    "source_url": "https://vlada.gov.hr/odrzana-220-telefonska-sjednica-vlade/47520",
+    "published_field": "english_summary, ticker_message, evidence_quote, viewpoints, short_rationale",
+    "evidence": "The official page has a substantive article-intro before article-content; the collector extracted only article-content, which is a link to meeting materials.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "english_summary": "Croatia's government gave prior consent for its representative to accept other sponsors' amendments to the final bill amending the Hunting Act.",
+    "ticker_message": "Croatia authorizes acceptance of amendments to the Hunting Act bill.",
+    "short_rationale": "The cabinet reported a procedural decision on amendments to the Hunting Act bill.",
+    "evidence_quote": "Vlada je danas održala telefonsku sjednicu na kojoj je donijela Zaključak o davanju prethodne suglasnosti predstavniku Vlade Republike Hrvatske za prihvaćanje amandmana drugih predlagatelja na Konačni prijedlog zakona o izmjenama i dopunama Zakona o lovstvu.",
+    "viewpoints": [
+      {
+        "speaker": "Government of Croatia",
+        "summary": "The cabinet gave its representative prior consent to accept other sponsors’ amendments to the Hunting Act amendment bill.",
+        "target": "Hunting Act amendment bill",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "Vlada je danas održala telefonsku sjednicu na kojoj je donijela Zaključak o davanju prethodne suglasnosti predstavniku Vlade Republike Hrvatske za prihvaćanje amandmana drugih predlagatelja na Konačni prijedlog zakona o izmjenama i dopunama Zakona o lovstvu."
+      }
+    ]
+  },
+  {
+    "id": "14d698ef3b429b40f906",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "6b5688ec3e61cddf49e7f51f64552d49b8d202f45bb7c6685b08c6e80b4524e5",
+    "fault_type": "source_extraction_and_editorial",
+    "source_url": "https://vlada.gov.hr/odrzana-218-telefonska-sjednica-vlade/47495",
+    "published_field": "english_summary, ticker_message, evidence_quote, viewpoints, short_rationale",
+    "evidence": "The official page has a substantive article-intro before article-content; the collector extracted only article-content, which is a link to meeting materials.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "english_summary": "Croatia's government gave prior consent for its representatives to accept other sponsors' amendments to the 2026 state budget revision and the 2027–28 projections.",
+    "ticker_message": "Croatia authorizes acceptance of amendments to its 2026 budget revision.",
+    "short_rationale": "The cabinet reported a procedural decision on amendments to the 2026 budget revision and 2027–28 projections.",
+    "evidence_quote": "Vlada je danas održala telefonsku sjednicu na kojoj je donijela Zaključak o davanju prethodne suglasnosti predstavnicima Vlade Republike Hrvatske za prihvaćanje amandmana drugih predlagatelja na Prijedlog izmjena i dopuna Državnog proračuna Republike Hrvatske za 2026. godinu i projekcija za 2027. i 2028. godinu.",
+    "viewpoints": [
+      {
+        "speaker": "Government of Croatia",
+        "summary": "The cabinet gave its representatives prior consent to accept other sponsors’ amendments to the 2026 budget revision and 2027–28 projections.",
+        "target": "2026 state budget revision",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "Vlada je danas održala telefonsku sjednicu na kojoj je donijela Zaključak o davanju prethodne suglasnosti predstavnicima Vlade Republike Hrvatske za prihvaćanje amandmana drugih predlagatelja na Prijedlog izmjena i dopuna Državnog proračuna Republike Hrvatske za 2026. godinu i projekcija za 2027. i 2028. godinu."
+      }
+    ]
   }
 ]
