@@ -37,6 +37,7 @@ ROLE_ENTITY_CODES = set(COUNTRY_ISO3.values()) | {"EU", "OTHER"}
 STATE = ROOT / "data/government_state.json"
 PUBLIC = ROOT / "build/government-data.json"
 CORRECTIONS = ROOT / "data/government_corrections.json"
+SUMMARY_OVERRIDES = ROOT / "data/government_summary_overrides.json"
 REVIEW_QUEUE = ROOT / "build/government-review-queue.json"
 UA = "EuropeanSecurityMonitor/1.0 (public research; contact: monitor@hamelberg-ai.com)"
 BROWSER_UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
@@ -2145,6 +2146,55 @@ WHITE_HOUSE_ARCHIVE = re.compile(r"https://www\.whitehouse\.gov/briefings-statem
 US_BENCHMARK_START = dt.datetime(2026,10,4,tzinfo=SOURCE_TIMEZONES["US"]).astimezone(dt.timezone.utc)
 CANADA_ARTICLE = re.compile(r"https://www\.canada\.ca/(?:en|fr)/[^?#]+/(?:news|nouvelles)/20\d{2}/\d{2}/[^/?#]+\.html\Z")
 CHINA_ARTICLE = re.compile(r"https://english\.www\.gov\.cn/(?:news|policies/latestreleases|archive/statistics)/20\d{4}/\d{2}/content_WS[0-9a-f]+\.html\Z")
+CHINA_BOTSWANA_STATEMENT_URL = "https://english.www.gov.cn/news/202610/13/content_WS6ace33cac6d00ca5f9a0da83.html"
+CHINA_BOTSWANA_ATTACHMENT_URL = "https://english.www.gov.cn/atts/stream/files/6ace3291c6d0c78809900175"
+CHINA_BOTSWANA_ATTACHMENT_SHA256 = "256ccd1f40ad9d8890f53509bca2e4fc9e42fae42dd31bf63d6d0a8e30db8c00"
+
+
+def extract_china_botswana_statement(document):
+    """Read the verified Word attachment, not its short HTML notice."""
+    if hashlib.sha256(document).hexdigest() != CHINA_BOTSWANA_ATTACHMENT_SHA256:
+        raise RuntimeError("China-Botswana attachment changed since source review")
+    if not document.startswith(bytes.fromhex("d0cf11e0a1b11ae1")):
+        raise RuntimeError("China-Botswana attachment is no longer a Word document")
+    decoded = document.decode("utf-16le", "ignore")
+    opening = "JOINT STATEMENT BETWEEN THE PEOPLE"
+    closing = "Following their meeting, the two Presidents witnessed the signing of bilateral cooperation documents in various fields."
+    start = decoded.find(opening)
+    end = decoded.find(closing, start) if start >= 0 else -1
+    if start < 0 or end < 0:
+        raise RuntimeError("China-Botswana attachment no longer has the reviewed statement boundaries")
+    article = re.sub(r"\s+", " ", decoded[start:end + len(closing)]).strip()
+    if len(article) < 15000 or "global AI governance" not in article:
+        raise RuntimeError("China-Botswana attachment does not contain the reviewed full statement")
+    return article
+
+
+def source_bound_summary_override(item, source_text, overrides):
+    override = overrides.get(item["id"])
+    if not override or override.get("url") != item["url"]:
+        return None
+    if override.get("source_sha256") != hashlib.sha256(source_text.encode()).hexdigest():
+        return None
+    summary = override.get("short_english_summary", "").strip()
+    if not summary or len(summary.split()) > 45:
+        raise ValueError("Source-bound government summary must contain 1-45 words")
+    return summary
+
+
+def requeue_reviewed_attachment(item):
+    """Retry only the China attachment whose full official text is now verified."""
+    if (item.get("id") != "c20b880177123988076f"
+            or item.get("url") != CHINA_BOTSWANA_STATEMENT_URL
+            or item.get("classification_status") != "needs_review"
+            or item.get("classification_error") != "RuntimeError"
+            or item.get("human_reviewed") or item.get("source_reviewed")):
+        return False
+    item["classification_status"] = "pending_classification"
+    item.pop("classification_error", None)
+    return True
+
+
 CHINA_CARDS = re.compile(r'<li>\s*<h3[^>]*><a[^>]+href="([^"]+)"[^>]*>(.*?)</a></h3>\s*<h4>(20\d{2}/\d{2}/\d{2})</h4>', re.S)
 ATOM = "{http://www.w3.org/2005/Atom}"
 CANADA_ISSUED = re.compile(r'<meta\s+name="dcterms\.issued"[^>]+content="(20\d{2}-\d{2}-\d{2})"',re.I)
@@ -2348,6 +2398,9 @@ def article_text(item):
         parser=ClassText("Artical_Content");parser.feed(body.decode("utf-8","replace"))
         article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
         if re.search(r"Please see (?:the )?attachment for .*full text", article, re.I):
+            if item["url"] == CHINA_BOTSWANA_STATEMENT_URL and CHINA_BOTSWANA_ATTACHMENT_URL.removeprefix("https:") in body.decode("utf-8", "replace"):
+                _, document = fetch(CHINA_BOTSWANA_ATTACHMENT_URL, limit=100_000, timeout=20)
+                return extract_china_botswana_statement(document)
             raise RuntimeError("China news is an attachment notice without full article text")
         if len(article)<80: raise RuntimeError("China news has no usable full article body")
         return article
@@ -2732,7 +2785,7 @@ def ask_openai(text, classification=True, examples=None, validation_note="", sou
     raise ModelProcessingError(f"Model request failed after 5 attempts: {last_problem}")
 
 
-def translate_document(source_text, checkpoint=None, on_progress=None):
+def translate_document(source_text, checkpoint=None, on_progress=None, *, source_bound_summary=None):
     """Translate every character in bounded calls, then summarize the whole document."""
     checkpoint=checkpoint if checkpoint is not None else {}
     def translate_chunk(chunk,depth=0):
@@ -2768,7 +2821,9 @@ def translate_document(source_text, checkpoint=None, on_progress=None):
         translated.append(result["english_translation"].strip())
         summaries.append(result["short_english_summary"].strip())
     if not summaries: raise ModelOutputError("empty_source_text")
-    if len(summaries)==1 and len(summaries[0].split())<=45:
+    if source_bound_summary:
+        summary=source_bound_summary
+    elif len(summaries)==1 and len(summaries[0].split())<=45:
         summary=summaries[0]
     else:
         summary_input="\n".join(summaries)
@@ -2812,6 +2867,8 @@ def main():
     existing=canonical_government_items(state.get("items",[])); sources_status=[]; candidates=[]; discovered_links={}; article_failures=[]; model_failures=[]
     corrections=json.loads(CORRECTIONS.read_text()) if CORRECTIONS.exists() else []
     correction_map={x["id"]:x for x in corrections if x.get("id")}
+    summary_overrides=json.loads(SUMMARY_OVERRIDES.read_text()) if SUMMARY_OVERRIDES.exists() else []
+    summary_override_map={x["id"]:x for x in summary_overrides}
     calibration_ids={x["id"] for x in existing.values() if x.get("calibration_item")}
     # Researcher-reviewed examples are shared across isolated country caches.
     # Once the first calibration decisions exist, a new country must not start
@@ -2826,6 +2883,9 @@ def main():
     _, stale_corrections=apply_confirmed_corrections(existing.values(),corrections)
     if stale_corrections:
         print(f"Skipped {len(stale_corrections)} government reviews whose source evidence changed",flush=True)
+    for item in existing.values():
+        if requeue_reviewed_attachment(item):
+            print(f"Requeued source-reviewed China attachment {item['id']}",flush=True)
     if calibration_complete:
         candidates.extend(x for x in existing.values()
                           if x.get("classification_status") in {"awaiting_calibration", "pending_classification"}
@@ -2931,7 +2991,12 @@ def main():
                 def save_translation_progress():
                     existing[item["id"]]=item
                     STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
-                item["english_translation"],item["english_summary"]=translate_document(text,item.setdefault("translation_checkpoint",{}),save_translation_progress)
+                summary_override=source_bound_summary_override(item,text,summary_override_map)
+                if summary_override:
+                    item["english_translation"],item["english_summary"]=translate_document(text,item.setdefault("translation_checkpoint",{}),save_translation_progress,source_bound_summary=summary_override)
+                    print(f"Used source-bound summary for {item['country_code']} {item['id']}",flush=True)
+                else:
+                    item["english_translation"],item["english_summary"]=translate_document(text,item.setdefault("translation_checkpoint",{}),save_translation_progress)
                 examples=[{**correction,"title":correction.get("source_title") or existing.get(ident,{}).get("title"),"summary":correction.get("source_summary") or existing.get(ident,{}).get("english_summary")} for ident,correction in correction_map.items() if not correction.get("withhold_reason")]
                 validation_note=""
                 for validation_attempt in range(2):
