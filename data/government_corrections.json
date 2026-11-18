@@ -2202,5 +2202,17 @@
     "english_summary": "PrairiesCan announced more than $11.2 million for eight Saskatchewan organizations responding to U.S. tariffs. One funded project, Prairie Connect, is building a publicly accessible AI-guided map of prairie trade corridors to support market diversification.",
     "ticker_message": "Canada backs an AI-guided prairie trade-corridor map amid U.S. tariffs.",
     "short_rationale": "The full official release names a funded AI-guided trade-corridor platform within its tariff-response and market-diversification program."
+  },
+  {
+    "id": "8aae55aec52cd17b8972",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "d7104ddd19fba08d6d2cb1d8f4475420dc7b45dcc514ec262b7fd4e0060c5696",
+    "source_url": "https://www.admin.ch/de/newnsb/3SQ3K4BkzfiU",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "political_institutions",
+      "information_influence"
+    ],
+    "short_rationale": "The Federal Council reports reduced suspected signature fraud after stronger checks and reporting, and will continue safeguards for referendum and initiative integrity. It only cites a possible future examination of AI-assisted checks as an example, without an adopted AI measure."
   }
 ]
