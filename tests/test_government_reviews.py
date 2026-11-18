@@ -104,6 +104,13 @@ class GovernmentReviewTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "attachment notice"):
                 article_text({"country_code": "DE", "url": "https://example.test"})
 
+    def test_croatian_article_includes_intro_before_materials_link(self):
+        page = ('<p class="article-intro">The cabinet approved changes to the bill.</p>'
+                '<div class="article-content">Meeting materials are available via this link.</div>')
+        with patch("collect_government_news.fetch", return_value=("https://example.test", page.encode())):
+            article = article_text({"country_code": "HR", "url": "https://example.test"})
+        self.assertEqual(article, "The cabinet approved changes to the bill. Meeting materials are available via this link.")
+
 
 if __name__ == "__main__":
     unittest.main()
