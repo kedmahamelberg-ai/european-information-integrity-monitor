@@ -55,6 +55,14 @@ class SourceAuditTests(unittest.TestCase):
         self.assertEqual([item["id"] for item in batch],
                          ["z-changed", "z-new", "a-old"])
 
+    def test_pending_record_enters_audit_after_classification(self):
+        now = dt.datetime(2026, 11, 18, tzinfo=dt.timezone.utc)
+        item = dict(self.item, classification_status="pending_classification")
+        self.assertEqual(select_batch([item], {}, {}, 15, now), [])
+        item["classification_status"] = "provisional"
+        self.assertEqual([x["id"] for x in select_batch([item], {}, {}, 15, now)],
+                         ["example-id"])
+
     def test_canada_source_date_conflict_is_recorded(self):
         with patch("audit_government_sources.article_text",
                    return_value="A full official article. " * 10), \
