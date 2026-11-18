@@ -2156,8 +2156,10 @@ def discover_canada(country,start,end):
     # of French-only releases have no English counterpart and remain eligible.
     for language in ("en","fr"):
         for page in range(100):
+            # The official API responds HTTP 200 with an empty Atom feed and
+            # "Invalid date" when a publishedDate filter is supplied. Page the
+            # descending feed and stop at the timestamp boundary below.
             query=urllib.parse.urlencode({"format":"atom","orderBy":"desc","pick":100,
-                "publishedDate>":(first_day-dt.timedelta(days=1)).isoformat(),
                 "sort":"publishedDate","type":"newsreleases","skip":page*100})
             url=f"https://api.io.canada.ca/io-server/gc/news/{language}/v2?{query}"
             _,body=fetch(url,timeout=20)
