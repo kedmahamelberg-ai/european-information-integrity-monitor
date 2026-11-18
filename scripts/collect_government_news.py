@@ -2117,6 +2117,18 @@ CANADA_ARTICLE = re.compile(r"https://www\.canada\.ca/(?:en|fr)/[^?#]+/(?:news|n
 CHINA_ARTICLE = re.compile(r"https://english\.www\.gov\.cn/(?:news|policies/latestreleases|archive/statistics)/20\d{4}/\d{2}/content_WS[0-9a-f]+\.html\Z")
 CHINA_CARDS = re.compile(r'<li>\s*<h3[^>]*><a[^>]+href="([^"]+)"[^>]*>(.*?)</a></h3>\s*<h4>(20\d{2}/\d{2}/\d{2})</h4>', re.S)
 ATOM = "{http://www.w3.org/2005/Atom}"
+CANADA_ISSUED = re.compile(r'<meta\s+name="dcterms\.issued"[^>]+content="(20\d{2}-\d{2}-\d{2})"',re.I)
+
+
+def canada_release_date(url):
+    """Use the source article's issued date, not its sometimes stale feed timestamp."""
+    _,body=fetch(url,timeout=20)
+    markup=body.decode("utf-8","replace")
+    match=CANADA_ISSUED.search(markup)
+    if not match: raise RuntimeError("Canada release has no original issued date")
+    parser=ClassText("news-release-container");parser.feed(markup)
+    if len(" ".join(parser.parts))<80: raise RuntimeError("Canada release has no usable full article body")
+    return dt.date.fromisoformat(match.group(1))
 
 
 def discover_canada(country,start,end):
@@ -2150,12 +2162,23 @@ def discover_canada(country,start,end):
                 if article_url in seen: continue
                 seen.add(article_url)
                 entries.append({"country":country["name"],"country_code":"CA","url":article_url,
-                    "title":title,"published_at":published.isoformat(),"published_date":day.isoformat(),
-                    "publication_precision":"instant","text":""})
+                    "title":title,"published_at":published.isoformat(),"text":""})
             if not records or min(dates)<first_day or len(records)<100: break
         else: raise RuntimeError("Canada release feed exceeded pagination safety limit")
-    if entries: article_text(entries[0])
-    return entries,country["url"]
+    # The feed's updated field can differ by weeks from the article's issued
+    # date. Verify each full page before assigning a publication day or moving
+    # this source's cursor; day-only precision avoids inventing a clock time.
+    checked=[]
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        dates={pool.submit(canada_release_date,item["url"]):item for item in entries}
+        for future in as_completed(dates):
+            item=dates[future];day=future.result()
+            if first_day<=day<=last_day:
+                item["published_date"]=day.isoformat()
+                item["published_at"]=dt.datetime.combine(day,dt.time.min,SOURCE_TIMEZONES["CA"]).isoformat()
+                item["publication_precision"]="day"
+                checked.append(item)
+    return checked,country["url"]
 
 
 def discover_china(country,start,end):

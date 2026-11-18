@@ -28,10 +28,24 @@ class BenchmarkCollectorTest(unittest.TestCase):
             if '/en/' in url:
                 return url,atom([('English release',shared,en),('Older release',older,en)])
             return url,atom([('Communiqué traduit',shared,fr),('Communiqué français',unique,fr_only),('Ancien',older,fr)])
-        with patch.object(collector,'fetch',side_effect=fetched),patch.object(collector,'article_text',return_value='Full official article'):
+        def issued(url): return dt.date(2026,10,2) if url==fr_only else dt.date(2026,10,3)
+        with patch.object(collector,'fetch',side_effect=fetched),patch.object(collector,'canada_release_date',side_effect=issued):
             items,_=collector.discover_canada(source,dt.datetime(2026,10,1,tzinfo=dt.timezone.utc),dt.datetime(2026,10,5,tzinfo=dt.timezone.utc))
         self.assertEqual({x['url'] for x in items},{en,fr_only})
+        self.assertTrue(all(x['publication_precision']=='day' for x in items))
         self.assertEqual(collector.COUNTRY_ISO3['CA'],'CAN')
+
+    def test_canada_excludes_a_feed_update_for_a_prelaunch_release(self):
+        source=next(x for x in collector.SOURCES if x['iso2']=='CA')
+        old='https://www.canada.ca/fr/agence/nouvelles/2026/09/ancien.html'
+        # The English feed must still contain a valid entry; only the French
+        # item has an original date before the requested collection window.
+        en='https://www.canada.ca/en/agency/news/2026/10/new.html'
+        def feed(url,**_):
+            return url,atom([('New release','2026-10-30T12:00:00-04:00',en)] if '/en/' in url else [('Ancien communiqué','2026-10-30T09:48:12-04:00',old)])
+        with patch.object(collector,'fetch',side_effect=feed),patch.object(collector,'canada_release_date',side_effect=lambda u:dt.date(2026,9,4) if u==old else dt.date(2026,10,30)):
+            items,_=collector.discover_canada(source,dt.datetime(2026,10,1,tzinfo=dt.timezone.utc),dt.datetime(2026,10,31,tzinfo=dt.timezone.utc))
+        self.assertEqual([x['url'] for x in items],[en])
 
     def test_china_accepts_official_policy_link_in_news_archive_and_stops_at_start(self):
         source=next(x for x in collector.SOURCES if x['iso2']=='CN')
