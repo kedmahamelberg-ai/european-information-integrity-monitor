@@ -15,6 +15,7 @@ SOURCE_EVIDENCE_FIELDS = (
 REVIEW_FIELDS = (
     "roles", "viewpoint_structure", "viewpoints", "evidence_status",
     "evidence_quote", "short_rationale", "ticker_message", "english_summary",
+    "published_at", "published_date",
 )
 
 
@@ -48,7 +49,8 @@ def apply_confirmed_corrections(items, corrections):
             stale.append(item["id"])
             continue
         evidence_fingerprint = correction.get("source_evidence_fingerprint")
-        if evidence_fingerprint and evidence_fingerprint != source_evidence_fingerprint(item):
+        allowed_evidence = {evidence_fingerprint, correction.get("source_evidence_fingerprint_after")}
+        if evidence_fingerprint and source_evidence_fingerprint(item) not in allowed_evidence:
             stale.append(item["id"])
             continue
         if correction.get("withhold_reason") == "full_source_unavailable":
