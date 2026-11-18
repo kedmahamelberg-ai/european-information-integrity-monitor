@@ -2388,5 +2388,47 @@
     "english_summary": "Parliamentary Secretary Ali Ehsassi highlighted Budget 2026’s proposed $1.5 billion over nine years for community recreation facilities and ice rinks during a North York visit. The proposal allocates $750 million to rinks and $750 million to other recreation facilities.",
     "ticker_message": "Canada proposes $1.5 billion over nine years for community recreation facilities and ice rinks.",
     "short_rationale": "The specific release concerns recreation facilities; broader Budget 2026 security and resource measures appear only in an overview and do not establish this article's security relevance."
+  },
+  {
+    "id": "05389979d9d0a87385a8",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "98d5d56acfdfca150bd6f39d4942764ccf5a9b1778fe55500ef82954db349946",
+    "fault_type": "label",
+    "source_url": "https://www.canada.ca/en/international-trade-tribunal/news/2026/11/tribunal-initiates-expiry-reviewcarbon-and-alloy-steel-line-pipe-from-china.html",
+    "published_field": "relevance, topics, roles, short_rationale, ticker_message",
+    "evidence": "The full November 2 Canadian International Trade Tribunal release announces an ordinary expiry review of an anti-dumping and subsidy order on steel line pipe. It asks whether dumped or subsidized imports and injury to domestic industry may resume. It states no strategic security vulnerability, essential-system dependency, or technology supply-chain issue. The published security and technology labels and readiness role inferred those claims from a routine trade-remedy procedure.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "short_rationale": "This is a routine trade-remedy expiry review of possible dumping, subsidizing and domestic-industry injury; the release makes no specific strategic security or technology-dependence claim.",
+    "ticker_message": "Canada opens an expiry review of its steel line pipe trade remedy concerning imports from China."
+  },
+  {
+    "id": "565a24c90ce5ec98a784",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "65bbef7a8f45cd2c3dfc08c4b5c9be048b515b9400fae834abd32d4609eb4d96",
+    "fault_type": "label",
+    "source_url": "https://www.canada.ca/en/international-trade-tribunal/news/2026/10/tribunal-initiates-expiry-reviewcertain-small-power-transformers-from-chinese-taipei-and-korea.html",
+    "published_field": "relevance, topics, roles, short_rationale, ticker_message",
+    "evidence": "The full October 1 Canadian International Trade Tribunal release announces an ordinary expiry review of its 2021 finding on small power transformers. It asks whether dumping and injury to domestic industry may resume. It contains no claim about grid resilience, an essential-system dependency, or a strategic economic vulnerability. The published economic-security label and readiness role imported a security meaning that this trade-remedy notice does not state.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "short_rationale": "This is a routine expiry review of possible dumped transformer imports and domestic-industry injury; the release states no strategic security or essential-system concern.",
+    "ticker_message": "Canada opens an expiry review of its trade finding on small power transformers."
+  },
+  {
+    "id": "c20b880177123988076f",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "d23a9a4df85fd3608bdd60872af022e43c6f8c966dce2898a71557baad28e367",
+    "fault_type": "editorial",
+    "source_url": "https://english.www.gov.cn/news/202610/13/content_WS6ace33cac6d00ca5f9a0da83.html",
+    "full_source_url": "https://english.www.gov.cn/atts/stream/files/6ace3291c6d0c78809900175",
+    "published_field": "english_summary, ticker_message, evidence_quote, short_rationale",
+    "evidence": "The official October 13 HTML notice links to the full joint statement. Paragraphs 23 and 24 of that attachment expressly address digital sovereignty, artificial intelligence, dialogue on global AI governance, and Botswana's possible participation in the World Artificial Intelligence Cooperation Organization. The Monitor correctly labeled substantive AI cooperation but its summary did not convey that connection.",
+    "english_summary": "China and Botswana upgraded ties during President Boko’s October visit and agreed to expand cooperation on security and development. Their joint statement also commits them to dialogue on global AI governance; Botswana will consider participating in the World Artificial Intelligence Cooperation Organization.",
+    "ticker_message": "China and Botswana upgrade ties and agree to cooperate on global AI governance.",
+    "evidence_quote": "agreed to strengthen cooperation and dialogue on global AI governance and emerging technologies",
+    "short_rationale": "The full joint statement makes specific commitments on sovereignty, African peace and security, cross-border crime, climate cooperation and global AI governance. Its AI paragraphs state a substantive bilateral position and cooperation plan."
   }
 ]
