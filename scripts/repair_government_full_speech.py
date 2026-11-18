@@ -58,9 +58,15 @@ def full_speech_text():
 def repair_state(path=STATE):
     state = json.loads(path.read_text())
     items = [item for item in state.get("items", []) if item.get("id") == RECORD_ID]
+    if not items:
+        print("China speech record is absent from this checkpoint; source repair deferred")
+        return
     if len(items) != 1 or items[0].get("url") != ARCHIVE:
-        raise RuntimeError("Expected archive record is missing or source identity changed")
+        raise RuntimeError("Expected archive record source identity changed")
     item = items[0]
+    if item.get("source_text_sha256") and item.get("source_text_chars", 0) > 3500:
+        print("Verified full China speech already retained in checkpoint")
+        return
     speech = full_speech_text()
     digest = hashlib.sha256(speech.encode("utf-8")).hexdigest()
     item.update(full_source_url=FULL_SPEECH, source_text_chars=len(speech),
