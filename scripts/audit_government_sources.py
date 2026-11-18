@@ -143,6 +143,8 @@ def select_batch(items, checked, attempted, limit, now, seen_ids=None):
     ordered = sorted(items, key=priority)
     pending = []
     for item in ordered:
+        if item.get("classification_status") in {"pending_classification", "source_incomplete"}:
+            continue
         ident = item.get("id")
         fingerprint = audit_fingerprint(item)
         if checked.get(ident, {}).get("fingerprint") == fingerprint:
