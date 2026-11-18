@@ -2349,5 +2349,43 @@
     "ticker_message": "China's premier calls for AI and biomedicine to improve traditional-medicine diagnosis and treatment.",
     "short_rationale": "The full official speech proposes a substantive AI role in diagnosis and treatment within a discussion of public-health challenges, including infectious diseases. The archive page alone contains only an attachment notice.",
     "evidence_quote": "We should promote the deep integration of artificial intelligence and modern biomedicine with traditional medicine, use new technologies to rediscover the value of ancient formulas and improve diagnostic and therapeutic protocols"
+  },
+  {
+    "id": "01c4461fa66f6ba5c97e",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "95ab92121ed76bfb50d84f9a0970ad7c7d42b351134bc3a49a6993c148998d10",
+    "source_evidence_fingerprint_after": "c5c629c2100cb58f90cba18254aca97aa1643394f115082c2c31ffe7940cfc2f",
+    "fault_type": "source_date",
+    "source_url": "https://www.canada.ca/en/impact-assessment-agency/news/2026/09/newfoundland-and-labrador-and-canada-sign-co-operation-agreement-to-accelerate-project-assessments.html",
+    "published_field": "published_at, published_date",
+    "evidence": "The exact Impact Assessment Agency of Canada page has September 8, 2026 in its visible St. John's dateline and 2026-09-08 in page details; the old Monitor date 2026-10-09 followed conflicting dcterms.issued metadata. The visible original article and page-details date agree.",
+    "published_at": "2026-09-08T04:00:00+00:00",
+    "published_date": "2026-09-08"
+  },
+  {
+    "id": "0bb41c369c09eece0717",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "1bbd411de7e08347ebe498b94c6b83ba428d36c6b56eb638cee44cae665f301c",
+    "source_evidence_fingerprint_after": "36cecc16d3a09a44712dd510ac55a6a1117f86785c2436a9179ec692a434fbb0",
+    "fault_type": "source_date",
+    "source_url": "https://www.canada.ca/en/atlantic-canada-opportunities/news/2026/10/federal-investment-of-3-million-strengthens-businesses-in-northern-new-brunswick0.html",
+    "published_field": "published_at, published_date",
+    "evidence": "The exact ACOA page has October 27, 2026 in its visible Edmundston dateline and 2026-10-27 in page details; the old Monitor date 2026-10-29 followed conflicting dcterms.issued/datePublished metadata. The visible original article and page-details date agree.",
+    "published_at": "2026-10-27T04:00:00+00:00",
+    "published_date": "2026-10-27"
+  },
+  {
+    "id": "0ca5b231ce555294d1bd",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "aad43fb46eb093a16087343fa8fe86ddc6c4a2afa310dfce512efc27e0a8f26f",
+    "fault_type": "label_and_editorial",
+    "source_url": "https://www.canada.ca/en/privy-council/news/2026/11/parliamentary-secretary-ehsassi-highlights-government-of-canadas-investments-from-budget-2026-masters-of-our-destiny.html",
+    "published_field": "relevance, topics, english_summary, ticker_message, short_rationale",
+    "evidence": "The Nov 15 Privy Council Office release's specific North York announcement is proposed $1.5 billion over nine years for community recreation facilities and ice rinks. Energy, critical minerals, sovereignty and defence appear only in a broad Budget 2026 overview, without a direct security or resilience measure in this funding action. The agreed taxonomy does not treat passing agenda or sector lists as article-level labels.",
+    "relevance": "not_related",
+    "topics": [],
+    "english_summary": "Parliamentary Secretary Ali Ehsassi highlighted Budget 2026’s proposed $1.5 billion over nine years for community recreation facilities and ice rinks during a North York visit. The proposal allocates $750 million to rinks and $750 million to other recreation facilities.",
+    "ticker_message": "Canada proposes $1.5 billion over nine years for community recreation facilities and ice rinks.",
+    "short_rationale": "The specific release concerns recreation facilities; broader Budget 2026 security and resource measures appear only in an overview and do not establish this article's security relevance."
   }
 ]
