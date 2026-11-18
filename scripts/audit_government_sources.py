@@ -8,6 +8,7 @@ import urllib.request
 
 from collect_government_news import article_text, ask_openai, canada_release_date
 from government_reviews import source_evidence_fingerprint
+from repair_government_full_speech import RECORD_ID, full_speech_text
 
 PUBLIC = "https://monitor.hamelberg-ai.com/government-data.json"
 STATE = Path("data/government_source_audit.json")
@@ -90,7 +91,7 @@ def audit_model(source, item):
 
 
 def audit_one(item):
-    source = article_text(item)
+    source = full_speech_text() if item.get("id") == RECORD_ID else article_text(item)
     if not source or len(source) < 80:
         raise RuntimeError("Full official article text is unavailable")
     if len(source) > 75000:
