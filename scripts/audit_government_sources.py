@@ -149,6 +149,13 @@ def main():
     now_time = dt.datetime.now(dt.timezone.utc)
     now = now_time.isoformat()
     batch = select_batch(snapshot["items"], checked, attempted, args.limit, now_time)
+    def save_progress():
+        state["checked"], state["findings"], state["attempted"] = checked, findings, attempted
+        state["snapshot_as_of"], state["last_run_at"] = snapshot.get("as_of"), now
+        state["total_items"] = len(snapshot["items"])
+        STATE.parent.mkdir(parents=True, exist_ok=True)
+        STATE.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n")
+
     for item in batch:
         ident = item["id"]
         attempted[ident] = {"fingerprint": source_evidence_fingerprint(item), "at": now}
@@ -165,6 +172,7 @@ def main():
                 "status": "source_unverified", "checked_at": now}
             print("::warning::Government source audit deferred " + ident +
                   ": " + str(error), flush=True)
+            save_progress()
             continue
         checked[ident] = {"fingerprint": source_evidence_fingerprint(item),
                           "checked_at": now, "source_url": item["url"],
@@ -177,6 +185,7 @@ def main():
                   ident, flush=True)
         else:
             findings.pop(ident, None)
+        save_progress()
     state["snapshot_as_of"] = snapshot.get("as_of")
     state["last_run_at"] = now
     state["total_items"] = len(snapshot["items"])
