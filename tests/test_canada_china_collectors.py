@@ -36,6 +36,9 @@ class BenchmarkCollectorTest(unittest.TestCase):
         shared='2026-10-03T12:00:00-04:00'
         unique='2026-10-02T12:00:00-04:00'
         def fetched(url,**_):
+            # The live API returns an empty feed for its date-filter query.
+            if 'publishedDate%3E=' in url or 'publishedDate=' in url:
+                return url,b'<feed xmlns="http://www.w3.org/2005/Atom"><updated>Invalid date</updated></feed>'
             if '/en/' in url:
                 return url,atom([('English release',shared,en),('Older release',older,en)])
             return url,atom([('Communiqué traduit',shared,fr),('Communiqué français',unique,fr_only),('Ancien',older,fr)])
