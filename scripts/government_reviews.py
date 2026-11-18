@@ -8,6 +8,10 @@ SOURCE_FIELDS = (
     "url", "title", "published_at", "english_summary",
     "source_text_chars", "translated_text_chars",
 )
+SOURCE_EVIDENCE_FIELDS = (
+    "url", "title", "published_at", "source_text_chars",
+    "translated_text_chars",
+)
 REVIEW_FIELDS = (
     "roles", "viewpoint_structure", "viewpoints", "evidence_status",
     "evidence_quote", "short_rationale", "ticker_message", "english_summary",
@@ -17,6 +21,14 @@ REVIEW_FIELDS = (
 def source_fingerprint(item):
     """Bind a review to the saved source evidence, independent of AI labels."""
     source = {key: item.get(key) for key in SOURCE_FIELDS}
+    encoded = json.dumps(source, ensure_ascii=False, sort_keys=True,
+                         separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def source_evidence_fingerprint(item):
+    """Bind a source review without depending on editable display copy."""
+    source = {key: item.get(key) for key in SOURCE_EVIDENCE_FIELDS}
     encoded = json.dumps(source, ensure_ascii=False, sort_keys=True,
                          separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
@@ -35,6 +47,10 @@ def apply_confirmed_corrections(items, corrections):
         if fingerprint and fingerprint != source_fingerprint(item):
             stale.append(item["id"])
             continue
+        evidence_fingerprint = correction.get("source_evidence_fingerprint")
+        if evidence_fingerprint and evidence_fingerprint != source_evidence_fingerprint(item):
+            stale.append(item["id"])
+            continue
         if "relevance" in correction:
             item["relevance"] = correction["relevance"]
         elif "related" in correction:
@@ -49,12 +65,14 @@ def apply_confirmed_corrections(items, corrections):
             if key in correction:
                 item[key] = correction[key]
         topics = item.get("topics") or []
+        source_reviewed = correction.get("review_origin") == "source_reviewed_agent"
         item.update({
             "related": item.get("relevance") == "related",
             "primary_narrative": topics[0] if topics else "none_unclear",
             "secondary_narratives": topics[1:],
-            "classification_status": "human_reviewed",
-            "human_reviewed": True,
+            "classification_status": "provisional" if source_reviewed else "human_reviewed",
+            "human_reviewed": False if source_reviewed else True,
+            "source_reviewed": source_reviewed or bool(item.get("source_reviewed")),
         })
         applied.append(item["id"])
     return applied, stale

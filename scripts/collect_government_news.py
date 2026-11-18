@@ -2785,7 +2785,7 @@ def main():
     calibration_complete=bool(correction_map) or bool(state.get("calibration_complete")) or bool(calibration_ids and calibration_ids.issubset(correction_map))
     if calibration_complete:
         for item in existing.values():
-            if item.get("classification_status")=="provisional" and not item.get("calibration_item") and item.get("classifier_prompt_version")!=CLASSIFIER_PROMPT_VERSION:
+            if item.get("classification_status")=="provisional" and not item.get("calibration_item") and not item.get("source_reviewed") and item.get("classifier_prompt_version")!=CLASSIFIER_PROMPT_VERSION:
                 item["classification_status"]="pending_classification"
                 for key in ("relevance","topics","roles","viewpoint_structure","viewpoints","evidence_status","evidence_quote","confidence","short_rationale","ticker_message","related","primary_narrative","secondary_narratives","review_sample"):
                     item.pop(key,None)
