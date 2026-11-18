@@ -104,6 +104,13 @@ class GovernmentReviewTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "attachment notice"):
                 article_text({"country_code": "DE", "url": "https://example.test"})
 
+    def test_china_attachment_notice_is_not_classified_as_full_article(self):
+        page = ('<div class="Artical_Content"><p>BEIJING, Oct. 18 -- The premier spoke at the conference.</p>'
+                '<p>Please see the attachment for the English version of the full text of the address.</p></div>')
+        with patch("collect_government_news.fetch", return_value=("https://english.www.gov.cn/news/202610/18/content_WS6ad4d9c8c6d00ca5f9a0dc44.html", page.encode())):
+            with self.assertRaisesRegex(RuntimeError, "attachment notice"):
+                article_text({"country_code": "CN", "url": "https://english.www.gov.cn/news/202610/18/content_WS6ad4d9c8c6d00ca5f9a0dc44.html"})
+
     def test_croatian_article_includes_intro_before_materials_link(self):
         page = ('<p class="article-intro">The cabinet approved changes to the bill.</p>'
                 '<div class="article-content">Meeting materials are available via this link.</div>')
