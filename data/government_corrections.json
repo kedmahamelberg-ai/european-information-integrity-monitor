@@ -2317,5 +2317,18 @@
     "evidence": "Official ESDC release dated Nov 6 states the two-year low-wage LMIA duration and early-childhood-educator exception are effective Nov 6, while the regional access rules and 15% cap are proposals contingent on provincial/territorial opt-in for Mar 1 2027. Budget 2026 separately funds service delivery ($151.5m) and Migrant Worker Support ($82m), and offers additional permanent-residence spaces/tools without saying they are funded by those amounts.",
     "english_summary": "Canada extended low-wage foreign-worker hiring assessments to two years and exempted early childhood educators from a processing restriction. It also proposed regional access rules and higher workforce caps requiring provincial or territorial opt-in. Budget 2026 funds service delivery and worker support and offers more permanent-residence options.",
     "ticker_message": "Canada extends low-wage hiring assessment validity and proposes regional temporary-worker rules."
+  },
+  {
+    "id": "0ad6dda727c5d0477fca",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "b0434c6212a9074c82f95e495feb668d1fc2d3ce40bd2cb0236d1e00fdd12000",
+    "fault_type": "label",
+    "source_url": "https://www.canada.ca/en/fisheries-oceans/news/2026/11/recreational-harvesters-fined-total-of-7400-for-illegal-prawn-fishing-in-a-closed-sponge-reef-area-near-passage-island-british-columbia.html",
+    "published_field": "topics, secondary_narratives",
+    "evidence": "The Nov 2 Fisheries and Oceans Canada release reports fines for prawn traps in a closed glass sponge reef area and frames the closure as protecting fragile marine ecosystems and sustainable recreational fishing. It does not discuss food supply, food availability, or food insecurity. Climate/environment remains supported by the concrete habitat-protection measure; food_security is an inferred secondary label.",
+    "relevance": "related",
+    "topics": [
+      "climate_environment"
+    ]
   }
 ]
