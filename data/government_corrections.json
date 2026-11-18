@@ -2214,5 +2214,14 @@
       "information_influence"
     ],
     "short_rationale": "The Federal Council reports reduced suspected signature fraud after stronger checks and reporting, and will continue safeguards for referendum and initiative integrity. It only cites a possible future examination of AI-assisted checks as an example, without an adopted AI measure."
+  },
+  {
+    "id": "0103a2972bb44fbc1a14",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "5a396bfa4e0c2147a17e16c991fe1b8f332058a68ec6f33b4116aafcd4508902",
+    "source_url": "https://www.canada.ca/en/department-finance/news/2026/11/canada-minister-champagne-table-legislation-cracking-down-on-financial-crime-and-the-illicit-use-of-mail.html",
+    "review_decision": "remove_unrelated_release_claim_from_summary_after_full_source_review",
+    "english_summary": "The government introduced Bill S-8 to strengthen oversight of money services businesses, restrict certain cash transactions and unlawful crypto ATMs, expand police powers to search and seize mail, and improve anti-money-laundering information sharing.",
+    "short_rationale": "The official Bill S-8 release details these financial-crime measures. A separate fentanyl intelligence-sharing announcement appears only as a Related product link, not as an announcement in this release."
   }
 ]
