@@ -2,6 +2,10 @@ name: Government full-source audit
 on:
   schedule:
     - cron: "17 * * * *"
+  workflow_run:
+    workflows: ["Daily government communications"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       limit:
@@ -14,6 +18,7 @@ permissions:
   actions: read
 jobs:
   audit:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     concurrency:
       group: pages
       cancel-in-progress: false
@@ -65,3 +70,4 @@ jobs:
               print("::error::Full-source audit found " + str(len(new)) + " candidate government faults; inspect artifact and exact official sources.")
               raise SystemExit(1)
           PY
+
