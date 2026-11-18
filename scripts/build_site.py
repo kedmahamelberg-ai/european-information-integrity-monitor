@@ -60,7 +60,7 @@ if not gov_public.exists():
     _, stale = apply_confirmed_corrections(snapshot["items"], corrections)
     if stale:
         print(f"Skipped {len(stale)} government reviews whose source evidence changed")
-    gov_public.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2) + "\n")
+    # Publication time must advance for source-only repairs and review-only builds,\n    # even when the full-collection cursor and item count have not changed.\n    snapshot["as_of"] = datetime.now(timezone.utc).isoformat()\n    gov_public.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2) + "\n")
 if "--live" in sys.argv:
     sys.path.insert(0, str(ROOT / "src"))
     from eiim.hybrid_public import export_public
