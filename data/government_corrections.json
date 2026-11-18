@@ -2232,5 +2232,19 @@
     "review_decision": "clarify_substantive_artificial_intelligence_role_in_ticker_after_full_source_review",
     "ticker_message": "Luxembourg backs AI materials modelling and Earth-observation projects within its industrial innovation program.",
     "short_rationale": "The Ministry of the Economy cofinances eight industrial and mobility RDI projects. Rotarex will develop AI-based materials modelling and Hydrosat a multimodal AI Earth-observation platform, supporting industrial resilience and reduced strategic dependencies."
+  },
+  {
+    "id": "7478a4055278b55bbf1c",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "badedcdc1b332daca0bfa67f4284f6a4117346792873ab51a48996b43c6b7772",
+    "source_url": "https://english.www.gov.cn/news/202610/24/content_WS6adc161bc6d00ca5f9a0def6.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "diplomacy_alliances",
+      "political_institutions",
+      "space_security"
+    ],
+    "ticker_message": "Wang Yi urges UN reform, peaceful dispute resolution and multilateral cooperation at governance forum.",
+    "short_rationale": "The full article focuses on Wang Yi's Global Governance Initiative, UN and institutional reform, peaceful dispute resolution and multilateral cooperation. AI governance appears once in a list of emerging fields, without a dedicated AI measure or program."
   }
 ]
