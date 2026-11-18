@@ -2121,5 +2121,55 @@
     "english_summary": "China says it is developing AI-assisted emergency response equipment as part of a wider effort to improve disaster research, prevention and mine safety.",
     "ticker_message": "China plans AI-assisted equipment for disaster and emergency response.",
     "short_rationale": "The full official article describes a specific AI action; the public copy now states it directly."
+  },
+  {
+    "id": "1805ca9838c009c05df1",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "42a56da0c35684325c2f556198363c5d854e761b41b56fe0d5f894284ea18a9d",
+    "source_url": "https://english.www.gov.cn/news/202611/06/content_WS6aed1c50c6d00ca5f9a0e1e1.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [],
+    "short_rationale": "AI and computing power appear among example areas for financial support in a broad science-and-industry directive; there is no distinct AI program or security measure.",
+    "ticker_message": "China’s vice premier calls for stronger links between research and industry, with risk prevention."
+  },
+  {
+    "id": "3e4a7f599b4d9d04e7ed",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "deb56da51e920ac86d4dd6f768cc4fd321ef7a5b97ba2c54de15529ea8728598",
+    "source_url": "https://english.www.gov.cn/news/202611/03/content_WS6ae9d17fc6d00ca5f9a0e132.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "cyber",
+      "diplomacy_alliances"
+    ],
+    "short_rationale": "AI advances frame a general people-centered internet speech; the article announces no distinct AI development or governance measure.",
+    "ticker_message": "China’s premier calls for people-centered internet development and international digital-security cooperation."
+  },
+  {
+    "id": "0e3e196fe3440012e225",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "e5419d8ba1786b73131e2080a88485ee2294e80c8475ff53822dd4fa6aa80778",
+    "source_url": "https://english.www.gov.cn/news/202611/16/content_WS6afaa399c6d00ca5f9a0e4d3.html",
+    "review_decision": "retain_substantive_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The full official article describes the specific AI action stated in the corrected ticker.",
+    "ticker_message": "China and ASEAN designate 2027 their Year of AI Cooperation while pursuing a South China Sea code."
+  },
+  {
+    "id": "c745452695344e7d7e6b",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "11df0ec1e68dc8ac031b16f91bc43025290c863aa83df42bca0385e48a8499ab",
+    "source_url": "https://www.canada.ca/en/space-agency/news/2026/10/advancing-canadas-priorities-through-space.html",
+    "review_decision": "retain_substantive_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The full official article describes the specific AI action stated in the corrected ticker.",
+    "ticker_message": "Canada funds space projects including AI for satellite autonomy and secure Arctic monitoring."
+  },
+  {
+    "id": "eb862035c9ec30297a2e",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "10efbec15bc5d4aef8b909a10673915eff861c6f6eace8eb53a8761b0bcbb3ff",
+    "source_url": "https://english.www.gov.cn/news/202610/10/content_WS6ac9fd22c6d00ca5f9a0d99b.html",
+    "review_decision": "retain_substantive_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The full official article describes the specific AI action stated in the corrected ticker.",
+    "ticker_message": "China launches a cross-border legal platform with an AI assistant and professional consultations."
   }
 ]
