@@ -3,12 +3,13 @@
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from government_reviews import apply_confirmed_corrections, source_fingerprint, source_evidence_fingerprint
-from collect_government_news import ROLE_ENTITY_CODES
+from collect_government_news import ROLE_ENTITY_CODES, article_text
 
 
 class GovernmentReviewTests(unittest.TestCase):
@@ -78,6 +79,30 @@ class GovernmentReviewTests(unittest.TestCase):
         self.assertIn("SWE", ROLE_ENTITY_CODES)
         self.assertIn("EU", ROLE_ENTITY_CODES)
         self.assertNotIn("", ROLE_ENTITY_CODES)
+
+    def test_source_review_withholds_attachment_stub_from_publication(self):
+        correction = {
+            "id": "source-1", "review_origin": "source_reviewed_agent",
+            "source_evidence_fingerprint": source_evidence_fingerprint(self.item),
+            "withhold_reason": "full_source_unavailable",
+        }
+        self.item.update(english_summary="The article is attached.",
+                         ticker_message="No text was provided to classify.")
+        self.assertEqual(apply_confirmed_corrections([self.item], [correction]),
+                         (["source-1"], []))
+        self.assertEqual(self.item["classification_status"], "source_incomplete")
+        self.assertFalse(self.item["related"])
+        self.assertNotIn("english_summary", self.item)
+        self.assertNotIn("ticker_message", self.item)
+        self.assertEqual(apply_confirmed_corrections([self.item], [correction]),
+                         (["source-1"], []))
+
+    def test_german_attachment_notice_is_not_classified_as_full_article(self):
+        page = ('<div id="rs_reading_area_content"><div class="bpa-richtext">'
+                '<p>Die Pressemitteilung finden Sie im Anhang.</p></div></div>')
+        with patch("collect_government_news.fetch", return_value=("https://example.test", page.encode())):
+            with self.assertRaisesRegex(RuntimeError, "attachment notice"):
+                article_text({"country_code": "DE", "url": "https://example.test"})
 
 
 if __name__ == "__main__":

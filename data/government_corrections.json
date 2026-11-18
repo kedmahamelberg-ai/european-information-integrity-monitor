@@ -2246,5 +2246,15 @@
     ],
     "ticker_message": "Wang Yi urges UN reform, peaceful dispute resolution and multilateral cooperation at governance forum.",
     "short_rationale": "The full article focuses on Wang Yi's Global Governance Initiative, UN and institutional reform, peaceful dispute resolution and multilateral cooperation. AI governance appears once in a list of emerging fields, without a dedicated AI measure or program."
+  },
+  {
+    "id": "c81396d4e93b142f290f",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "b341505de064b6ba90a3f970ff608e660f26bcc3c5c7047e8c49763c04f934dd",
+    "withhold_reason": "full_source_unavailable",
+    "fault_type": "source_extraction_and_publication",
+    "source_url": "https://www.bundesregierung.de/breg-de/aktuelles/pressemitteilungen/pressemitteilungen/wettbewerb-fuer-das-denkmal-zur-mahnung-und-erinnerung-an-die-opfer-der-kommunistischen-diktatur-in-deutschland-entschieden-2461476",
+    "published_field": "english_summary, ticker_message, classification_status",
+    "evidence": "The exact Bundesregierung page dated 2026-11-17 contains only Die Pressemitteilung finden Sie im Anhang. The HTML response has no usable attachment link; 42 extracted characters produced a provisional model response about missing text. A full official BKM article exists at https://kulturstaatsminister.de/presse/wettbewerb-fuer-das-denkmal-zur-mahnung-und-erinnerung-an-die-opfer-der-kommunistischen-diktatur-in-deutschland-entschieden, but this record has not been re-extracted and classified from that full source."
   }
 ]

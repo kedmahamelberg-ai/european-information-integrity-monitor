@@ -51,6 +51,20 @@ def apply_confirmed_corrections(items, corrections):
         if evidence_fingerprint and evidence_fingerprint != source_evidence_fingerprint(item):
             stale.append(item["id"])
             continue
+        if correction.get("withhold_reason") == "full_source_unavailable":
+            # A source stub must not appear as a classified government article.
+            # Preserve its ID and source metadata for a later source review.
+            for key in ("english_summary", "ticker_message", "short_rationale",
+                        "evidence_quote", "relevance", "topics", "roles",
+                        "viewpoints", "viewpoint_structure", "evidence_status",
+                        "confidence", "review_sample", "calibration_item"):
+                item.pop(key, None)
+            item.update(classification_status="source_incomplete", related=False,
+                        primary_narrative="none_unclear", secondary_narratives=[],
+                        source_reviewed=True, human_reviewed=False,
+                        withhold_reason="full_source_unavailable")
+            applied.append(item["id"])
+            continue
         if "relevance" in correction:
             item["relevance"] = correction["relevance"]
         elif "related" in correction:
