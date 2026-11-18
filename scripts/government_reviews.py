@@ -35,6 +35,14 @@ def source_evidence_fingerprint(item):
     return hashlib.sha256(encoded).hexdigest()
 
 
+def source_identity_fingerprint(item):
+    """Bind a repair to the stable original archive identity."""
+    source = {key: item.get(key) for key in ("url", "title", "published_at")}
+    encoded = json.dumps(source, ensure_ascii=False, sort_keys=True,
+                         separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def apply_confirmed_corrections(items, corrections):
     """Mutate matching items and return (applied IDs, stale IDs)."""
     by_id = {correction["id"]: correction for correction in corrections
@@ -50,7 +58,11 @@ def apply_confirmed_corrections(items, corrections):
             continue
         evidence_fingerprint = correction.get("source_evidence_fingerprint")
         allowed_evidence = {evidence_fingerprint, correction.get("source_evidence_fingerprint_after")}
-        if evidence_fingerprint and source_evidence_fingerprint(item) not in allowed_evidence:
+        repaired_full_source = (correction.get("source_identity_fingerprint") and
+            correction["source_identity_fingerprint"] == source_identity_fingerprint(item) and
+            correction.get("full_source_url") == item.get("full_source_url") and
+            bool(item.get("source_text_sha256")))
+        if evidence_fingerprint and source_evidence_fingerprint(item) not in allowed_evidence and not repaired_full_source:
             stale.append(item["id"])
             continue
         if correction.get("withhold_reason") == "full_source_unavailable":
