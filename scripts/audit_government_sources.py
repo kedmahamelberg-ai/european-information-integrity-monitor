@@ -1,6 +1,7 @@
 """Checkpointed source audit for government records. Runs in GitHub Actions."""
 import argparse
 import datetime as dt
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -115,13 +116,23 @@ def audit_one(item):
     return issues
 
 
+def audit_fingerprint(item):
+    """Recheck a record when its source or any published field changes."""
+    evidence = {"source": source_evidence_fingerprint(item),
+                "fields": {key: item.get(key) for key in MODEL_FIELDS},
+                "full_source_url": item.get("full_source_url"),
+                "source_text_sha256": item.get("source_text_sha256")}
+    return hashlib.sha256(json.dumps(evidence, sort_keys=True,
+        ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()
+
+
 def select_batch(items, checked, attempted, limit, now):
     ordered = sorted(items, key=lambda item: (
         item.get("country_code") not in BENCHMARKS, item.get("id", "")))
     pending = []
     for item in ordered:
         ident = item.get("id")
-        fingerprint = source_evidence_fingerprint(item)
+        fingerprint = audit_fingerprint(item)
         if checked.get(ident, {}).get("fingerprint") == fingerprint:
             continue
         previous = attempted.get(ident, {})
@@ -158,7 +169,7 @@ def main():
 
     for item in batch:
         ident = item["id"]
-        attempted[ident] = {"fingerprint": source_evidence_fingerprint(item), "at": now}
+        attempted[ident] = {"fingerprint": audit_fingerprint(item), "at": now}
         print("Auditing " + item.get("country_code", "") + " " + ident, flush=True)
         try:
             issues = audit_one(item)
