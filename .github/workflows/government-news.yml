@@ -98,6 +98,8 @@ jobs:
           restore-keys: |
             government-checkpoint-hybrid-v3-${{ github.ref_name }}-
             government-checkpoint-hybrid-v2-${{ github.ref_name }}-
+      - name: Restore source-reviewed full China speech
+        run: python scripts/repair_government_full_speech.py
       - name: Check saved daily progress
         id: daily
         run: python scripts/government_schedule.py collect
