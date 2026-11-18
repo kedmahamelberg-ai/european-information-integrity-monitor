@@ -2330,5 +2330,24 @@
     "topics": [
       "climate_environment"
     ]
+  },
+  {
+    "id": "0d3da572f379627b0365",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "a9cfb52b442ad2d8402182361f967060e46ccc85a4edf8f122cb56534f4d8854",
+    "fault_type": "source_extraction_and_label",
+    "source_url": "https://english.www.gov.cn/news/202610/18/content_WS6ad4d9c8c6d00ca5f9a0dc44.html",
+    "full_source_url": "https://www.fmprc.gov.cn/mfa_eng/xw/zyjh/202610/t20261018_12042328.html",
+    "published_field": "relevance, topics, english_summary, ticker_message, short_rationale, evidence_quote",
+    "evidence": "The archive page is a 363-character notice pointing to an attached full speech. The matching official Ministry of Foreign Affairs full text by Premier Li Qiang, dated October 17 in Beijing, calls for integrating artificial intelligence and modern biomedicine with traditional medicine to improve diagnosis and therapy, alongside international work on infectious disease risks. The archived record's not_related decision used only the attachment notice and missed substantive AI in the full original speech. The article is a proposal, not an implemented AI system.",
+    "relevance": "related",
+    "topics": [
+      "health_biosecurity",
+      "artificial_intelligence"
+    ],
+    "english_summary": "At a traditional medicine conference in Beijing, Premier Li Qiang called for integrating AI and modern biomedicine with traditional medicine to improve diagnosis and treatment. He also urged international cooperation on chronic and emerging infectious diseases. The speech proposed these uses; it did not announce an AI deployment.",
+    "ticker_message": "China's premier calls for AI and biomedicine to improve traditional-medicine diagnosis and treatment.",
+    "short_rationale": "The full official speech proposes a substantive AI role in diagnosis and treatment within a discussion of public-health challenges, including infectious diseases. The archive page alone contains only an attachment notice.",
+    "evidence_quote": "We should promote the deep integration of artificial intelligence and modern biomedicine with traditional medicine, use new technologies to rediscover the value of ancient formulas and improve diagnostic and therapeutic protocols"
   }
 ]
