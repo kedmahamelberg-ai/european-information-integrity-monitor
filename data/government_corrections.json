@@ -2171,5 +2171,36 @@
     "review_decision": "retain_substantive_artificial_intelligence_topic_with_explicit_source_based_copy",
     "short_rationale": "The full official article describes the specific AI action stated in the corrected ticker.",
     "ticker_message": "China launches a cross-border legal platform with an AI assistant and professional consultations."
+  },
+  {
+    "id": "b816c11bceff1f3abb58",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "66e70b586de82dac3bd50410e181ab449b63a5234ef317c7d0509846cf9529a7",
+    "source_url": "https://www.canada.ca/en/agriculture-agri-food/news/2026/10/canada-and-ontario-investing-22-million-to-protect-farmers-and-food-processors.html",
+    "review_decision": "add_substantive_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "food_security",
+      "economic_financial_security",
+      "artificial_intelligence"
+    ],
+    "english_summary": "The $22 million Canada–Ontario market diversification program supports more than 130 agri-food businesses. One grant of up to $494,000 will equip Lynch Ag with a handling line, optical sorter and AI-enabled grading software to expand interprovincial and export sales.",
+    "ticker_message": "Canada funds AI-enabled food grading within an agri-food market diversification program.",
+    "short_rationale": "The full official release names a funded $494,000 project with AI-enabled grading software within the food-supply resilience program."
+  },
+  {
+    "id": "dccc30891af6703d9a19",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "94628e07203e33c27eb3004cad01f5b2966ac908a9627dc08ea547bf99d1805e",
+    "source_url": "https://www.canada.ca/en/prairies-economic-development/news/2026/10/government-of-canada-helps-saskatchewan-businesses-adapt-and-grow-amid-unjustified-us-tariffs.html",
+    "review_decision": "add_substantive_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "economic_financial_security",
+      "technology_supply_chains",
+      "food_security",
+      "artificial_intelligence"
+    ],
+    "english_summary": "PrairiesCan announced more than $11.2 million for eight Saskatchewan organizations responding to U.S. tariffs. One funded project, Prairie Connect, is building a publicly accessible AI-guided map of prairie trade corridors to support market diversification.",
+    "ticker_message": "Canada backs an AI-guided prairie trade-corridor map amid U.S. tariffs.",
+    "short_rationale": "The full official release names a funded AI-guided trade-corridor platform within its tariff-response and market-diversification program."
   }
 ]
