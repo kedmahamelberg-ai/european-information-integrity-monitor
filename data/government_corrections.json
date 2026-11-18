@@ -1868,5 +1868,15 @@
     ],
     "ticker_message": "US grants Moldova $1.5 million to strengthen cybersecurity after a recent attack.",
     "english_summary": "The United States is providing Moldova with a $1.5 million grant for cybersecurity equipment and access to US technology, within a previously announced $8 million security and resilience package. The announcement came at the Resilient Trident exercise following a recent cyberattack on Moldovan systems. Moldova, Romania and Ukraine are also training specialists to protect critical infrastructure."
+  },
+  {
+    "id": "d6e89f4b397758167458",
+    "source_fingerprint": "8471fd0330bd7a3c3bbcd9325ee61b2a41844edfb063a62cbbae33c0e061f32c",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "health_biosecurity"
+    ],
+    "short_rationale": "The article is about China's broad healthcare access and health-system program. It mentions AI once as a possible healthcare application without describing a specific AI measure or making it a substantive focus.",
+    "ticker_message": "China outlines broader healthcare access, primary care and health-system development."
   }
 ]
