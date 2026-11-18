@@ -2335,6 +2335,8 @@ def article_text(item):
         _,body=fetch(item["url"],timeout=20)
         parser=ClassText("Artical_Content");parser.feed(body.decode("utf-8","replace"))
         article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        if re.search(r"Please see (?:the )?attachment for .*full text", article, re.I):
+            raise RuntimeError("China news is an attachment notice without full article text")
         if len(article)<80: raise RuntimeError("China news has no usable full article body")
         return article
     if item["country_code"]=="US":
