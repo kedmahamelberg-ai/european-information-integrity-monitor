@@ -2157,8 +2157,20 @@ def canada_release_date(url):
     match=CANADA_ISSUED.search(markup)
     if not match: raise RuntimeError("Canada release has no original issued date")
     parser=ClassText("news-release-container");parser.feed(markup)
-    if len(" ".join(parser.parts))<80: raise RuntimeError("Canada release has no usable full article body")
-    return dt.date.fromisoformat(match.group(1))
+    article=" ".join(parser.parts)
+    if len(article)<80: raise RuntimeError("Canada release has no usable full article body")
+    issued=dt.date.fromisoformat(match.group(1))
+    # Some Canada.ca releases have an updated dcterms.issued value while the
+    # visible dateline and the page-details date retain the actual release day.
+    dateline=re.search(r"\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(20\d{2})\b",article[:900],re.I)
+    if dateline:
+        visible=dt.datetime.strptime(" ".join(dateline.groups()).replace(",",""),"%B %d %Y").date()
+        if visible!=issued:
+            details=re.search(r'<time\b[^>]*\bproperty=["\']dateModified["\'][^>]*>(20\d{2}-\d{2}-\d{2})</time>',markup,re.I)
+            if not details or dt.date.fromisoformat(details.group(1))!=visible:
+                raise RuntimeError("Canada release date metadata conflicts with dateline; source review required")
+            return visible
+    return issued
 
 
 def discover_canada(country,start,end):
@@ -2979,6 +2991,11 @@ def main():
             existing[item["id"]]=item
     calibration_ids={x["id"] for x in existing.values() if x.get("calibration_item")}
     calibration_complete=bool(correction_map) or bool(state.get("calibration_complete")) or bool(calibration_ids and calibration_ids.issubset(correction_map))
+    # Discovery can revisit a URL and replace its date-only metadata. Reapply
+    # exact, source-bound corrections before saving the checkpoint and public data.
+    _, stale_after_discovery=apply_confirmed_corrections(existing.values(),corrections)
+    if stale_after_discovery:
+        print(f"Skipped {len(stale_after_discovery)} government reviews after discovery because source evidence changed",flush=True)
     out={"as_of":end.isoformat(),"window_start":start.isoformat(),"window_end":end.isoformat(),"taxonomy_version":HYBRID["version"],"sources":sources_status,"items":sorted(existing.values(),key=lambda x:x.get("published_at",""),reverse=True),"review":{"routine_sample_percent":3,"calibration_tranche_percent":10,"calibration_ready":calibration_complete}}
     collection_complete=not args.classify_only and not selected_codes and not skipped_codes and bool(selected_sources) and len(sources_status)==len(selected_sources) and all(x["status"]=="discovered" for x in sources_status)
     cursor=end.isoformat() if collection_complete else state.get("last_successful_collection_end")

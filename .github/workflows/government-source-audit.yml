@@ -1,0 +1,67 @@
+name: Government full-source audit
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: Maximum new or changed government records to audit (1-30)
+        required: false
+        default: "15"
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit:
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      AUDIT_LIMIT: ${{ inputs.limit || '15' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Require audit model key
+        run: test -n "$OPENAI_API_KEY" || { echo '::error::OPENAI_API_KEY is required'; exit 1; }
+      - name: Restore audit checkpoint
+        uses: actions/cache/restore@v4
+        with:
+          path: data/government_source_audit.json
+          key: government-source-audit-v1-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            government-source-audit-v1-${{ github.ref_name }}-
+      - name: Compare exact official sources and saved labels
+        run: python scripts/audit_government_sources.py --limit "$AUDIT_LIMIT"
+      - name: Save audit checkpoint
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/government_source_audit.json
+          key: government-source-audit-v1-${{ github.ref_name }}-${{ github.run_id }}
+      - name: Upload item IDs, source evidence and findings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: government-source-audit
+          path: |
+            government-source-audit-report.json
+            data/government_source_audit.json
+          retention-days: 90
+      - name: Flag new candidate faults
+        if: success()
+        run: |
+          python - <<'PY'
+          import json
+          report=json.load(open("government-source-audit-report.json"))
+          ids=set(report["newly_attempted_ids"])
+          new={key:value for key,value in report["open_candidate_findings"].items() if key in ids}
+          if new:
+              print("::error::Full-source audit found " + str(len(new)) + " candidate government faults; inspect artifact and exact official sources.")
+              raise SystemExit(1)
+          PY
