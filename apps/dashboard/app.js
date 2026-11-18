@@ -247,7 +247,7 @@ function governmentTopicCodes(item){
 function updateTrendCountries(){
  const available=new Set((governmentData.items||[]).filter(x=>x.related===true&&['provisional','human_reviewed'].includes(x.classification_status)).map(x=>x.country_code));
  const options=countries.filter(c=>available.has(c.iso2)).sort((a,b)=>a.country_name.localeCompare(b.country_name));
- options.unshift({iso2:'US',country_name:'USA · benchmark (White House)'});
+ options.unshift({iso2:'US',country_name:'USA · benchmark (White House)'},{iso2:'CA',country_name:'Canada · benchmark (federal releases)'},{iso2:'CN',country_name:'China · benchmark (government news)'});
  for(const id of ['trend-country-1','trend-country-2','trend-country-3']){
   const select=$('#'+id),previous=select.value,initial=id==='trend-country-1'?'<option value="all">Europe · all countries</option>':'<option value="none">No comparison</option>';
   select.innerHTML=initial+options.map(c=>`<option value="${esc(c.iso2)}">${esc(c.country_name)}</option>`).join('');
@@ -266,7 +266,7 @@ function firstPublishedDate(items,code){
  return dates[0]||null;
 }
 function trendCountrySeries(code,topics,items,days){
- const matching=items.filter(x=>code==='all'?x.country_code!=='US':x.country_code===code),daily=new Map(days.map(day=>[day,[]]));
+ const matching=items.filter(x=>code==='all'?!['US','CA','CN'].includes(x.country_code):x.country_code===code),daily=new Map(days.map(day=>[day,[]]));
  for(const item of matching)daily.get(item.chartDate).push(...governmentTopicCodes(item));
  const counts=new Map(),series=new Map(topics.map(t=>[t,[]]));let total=0;
  for(const day of days){
@@ -293,9 +293,9 @@ function renderGovernmentTrends(){
  const selected=dated.filter(x=>x.chartDate>=from&&x.chartDate<=to),topics=[...new Set(selected.flatMap(governmentTopicCodes))].sort();
  const selectedCountries=trendSelectedCountries(['trend-country-1','trend-country-2','trend-country-3'].map(id=>$('#'+id).value));
  const colorFor=(topic)=>{const index=Object.keys(data.topic_labels||{}).sort().indexOf(topic);return `hsl(${Math.round(((index<0?topic.split('').reduce((n,c)=>n+c.charCodeAt(0),0):index)*137.508)%360)} 78% 68%)`;};
- const countryName=code=>code==='all'?'Europe · all collected countries':code==='US'?'USA · BENCHMARK (White House)':countries.find(c=>c.iso2===code)?.country_name||code;
+ const countryName=code=>code==='all'?'Europe · all collected countries':({US:'USA · BENCHMARK (White House)',CA:'Canada · BENCHMARK (federal releases)',CN:'China · BENCHMARK (government news)'})[code]||countries.find(c=>c.iso2===code)?.country_name||code;
  const comparison=selectedCountries.length>1,cohorts=selectedCountries.map(code=>trendCountrySeries(code,topics,selected,days));
- const cohortItems=selected.filter(item=>selectedCountries.some(code=>code==='all'?item.country_code!=='US':item.country_code===code));
+ const cohortItems=selected.filter(item=>selectedCountries.some(code=>code==='all'?!['US','CA','CN'].includes(item.country_code):item.country_code===code));
  const frequency=new Map(topics.map(t=>[t,cohortItems.reduce((n,item)=>n+Number(governmentTopicCodes(item).includes(t)),0)]));
  const ranked=topics.filter(t=>frequency.get(t)>0).sort((a,b)=>frequency.get(b)-frequency.get(a)||(data.topic_labels?.[a]||a).localeCompare(data.topic_labels?.[b]||b));
  const comparedRanked=topics.filter(t=>cohorts.some(c=>(c.counts.get(t)||0)>0)).sort((a,b)=>cohorts.filter(c=>(c.counts.get(b)||0)>0).length-cohorts.filter(c=>(c.counts.get(a)||0)>0).length||cohorts.reduce((n,c)=>n+(c.counts.get(b)||0)-(c.counts.get(a)||0),0));
@@ -304,8 +304,8 @@ function renderGovernmentTrends(){
  $('#government-trends-description').textContent=comparison?'Compare one narrative across the selected countries. Each line uses its own related topic labels as the denominator.':'Each line shows a narrative’s cumulative share of related topic labels for the selected country or Europe.';
  const visibleTopics=choice==='top'?ranked.slice(0,8):choice==='all'?ranked:topics.includes(choice)?[choice]:[];
  const countryColors=['#86dafa','#cc9df3','#80b9db'];
- const cohortColor=(cohort,i)=>cohort.code==='US'?'#ffce62':countryColors[i%countryColors.length];
- const seriesDefs=comparison?cohorts.map((cohort,i)=>({key:`${choice}|${cohort.code}`,topic:choice,code:cohort.code,label:countryName(cohort.code),color:cohortColor(cohort,i),dash:cohort.code==='US'?'':['8 5','2 5','12 4'][i%3],benchmark:cohort.code==='US',count:cohort.counts.get(choice)||0,values:cohort.series.get(choice)||[]})).filter(s=>s.count>0):visibleTopics.map(topic=>({key:`${topic}|${cohorts[0].code}`,topic,code:cohorts[0].code,label:data.topic_labels?.[topic]||human(topic),color:colorFor(topic),dash:'',count:cohorts[0].counts.get(topic)||0,values:cohorts[0].series.get(topic)||[]})).filter(s=>s.count>0);
+ const cohortColor=(cohort,i)=>({US:'#ffce62',CA:'#86dafa',CN:'#eea6a1'})[cohort.code]||countryColors[i%countryColors.length];
+ const seriesDefs=comparison?cohorts.map((cohort,i)=>({key:`${choice}|${cohort.code}`,topic:choice,code:cohort.code,label:countryName(cohort.code),color:cohortColor(cohort,i),dash:({US:'',CA:'8 5',CN:'2 5'})[cohort.code]??['8 5','2 5','12 4'][i%3],benchmark:['US','CA','CN'].includes(cohort.code),count:cohort.counts.get(choice)||0,values:cohort.series.get(choice)||[]})).filter(s=>s.count>0):visibleTopics.map(topic=>({key:`${topic}|${cohorts[0].code}`,topic,code:cohorts[0].code,label:data.topic_labels?.[topic]||human(topic),color:colorFor(topic),dash:'',count:cohorts[0].counts.get(topic)||0,values:cohorts[0].series.get(topic)||[]})).filter(s=>s.count>0);
  const maxValue=Math.max(0,...seriesDefs.flatMap(s=>s.values.filter(v=>v!==null))),axisMax=[2,5,10,15,20,25,30,40,50,75,100].find(v=>v>=maxValue*1.07)||100;
  const w=1000,h=300,left=55,right=25,top=26,bottom=48,plotW=w-left-right,plotH=h-top-bottom;
  const x=i=>left+(days.length===1?plotW/2:i*plotW/(days.length-1)),y=value=>top+plotH*(1-value/axisMax);
@@ -321,13 +321,12 @@ function renderGovernmentTrends(){
  const active=seriesDefs.find(s=>s.key===activeTrendLine);
  const focus=active?`<div class="trend-focus" role="status"><strong>${esc(active.label)}</strong><b>${formatPercent(active.values.at(-1))}</b><span>${active.count} related topic labels · cumulative through ${esc(to)}</span></div>`:'<p class="trend-hint">Select a line or a label below to see its name, share and count.</p>';
  const barMax=Math.max(1,...cohorts.map(c=>c.series.get(choice)?.at(-1)||0));
- const bars=comparison?`<div class="trend-compare-bars"><h3>Share at period end · ${esc(data.topic_labels?.[choice]||human(choice))}</h3>${cohorts.map((cohort,i)=>{const share=cohort.series.get(choice)?.at(-1),count=cohort.counts.get(choice)||0;return `<div class="trend-bar-row ${cohort.code==='US'?'trend-benchmark':''}"><span>${esc(countryName(cohort.code))}</span><div class="trend-bar-track"><i style="width:${100*(share||0)/barMax}%;background:${cohortColor(cohort,i)}"></i></div><b>${share==null?'—':formatPercent(share)}</b><small>${count} labels</small></div>`;}).join('')}<p>Bar lengths are scaled to the highest country share; printed percentages use each country's full set of related labels. A dash means no related labels in this period.</p></div>`:'';
+ const bars=comparison?`<div class="trend-compare-bars"><h3>Share at period end · ${esc(data.topic_labels?.[choice]||human(choice))}</h3>${cohorts.map((cohort,i)=>{const share=cohort.series.get(choice)?.at(-1),count=cohort.counts.get(choice)||0;return `<div class="trend-bar-row ${['US','CA','CN'].includes(cohort.code)?'trend-benchmark':''}"><span>${esc(countryName(cohort.code))}</span><div class="trend-bar-track"><i style="width:${100*(share||0)/barMax}%;background:${cohortColor(cohort,i)}"></i></div><b>${share==null?'—':formatPercent(share)}</b><small>${count} labels</small></div>`;}).join('')}<p>Bar lengths are scaled to the highest country share; printed percentages use each country's full set of related labels. A dash means no related labels in this period.</p></div>`:'';
  const title=comparison?`Country comparison · ${esc(data.topic_labels?.[choice]||human(choice))}`:countryName(cohorts[0].code);
- const firstUS=selectedCountries.includes('US')?firstPublishedDate(governmentData.items,'US'):null;
- const usStartNote=firstUS&&from<firstUS?` · USA first post ${new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(firstUS+'T12:00:00Z'))}`:'';
- const meta=(comparison?'Same topic · one shared time axis · each country has its own denominator':`${num(cohorts[0].items)} related communications · ${num(cohorts[0].total)} topic labels`)+usStartNote;
+ const benchmarkStartNote=selectedCountries.filter(code=>['US','CA','CN'].includes(code)).map(code=>{const first=firstPublishedDate(governmentData.items,code);return first&&from<first?` · ${code} first post ${new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(first+'T12:00:00Z'))}`:'';}).join('');
+ const meta=(comparison?'Same topic · one shared time axis · each country has its own denominator':`${num(cohorts[0].items)} related communications · ${num(cohorts[0].total)} topic labels`)+benchmarkStartNote;
  chartHost.innerHTML=`<div class="trend-panel"><div class="trend-panel-title"><strong>${title}</strong><span>${esc(meta)}</span></div>${seriesDefs.length?`<svg viewBox="0 0 ${w} ${h}" role="group" aria-label="Daily cumulative narrative shares, ${esc(from)} to ${esc(to)}">${grid}${ticks}${paths}</svg>${focus}${bars}`:'<p class="empty">No related narrative labels match this selection.</p>'}</div>`;
- legend.innerHTML=seriesDefs.map(s=>`<button type="button" class="${s.benchmark?'trend-benchmark':''}" data-trend-key="${esc(s.key)}" aria-pressed="${activeTrendLine===s.key}"><i style="background:${s.color}"></i><span>${esc(s.label)}</span><b>${formatPercent(s.values.at(-1))}</b></button>`).join('')+(selectedCountries.includes('US')&&!seriesDefs.some(s=>s.code==='US')?'<span class="trend-benchmark-pending">USA · No related labels for this narrative and period</span>':'');
+ legend.innerHTML=seriesDefs.map(s=>`<button type="button" class="${s.benchmark?'trend-benchmark':''}" data-trend-key="${esc(s.key)}" aria-pressed="${activeTrendLine===s.key}"><i style="background:${s.color}"></i><span>${esc(s.label)}</span><b>${formatPercent(s.values.at(-1))}</b></button>`).join('')+selectedCountries.filter(code=>['US','CA','CN'].includes(code)&&!seriesDefs.some(s=>s.code===code)).map(code=>`<span class="trend-benchmark-pending">${esc(countryName(code))} · No related labels for this narrative and period</span>`).join('');
 }
 // Pick one related story per country, with a new weighted draw on each page visit.
 // Recency, citizen-facing security topics and explicit European scope guide placement;
@@ -359,7 +358,7 @@ function buildGovernmentHighlights(items, previous=[], random=Math.random, now=D
  return [...fresh.slice(0,3),...fresh.slice(3),...repeated];
 }
 let governmentWatchSource=null, governmentWatchHighlights=[];
-const governmentCountryLabel=item=>item.country_code==='US'?'USA · BENCHMARK (White House)':item.country;
+const governmentCountryLabel=item=>({US:'USA · BENCHMARK (White House)',CA:'Canada · BENCHMARK (federal releases)',CN:'China · BENCHMARK (government news)'})[item.country_code]||item.country;
 function getGovernmentHighlights(items){
  if(governmentWatchSource===items)return governmentWatchHighlights;
  let previous=[];
@@ -445,7 +444,7 @@ async function init(){try{
  $('#archive-country').insertAdjacentHTML('beforeend',countries.map(c=>`<option value="${esc(c.iso2)}">${esc(c.country_name)}</option>`).join(''));
  renderBatchOptions();
  $('#topic').insertAdjacentHTML('beforeend',Object.entries(data.topic_labels||{}).map(([c,n])=>`<option value="${esc(c)}">${esc(n)}</option>`).join(''));
- $('#government-country').insertAdjacentHTML('beforeend',countries.map(c=>`<option value="${esc(c.iso2)}">${esc(c.country_name)}</option>`).join('')+'<option value="US">USA · benchmark (White House)</option>');
+ $('#government-country').insertAdjacentHTML('beforeend',countries.map(c=>`<option value="${esc(c.iso2)}">${esc(c.country_name)}</option>`).join('')+'<option value="US">USA · benchmark (White House)</option><option value="CA">Canada · benchmark (federal releases)</option><option value="CN">China · benchmark (government news)</option>');
  const governmentLabels=[...new Set((governmentData.items||[]).flatMap(x=>[x.primary_narrative,...(x.secondary_narratives||[])].filter(Boolean)))];$('#government-narrative').insertAdjacentHTML('beforeend',governmentLabels.map(n=>`<option value="${esc(n)}">${esc(human(n))}</option>`).join(''));
  configureDateInputs();
  render();route();

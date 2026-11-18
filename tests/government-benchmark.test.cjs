@@ -18,10 +18,12 @@ const labelEnd = app.indexOf('function getGovernmentHighlights(', labelStart);
 assert.ok(labelStart >= 0 && labelEnd > labelStart);
 vm.runInNewContext(app.slice(labelStart, labelEnd) + '\nthis.countryLabel=governmentCountryLabel;', scope);
 
-test('Europe totals exclude the USA benchmark while USA keeps its own denominator', () => {
+test('Europe totals exclude all benchmarks while each benchmark keeps its own denominator', () => {
   const items = [
     {country_code: 'NL', chartDate: '2026-10-05', topics: ['cyber']},
     {country_code: 'US', chartDate: '2026-10-05', topics: ['cyber', 'civil_protection']},
+    {country_code: 'CA', chartDate: '2026-10-05', topics: ['cyber']},
+    {country_code: 'CN', chartDate: '2026-10-05', topics: ['civil_protection']},
   ];
   const days = ['2026-10-05'];
   const topics = ['cyber', 'civil_protection'];
@@ -33,12 +35,15 @@ test('Europe totals exclude the USA benchmark while USA keeps its own denominato
   assert.equal(usa.items, 1);
   assert.equal(usa.total, 2);
   assert.equal(usa.series.get('cyber')[0], 50);
+  assert.equal(scope.series('CA',topics,items,days).items,1);
+  assert.equal(scope.series('CN',topics,items,days).items,1);
 });
 
 test('the USA benchmark appears only when selected', () => {
   assert.deepEqual(Array.from(scope.selected(['all', 'none', 'none'])), ['all']);
   assert.deepEqual(Array.from(scope.selected(['NL', 'DE', 'US'])), ['NL', 'DE', 'US']);
   assert.deepEqual(Array.from(scope.selected(['US', 'none', 'none'])), ['US']);
+  assert.deepEqual(Array.from(scope.selected(['CA', 'CN', 'none'])), ['CA','CN']);
 });
 
 test('the shared launch date does not invent a USA share before its first official post', () => {
@@ -56,4 +61,6 @@ test('the shared launch date does not invent a USA share before its first offici
 test('government source and ticker labels identify the USA benchmark', () => {
   assert.equal(scope.countryLabel({country_code: 'US', country: 'United States'}), 'USA · BENCHMARK (White House)');
   assert.equal(scope.countryLabel({country_code: 'NL', country: 'Netherlands'}), 'Netherlands');
+  assert.equal(scope.countryLabel({country_code: 'CA', country: 'Canada'}), 'Canada · BENCHMARK (federal releases)');
+  assert.equal(scope.countryLabel({country_code: 'CN', country: 'China'}), 'China · BENCHMARK (government news)');
 });

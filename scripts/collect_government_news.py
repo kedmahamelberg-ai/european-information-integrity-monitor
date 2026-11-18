@@ -32,7 +32,7 @@ HYBRID = json.loads((ROOT / "config/hybrid.json").read_text())
 TOPICS = HYBRID["topics"]
 COUNTRY_ISO3 = {country["iso2"]: country["iso3"] for country in
                 json.loads((ROOT / "config/countries.json").read_text())["countries"]}
-COUNTRY_ISO3["US"] = "USA"
+COUNTRY_ISO3.update({"US": "USA", "CA": "CAN", "CN": "CHN"})
 ROLE_ENTITY_CODES = set(COUNTRY_ISO3.values()) | {"EU", "OTHER"}
 STATE = ROOT / "data/government_state.json"
 PUBLIC = ROOT / "build/government-data.json"
@@ -78,9 +78,9 @@ ZURICH = ZoneInfo("Europe/Zurich")
 OSLO = ZoneInfo("Europe/Oslo")
 SOURCE_TIMEZONES = {"AD": ANDORRA, "AM": YEREVAN, "AT": AMSTERDAM, "BA": ZoneInfo("Europe/Sarajevo"), "BE": BRUSSELS, "BG": SOFIA, "BY": ZoneInfo("Europe/Minsk"),
                     "EE": TALLINN, "GE": TBILISI, "GR": ATHENS, "HR": ZAGREB, "IS": REYKJAVIK, "IT": ROME, "MT": MALTA,
-                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "NO": OSLO, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE, "ES": MADRID, "TR": ISTANBUL, "UA": KYIV, "CH": ZURICH, "US": ZoneInfo("America/New_York")}
+                    "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "NO": OSLO, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE, "ES": MADRID, "TR": ISTANBUL, "UA": KYIV, "CH": ZURICH, "US": ZoneInfo("America/New_York"), "CA": ZoneInfo("America/Toronto"), "CN": ZoneInfo("Asia/Shanghai")}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
-COLLECTOR_READY_CODES = {"AD","AM","AT","AZ","BA","BE","BG","BY","CH","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","MT","NL","PL","PT","RS","SE","SI","SK","SM","TR","US","VA","XK"}
+COLLECTOR_READY_CODES = {"AD","AM","AT","AZ","BA","BE","BG","BY","CA","CH","CN","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","MT","NL","PL","PT","RS","SE","SI","SK","SM","TR","US","VA","XK"}
 
 
 # Verified publisher rename: retain the existing classified canonical record.
@@ -2113,6 +2113,78 @@ def discover_norway(country,start,end):
 WHITE_HOUSE_ARTICLE = re.compile(r"https://www\.whitehouse\.gov/briefings-statements/20\d{2}/(?:0?[1-9]|1[0-2])/[a-z0-9-]+/\Z")
 WHITE_HOUSE_ARCHIVE = re.compile(r"https://www\.whitehouse\.gov/briefings-statements/(?:page/[1-9]\d*/)?\Z")
 US_BENCHMARK_START = dt.datetime(2026,10,4,tzinfo=SOURCE_TIMEZONES["US"]).astimezone(dt.timezone.utc)
+CANADA_ARTICLE = re.compile(r"https://www\.canada\.ca/(?:en|fr)/[^?#]+/(?:news|nouvelles)/20\d{2}/\d{2}/[^/?#]+\.html\Z")
+CHINA_ARTICLE = re.compile(r"https://english\.www\.gov\.cn/(?:news|policies/latestreleases|archive/statistics)/20\d{4}/\d{2}/content_WS[0-9a-f]+\.html\Z")
+CHINA_CARDS = re.compile(r'<li>\s*<h3[^>]*><a[^>]+href="([^"]+)"[^>]*>(.*?)</a></h3>\s*<h4>(20\d{2}/\d{2}/\d{2})</h4>', re.S)
+ATOM = "{http://www.w3.org/2005/Atom}"
+
+
+def discover_canada(country,start,end):
+    """Page the official bilingual federal release feeds; retain one language per release."""
+    first_day=start.astimezone(SOURCE_TIMEZONES["CA"]).date()
+    last_day=end.astimezone(SOURCE_TIMEZONES["CA"]).date()
+    entries=[]; english_times=set(); seen=set()
+    # The feed's updated timestamp pairs translated releases. A small number
+    # of French-only releases have no English counterpart and remain eligible.
+    for language in ("en","fr"):
+        for page in range(100):
+            query=urllib.parse.urlencode({"format":"atom","orderBy":"desc","pick":100,
+                "publishedDate>":(first_day-dt.timedelta(days=1)).isoformat(),
+                "sort":"publishedDate","type":"newsreleases","skip":page*100})
+            url=f"https://api.io.canada.ca/io-server/gc/news/{language}/v2?{query}"
+            _,body=fetch(url,timeout=20)
+            records=ET.fromstring(body).findall(ATOM+"entry")
+            if page==0 and not records: raise RuntimeError("Canada official release feed returned no entries")
+            dates=[]
+            for record in records:
+                title=(record.findtext(ATOM+"title") or "").strip()
+                published=date_value(record.findtext(ATOM+"updated"))
+                link=record.find(ATOM+"link")
+                article_url=(link.attrib.get("href","") if link is not None else "").strip()
+                if not title or not published or not CANADA_ARTICLE.fullmatch(article_url):
+                    raise RuntimeError("Canada release feed has invalid article metadata")
+                day=published.astimezone(SOURCE_TIMEZONES["CA"]).date();dates.append(day)
+                if language=="en": english_times.add(published)
+                if not first_day<=day<=last_day or not start<=published<=end: continue
+                if language=="fr" and published in english_times: continue
+                if article_url in seen: continue
+                seen.add(article_url)
+                entries.append({"country":country["name"],"country_code":"CA","url":article_url,
+                    "title":title,"published_at":published.isoformat(),"published_date":day.isoformat(),
+                    "publication_precision":"instant","text":""})
+            if not records or min(dates)<first_day or len(records)<100: break
+        else: raise RuntimeError("Canada release feed exceeded pagination safety limit")
+    if entries: article_text(entries[0])
+    return entries,country["url"]
+
+
+def discover_china(country,start,end):
+    """Traverse dated government-portal News pages back to the source checkpoint."""
+    first_day=start.astimezone(SOURCE_TIMEZONES["CN"]).date()
+    last_day=end.astimezone(SOURCE_TIMEZONES["CN"]).date()
+    entries=[];seen=set()
+    for page in range(1,100):
+        url=country["url"] if page==1 else f"https://english.www.gov.cn/news/page_{page}.html"
+        _,body=fetch(url,timeout=20)
+        markup=body.decode("utf-8","replace")
+        cards=CHINA_CARDS.findall(markup)
+        if not cards: raise RuntimeError("China government news archive returned no dated cards")
+        dates=[]
+        for raw_url,raw_title,date in cards:
+            article_url=urllib.parse.urljoin(url,html.unescape(raw_url))
+            day=dt.datetime.strptime(date,"%Y/%m/%d").date();dates.append(day)
+            if not CHINA_ARTICLE.fullmatch(article_url): raise RuntimeError("China news card left the official section")
+            if first_day<=day<=last_day and article_url not in seen:
+                seen.add(article_url)
+                published=dt.datetime.combine(day,dt.time.min,SOURCE_TIMEZONES["CN"])
+                entries.append({"country":country["name"],"country_code":"CN","url":article_url,
+                    "title":re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>","",raw_title))).strip(),
+                    "published_at":published.isoformat(),"published_date":day.isoformat(),
+                    "publication_precision":"day","text":""})
+        if min(dates)<first_day: break
+    else: raise RuntimeError("China government news archive exceeded pagination safety limit")
+    if entries: article_text(entries[0])
+    return entries,country["url"]
 
 
 def discover_united_states(country,start,end):
@@ -2145,6 +2217,8 @@ def discover_united_states(country,start,end):
 
 def discover(country,start,end):
     if country["iso2"]=="US": return discover_united_states(country,start,end)
+    if country["iso2"]=="CA": return discover_canada(country,start,end)
+    if country["iso2"]=="CN": return discover_china(country,start,end)
     if country["iso2"]=="AM": return discover_armenia(country,start,end)
     if country["iso2"]=="BE": return discover_belgium(country,start,end)
     if country["iso2"]=="NO": return discover_norway(country,start,end)
@@ -2192,6 +2266,22 @@ def discover(country,start,end):
 
 
 def article_text(item):
+    if item["country_code"]=="CA":
+        if not CANADA_ARTICLE.fullmatch(item["url"]): raise RuntimeError("Canada release URL is outside the official feed")
+        _,body=fetch(item["url"],timeout=20)
+        markup=re.sub(r'<p class="teaser hidden">.*?</p>',"",body.decode("utf-8","replace"),flags=re.S)
+        parser=ClassText("news-release-container");parser.feed(markup)
+        article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        article=article.split(" Contacts ",1)[0]
+        if len(article)<80: raise RuntimeError("Canada release has no usable full article body")
+        return article
+    if item["country_code"]=="CN":
+        if not CHINA_ARTICLE.fullmatch(item["url"]): raise RuntimeError("China news URL is outside the official archive")
+        _,body=fetch(item["url"],timeout=20)
+        parser=ClassText("Artical_Content");parser.feed(body.decode("utf-8","replace"))
+        article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
+        if len(article)<80: raise RuntimeError("China news has no usable full article body")
+        return article
     if item["country_code"]=="US":
         if not WHITE_HOUSE_ARTICLE.fullmatch(item["url"]): raise RuntimeError("White House article URL is outside the verified archive")
         _,body=fetch(item["url"],timeout=20)
