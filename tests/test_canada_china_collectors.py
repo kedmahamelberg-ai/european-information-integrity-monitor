@@ -16,6 +16,17 @@ def atom(entries):
 
 
 class BenchmarkCollectorTest(unittest.TestCase):
+    def test_explicit_ai_titles_are_reviewed_first_without_assigning_labels(self):
+        neutral={"id":"neutral", "title":"Les ministres ont parlé; j'ai répondu"}
+        french={"id":"french", "title":"L'intelligence artificielle et la sécurité"}
+        english={"id":"english", "title":"Canada invests in AI safety research"}
+        general={"id":"general", "title":"Superintelligence governance proposal"}
+        screened={"id":"f674ed27a764f88771ee", "title":"Security training technology"}
+        self.assertEqual(collector.classification_order(neutral)[0],2)
+        self.assertEqual([collector.classification_order(x)[0] for x in (french,english,general)],[0,0,0])
+        self.assertEqual(collector.classification_order(screened)[0],1)
+        self.assertTrue(all("topics" not in x for x in (neutral,french,english,general,screened)))
+
     def test_canada_keeps_french_only_release_but_deduplicates_translation(self):
         source=next(x for x in collector.SOURCES if x["iso2"]=="CA")
         en='https://www.canada.ca/en/agency/news/2026/10/one.html'

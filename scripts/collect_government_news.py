@@ -81,6 +81,22 @@ SOURCE_TIMEZONES = {"AD": ANDORRA, "AM": YEREVAN, "AT": AMSTERDAM, "BA": ZoneInf
                     "GB": LONDON, "MD": CHISINAU, "NL": AMSTERDAM, "NO": OSLO, "RS": BELGRADE, "DE": BERLIN, "SE": AMSTERDAM, "DK": COPENHAGEN, "SI": LJUBLJANA, "SK": BRATISLAVA, "PL": WARSAW, "CZ": PRAGUE, "HU": BUDAPEST, "PT": LISBON, "MK": SKOPJE, "KZ": ALMATY, "LI": VADUZ, "RO": BUCHAREST, "MC": MONACO, "ME": PODGORICA, "LU": LUXEMBOURG, "AZ": BAKU, "XK": BELGRADE, "ES": MADRID, "TR": ISTANBUL, "UA": KYIV, "CH": ZURICH, "US": ZoneInfo("America/New_York"), "CA": ZoneInfo("America/Toronto"), "CN": ZoneInfo("Asia/Shanghai")}
 CLASSIFIER_PROMPT_VERSION = "government-hybrid-4"
 COLLECTOR_READY_CODES = {"AD","AM","AT","AZ","BA","BE","BG","BY","CA","CH","CN","CZ","DE","DK","EE","ES","GB","GE","GR","HR","HU","IS","IT","KZ","LI","LU","MC","MD","ME","MK","MT","NL","PL","PT","RS","SE","SI","SK","SM","TR","US","VA","XK"}
+AI_PRIORITY_TITLE = re.compile(r"(?<!\w)(?:artificial(?: general)? intelligence|intelligence artificielle|super[ -]?intelligen\w*)(?!\w)", re.I)
+AI_PRIORITY_ACRONYM = re.compile(r"(?<!\w)(?:AI|AGI)(?!\w)")
+AI_BACKFILL_PRIORITY_IDS = set(json.loads((ROOT / "data/government_ai_backfill_priority.json").read_text())["ids"])
+
+
+def classification_order(item):
+    """Review explicitly AI-titled pending releases before a large backfill.
+
+    This changes queue order only. The full-article classifier still decides
+    relevance and topics, and confirmed human reviews remain untouched.
+    """
+    title = item.get("title") or ""
+    priority = (0 if AI_PRIORITY_TITLE.search(title) or AI_PRIORITY_ACRONYM.search(title)
+                else 1 if item["id"] in AI_BACKFILL_PRIORITY_IDS else 2)
+    return (priority,
+            hashlib.sha256(item["id"].encode()).hexdigest())
 
 
 # Verified publisher rename: retain the existing classified canonical record.
@@ -2845,7 +2861,7 @@ def main():
         # for researcher review; the workflow keeps subsequent items queued until
         # GOVERNMENT_CALIBRATION_READY is explicitly enabled after corrections.
         calibrating=not calibration_complete
-        candidates.sort(key=lambda x: hashlib.sha256(x["id"].encode()).hexdigest())
+        candidates.sort(key=classification_order)
         # The 15:00 pass drains the checkpoint as far as the runner's time
         # budget permits. Other runs retain small checkpointed tranches.
         afternoon_full_pass=os.environ.get("DAILY_PHASE")=="retry" and not selected_codes
