@@ -1878,5 +1878,298 @@
     ],
     "short_rationale": "The article is about China's broad healthcare access and health-system program. It mentions AI once as a possible healthcare application without describing a specific AI measure or making it a substantive focus.",
     "ticker_message": "China outlines broader healthcare access, primary care and health-system development."
+  },
+  {
+    "id": "1ddd3f507e59b42547e5",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "dffe6bcc736050e2ad0cd87cbee5e9ae5c7e7027d5dad1b9007008736eb160cb",
+    "source_url": "https://www.canada.ca/en/department-finance/news/2026/11/parliamentary-secretary-turnbull-highlights-government-of-canada-investments-from-budget-2026-to-support-ontario-industries.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "economic_financial_security",
+      "technology_supply_chains",
+      "energy",
+      "critical_minerals_resources",
+      "food_security"
+    ],
+    "short_rationale": "AI is one of several example sectors in a budget fund list; no AI-specific allocation or action is described.",
+    "ticker_message": "Canada’s 2026 budget supports strategic industries, domestic supply chains, energy and critical minerals."
+  },
+  {
+    "id": "1ffe6442ca30ac3b0012",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "50d94205678c5c68ddb89d696cde97643af79cfe189ab9ec921b979f302917b7",
+    "source_url": "https://www.canada.ca/en/global-affairs/news/2026/11/minister-anand-to-participate-in-g7-foreign-ministers-meeting-in-france.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "diplomacy_alliances",
+      "armed_conflict",
+      "information_influence"
+    ],
+    "short_rationale": "The release previews AI among G7 discussion topics, without a specific AI measure, decision or security claim.",
+    "ticker_message": "Canada previews G7 talks on Ukraine, hybrid threats, Haiti and other foreign-policy issues."
+  },
+  {
+    "id": "209d952368139f5d7c3a",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "40977310a1f3014251a60b7d70d8a37a634acf6e9b934fadabf0509263f389bd",
+    "source_url": "https://www.canada.ca/en/public-safety-canada/news/2026/10/government-of-canada-announces-funding-to-enhance-online-safety-for-indigenous-youth.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "health_biosecurity",
+      "terrorism_organised_crime"
+    ],
+    "short_rationale": "The funded BEACON project concerns Indigenous youth online safety; AI chatbots appear only in background descriptions of separate legislation."
+  },
+  {
+    "id": "38aa0e5164b166945def",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "7f6a643a70612f4266b218d9b8087e55e0eaa133945097a6f07e35e8479e38db",
+    "source_url": "https://www.canada.ca/en/global-affairs/news/2026/10/minister-sidhu-concludes-largest-team-canada-trade-mission-to-india-in-30-years-securing-new-commercial-contracts-for-canadian-businesses.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "economic_financial_security",
+      "technology_supply_chains",
+      "energy",
+      "critical_minerals_resources",
+      "food_security",
+      "diplomacy_alliances"
+    ],
+    "short_rationale": "The trade mission secured 34 agreements. A possible AI innovation hub was one meeting, with no announced investment or AI security measure."
+  },
+  {
+    "id": "3b236f8c9688022ae6c8",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "3b12aabffbef266df41d95d8ec1bd44a5918e096db98c3edf396341cd5679f2a",
+    "source_url": "https://www.canada.ca/en/research-chairs/news/2026/10/government-of-canada-announces-major-investment-in-canadian-researchers-and-research-institutions.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "economic_financial_security",
+      "technology_supply_chains"
+    ],
+    "short_rationale": "AI and machine learning are example research fields in a general $813 million funding announcement; there is no AI-specific award or measure."
+  },
+  {
+    "id": "5f7374ae47822a78e2fd",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "37ebbb60b57965bed6b75d80b0263c5290de7ddc52b4eb29afa937cf447e90b5",
+    "source_url": "https://www.canada.ca/en/public-safety-canada/news/2026/11/secretary-of-state-sahota-highlights-government-of-canadas-investments-from-budget-2026-masters-of-our-destiny1.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "energy",
+      "critical_minerals_resources",
+      "economic_financial_security",
+      "technology_supply_chains"
+    ],
+    "short_rationale": "AI appears only in a list of industries eligible for the broad Strategic Response Fund; no AI-specific investment is identified."
+  },
+  {
+    "id": "71dbc5de9f701e3ffff5",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "4a1f8065b3e241b23b6d776ee18305cee85782946c7c925339fb3ac5ece104cf",
+    "source_url": "https://www.canada.ca/en/innovation-science-economic-development/news/2026/11/minister-joly-highlights-government-of-canada-investments-from-budget-2026-masters-of-our-destiny-to-support-industries.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "economic_financial_security",
+      "energy",
+      "critical_minerals_resources",
+      "technology_supply_chains"
+    ],
+    "short_rationale": "AI appears only in a list of industries eligible for the broad Strategic Response Fund; no AI-specific investment is identified.",
+    "ticker_message": "Canada’s budget funds strategic industries, energy and critical minerals to strengthen domestic capacity and competitiveness."
+  },
+  {
+    "id": "ced955e27417bbfd04c4",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "add2cfbc54d8e9f5e8add00967dde4a9eae2ce05e8966824c99d2c87ead354d7",
+    "source_url": "https://www.canada.ca/en/innovation-science-economic-development/news/2026/11/parliamentary-secretary-bardeesy-highlights-government-of-canada-investments-from-budget2026-masters-of-our-destiny-to-support-industries.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "economic_financial_security",
+      "energy",
+      "critical_minerals_resources",
+      "technology_supply_chains"
+    ],
+    "short_rationale": "AI appears only in a list of industries eligible for the broad Strategic Response Fund; no AI-specific investment is identified."
+  },
+  {
+    "id": "0e21af7fbbea798b8834",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "e7ebc403857ab2d56cac597979f2bb1955acd846a954ea71d1d9c3e661a3bdeb",
+    "source_url": "https://www.canada.ca/en/fednor/news/2026/10/government-of-canada-invests-45-million-to-support-the-growth-and-evolution-of-norcats-underground-innovation-centre.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "military_defence",
+      "economic_financial_security",
+      "technology_supply_chains"
+    ],
+    "short_rationale": "AI-enabled analytics is one technology in a long list of possible dual-use applications for the underground centre; the funded project has no AI-specific deliverable."
+  },
+  {
+    "id": "3bce561ce5a447dea084",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "afb9a074920c66b415251daf407dccaeee708cbf0998e081bfb0f5f39d07157d",
+    "source_url": "https://www.canada.ca/en/innovation-science-economic-development/news/2026/10/government-of-canada-announces-new-investment-to-strengthen-canadas-domestic-radiopharmaceutical-production-capacity.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "health_biosecurity",
+      "technology_supply_chains",
+      "economic_financial_security"
+    ],
+    "short_rationale": "AI-assisted diagnostics is a possible future partnership area, while the announced investment expands radiopharmaceutical production and research; no AI project is funded."
+  },
+  {
+    "id": "00573c386392cca9d128",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "324679d8dd3d55ba50c666c90460e3cfbb6221cf8765944417c2026744cada90",
+    "source_url": "https://english.www.gov.cn/news/202611/14/content_WS6af85052c6d00ca5f9a0e452.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "technology_supply_chains",
+      "economic_financial_security",
+      "diplomacy_alliances",
+      "energy"
+    ],
+    "short_rationale": "AI is one emerging field in a broad call for China–Thailand business cooperation, without a specific AI commitment.",
+    "ticker_message": "China and Thailand seek deeper business cooperation in supply chains, agriculture and clean energy."
+  },
+  {
+    "id": "0363213106077b6cf347",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "0c40f27337fb7f3e5f9eb9be27743114ca5fd9d87d75ad1c1937bb204fefafca",
+    "source_url": "https://english.www.gov.cn/news/202610/21/content_WS6ad82624c6d00ca5f9a0dde4.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "diplomacy_alliances",
+      "armed_conflict",
+      "energy"
+    ],
+    "short_rationale": "AI is one field in the foreign minister’s general Eurasian cooperation overview, without a specific AI action.",
+    "ticker_message": "China’s foreign minister calls for dialogue and regional cooperation on peace, energy and trade."
+  },
+  {
+    "id": "6ae5f8dd010e7aecc2f8",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "28ae1a807571695cfe8ed3bd1dc9e6931ec7ee9fae4f850bd43b84743277a22d",
+    "source_url": "https://english.www.gov.cn/news/202610/21/content_WS6ad8bdebc6d00ca5f9a0de1b.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "diplomacy_alliances",
+      "energy"
+    ],
+    "short_rationale": "AI is listed among possible frontier growth fields in a broad China–Russia bilateral statement, without a specific AI agreement.",
+    "ticker_message": "China and Russia agree to deepen cooperation in energy, trade and other strategic sectors."
+  },
+  {
+    "id": "8a3a580f187cb644fc35",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "269db70b9729802b8e65e6541a1a8b7d3d1eef0035e522752b4a4ce6c0a295cf",
+    "source_url": "https://english.www.gov.cn/news/202611/18/content_WS6afd5da6c6d00ca5f9a0e636.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "diplomacy_alliances",
+      "economic_financial_security",
+      "technology_supply_chains",
+      "energy",
+      "food_security",
+      "health_biosecurity",
+      "climate_environment"
+    ],
+    "short_rationale": "The APEC speech mentions AI models as context and calls broadly for technology cooperation; it announces no distinct AI measure.",
+    "ticker_message": "Xi calls for Asia-Pacific stability, open trade and resilient supply chains."
+  },
+  {
+    "id": "e9e967c9f48281f93739",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "d5918a3c2b6f3b8e1185e3bfc8e20d0745f2eff17f5ea2d696cec777add8f3c9",
+    "source_url": "https://english.www.gov.cn/news/202611/04/content_WS6aead5dec6d00ca5f9a0e17a.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "economic_financial_security",
+      "technology_supply_chains",
+      "diplomacy_alliances"
+    ],
+    "short_rationale": "Open-source AI cooperation is one line in a broad APEC meeting account; no specific AI action or agreement is described.",
+    "ticker_message": "China urges APEC trade and supply-chain cooperation ahead of the leaders’ meeting."
+  },
+  {
+    "id": "b17fa6f262b44a5978a2",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "f1ff20865521fefc12eca5c08fc9be6d73a1b8122fa6f46517aa8fc498279027",
+    "source_url": "https://www.canada.ca/en/innovation-science-economic-development/news/2026/10/minister-joly-announces-50-million-investment-in-cfin-to-strengthen-canadas-food-sector.html",
+    "review_decision": "retain_substantive_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "english_summary": "Canada’s $50 million food innovation investment will help processors adopt automation, AI and digital manufacturing to strengthen domestic production and supply chains.",
+    "ticker_message": "Canada invests $50 million to help food processors adopt AI and automation.",
+    "short_rationale": "The full official article describes a specific AI action; the public copy now states it directly."
+  },
+  {
+    "id": "2991655920a8759a2cf3",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "cffac3bc9249fb7e6e641cac7854b75a59aa3b5c99e2468065cace1d8bd582d4",
+    "source_url": "https://english.www.gov.cn/news/202611/05/content_WS6aebe91bc6d00ca5f9a0e1b7.html",
+    "review_decision": "retain_substantive_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "english_summary": "At the Lancang–Mekong foreign ministers’ meeting, China called for expanded AI and digital-economy cooperation and invited more Mekong countries to join the World Artificial Intelligence Cooperation Organization. The wider agenda covered connectivity, water, security and disaster response.",
+    "ticker_message": "China invites Mekong partners into AI cooperation alongside water and security work.",
+    "short_rationale": "The full official article describes a specific AI action; the public copy now states it directly."
+  },
+  {
+    "id": "e181a10e623c9aea6a76",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "db6fc614735481daf38a4b90c510b6459e5810e0f04df80325ffd93a0a037097",
+    "source_url": "https://english.www.gov.cn/news/202610/22/content_WS6ad9d55bc6d00ca5f9a0de6e.html",
+    "review_decision": "retain_substantive_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "english_summary": "China says it is developing AI-assisted emergency response equipment as part of a wider effort to improve disaster research, prevention and mine safety.",
+    "ticker_message": "China plans AI-assisted equipment for disaster and emergency response.",
+    "short_rationale": "The full official article describes a specific AI action; the public copy now states it directly."
+  },
+  {
+    "id": "1805ca9838c009c05df1",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "42a56da0c35684325c2f556198363c5d854e761b41b56fe0d5f894284ea18a9d",
+    "source_url": "https://english.www.gov.cn/news/202611/06/content_WS6aed1c50c6d00ca5f9a0e1e1.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [],
+    "short_rationale": "AI and computing power appear among example areas for financial support in a broad science-and-industry directive; there is no distinct AI program or security measure.",
+    "ticker_message": "China’s vice premier calls for stronger links between research and industry, with risk prevention."
+  },
+  {
+    "id": "3e4a7f599b4d9d04e7ed",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "deb56da51e920ac86d4dd6f768cc4fd321ef7a5b97ba2c54de15529ea8728598",
+    "source_url": "https://english.www.gov.cn/news/202611/03/content_WS6ae9d17fc6d00ca5f9a0e132.html",
+    "review_decision": "remove_incidental_artificial_intelligence_topic_after_full_source_review",
+    "topics": [
+      "cyber",
+      "diplomacy_alliances"
+    ],
+    "short_rationale": "AI advances frame a general people-centered internet speech; the article announces no distinct AI development or governance measure.",
+    "ticker_message": "China’s premier calls for people-centered internet development and international digital-security cooperation."
+  },
+  {
+    "id": "0e3e196fe3440012e225",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "e5419d8ba1786b73131e2080a88485ee2294e80c8475ff53822dd4fa6aa80778",
+    "source_url": "https://english.www.gov.cn/news/202611/16/content_WS6afaa399c6d00ca5f9a0e4d3.html",
+    "review_decision": "retain_substantive_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The full official article describes the specific AI action stated in the corrected ticker.",
+    "ticker_message": "China and ASEAN designate 2027 their Year of AI Cooperation while pursuing a South China Sea code."
+  },
+  {
+    "id": "c745452695344e7d7e6b",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "11df0ec1e68dc8ac031b16f91bc43025290c863aa83df42bca0385e48a8499ab",
+    "source_url": "https://www.canada.ca/en/space-agency/news/2026/10/advancing-canadas-priorities-through-space.html",
+    "review_decision": "retain_substantive_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The full official article describes the specific AI action stated in the corrected ticker.",
+    "ticker_message": "Canada funds space projects including AI for satellite autonomy and secure Arctic monitoring."
+  },
+  {
+    "id": "eb862035c9ec30297a2e",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "10efbec15bc5d4aef8b909a10673915eff861c6f6eace8eb53a8761b0bcbb3ff",
+    "source_url": "https://english.www.gov.cn/news/202610/10/content_WS6ac9fd22c6d00ca5f9a0d99b.html",
+    "review_decision": "retain_substantive_artificial_intelligence_topic_with_explicit_source_based_copy",
+    "short_rationale": "The full official article describes the specific AI action stated in the corrected ticker.",
+    "ticker_message": "China launches a cross-border legal platform with an AI assistant and professional consultations."
   }
 ]

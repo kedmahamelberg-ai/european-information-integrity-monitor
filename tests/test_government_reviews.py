@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from government_reviews import apply_confirmed_corrections, source_fingerprint
+from government_reviews import apply_confirmed_corrections, source_fingerprint, source_evidence_fingerprint
 from collect_government_news import ROLE_ENTITY_CODES
 
 
@@ -59,6 +59,20 @@ class GovernmentReviewTests(unittest.TestCase):
         original = source_fingerprint(self.item)
         self.item["topics"] = ["health_biosecurity"]
         self.assertEqual(source_fingerprint(self.item), original)
+
+    def test_agent_source_review_preserves_provisional_status_and_copy_binding(self):
+        correction = {
+            "id": "source-1", "review_origin": "source_reviewed_agent",
+            "source_evidence_fingerprint": source_evidence_fingerprint(self.item),
+            "topics": [], "english_summary": "A corrected source-based summary.",
+        }
+        self.assertEqual(apply_confirmed_corrections([self.item], [correction]),
+                         (["source-1"], []))
+        self.assertEqual(self.item["classification_status"], "provisional")
+        self.assertFalse(self.item["human_reviewed"])
+        self.assertTrue(self.item["source_reviewed"])
+        self.assertEqual(apply_confirmed_corrections([self.item], [correction]),
+                         (["source-1"], []))
 
     def test_future_roles_require_coded_entity(self):
         self.assertIn("SWE", ROLE_ENTITY_CODES)
