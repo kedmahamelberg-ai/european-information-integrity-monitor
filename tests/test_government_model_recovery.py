@@ -135,6 +135,48 @@ class GovernmentModelRecoveryTests(unittest.TestCase):
                 collector.translate_document("a"*6000+"b"*1409)
             self.assertEqual(call.call_count,5)
 
+    def test_source_bound_summary_requires_exact_article_bytes(self):
+        source="Official release text"
+        item={"id":"reviewed-id","url":"https://www.canada.ca/en/example.html"}
+        override={"id":"reviewed-id","url":item["url"],
+                  "source_sha256":hashlib.sha256(source.encode()).hexdigest(),
+                  "short_english_summary":"A concise, source-checked summary."}
+        self.assertEqual(collector.source_bound_summary_override(item,source,{item["id"]:override}),override["short_english_summary"])
+        self.assertIsNone(collector.source_bound_summary_override(item,source+" changed",{item["id"]:override}))
+        self.assertIsNone(collector.source_bound_summary_override({**item,"url":item["url"]+"?changed"},source,{item["id"]:override}))
+
+    def test_source_bound_summary_preserves_full_translation_without_resummarizing(self):
+        with patch.object(collector,"ask_openai",return_value={"english_translation":"Complete translated source.","short_english_summary":"word "*60}) as call:
+            self.assertEqual(collector.translate_document("Official source",source_bound_summary="Verified concise summary."),
+                             ("Complete translated source.","Verified concise summary."))
+            call.assert_called_once_with("Official source",False)
+
+    def test_china_attachment_must_match_reviewed_document(self):
+        opening="JOINT STATEMENT BETWEEN THE PEOPLE’S REPUBLIC OF CHINA AND THE REPUBLIC OF BOTSWANA"
+        closing="Following their meeting, the two Presidents witnessed the signing of bilateral cooperation documents in various fields."
+        statement=opening+"\r"+("The countries agreed on global AI governance and security cooperation. "*300)+closing
+        document=bytes.fromhex("d0cf11e0a1b11ae1")+b"\0"*16+statement.encode("utf-16le")
+        html=("<div class='Artical_Content'>Please see the attachment for the full text. "
+              "<a href='//english.www.gov.cn/atts/stream/files/6ace3291c6d0c78809900175'>Full statement</a></div>").encode()
+        item={"country_code":"CN","url":collector.CHINA_BOTSWANA_STATEMENT_URL}
+        with patch.object(collector,"CHINA_BOTSWANA_ATTACHMENT_SHA256",hashlib.sha256(document).hexdigest()),patch.object(collector,"fetch",side_effect=[(item["url"],html),(collector.CHINA_BOTSWANA_ATTACHMENT_URL,document)]) as fetch:
+            article=collector.article_text(item)
+            self.assertIn("global AI governance",article)
+            self.assertTrue(article.endswith(closing))
+            self.assertEqual(fetch.call_count,2)
+        with self.assertRaisesRegex(RuntimeError,"changed since source review"):
+            collector.extract_china_botswana_statement(document)
+
+    def test_requeue_only_unreviewed_china_attachment_error(self):
+        item={"id":"c20b880177123988076f","url":collector.CHINA_BOTSWANA_STATEMENT_URL,
+              "classification_status":"needs_review","classification_error":"RuntimeError"}
+        self.assertFalse(collector.requeue_reviewed_attachment({**item,"human_reviewed":True}))
+        self.assertFalse(collector.requeue_reviewed_attachment({**item,"url":"https://other.example"}))
+        self.assertFalse(collector.requeue_reviewed_attachment({**item,"classification_error":"ModelOutputError"}))
+        self.assertTrue(collector.requeue_reviewed_attachment(item))
+        self.assertEqual(item["classification_status"],"pending_classification")
+        self.assertNotIn("classification_error",item)
+
     def test_one_rejected_item_does_not_block_publication_or_publish_private_chunks(self):
         records=[{"id":str(i),"url":f"https://example.gov/{i}","country_code":"BA","country":"Bosnia and Herzegovina","title":"News","published_at":"2026-10-29T10:00:00+00:00","classification_status":"pending_classification"} for i in range(2)]
         # canonical_government_items uses URL-based IDs; match its processing order.
