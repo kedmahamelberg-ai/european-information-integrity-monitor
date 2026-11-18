@@ -330,6 +330,20 @@
       "scope_note": "Benchmark outside the European aggregate. White House Briefings & Statements only, from 4 October 2026; not all United States government communications."
     },
     {
+      "iso2": "CA",
+      "name": "Canada",
+      "url": "https://www.canada.ca/en/news.html",
+      "verification_status": "verified",
+      "scope_note": "Benchmark outside the European aggregate. Dated Government of Canada news releases from the official English and French news feeds; paired translations are one communication. This covers federal departments, not every Prime Minister communication or provincial government."
+    },
+    {
+      "iso2": "CN",
+      "name": "China",
+      "url": "https://english.www.gov.cn/news/",
+      "verification_status": "verified",
+      "scope_note": "Benchmark outside the European aggregate. Chronological English News archive on the official State Council portal; includes government-hosted Xinhua reports, not every Chinese-language ministry announcement."
+    },
+    {
       "iso2": "VA",
       "name": "Vatican City",
       "url": "https://vaticanstate.va/it/component/content/category/comunicato-stampa.html?Itemid=312",
