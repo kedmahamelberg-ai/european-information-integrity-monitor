@@ -2991,6 +2991,11 @@ def main():
             existing[item["id"]]=item
     calibration_ids={x["id"] for x in existing.values() if x.get("calibration_item")}
     calibration_complete=bool(correction_map) or bool(state.get("calibration_complete")) or bool(calibration_ids and calibration_ids.issubset(correction_map))
+    # Discovery can revisit a URL and replace its date-only metadata. Reapply
+    # exact, source-bound corrections before saving the checkpoint and public data.
+    _, stale_after_discovery=apply_confirmed_corrections(existing.values(),corrections)
+    if stale_after_discovery:
+        print(f"Skipped {len(stale_after_discovery)} government reviews after discovery because source evidence changed",flush=True)
     out={"as_of":end.isoformat(),"window_start":start.isoformat(),"window_end":end.isoformat(),"taxonomy_version":HYBRID["version"],"sources":sources_status,"items":sorted(existing.values(),key=lambda x:x.get("published_at",""),reverse=True),"review":{"routine_sample_percent":3,"calibration_tranche_percent":10,"calibration_ready":calibration_complete}}
     collection_complete=not args.classify_only and not selected_codes and not skipped_codes and bool(selected_sources) and len(sources_status)==len(selected_sources) and all(x["status"]=="discovered" for x in sources_status)
     cursor=end.isoformat() if collection_complete else state.get("last_successful_collection_end")
