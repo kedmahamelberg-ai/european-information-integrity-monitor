@@ -1856,5 +1856,17 @@
     ],
     "ticker_message": "North Macedonia and Deutsche Telekom discuss digital investment and cybersecurity cooperation.",
     "english_summary": "Prime Minister Hristijan Mickoski and his delegation met Deutsche Telekom executives to discuss digital investment and cooperation. The talks covered communications, cloud services, cybersecurity, smart cities and Europe's digital resilience and competitiveness."
+  },
+  {
+    "id": "ca87c0fc7ecf8403da47",
+    "review_decision": "remove_artificial_intelligence_topic_after_full_source_review",
+    "short_rationale": "The official release announces a US cybersecurity grant and regional exercise. AI appears once in the Prime Minister's general remarks on technological opportunities and risks; it is not a measure, funded activity or substantive focus of the announcement.",
+    "topics": [
+      "cyber",
+      "critical_infrastructure",
+      "diplomacy_alliances"
+    ],
+    "ticker_message": "US grants Moldova $1.5 million to strengthen cybersecurity after a recent attack.",
+    "english_summary": "The United States is providing Moldova with a $1.5 million grant for cybersecurity equipment and access to US technology, within a previously announced $8 million security and resilience package. The announcement came at the Resilient Trident exercise following a recent cyberattack on Moldovan systems. Moldova, Romania and Ukraine are also training specialists to protect critical infrastructure."
   }
 ]
