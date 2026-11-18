@@ -24,6 +24,7 @@ for p in source.rglob("*"):
 (out / ".nojekyll").write_text("")
 gov_state = ROOT / "data" / "government_state.json"
 gov_public = out / "government-data.json"
+MAX_GOVERNMENT_SNAPSHOT_BYTES = 25_000_000
 if not gov_public.exists():
     # A normal site rebuild must publish the committed government checkpoint.
     # Keep a newer live snapshot when the daily collector has advanced beyond it.
@@ -42,8 +43,9 @@ if not gov_public.exists() and ("--live" in sys.argv or "--camera-only" in sys.a
     )
     try:
         with urllib.request.urlopen(request, timeout=20) as response:
-            payload=response.read(10_000_001)
-        if len(payload)>10_000_000: raise RuntimeError("Published government snapshot exceeds camera refresh limit")
+            payload=response.read(MAX_GOVERNMENT_SNAPSHOT_BYTES + 1)
+        if len(payload)>MAX_GOVERNMENT_SNAPSHOT_BYTES:
+            raise RuntimeError("Published government snapshot exceeds the 25 MB safety limit")
         published=json.loads(payload)
         if not isinstance(published,dict) or not isinstance(published.get("items"),list):
             raise RuntimeError("Published government snapshot is invalid")
