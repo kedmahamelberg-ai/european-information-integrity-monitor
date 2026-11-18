@@ -126,9 +126,21 @@ def audit_fingerprint(item):
         ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()
 
 
-def select_batch(items, checked, attempted, limit, now):
-    ordered = sorted(items, key=lambda item: (
-        item.get("country_code") not in BENCHMARKS, item.get("id", "")))
+def select_batch(items, checked, attempted, limit, now, seen_ids=None):
+    seen_ids = set(seen_ids or ())
+    def priority(item):
+        ident = item.get("id", "")
+        fingerprint = audit_fingerprint(item)
+        changed = ident in checked and checked[ident].get("fingerprint") != fingerprint
+        newly_seen = ident not in seen_ids
+        try:
+            recent = (dt.date.fromisoformat(str(item.get("published_at", ""))[:10])
+                      >= now.date() - dt.timedelta(days=3))
+        except ValueError:
+            recent = False
+        return (not changed, not newly_seen,
+                item.get("country_code") not in BENCHMARKS, not recent, ident)
+    ordered = sorted(items, key=priority)
     pending = []
     for item in ordered:
         ident = item.get("id")
@@ -159,9 +171,13 @@ def main():
     attempted = state.setdefault("attempted", {})
     now_time = dt.datetime.now(dt.timezone.utc)
     now = now_time.isoformat()
-    batch = select_batch(snapshot["items"], checked, attempted, args.limit, now_time)
+    seen_ids = set(state.get("seen_ids", []))
+    batch = select_batch(snapshot["items"], checked, attempted, args.limit,
+                         now_time, seen_ids)
+    seen_ids.update(item["id"] for item in snapshot["items"])
     def save_progress():
         state["checked"], state["findings"], state["attempted"] = checked, findings, attempted
+        state["seen_ids"] = sorted(seen_ids)
         state["snapshot_as_of"], state["last_run_at"] = snapshot.get("as_of"), now
         state["total_items"] = len(snapshot["items"])
         STATE.parent.mkdir(parents=True, exist_ok=True)
@@ -202,6 +218,7 @@ def main():
     state["total_items"] = len(snapshot["items"])
     state["checked"] = checked
     state["findings"] = findings
+    state["seen_ids"] = sorted(seen_ids)
     STATE.parent.mkdir(parents=True, exist_ok=True)
     STATE.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n")
     REPORT.write_text(json.dumps({
@@ -214,3 +231,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -43,6 +43,18 @@ class SourceAuditTests(unittest.TestCase):
             select_batch([self.item, item2], {}, previous, 15, now)],
             ["example-next"])
 
+    def test_new_or_changed_publication_precedes_backlog(self):
+        now = dt.datetime(2026, 11, 18, tzinfo=dt.timezone.utc)
+        old = dict(self.item, id="a-old", published_at="2026-10-01T04:00:00+00:00")
+        changed = dict(old, id="z-changed", topics=["artificial_intelligence"])
+        new = dict(self.item, id="z-new", country_code="HR",
+                   published_at="2026-11-18T08:00:00+00:00")
+        checked = {"z-changed": {"fingerprint": audit_fingerprint(old)}}
+        batch = select_batch([old, new, changed], checked, {}, 3, now,
+                             seen_ids={"a-old", "z-changed"})
+        self.assertEqual([item["id"] for item in batch],
+                         ["z-changed", "z-new", "a-old"])
+
     def test_canada_source_date_conflict_is_recorded(self):
         with patch("audit_government_sources.article_text",
                    return_value="A full official article. " * 10), \
@@ -67,6 +79,7 @@ class SourceAuditTests(unittest.TestCase):
             self.assertEqual(review.call_count, 1)
             self.assertEqual(json.loads(state.read_text())["checked"]["example-id"]
                              ["fingerprint"], audit_fingerprint(self.item))
+            self.assertEqual(json.loads(state.read_text())["seen_ids"], ["example-id"])
 
 
 if __name__ == "__main__":
