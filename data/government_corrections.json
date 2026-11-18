@@ -2223,5 +2223,14 @@
     "review_decision": "remove_unrelated_release_claim_from_summary_after_full_source_review",
     "english_summary": "The government introduced Bill S-8 to strengthen oversight of money services businesses, restrict certain cash transactions and unlawful crypto ATMs, expand police powers to search and seize mail, and improve anti-money-laundering information sharing.",
     "short_rationale": "The official Bill S-8 release details these financial-crime measures. A separate fentanyl intelligence-sharing announcement appears only as a Related product link, not as an announcement in this release."
+  },
+  {
+    "id": "6365e6567aa09095e76b",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "192655e2f09c1437057e0220f07bcca7f891c46c6e37a2ad8c1a26f9079b52af",
+    "source_url": "https://gouvernement.lu/fr/actualites/toutes_actualites/communiques/2026/11-novembre/18-delles-appel-projets.html",
+    "review_decision": "clarify_substantive_artificial_intelligence_role_in_ticker_after_full_source_review",
+    "ticker_message": "Luxembourg backs AI materials modelling and Earth-observation projects within its industrial innovation program.",
+    "short_rationale": "The Ministry of the Economy cofinances eight industrial and mobility RDI projects. Rotarex will develop AI-based materials modelling and Hydrosat a multimodal AI Earth-observation platform, supporting industrial resilience and reduced strategic dependencies."
   }
 ]
