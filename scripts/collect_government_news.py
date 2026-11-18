@@ -86,6 +86,20 @@ AI_PRIORITY_ACRONYM = re.compile(r"(?<!\w)(?:AI|AGI)(?!\w)")
 AI_BACKFILL_PRIORITY_IDS = set(json.loads((ROOT / "data/government_ai_backfill_priority.json").read_text())["ids"])
 
 
+def classifier_reports_missing_source(labels):
+    """Hold an unusable-source answer instead of publishing model diagnostics."""
+    if labels.get("relevance") != "unclear" or float(labels.get("confidence", 1)) > 0.1:
+        return False
+    copy = " ".join(str(labels.get(key) or "") for key in
+                    ("ticker_message", "short_rationale"))
+    return bool(re.search(
+        r"\b(?:no|missing|without)\s+(?:full\s+)?(?:press release|article|source|document|text)"
+        r"|\b(?:press release|article|source|document|text)(?:\s+text)?\s+"
+        r"(?:is\s+|was\s+|were\s+)?not\s+(?:provided|included|available)\b"
+        r"|\b(?:press release|article|source|document|text).{0,30}\battached\b",
+        copy, re.I))
+
+
 def classification_order(item):
     """Review explicitly AI-titled pending releases before a large backfill.
 
@@ -2937,6 +2951,23 @@ def main():
                 print(f"Needs review: {item['country_code']} {item['id']} inconsistent relevance/topics/roles",flush=True)
                 STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
                 continue
+            if classifier_reports_missing_source(labels):
+                for key in ("english_summary", "ticker_message", "short_rationale",
+                            "evidence_quote", "relevance", "topics", "roles",
+                            "viewpoints", "viewpoint_structure", "evidence_status",
+                            "confidence"):
+                    item.pop(key,None)
+                item.update(classification_status="source_incomplete",
+                            classification_error="classifier_reported_missing_source",
+                            withhold_reason="classifier_reported_missing_source",
+                            related=False, primary_narrative="none_unclear",
+                            secondary_narratives=[], source_text_chars=len(text),
+                            translated_text_chars=len(item["english_translation"]),
+                            translation_complete=False)
+                existing[item["id"]]=item
+                STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
+                print(f"::warning::Withheld {item['country_code']} {item['id']}: classifier reported missing source text",flush=True)
+                continue
             item.update(labels); item["related"]=labels["relevance"]=="related"; item["primary_narrative"]=(labels["topics"] or ["none_unclear"])[0]; item["secondary_narratives"]=labels["topics"][1:]; item["classification_status"]="provisional"; item["classifier_prompt_version"]=CLASSIFIER_PROMPT_VERSION; item["review_sample"]=(int(item["id"][:8],16)%100<3); item["calibration_item"]=bool(calibrating and not calibration_ids); item["source_text_chars"]=len(text); item["translated_text_chars"]=len(item["english_translation"]); item["translation_complete"]=True; item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item; STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
             print(f"Classified {position}/{cap}: {item['country_code']} {item['id']} {labels['relevance']} {','.join(labels['topics'])}",flush=True)
             successful_classifications+=1
@@ -2960,7 +2991,7 @@ def main():
         "interpretation":"A single runner cannot prove a site is offline or that collection is blocked. Compare the exact section URL from an independent network before assigning a cause."
     },ensure_ascii=False,indent=2)+"\n")
     REVIEW_QUEUE.parent.mkdir(exist_ok=True)
-    REVIEW_QUEUE.write_text(json.dumps({"instructions":"Review every calibration_item before calibration is complete, every needs_review conflict, and thereafter the 3% routine sample. Return corrections as a JSON array with id, relevance, topics, roles and viewpoints where changed. Corrections calibrate later batches.","items":[{k:v for k,v in item.items() if k in {"id","country","country_code","url","title","published_at","english_summary","relevance","topics","evidence_status","evidence_quote","roles","viewpoint_structure","viewpoints","ticker_message","short_rationale","calibration_item","review_sample","classification_status","classification_error"}} for item in out["items"] if (item.get("calibration_item") and not item.get("human_reviewed")) or item.get("classification_status")=="needs_review" or (item.get("classification_status")=="provisional" and item.get("review_sample") and not item.get("human_reviewed"))]},ensure_ascii=False,indent=2)+"\n")
+    REVIEW_QUEUE.write_text(json.dumps({"instructions":"Review every calibration_item before calibration is complete, every needs_review or source_incomplete item, and thereafter the 3% routine sample. Return corrections as a JSON array with id, relevance, topics, roles and viewpoints where changed. Corrections calibrate later batches.","items":[{k:v for k,v in item.items() if k in {"id","country","country_code","url","title","published_at","english_summary","relevance","topics","evidence_status","evidence_quote","roles","viewpoint_structure","viewpoints","ticker_message","short_rationale","calibration_item","review_sample","classification_status","classification_error","withhold_reason"}} for item in out["items"] if (item.get("calibration_item") and not item.get("human_reviewed")) or item.get("classification_status") in {"needs_review","source_incomplete"} or (item.get("classification_status")=="provisional" and item.get("review_sample") and not item.get("human_reviewed"))]},ensure_ascii=False,indent=2)+"\n")
     ok=sum(x["status"]=="discovered" for x in sources_status)
     print(json.dumps({"window_start":out["window_start"],"window_end":out["window_end"],"sources_ok":ok,"sources_unavailable":sum(x["status"]!="discovered" for x in sources_status),"batch_items":len(candidates),"classified_this_run":sum(x.get("classification_status")=="provisional" for x in candidates[:cap]),"stored_items":len(existing),"awaiting_calibration":sum(x.get("classification_status")=="awaiting_calibration" for x in out["items"]),"pending_classification":sum(x.get("classification_status")=="pending_classification" for x in out["items"]),"calibration_review_items":sum(bool(x.get("calibration_item") and not x.get("human_reviewed")) for x in out["items"]),"routine_review_items":sum(bool(x.get("review_sample") is True and not x.get("human_reviewed")) for x in out["items"]),"needs_review":sum(x.get("classification_status")=="needs_review" for x in out["items"])}))
     if request_rejections and not successful_classifications:

@@ -163,6 +163,26 @@ class GovernmentModelRecoveryTests(unittest.TestCase):
             self.assertEqual(report["model_failures"][0]["error"],"http_400_invalid_prompt")
             self.assertIn("Model processing deferred 1",reports.summary(report))
 
+    def test_missing_source_model_answer_is_withheld_and_queued(self):
+        record={"url":"https://example.gov/attachment", "country_code":"BA",
+                "country":"Bosnia and Herzegovina", "title":"Official notice",
+                "published_at":"2026-10-29T10:00:00+00:00",
+                "classification_status":"pending_classification"}
+        record=list(collector.canonical_government_items([record]).values())[0]
+        labels={"relevance":"unclear", "topics":[], "roles":[],
+                "confidence":0, "ticker_message":"No press release text was provided to classify.",
+                "short_rationale":"No press release or translated article is included."}
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);state=root/"state.json";public=root/"government-data.json"
+            state.write_text(json.dumps({"items":[record],"calibration_complete":True}))
+            with patch.multiple(collector,STATE=state,PUBLIC=public,CORRECTIONS=root/"none.json",REVIEW_QUEUE=root/"review.json"),patch.object(sys,"argv",["collector","--classify-only"]),patch.object(collector,"article_text",return_value="Die Pressemitteilung finden Sie im Anhang."),patch.object(collector,"translate_document",return_value=("The press release is attached.","The press release is attached.")),patch.object(collector,"ask_openai",return_value=labels),contextlib.redirect_stdout(io.StringIO()):
+                collector.main()
+            item=json.loads(public.read_text())["items"][0]
+            self.assertEqual(item["classification_status"],"source_incomplete")
+            self.assertNotIn("ticker_message",item)
+            self.assertNotIn("english_summary",item)
+            self.assertEqual(json.loads((root/"review.json").read_text())["items"][0]["id"],record["id"])
+
     def test_repeated_http_400_without_success_fails_instead_of_reporting_green(self):
         records=[{"id":str(i),"url":f"https://example.gov/{i}","country_code":"BA","country":"Bosnia and Herzegovina","title":"News","published_at":"2026-10-29T10:00:00+00:00","classification_status":"pending_classification"} for i in range(3)]
         with tempfile.TemporaryDirectory() as tmp:
