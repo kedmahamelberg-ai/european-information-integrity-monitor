@@ -85,6 +85,17 @@ COLLECTOR_READY_CODES = {"AD","AM","AT","AZ","BA","BE","BG","BY","CA","CH","CN",
 AI_PRIORITY_TITLE = re.compile(r"(?<!\w)(?:artificial(?: general)? intelligence|intelligence artificielle|super[ -]?intelligen\w*)(?!\w)", re.I)
 AI_PRIORITY_ACRONYM = re.compile(r"(?<!\w)(?:AI|AGI)(?!\w)")
 AI_BACKFILL_PRIORITY_IDS = set(json.loads((ROOT / "data/government_ai_backfill_priority.json").read_text())["ids"])
+AI_PUBLIC_COPY = re.compile(
+    r"(?<!\w)(?:AI|AGI)(?!\w)|\b(?:artificial intelligence|machine learning|"
+    r"large language model|foundation model|super[ -]?intelligence)\b", re.I)
+
+
+def ai_topic_has_explicit_copy(labels, summary):
+    """Hold AI-labelled output whose published text omits the AI connection."""
+    if "artificial_intelligence" not in labels.get("topics", []):
+        return True
+    return (bool(AI_PUBLIC_COPY.search(str(summary or ""))) and
+            bool(AI_PUBLIC_COPY.search(str(labels.get("ticker_message") or ""))))
 
 
 def classifier_reports_missing_source(labels):
@@ -3046,6 +3057,21 @@ def main():
                 existing[item["id"]]=item
                 STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
                 print(f"::warning::Withheld {item['country_code']} {item['id']}: classifier reported missing source text",flush=True)
+                continue
+            if not ai_topic_has_explicit_copy(labels, item.get("english_summary")):
+                # A second model decision would obscure the source of this
+                # mismatch. Retain the first labels for source review instead.
+                item.update(labels)
+                item["classification_status"] = "needs_review"
+                item["classification_error"] = "ai_topic_without_explicit_published_connection"
+                item["source_text_chars"] = len(text)
+                item["translated_text_chars"] = len(item["english_translation"])
+                item["translation_complete"] = True
+                item.pop("text", None)
+                item.pop("english_translation", None)
+                existing[item["id"]] = item
+                STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
+                print(f"::warning::Held {item['country_code']} {item['id']}: AI topic absent from published copy",flush=True)
                 continue
             item.update(labels); item["related"]=labels["relevance"]=="related"; item["primary_narrative"]=(labels["topics"] or ["none_unclear"])[0]; item["secondary_narratives"]=labels["topics"][1:]; item["classification_status"]="provisional"; item["classifier_prompt_version"]=CLASSIFIER_PROMPT_VERSION; item["review_sample"]=(int(item["id"][:8],16)%100<3); item["calibration_item"]=bool(calibrating and not calibration_ids); item["source_text_chars"]=len(text); item["translated_text_chars"]=len(item["english_translation"]); item["translation_complete"]=True; item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item; STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
             print(f"Classified {position}/{cap}: {item['country_code']} {item['id']} {labels['relevance']} {','.join(labels['topics'])}",flush=True)
