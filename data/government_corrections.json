@@ -2076,7 +2076,10 @@
       "climate_environment"
     ],
     "short_rationale": "The APEC speech mentions AI models as context and calls broadly for technology cooperation; it announces no distinct AI measure.",
-    "ticker_message": "Xi calls for Asia-Pacific stability, open trade and resilient supply chains."
+    "ticker_message": "Xi calls for Asia-Pacific stability, open trade and stable, unimpeded supply chains.",
+    "fault_type": "editorial",
+    "published_field": "ticker_message",
+    "evidence": "The official November 18 APEC CEO Summit keynote calls for global industrial and supply chains to remain stable and unimpeded. The old ticker says resilient supply chains, which is broader. The earlier source-reviewed decision to omit an AI label is preserved."
   },
   {
     "id": "e9e967c9f48281f93739",
@@ -2152,7 +2155,11 @@
     "source_url": "https://english.www.gov.cn/news/202611/16/content_WS6afaa399c6d00ca5f9a0e4d3.html",
     "review_decision": "retain_substantive_artificial_intelligence_topic_with_explicit_source_based_copy",
     "short_rationale": "The full official article describes the specific AI action stated in the corrected ticker.",
-    "ticker_message": "China and ASEAN designate 2027 their Year of AI Cooperation while pursuing a South China Sea code."
+    "ticker_message": "The China–ASEAN summit announces a 2027 AI cooperation year; Li urges an early South China Sea code.",
+    "fault_type": "editorial",
+    "published_field": "english_summary, ticker_message",
+    "evidence": "The full November 16 Xinhua report attributes the South China Sea code to Li’s hope for early conclusion, not a completed agreement. It says China stood ready to work with ASEAN on the designated 2027 AI cooperation year and AI+ cooperation; the old ticker incorrectly says the two sides jointly designated it and welcomed code progress.",
+    "english_summary": "At the China–ASEAN summit, Li urged an early South China Sea code, closer supply-chain ties and a 2027 AI cooperation year. China said it was ready to work with ASEAN on AI+ cooperation; the upgraded free-trade protocol takes effect December 1."
   },
   {
     "id": "c745452695344e7d7e6b",
@@ -2430,5 +2437,65 @@
     "ticker_message": "China and Botswana upgrade ties and agree to cooperate on global AI governance.",
     "evidence_quote": "agreed to strengthen cooperation and dialogue on global AI governance and emerging technologies",
     "short_rationale": "The full joint statement makes specific commitments on sovereignty, African peace and security, cross-border crime, climate cooperation and global AI governance. Its AI paragraphs state a substantive bilateral position and cooperation plan."
+  },
+  {
+    "id": "988bc52e00995f14128a",
+    "fault_type": "editorial",
+    "published_field": "english_summary, ticker_message",
+    "evidence": "The official November 19 Xinhua article says Xi urged stronger digital infrastructure and the broad application of AI as part of the innovation pillar. The existing summary omits that explicit AI proposal, while the ticker recasts it as regional cooperation on AI; the article instead calls for AI application.",
+    "english_summary": "Xi called for stronger Asia-Pacific trade and connectivity, digital infrastructure and data governance, and broad use of AI to spur industrial innovation. He also urged cooperation on energy and food security and a green transition.",
+    "ticker_message": "Xi urges wider AI use and stronger Asia-Pacific trade, connectivity, energy and food-security cooperation.",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://english.www.gov.cn/news/202611/19/content_WS6afe6164c6d00ca5f9a0e70d.html",
+    "source_evidence_fingerprint": "9ae6f2dad10ebe607e6feba1fd80b6b7dd969fdd45012e1c015057ff3016ee1e"
+  },
+  {
+    "id": "b4287079579f46e5f20c",
+    "fault_type": "editorial",
+    "published_field": "english_summary, ticker_message",
+    "evidence": "In his full November 19 APEC remarks, Xi made innovation one of four pillars, called AI an engine of growth and urged its broad application. The saved summary omits that substantive AI proposal, and the ticker calls it AI cooperation rather than wider use.",
+    "english_summary": "At the APEC leaders’ meeting in Shenzhen, Xi called for deeper trade ties, connected supply chains and a digital innovation pillar that would encourage wider AI use. China pledged $20 million for APEC cooperation and proposed a Shenzhen research center.",
+    "ticker_message": "Xi urges wider AI use alongside Asia-Pacific trade and connectivity proposals.",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://english.www.gov.cn/news/202611/19/content_WS6afe8c27c6d00ca5f9a0e732.html",
+    "source_evidence_fingerprint": "91f2d48719064def931522a6edb6e982d7477c170f9c1ee701b59d7f7759ba81"
+  },
+  {
+    "id": "1a38ac2163bd9477148c",
+    "fault_type": "label_and_editorial",
+    "published_field": "topics, english_summary",
+    "evidence": "The November 18 Icelandic environment ministry article says possible AMOC weakening threatens fisheries, food, infrastructure, energy and transport, and reports an expert group plus an October scenario exercise. It concerns ocean observation and climate tipping points, not water supply or water-system security; the water topic is unsupported.",
+    "topics": [
+      "climate_environment",
+      "civil_protection",
+      "energy",
+      "food_security",
+      "critical_infrastructure"
+    ],
+    "english_summary": "At COP31, Iceland announced more funding for global ocean monitoring. An expert group and an October scenario exercise are assessing national risks from climate tipping points, including possible AMOC weakening and effects on fisheries, food, infrastructure, energy and transport.",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-18-island-eykur-framlog-til-hafvoktunar-og-leidir-umraedu-um-loftslagsvendipunkta-sem-thjodaroryggishaettu",
+    "source_evidence_fingerprint": "b11a40cfa0a98a2139612f9c4acdae5ff7ba649f3acaee5ac4553b721f66d725"
+  },
+  {
+    "id": "203da8935ffa35cccc15",
+    "fault_type": "editorial",
+    "published_field": "ticker_message",
+    "evidence": "The November 18 Estonian government page is an annotated agenda for its November 19 meeting. Item 6 is labeled a draft regulation (Määruse eelnõu) on vital-service continuity strategies. The saved ticker says Estonia sets requirements, presenting a proposal as enacted.",
+    "ticker_message": "Estonia’s cabinet agenda includes draft vital-service continuity rules and EU energy, trade and migration measures.",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://valitsus.ee/uudised/valitsuse-191126-istungi-kommenteeritud-paevakord",
+    "source_evidence_fingerprint": "1d3ec4c1fe525fd9691a32e1cb156e7bfd9149a2504f5a29b3ac5e3ac4dc6942"
+  },
+  {
+    "id": "2798261d3ea6f723cbcd",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "50c4a7524322279bc4f42f0722581a3b88c6b2b521fc32c5c0df15da37260700",
+    "fault_type": "editorial",
+    "source_url": "https://www.whitehouse.gov/briefings-statements/2026/11/quad-leaders-summit-joint-press-release/",
+    "published_field": "english_summary, ticker_message",
+    "evidence": "The November 17 White House Quad release describes investment in and deployment of trusted “Super Intelligence,” reaffirms an accelerator to coordinate and fund access, deployment and technical assistance, and footnotes that Australia, India and Japan use the term for artificial intelligence. The original Monitor summary/ticker reduced this to generic trusted AI.",
+    "english_summary": "Quad leaders backed an accelerator to coordinate and fund access, deployment and technical assistance for trusted “Super Intelligence” across the Indo-Pacific. The release explains that Australia, India and Japan use the term for AI. They also announced maritime-surveillance, cyber, cable and energy-connectivity initiatives.",
+    "ticker_message": "Quad leaders back a trusted “Super Intelligence” accelerator for Indo-Pacific AI access and deployment."
   }
 ]
