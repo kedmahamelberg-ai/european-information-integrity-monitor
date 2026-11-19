@@ -9,11 +9,22 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from government_reviews import apply_confirmed_corrections, source_fingerprint, source_evidence_fingerprint, source_identity_fingerprint
-from collect_government_news import ROLE_ENTITY_CODES, article_text, canada_release_date
+from collect_government_news import ROLE_ENTITY_CODES, article_text, canada_release_date, ai_topic_has_explicit_copy
 from repair_government_full_speech import full_speech_text
 
 
 class GovernmentReviewTests(unittest.TestCase):
+    def test_ai_label_requires_explicit_connection_in_published_copy(self):
+        ai = {"topics": ["artificial_intelligence"],
+              "ticker_message": "The Netherlands expands defence production."}
+        self.assertFalse(ai_topic_has_explicit_copy(ai, "A €1.6 billion defence programme."))
+        self.assertFalse(ai_topic_has_explicit_copy(ai, "A mine uses digital positioning."))
+        self.assertFalse(ai_topic_has_explicit_copy(ai, "Online platform legislation advances."))
+        self.assertFalse(ai_topic_has_explicit_copy(ai, "The minister says AI could raise productivity."))
+        ai["ticker_message"] = "The minister says AI could raise productivity."
+        self.assertTrue(ai_topic_has_explicit_copy(ai, "The minister says AI could raise productivity."))
+        self.assertTrue(ai_topic_has_explicit_copy({"topics": ["civil_protection"]}, "Mine safety improves."))
+
     def setUp(self):
         self.item = {
             "id": "source-1", "url": "https://example.test/article",
