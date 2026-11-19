@@ -2497,5 +2497,57 @@
     "evidence": "The November 17 White House Quad release describes investment in and deployment of trusted “Super Intelligence,” reaffirms an accelerator to coordinate and fund access, deployment and technical assistance, and footnotes that Australia, India and Japan use the term for artificial intelligence. The original Monitor summary/ticker reduced this to generic trusted AI.",
     "english_summary": "Quad leaders backed an accelerator to coordinate and fund access, deployment and technical assistance for trusted “Super Intelligence” across the Indo-Pacific. The release explains that Australia, India and Japan use the term for AI. They also announced maritime-surveillance, cyber, cable and energy-connectivity initiatives.",
     "ticker_message": "Quad leaders back a trusted “Super Intelligence” accelerator for Indo-Pacific AI access and deployment."
+  },
+  {
+    "id": "5f24021f506dc5a3b641",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "958a6813e31c00a0b96f93e8c0926384eb27a9335655edcac025f3fda284cbe6",
+    "fault_type": "label",
+    "source_url": "https://www.rijksoverheid.nl/actueel/nieuws/2026/11/19/nieuw-programma-moet-innovatie-en-opschaling-defensie-industrie-versnellen",
+    "published_field": "topics",
+    "evidence": "The full official Dutch release announces the NPDII defence-industry programme, its four focus areas, €1.6 billion allocation and production and innovation goals. It does not name artificial intelligence or cyber as a programme measure or capability. The saved rationale itself says that AI and cybersecurity are not specifically described. Both labels are unsupported.",
+    "topics": [
+      "military_defence",
+      "technology_supply_chains",
+      "economic_financial_security",
+      "diplomacy_alliances"
+    ]
+  },
+  {
+    "id": "a92f8231ce4f0e2cb583",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "80c96c6f887e9214bce442a9c98db409f74ac75eeb7a4e7019a5ce467c0bc7ab",
+    "fault_type": "label",
+    "source_url": "https://primeminister.kz/kz/news/olzhas-bektenov-don-tau-ken-bayytu-kombinatynyn-bolashak-shahtasyndagy-onerkasiptik-kauipsizdik-sharalaryn-tekserdi-32139",
+    "published_field": "topics",
+    "evidence": "The full official Kazakh article reports safety inspection, digital mine monitoring and an intelligent positioning system. Its reference to the national Year of Digitalization and Artificial Intelligence supplies context, not an AI use in this mine. The saved rationale explicitly says the AI topic is omitted, contradicting the published topic list.",
+    "topics": [
+      "critical_minerals_resources",
+      "civil_protection"
+    ]
+  },
+  {
+    "id": "60edd99ad9cecc77e7b6",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "7feac048e4ced1085b2f0d3918d7fd949f5144c7d2b2e55f176219fe06e7e35d",
+    "fault_type": "label",
+    "source_url": "https://primeminister.kz/kz/news/kuryltai/ukimet-kuryltayda-onlayn-platformalar-men-mass-media-maseleleri-boyynsha-zan-zhobalaryn-usyndy-32135",
+    "published_field": "topics",
+    "evidence": "The full official Kazakh article covers proposed online-platform and mass-media legislation, unlawful content, child safety and first-reading parliamentary action. It does not discuss artificial intelligence, AI systems or an AI-specific provision. The AI topic was an unsupported addition.",
+    "topics": [
+      "information_influence",
+      "political_institutions"
+    ]
+  },
+  {
+    "id": "ca2b403c5d8ecf4ef15f",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "065ab5ac2e063b914439e30975b13d1892764e8f8ad43bd2d67c1d9697a8e85f",
+    "fault_type": "editorial",
+    "source_url": "https://media.gov.gr/omilia-tou-yfypourgou-para-to-prothypourgo-kai-kyvernitikou-ekprosopou-pavlou-marinaki-sto-5o-oikonomiko-synedrio-tis-naftemporikis-elliniki-oikonomia-i-nea-architektoniki/",
+    "published_field": "english_summary, ticker_message",
+    "evidence": "The full official speech explicitly says AI and digital transformation could play a decisive role in Greek productivity, cutting costs and bureaucracy, and making opportunities available to smaller businesses. It separately calls energy security and supply autonomy strategic. The current Monitor summary and ticker omit the stated AI role despite retaining the AI topic.",
+    "english_summary": "In an economic-policy speech, Deputy Minister Pavlos Marinakis said AI and digital transformation could help Greek firms raise productivity, cut costs and reduce bureaucracy, with smaller firms sharing the benefits. He also called energy security, infrastructure and reliable supply chains strategic for competitiveness.",
+    "ticker_message": "Greek minister says AI can lift productivity, while energy security and supply chains shape competitiveness."
   }
 ]
