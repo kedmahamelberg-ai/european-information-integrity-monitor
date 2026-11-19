@@ -16,6 +16,7 @@ on:
 permissions:
   contents: read
   actions: read
+  issues: write
 jobs:
   audit:
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
@@ -41,8 +42,21 @@ jobs:
           key: government-source-audit-v1-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
             government-source-audit-v1-${{ github.ref_name }}-
+      - name: Plan exact source access
+        id: source_plan
+        run: python scripts/audit_government_sources.py --limit "$AUDIT_LIMIT" --plan
+      - name: Connect the Malta archive route when needed
+        id: malta_warp
+        if: steps.source_plan.outputs.needs_malta == 'true' && vars.MALTA_WARP_TERMS_APPROVED == 'true'
+        continue-on-error: true
+        env:
+          MALTA_WARP_TERMS_APPROVED: ${{ vars.MALTA_WARP_TERMS_APPROVED }}
+        run: bash scripts/setup_malta_warp.sh
       - name: Compare exact official sources and saved labels
         run: python scripts/audit_government_sources.py --limit "$AUDIT_LIMIT"
+      - name: Disconnect the Malta archive route
+        if: always() && steps.malta_warp.outcome == 'success'
+        run: sudo warp-cli --accept-tos disconnect
       - name: Save audit checkpoint
         if: always()
         uses: actions/cache/save@v4
@@ -58,16 +72,9 @@ jobs:
             government-source-audit-report.json
             data/government_source_audit.json
           retention-days: 90
-      - name: Flag new candidate faults
+      - name: Publish open candidate findings
         if: success()
-        run: |
-          python - <<'PY'
-          import json
-          report=json.load(open("government-source-audit-report.json"))
-          ids=set(report["newly_attempted_ids"])
-          new={key:value for key,value in report["open_candidate_findings"].items() if key in ids}
-          if new:
-              print("::error::Full-source audit found " + str(len(new)) + " candidate government faults; inspect artifact and exact official sources.")
-              raise SystemExit(1)
-          PY
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/publish_government_audit_findings.py
 
