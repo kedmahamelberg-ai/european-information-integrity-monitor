@@ -22,13 +22,15 @@ def save(checkout):
     mutation = """mutation ($input: CreateCommitOnBranchInput!) {
       createCommitOnBranch(input: $input) { commit { oid } }
     }"""
+    ref_endpoint = f"repos/{os.environ['GITHUB_REPOSITORY']}/git/ref/heads/field-wire-editions"
+    branch_id = subprocess.check_output(["gh", "api", ref_endpoint, "--jq", ".node_id"], text=True).strip()
     variables = {"input": {
-        "branch": {"repositoryNameWithOwner": os.environ["GITHUB_REPOSITORY"], "refName": "field-wire-editions"},
+        "branch": {"id": branch_id},
         "expectedHeadOid": head,
         "message": {"headline": "Publish Field Wire edition"},
         "fileChanges": {"additions": additions},
     }}
-    subprocess.run(["gh", "api", "graphql", "--input", "-"], check=True, text=True,
+    subprocess.run(["gh", "api", "graphql", "--input", "-", "--silent"], check=True, text=True,
                    input=json.dumps({"query": mutation, "variables": variables}))
 
 
