@@ -105,6 +105,8 @@ if "--live" in sys.argv or "--camera-only" in sys.argv:
     from check_cameras import refresh
     refresh(out / "cameras.json", os.environ.get("YOUTUBE_API_KEY"),
             strict="--camera-only" in sys.argv)
+from field_wire import render as render_field_wire
+render_field_wire(out, json.loads((out / "data.json").read_text()), json.loads(gov_public.read_text()))
 from check_public_counts import check
 check(json.loads((out / "data.json").read_text()))
 # Bind code, styles and the data snapshot to one deployment revision.
@@ -142,5 +144,5 @@ about = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 </body></html>""".replace("REV", revision).replace("BODY", (out / "methodology.html").read_text())
 (out / "about.html").write_text(about)
 (out / "robots.txt").write_text("User-agent: *\nAllow: /\nSitemap: https://monitor.hamelberg-ai.com/sitemap.xml\n")
-(out / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://monitor.hamelberg-ai.com/</loc></url><url><loc>https://monitor.hamelberg-ai.com/about.html</loc></url><url><loc>https://monitor.hamelberg-ai.com/contact.html</loc></url><url><loc>https://monitor.hamelberg-ai.com/research.html</loc></url><url><loc>https://monitor.hamelberg-ai.com/privacy.html</loc></url></urlset>')
+(out / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://monitor.hamelberg-ai.com/</loc></url><url><loc>https://monitor.hamelberg-ai.com/field-wire/</loc></url><url><loc>https://monitor.hamelberg-ai.com/about.html</loc></url><url><loc>https://monitor.hamelberg-ai.com/contact.html</loc></url><url><loc>https://monitor.hamelberg-ai.com/research.html</loc></url><url><loc>https://monitor.hamelberg-ai.com/privacy.html</loc></url></urlset>')
 print("Public website built in build/")

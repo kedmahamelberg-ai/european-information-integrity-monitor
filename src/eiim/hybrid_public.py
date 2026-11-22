@@ -200,6 +200,15 @@ def export_public(store, path):
                     },
                 }
             )
+            # Publish only the neutral video synopsis. If review changed its
+            # reference frame, omit the draft synopsis on the public wire.
+            synopsis = None
+            if row and human and human["relevance"] == "related":
+                label = row["payload"]["label"]
+                original = video_values(label)
+                reference_fields = ("viewpoints", "viewpoint_structure", "reference:summary", "reference:speaker", "reference:target")
+                if all(human.get(key) == original.get(key) for key in reference_fields):
+                    synopsis = (label.get("content_reference") or {}).get("summary")
             response = comment_summary(row, validated)
             c["reviewed_comments"] += response["human_reviewed"]
             output["videos"].append(
@@ -235,6 +244,7 @@ def export_public(store, path):
                         )
                     ),
                     "label": public_label,
+                    "video_synopsis": synopsis,
                     "model": row["payload"]["model_version"] if row else None,
                     "transcript_truncated": (
                         row["payload"]["transcript_truncated"] if row else None
