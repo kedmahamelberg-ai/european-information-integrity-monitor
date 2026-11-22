@@ -45,6 +45,15 @@ def _audit_progress(plan, rows, reviews):
     return target, completed
 
 
+def _reviewed_video_history(batches, archived_baseline):
+    """Retain aggregate review work after detailed source rows expire."""
+    return archived_baseline + sum(
+        b["public_summary"].get("reviewed_videos", 0)
+        for b in batches
+        if b["id"] > "2026-W42" and b.get("public_summary") is not None
+    )
+
+
 def export_public(store, path):
     output = {
         "version": VERSION,
@@ -58,6 +67,7 @@ def export_public(store, path):
         "batches": [],
         "history": [],
         "history_missing": [],
+        "review_history": {},
         "status": "human_review_pending",
         "collection": {
             "sampled_videos": 0,
@@ -251,9 +261,10 @@ def export_public(store, path):
                     ),
                 }
             )
-        # Preserve counts before the 30-day source purge. Only three bounded
-        # integers survive; neither source IDs nor comments enter this record.
+        # Preserve aggregate counts before the 30-day source purge. No source
+        # IDs, transcripts, or comments enter this record.
         public_videos = output["videos"][first_public_video:]
+        previous = b.get("public_summary")
         summary = {
             "sampled_videos": len(sampled),
             "classified_videos": sum(bool(v["label"]) for v in public_videos),
@@ -261,8 +272,14 @@ def export_public(store, path):
                 v["label"] is not None and v["label"]["relevance"] == "related"
                 for v in public_videos
             ),
+            "reviewed_videos": max(
+                (previous or {}).get("reviewed_videos", 0),
+                sum(
+                    v["classification_status"] == "human_reviewed"
+                    for v in public_videos
+                ),
+            ),
         }
-        previous = b.get("public_summary")
         # A partially purged batch must never replace its fuller saved total.
         if (previous is None or summary["sampled_videos"] >= previous["sampled_videos"]) and summary != previous:
             store.save_public_summary(batch, summary)
@@ -272,6 +289,16 @@ def export_public(store, path):
         for b in sorted(retained_batches, key=lambda b: b["id"])
         if b.get("public_summary") is not None
     ]
+    # W40-W42 had already passed detailed-source retention when this aggregate
+    # was introduced. Their 47 distinct reviewed video IDs were verified
+    # against confirmed exports and matching database review record IDs.
+    historical_review_baseline = config("review_history")["reviewed_videos_through_w42"]
+    output["review_history"] = {
+        "reviewed_videos_since_launch": _reviewed_video_history(
+            retained_batches, historical_review_baseline
+        ),
+        "retained_reviewed_videos": output["collection"]["reviewed_videos"],
+    }
     if output["history"]:
         latest_summary = output["history"][-1]["id"]
         output["history_missing"] = [

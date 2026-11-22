@@ -1,0 +1,4 @@
+{
+  "reviewed_videos_through_w42": 47,
+  "basis": "Distinct W40-W42 video IDs in confirmed human-review exports matched to Supabase human_validation record IDs on 2026-11-22; W40: 9, W41: 19, W42: 19. Aggregate only."
+}
