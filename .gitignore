@@ -14,3 +14,4 @@ dist/
 
 supabase/.temp/
 *cookies*.txt
+build-cache/

@@ -38,6 +38,11 @@ jobs:
             echo 'No credentials configured; no live data collected.' >> "$GITHUB_STEP_SUMMARY"
           fi
   refresh:
+    permissions:
+      contents: write
+      actions: read
+      pages: write
+      id-token: write
     needs: retention
     if: needs.retention.outputs.purged != '0'
     uses: ./.github/workflows/site.yml

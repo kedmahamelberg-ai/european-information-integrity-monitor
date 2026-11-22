@@ -18,9 +18,8 @@
   function openShare(article) {
     const dialog = document.querySelector("#share-dispatch");
     const title = article.querySelector("h3").textContent;
-    const url = new URL(location.pathname, location.origin);
-    url.hash = article.dataset.wire;
-    url.searchParams.set("source", article.querySelector("a.source").getAttribute("href"));
+    const url = new URL(document.body.dataset.edition || location.pathname, location.origin);
+    url.hash = article.id;
     const link = encodeURIComponent(url.href);
     const headline = encodeURIComponent(title);
     const message = encodeURIComponent(title + "\n" + url.href);
