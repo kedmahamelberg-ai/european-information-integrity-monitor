@@ -390,7 +390,7 @@ function renderGovernment(){
  const filtered=items.filter(x=>(country==='all'||x.country_code===country)&&(narrative==='all'||[x.primary_narrative,...(x.secondary_narratives||[])].includes(narrative))&&(review==='all'||x.classification_status===review));
  const dates=filtered.map(x=>x.published_date||collectionDate(x.published_at)).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x)).sort();
  const publishedRange=dates.length?dates[0]+' to '+dates.at(-1):'no dated records';
- if($('#government-source-list'))$('#government-source-list').innerHTML='<p class="panel-note">'+filtered.length+' official communications · '+filtered.filter(x=>x.related===true).length+' marked related · published '+esc(publishedRange)+' · routine human audit sample: 3%.</p>'+filtered.map(x=>'<article class="government-item"><div class="government-item-head"><span>'+esc(governmentCountryLabel(x))+' · '+esc(x.published_date||x.published_at?.slice(0,10)||'date unavailable')+(x.publication_precision==='day'?' · date only':'')+'</span><span class="source-state '+(x.classification_status==='human_reviewed'?'':'pending')+'">'+esc(human(x.classification_status||'unclassified'))+'</span></div><h2><a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.ticker_message||x.english_summary||x.title)+' ↗</a></h2><p>'+esc(x.english_summary||x.ticker_message||'Awaiting English translation and classification.')+'</p>'+(x.primary_narrative?'<div class="government-label"><b>'+esc(human(x.primary_narrative))+'</b>'+(x.secondary_narratives||[]).map(n=>'<span>'+esc(human(n))+'</span>').join('')+'<small>'+Math.round((x.confidence||0)*100)+'% confidence · '+esc(x.short_rationale||'')+'</small></div>':'')+'<details><summary>Classification rationale and source</summary><p>'+esc(x.short_rationale||'Translation is applied before classification; the source translation is not republished.')+'</p><p class="small">Original title: '+esc(x.title)+'<br>Official source: <a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.url)+'</a></p></details></article>').join('')||'<p class="empty">No government communications match these filters.</p>';
+ if($('#government-source-list'))$('#government-source-list').innerHTML='<p class="panel-note">'+filtered.length+' official communications · '+filtered.filter(x=>x.related===true).length+' marked related · published '+esc(publishedRange)+' · routine human audit sample: 3%.</p>'+filtered.map(x=>'<article class="government-item" id="release-'+esc(x.id)+'" tabindex="-1"><div class="government-item-head"><span>'+esc(governmentCountryLabel(x))+' · '+esc(x.published_date||x.published_at?.slice(0,10)||'date unavailable')+(x.publication_precision==='day'?' · date only':'')+'</span><span class="source-state '+(x.classification_status==='human_reviewed'?'':'pending')+'">'+esc(human(x.classification_status||'unclassified'))+'</span></div><h2><a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.ticker_message||x.english_summary||x.title)+' ↗</a></h2><p>'+esc(x.english_summary||x.ticker_message||'Awaiting English translation and classification.')+'</p>'+(x.primary_narrative?'<div class="government-label"><b>'+esc(human(x.primary_narrative))+'</b>'+(x.secondary_narratives||[]).map(n=>'<span>'+esc(human(n))+'</span>').join('')+'<small>'+Math.round((x.confidence||0)*100)+'% confidence · '+esc(x.short_rationale||'')+'</small></div>':'')+'<details><summary>Classification rationale and source</summary><p>'+esc(x.short_rationale||'Translation is applied before classification; the source translation is not republished.')+'</p><p class="small">Original title: '+esc(x.title)+'<br>Official source: <a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.url)+'</a></p></details></article>').join('')||'<p class="empty">No government communications match these filters.</p>';
  renderSceneCarousel();
 }
 function renderRanking(){
@@ -432,6 +432,15 @@ function renderEvidence(){const q=$("#search").value.toLowerCase(),batch=$("#arc
 }
 function showSource(key){const v=inventory.find(x=>x.batch+'|'+x.id===key);if(!v)return;
  $("#source-detail").innerHTML=`<span class="source-state">${esc(state(v))}</span><h2>${esc(v.title)}</h2><iframe title="${esc(v.title)}" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.id)}" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe><p class="small">${esc(v.channel)} · ${esc(v.countries.join(' / '))} · original language: ${esc(v.original_language||'und')}</p>${v.transcript_method==='faster-whisper'?'<p class="small">Evidence was automatically transcribed from public audio using Whisper. Translation and speech recognition can contain errors.</p>':''}${v.label?`<p>${esc(human(v.label.relevance))} · ${esc(v.label.topics.map(t=>data.topic_labels?.[t]||human(t)).join(' / '))}</p>${v.label.roles.map(r=>`<span class="tag">${icons[r.role]||''} ${esc(r.entity)} · ${esc(data.role_labels?.[r.role]||human(r.role))}</span>`).join('')}`:'<p class="small">Content labels require a successfully saved English transcript. This source is visible as part of the sampled inventory.</p>'}<p><a href="https://www.youtube.com/watch?v=${encodeURIComponent(v.id)}" target="_blank" rel="noopener">Open original video ↗</a></p>`;
+ if (v.video_synopsis) {
+   const paragraph = document.createElement('p');
+   paragraph.textContent = v.video_synopsis;
+   $("#source-detail").append(paragraph);
+ }
+ if (v.responses?.total) {
+   const breakdown = Object.entries(v.responses.alignment || {}).map(([label, n]) => esc(human(label)) + ': ' + esc(n)).join(' · ');
+   $("#source-detail").insertAdjacentHTML('beforeend', '<p>Sampled comment alignment (' + esc(v.responses.total) + ' classified): ' + breakdown + '</p>');
+ }
  $("#source-dialog").showModal();
 }
 function route(){const r=['evidence','government','methodology'].includes(location.hash.slice(1))?location.hash.slice(1):'monitor';for(const id of ['monitor','evidence','government','methodology'])$('#'+id).hidden=id!==r;document.querySelectorAll('nav a').forEach(a=>a.setAttribute('aria-current',a.hash==='#'+r?'page':'false'));if(r==='monitor')updateGovernmentTickerSpeed();}
@@ -448,6 +457,15 @@ async function init(){try{
  const governmentLabels=[...new Set((governmentData.items||[]).flatMap(x=>[x.primary_narrative,...(x.secondary_narratives||[])].filter(Boolean)))];$('#government-narrative').insertAdjacentHTML('beforeend',governmentLabels.map(n=>`<option value="${esc(n)}">${esc(human(n))}</option>`).join(''));
  configureDateInputs();
  render();route();
+ const sourceParams = new URLSearchParams(location.search);
+ const record = sourceParams.get('record');
+ if (record && location.hash === '#government') {
+   const release = document.getElementById('release-' + record);
+   if (release) { release.focus(); release.scrollIntoView({block:'center'}); }
+ }
+ if (record && location.hash === '#evidence') {
+   showSource(sourceParams.get('week') + '|' + record);
+ }
  }catch(e){$('#data-status').textContent='Snapshot unavailable. Please refresh or check the publishing workflow.';console.error(e);}}
 for(const id of ['country','topic','metric','response-metric'])$('#'+id).onchange=render;
 $('#batch').onchange=()=>{$('#archive-batch').value=data.batches.some(b=>b.id===$('#batch').value)?$('#batch').value:'all';render();};
