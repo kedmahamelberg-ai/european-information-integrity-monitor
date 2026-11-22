@@ -15,7 +15,7 @@ on:
       ]
     types: [completed]
 permissions:
-  contents: read
+  contents: write
   actions: read
   pages: write
   id-token: write
@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    if: github.ref == 'refs/heads/main' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -36,6 +36,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install edition graphics dependency
+        run: python -m pip install '.[publish]'
+      - name: Restore permanent Field Wire editions
+        uses: actions/checkout@v4
+        with:
+          ref: field-wire-editions
+          path: build-cache
+          sparse-checkout: editions
       - name: Test research invariants
         if: github.event_name != 'schedule'
         run: PYTHONPATH=src python -m unittest discover -s tests -v
@@ -83,6 +91,16 @@ jobs:
             python scripts/build_site.py --live
           else
             python scripts/build_site.py
+          fi
+      - name: Save permanent Field Wire editions
+        if: github.ref == 'refs/heads/main'
+        working-directory: build-cache
+        run: |
+          if [ ! -d editions ] || [ -z "$(ls -A editions)" ]; then exit 0; fi
+          git add -- editions/
+          if ! git diff --cached --quiet; then
+            git -c user.name=github-actions -c user.email=41898282+github-actions[bot]@users.noreply.github.com commit -m "Publish Field Wire edition"
+            git push origin HEAD:refs/heads/field-wire-editions
           fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

@@ -32,3 +32,7 @@ footer{line-height:1.8}
 #share-dispatch{box-sizing:border-box;width:min(390px,calc(100vw - 24px));padding:16px;color:var(--ink);background:var(--paper);border:1px solid var(--green);box-shadow:0 10px 50px #18291f40}
 #share-dispatch::backdrop{background:#14251bd1}#share-dispatch form{display:flex;align-items:center;justify-content:space-between;gap:12px}#share-dispatch h2{font:600 22px Georgia,serif}.share-lead{font-size:14px;margin:10px 0 14px}.share-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
 #share-dispatch button,.share-choices a{border:1px solid var(--line);padding:8px 10px;background:#fff;color:var(--ink);font:13px var(--mono);cursor:pointer;text-decoration:none;text-align:left}.share-choices a:hover,#share-dispatch button:hover{background:#e0e5d8}.share-status:not(:empty){display:block;margin-top:8px;font-size:12px}
+
+.edition-chart{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--line)}
+.edition-chart img{display:block;width:clamp(92px,10vw,148px);height:auto}.edition-chart figcaption{font:12px/1.4 system-ui,sans-serif}.edition-chart b{display:block}
+.history{margin-top:12px}.history summary,.history nav{font:12px var(--mono)}.history nav{gap:10px;padding:8px 0}
