@@ -94,14 +94,9 @@ jobs:
           fi
       - name: Save permanent Field Wire editions
         if: github.ref == 'refs/heads/main'
-        working-directory: build-cache
-        run: |
-          if [ ! -d editions ] || [ -z "$(ls -A editions)" ]; then exit 0; fi
-          git add -- editions/
-          if ! git diff --cached --quiet; then
-            git -c user.name=github-actions -c user.email=41898282+github-actions[bot]@users.noreply.github.com commit -m "Publish Field Wire edition"
-            git push origin HEAD:refs/heads/field-wire-editions
-          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/save_field_wire_edition.py build-cache
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
