@@ -46,14 +46,14 @@
   const observer = new IntersectionObserver(entries => {
     for (const entry of entries) {
       if (!entry.isIntersecting) continue;
-      const group = groups.get(entry.target.closest("article").dataset.wire);
+      const group = groups.get(entry.target.closest("[data-wire]").dataset.wire);
       if (group.viewed) continue;
       group.viewed = true;
       send(group,"view").catch(() => { group.viewed = false; });
     }
   }, {threshold:0.5});
 
-  for (const article of document.querySelectorAll("article[data-wire]")) {
+  for (const article of document.querySelectorAll("tr[data-wire]")) {
     const key = article.dataset.wire;
     if (!groups.has(key)) groups.set(key,{key,cards:[],queue:Promise.resolve()});
     const group = groups.get(key);
@@ -111,8 +111,12 @@
       catch(e) { status.textContent = e.message; }
       finally { submit.disabled = false; }
     };
-    box.append(share,toggle,views,status,panel);
-    article.querySelector(".copy").append(box);
+    box.append(share,toggle,status,panel);
+    const menu = document.createElement("details");
+    const summary = document.createElement("summary");
+    summary.textContent = "Respond / share";
+    menu.append(summary,box);
+    article.querySelector(".copy").append(views,menu);
     group.cards.push({views,reactions,comments:panel.querySelector(".thread")});
     observer.observe(article.querySelector("h2,h3"));
   }
