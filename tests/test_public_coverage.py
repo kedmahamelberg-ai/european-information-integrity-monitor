@@ -27,6 +27,7 @@ class PublicCoverageTests(unittest.TestCase):
             self.assertEqual(first['history'], [{
                 'id': '2026-W40', 'sampled_videos': 1,
                 'classified_videos': 1, 'security_related_videos': 1,
+                'reviewed_videos': 0,
             }])
             s.tables['sampled_videos']['v']['purged_at'] = '2026-11-04T00:00:00Z'
             s.tables['sampled_videos']['v']['payload'] = {'retention_deleted': True}

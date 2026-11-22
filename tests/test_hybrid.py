@@ -925,6 +925,26 @@ class PublicationAuditTests(unittest.TestCase):
         self.assertEqual(other["classification_status"], "ai_coded_sample_audited")
         self.assertIsNotNone(other["label"])
         self.assertEqual(out["collection"]["reviewed_videos"], 1)
+        self.assertEqual(out["history"][0]["reviewed_videos"], 1)
+        s.tables["human_validation"].clear()
+        with TemporaryDirectory() as d:
+            p = Path(d) / "data.json"
+            export_public(s, p)
+            after_retention = json.loads(p.read_text())
+        self.assertEqual(after_retention["collection"]["reviewed_videos"], 0)
+        self.assertEqual(after_retention["history"][0]["reviewed_videos"], 1)
+
+    def test_review_history_preserves_archived_confirmations(self):
+        from eiim.hybrid_public import _reviewed_video_history
+
+        batches = [
+            {"id": "2026-W40"},
+            {"id": "2026-W41", "public_summary": {"sampled_videos": 351}},
+            {"id": "2026-W42", "public_summary": {"sampled_videos": 367}},
+            {"id": "2026-W43", "public_summary": {"reviewed_videos": 7}},
+            {"id": "2026-W47", "public_summary": {"reviewed_videos": 15}},
+        ]
+        self.assertEqual(_reviewed_video_history(batches, 47), 69)
 
     def test_audit_target_grows_after_new_sources_are_classified(self):
         from eiim.hybrid_public import _audit_progress
