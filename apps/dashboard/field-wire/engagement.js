@@ -15,6 +15,61 @@
     return el;
   }
 
+  function openShare(article) {
+    const dialog = document.querySelector("#share-dispatch");
+    const title = article.querySelector("h3").textContent;
+    const url = new URL(location.pathname, location.origin);
+    url.hash = article.dataset.wire;
+    url.searchParams.set("source", article.querySelector("a.source").getAttribute("href"));
+    const link = encodeURIComponent(url.href);
+    const headline = encodeURIComponent(title);
+    const message = encodeURIComponent(title + "\n" + url.href);
+    const destinations = [
+      ["WhatsApp", "https://wa.me/?text=" + message],
+      ["Email", "mailto:?subject=" + headline + "&body=" + message],
+      ["LinkedIn", "https://www.linkedin.com/sharing/share-offsite/?url=" + link],
+      ["Facebook", "https://www.facebook.com/sharer/sharer.php?u=" + link],
+      ["X", "https://twitter.com/intent/tweet?url=" + link + "&text=" + headline],
+      ["Bluesky", "https://bsky.app/intent/compose?text=" + message],
+      ["Telegram", "https://t.me/share/url?url=" + link + "&text=" + headline],
+      ["Reddit", "https://www.reddit.com/submit?url=" + link + "&title=" + headline],
+    ];
+    dialog.querySelector(".share-lead").textContent = title;
+    const choices = dialog.querySelector(".share-choices");
+    choices.replaceChildren();
+    const status = dialog.querySelector(".share-status");
+    status.textContent = "";
+    for (const [name, href] of destinations) {
+      const anchor = document.createElement("a");
+      anchor.textContent = name;
+      anchor.href = href;
+      if (name !== "Email") {
+        anchor.target = "_blank";
+        anchor.rel = "noopener noreferrer";
+      }
+      choices.append(anchor);
+    }
+    const copy = button("Copy link");
+    copy.onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(url.href);
+        status.textContent = "Link copied.";
+      } catch {
+        window.prompt("Copy dispatch link", url.href);
+      }
+    };
+    choices.append(copy);
+    if (navigator.share) {
+      const more = button("More apps…");
+      more.onclick = async () => {
+        try { await navigator.share({url:url.href,title}); }
+        catch (error) { if (error.name !== "AbortError") status.textContent = "Choose a destination or copy the link."; }
+      };
+      choices.append(more);
+    }
+    dialog.showModal();
+  }
+
   function paint(group, data) {
     group.data = data;
     for (const ui of group.cards) {
@@ -76,15 +131,9 @@
       reactions[kind] = el;
     }
     const share = button("Share");
-    share.onclick = async () => {
-      const url = new URL(location.pathname,location.origin);
-      url.hash = key;
-      url.searchParams.set("source", article.querySelector(".copy a").getAttribute("href"));
-      try {
-        if (navigator.share) await navigator.share({url:url.href,title:article.querySelector("h2,h3").textContent});
-        else { await navigator.clipboard.writeText(url.href); status.textContent = "Link copied."; }
-      } catch(e) { if (e.name !== "AbortError") window.prompt("Copy dispatch link",url.href); }
-    };
+    share.className = "dispatch-share";
+    share.setAttribute("aria-haspopup", "dialog");
+    share.onclick = () => openShare(article);
     const toggle = button("Comment");
     const panel = document.createElement("div");
     panel.className = "wire-discussion";
@@ -111,12 +160,15 @@
       catch(e) { status.textContent = e.message; }
       finally { submit.disabled = false; }
     };
-    box.append(share,toggle,status,panel);
+    box.append(toggle,status,panel);
     const menu = document.createElement("details");
     const summary = document.createElement("summary");
-    summary.textContent = "Respond / share";
+    summary.textContent = "Respond";
     menu.append(summary,box);
-    article.querySelector(".copy").append(views,menu);
+    const toolbar = document.createElement("div");
+    toolbar.className = "dispatch-tools";
+    toolbar.append(share,menu);
+    article.querySelector(".copy").append(views,toolbar);
     group.cards.push({views,reactions,comments:panel.querySelector(".thread")});
     observer.observe(article.querySelector("h2,h3"));
   }
