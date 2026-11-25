@@ -1,0 +1,60 @@
+name: Recover saved government Pages deployment
+on:
+  # A reviewed recovery request can publish a previously built artifact.
+  push:
+    branches: [main]
+    paths: [ops/pages-recovery-request.json]
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Completed government run whose deployment failed after saving its build
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  recover:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify the saved government run and its exact artifact
+        id: source
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: python scripts/recover_government_pages.py source
+      - name: Download the existing build without rerunning collection
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.source.outputs.artifact_id }}
+          run-id: ${{ steps.source.outputs.source_run_id }}
+          github-token: ${{ github.token }}
+          path: recovered-pages
+          merge-multiple: true
+      - name: Verify the public files in the saved Pages archive
+        run: python scripts/recover_government_pages.py archive recovered-pages/artifact.tar
+      - uses: actions/configure-pages@v5
+      - name: Upload the unchanged Pages archive for this deployment
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-pages
+          path: recovered-pages/artifact.tar
+          if-no-files-found: error
+          retention-days: 1
+      - name: Deploy the recovered build
+        id: deployment
+        uses: ./.github/actions/deploy-monitor-pages

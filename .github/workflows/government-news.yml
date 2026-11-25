@@ -170,18 +170,29 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python scripts/save_field_wire_edition.py build-cache
-      - uses: actions/configure-pages@v5
-        if: github.ref == 'refs/heads/main'
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/main'
         with:
           path: build
-      - name: Wait for Pages artifact visibility
-        if: github.ref == 'refs/heads/main'
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: python scripts/wait_for_pages_artifact.py
+  deploy:
+    needs: collect
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
       - name: Deploy updated monitor
         id: deployment
-        if: github.ref == 'refs/heads/main'
-        uses: actions/deploy-pages@v4
+        uses: ./.github/actions/deploy-monitor-pages
