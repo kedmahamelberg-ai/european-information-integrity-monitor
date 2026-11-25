@@ -1,0 +1,32 @@
+name: Deploy saved Monitor Pages artifact
+description: Deploy the existing upload, with one bounded retry and no collection or model work.
+outputs:
+  page_url:
+    description: Published Pages URL
+    value: ${{ steps.deployment.outputs.page_url || steps.retry.outputs.page_url }}
+runs:
+  using: composite
+  steps:
+    - name: Wait for Pages artifact visibility
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: python "$GITHUB_ACTION_PATH/../../../scripts/wait_for_pages_artifact.py"
+    - name: Deploy saved artifact
+      id: deployment
+      continue-on-error: true
+      uses: actions/deploy-pages@v4
+      with:
+        timeout: 300000
+        error_count: 3
+    - name: Allow artifact-service metadata to settle
+      if: steps.deployment.outcome == 'failure'
+      shell: bash
+      run: sleep 20
+    - name: Retry the same artifact once
+      id: retry
+      if: steps.deployment.outcome == 'failure'
+      uses: actions/deploy-pages@v4
+      with:
+        timeout: 300000
+        error_count: 3

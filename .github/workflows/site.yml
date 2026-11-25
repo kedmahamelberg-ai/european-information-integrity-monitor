@@ -24,7 +24,8 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish:
-    if: github.ref == 'refs/heads/main' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+    # A reviewed saved-artifact recovery owns publication for that commit.
+    if: github.ref == 'refs/heads/main' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') && !(github.event_name == 'push' && contains(github.event.head_commit.message, '[saved-pages-recovery]'))
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -101,10 +102,6 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build
-      - name: Wait for Pages artifact visibility
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: python scripts/wait_for_pages_artifact.py
       - name: Deploy
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: ./.github/actions/deploy-monitor-pages
