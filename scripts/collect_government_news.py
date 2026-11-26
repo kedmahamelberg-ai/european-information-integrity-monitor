@@ -319,6 +319,20 @@ def transport_url(url):
     return urllib.parse.urlunsplit((parts.scheme,netloc,path,query,""))
 
 
+def fetch_archive_with_route_fallback(url, *, timeout=20):
+    """One alternate verified transport for the two runner-sensitive archives."""
+    try:
+        return fetch(url, timeout=timeout)
+    except urllib.error.HTTPError as error:
+        if error.code not in {408, 500, 502, 503, 504}:
+            raise
+        error.close()
+    except (urllib.error.URLError, TimeoutError, ConnectionError):
+        pass
+    print("::warning::Trying the same official archive over IPv4 after source transport failure: " + url, flush=True)
+    return fetch_ipv4(url, timeout=timeout)
+
+
 def _fetch_once(url, limit=2_000_000, timeout=8, user_agent=UA):
     request_url=transport_url(url)
     req=urllib.request.Request(request_url, headers={"User-Agent":user_agent,"Accept":"text/html,application/rss+xml,application/atom+xml,application/xml,*/*"})
@@ -969,7 +983,7 @@ def discover_italy(country,start,end):
 
 def discover_united_kingdom(country,start,end):
     """Page the PM Office's official Atom feed; verify original publication dates."""
-    base="https://www.gov.uk/search/news-and-communications.atom?organisations%5B%5D=prime-ministers-office-10-downing-street"
+    base="https://www.gov.uk/search/news-and-communications.atom?organisations%5B%5D=prime-ministers-office-no-10"
     entries=[]; seen=set()
     for page_number in range(1,21):
         url=base if page_number==1 else f"{base}&page={page_number}"
@@ -1345,6 +1359,12 @@ def discover_hungary(country,start,end):
         older=False
         for row in rows:
             if row.get("ministry") is not None: raise RuntimeError("Unexpected ministry article in central Hungarian news archive")
+            if not row.get("date") and row.get("isHiddenDate") is True:
+                print("::warning::Hungarian archive card has an explicitly hidden publication date: " +
+                      urllib.parse.urljoin(country["url"], "/hirek/" + row["slug"]), flush=True)
+                continue
+            if not row.get("date"):
+                raise RuntimeError("Hungarian cabinet news card has no publication date: " + row.get("slug", ""))
             day=dt.date.fromisoformat(row["date"][:10])
             if day<first: older=True; continue
             if day>last: continue
@@ -1640,7 +1660,7 @@ def discover_montenegro(country,start,end):
     entries=[]; seen=set()
     for page_number in range(1,101):
         url=f"https://www.gov.me/vijesti?page={page_number}&sort=published_at&tags=239"
-        _,body=fetch(url,timeout=20)
+        _,body=fetch_archive_with_route_fallback(url,timeout=20)
         page=body.decode("utf-8","replace")
         cards=re.findall(r'<app-search-item\b.*?</app-search-item>',page,re.S)
         if not cards: raise RuntimeError("Montenegro cabinet archive has no news cards")
@@ -1739,7 +1759,7 @@ def discover_azerbaijan(country,start,end):
     entries=[]; seen=set()
     for page_number in range(100):
         url=country["url"]+(f"?page={page_number}" if page_number else "")
-        _,body=fetch(url,timeout=20)
+        _,body=fetch_archive_with_route_fallback(url,timeout=20)
         page=body.decode("utf-8","replace")
         if 'id="news-items"' not in page or '<nav class="news-page-nav' not in page:
             raise RuntimeError("Azerbaijan Cabinet press office archive has no dated results")
@@ -2209,6 +2229,34 @@ def requeue_reviewed_attachment(item):
 CHINA_CARDS = re.compile(r'<li>\s*<h3[^>]*><a[^>]+href="([^"]+)"[^>]*>(.*?)</a></h3>\s*<h4>(20\d{2}/\d{2}/\d{2})</h4>', re.S)
 ATOM = "{http://www.w3.org/2005/Atom}"
 CANADA_ISSUED = re.compile(r'<meta\s+name="dcterms\.issued"[^>]+content="(20\d{2}-\d{2}-\d{2})"',re.I)
+CANADA_DATELINE = re.compile(
+    r"^(?:[^\d,]{1,80},\s*)?"
+    r"(January|February|March|April|May|June|July|August|September|October|November|December)"
+    r"\s+(\d{1,2}),?\s+(20\d{2})(?:\s*[–—-]\s*\S.*)?$", re.I)
+
+
+class CanadaReleaseText(ClassText):
+    """Retain paragraph boundaries so event dates are not publication datelines."""
+    def __init__(self):
+        super().__init__("news-release-container")
+        self.paragraphs = []
+        self.paragraph = None
+
+    def handle_starttag(self, tag, attrs):
+        super().handle_starttag(tag, attrs)
+        if self.depth and tag == "p":
+            self.paragraph = []
+
+    def handle_data(self, data):
+        super().handle_data(data)
+        if self.depth and not self.skip_depth and self.paragraph is not None:
+            self.paragraph.append(data)
+
+    def handle_endtag(self, tag):
+        if tag == "p" and self.paragraph is not None:
+            self.paragraphs.append(" ".join(" ".join(self.paragraph).split()))
+            self.paragraph = None
+        super().handle_endtag(tag)
 
 
 def canada_release_date(url):
@@ -2217,20 +2265,19 @@ def canada_release_date(url):
     markup=body.decode("utf-8","replace")
     match=CANADA_ISSUED.search(markup)
     if not match: raise RuntimeError("Canada release has no original issued date")
-    parser=ClassText("news-release-container");parser.feed(markup)
+    parser=CanadaReleaseText();parser.feed(markup)
     article=" ".join(parser.parts)
     if len(article)<80: raise RuntimeError("Canada release has no usable full article body")
     issued=dt.date.fromisoformat(match.group(1))
-    # Some Canada.ca releases have an updated dcterms.issued value while the
-    # visible dateline and the page-details date retain the actual release day.
-    dateline=re.search(r"\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(20\d{2})\b",article[:900],re.I)
-    if dateline:
-        visible=dt.datetime.strptime(" ".join(dateline.groups()).replace(",",""),"%B %d %Y").date()
-        if visible!=issued:
-            details=re.search(r'<time\b[^>]*\bproperty=["\']dateModified["\'][^>]*>(20\d{2}-\d{2}-\d{2})</time>',markup,re.I)
-            if not details or dt.date.fromisoformat(details.group(1))!=visible:
-                raise RuntimeError("Canada release date metadata conflicts with dateline; source review required")
-            return visible
+    # The introduction can repeat an earlier event date before the real
+    # publication dateline. Only a standalone dateline paragraph qualifies.
+    datelines = [CANADA_DATELINE.fullmatch(p) for p in parser.paragraphs[:10]]
+    visible_days = {dt.datetime.strptime(" ".join(m.groups()), "%B %d %Y").date()
+                    for m in datelines if m}
+    if len(visible_days) > 1:
+        raise RuntimeError("Canada release has conflicting publication datelines: " + url)
+    if visible_days:
+        return visible_days.pop()
     return issued
 
 

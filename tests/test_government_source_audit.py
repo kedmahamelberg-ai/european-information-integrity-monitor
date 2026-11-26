@@ -36,6 +36,18 @@ class SourceAuditTests(unittest.TestCase):
             "example-id": {"fingerprint": original}}, {}, 15, now)],
             ["example-id"])
 
+    def test_changed_speaker_or_rationale_reopens_the_source_audit(self):
+        original = audit_fingerprint(self.item)
+        self.item["viewpoints"] = [{"speaker": "An incorrect person"}]
+        self.assertNotEqual(audit_fingerprint(self.item), original)
+        issue = {"field": "viewpoints", "kind": "translation",
+                 "evidence": "The official article names another person.",
+                 "explanation": "The published speaker is mistranslated."}
+        self.assertTrue(supported_issue(self.item, issue))
+        before = audit_fingerprint(self.item)
+        self.item["short_rationale"] = "The rationale contradicts the topic list."
+        self.assertNotEqual(audit_fingerprint(self.item), before)
+
     def test_deferred_failure_does_not_block_other_ids(self):
         now = dt.datetime.now(dt.timezone.utc)
         item2 = dict(self.item, id="example-next", country_code="CN")

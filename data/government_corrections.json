@@ -2549,5 +2549,258 @@
     "evidence": "The full official speech explicitly says AI and digital transformation could play a decisive role in Greek productivity, cutting costs and bureaucracy, and making opportunities available to smaller businesses. It separately calls energy security and supply autonomy strategic. The current Monitor summary and ticker omit the stated AI role despite retaining the AI topic.",
     "english_summary": "In an economic-policy speech, Deputy Minister Pavlos Marinakis said AI and digital transformation could help Greek firms raise productivity, cut costs and reduce bureaucracy, with smaller firms sharing the benefits. He also called energy security, infrastructure and reliable supply chains strategic for competitiveness.",
     "ticker_message": "Greek minister says AI can lift productivity, while energy security and supply chains shape competitiveness."
+  },
+  {
+    "id": "8813a3368f7fa90295b7",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "9162a720be4da2f22d1de187530ca2b08b29d05ba3076cc817d744ed52e9d5a9",
+    "fault_type": "editorial",
+    "source_url": "https://primeminister.kz/kz/news/olzhas-bektenov-sheteldik-investorlar-kenesinin-otyrysynda-halyktyk-kurylys-bagdarlamasyn-zhuzege-asyru-kazakstannyn-turakty-ekonomikalyk-damuy-ushin-zhana-negiz-kalaydy-32165",
+    "published_field": "viewpoints[1].speaker, viewpoints[1].summary",
+    "evidence": "The full Kazakh release names Сегер Хойтинк. The same official English release names Seger Hoyting, not Søren Høy-Tinck. Official English source: https://primeminister.kz/en/news/olzhas-bektenov-at-fic-meeting-implementation-of-peoples-construction-program-lays-new-foundation-for-kazakhstans-sustainable-economic-development-32165",
+    "reviewed_at": "2026-11-26",
+    "viewpoints": [
+      {
+        "speaker": "Olzhas Bektenov",
+        "summary": "Bektenov said infrastructure renewal supports Kazakhstan’s long-term economic development and creates opportunities for international partners.",
+        "target": "Kazakhstan’s infrastructure modernization and foreign investment",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "In effect, a new foundation is being laid for Kazakhstan’s sustainable economic development in the decades ahead."
+      },
+      {
+        "speaker": "Seger Hoyting, Eni Kazakhstan",
+        "summary": "Hoyting proposed risk-based pipeline inspections and changes to greenhouse-gas emissions quotas in the oil and gas sector.",
+        "target": "Pipeline inspections and emissions quotas",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "put forward proposals to apply a risk-based approach to pipeline inspections and improve the system for allocating additional greenhouse-gas emissions quotas in the oil and gas sector."
+      },
+      {
+        "speaker": "Saken Zhumashyev, KPMG",
+        "summary": "Zhumashyev reported that investor companies presented AI use cases and identified scaling projects and investment in computing infrastructure as priorities.",
+        "target": "Digitalization and AI projects",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "Council companies presented cases involving the use of artificial intelligence in transport, industry, energy, telecommunications and corporate processes."
+      }
+    ]
+  },
+  {
+    "id": "a95745648ac1d21ca099",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "107382a16f9e86076449c0eb4f512d4e009eddf48d1673a4b83a5987a7eaef0a",
+    "fault_type": "editorial",
+    "source_url": "https://gov.md/ro/comunicate-de-presa/parcursul-european-al-republicii-moldova-si-extinderea-cooperarii-economice-cu",
+    "published_field": "english_summary, classification_error",
+    "evidence": "The complete Romanian release identifies TILDE’s participation in founding Moldova AI Hub and TET’s intention to develop a data centre. The prior summary omitted the substantive AI project and triggered the publication-copy hold.",
+    "reviewed_at": "2026-11-26",
+    "english_summary": "Moldova and Latvia discussed EU accession, investment and airport modernization. Talks highlighted Latvian company TILDE’s role in founding Moldova AI Hub and TET’s plans for a Moldovan data centre.",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection"
+  },
+  {
+    "id": "e9683367e4a6fbbc6f9e",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "a289dbb096cb8765bc6d26d7dce1215794f36841baca0aea58841d1f6480c8b4",
+    "fault_type": "editorial",
+    "source_url": "https://english.www.gov.cn/news/202611/26/content_WS6b07c7dec6d00ca5f9a0e9c0.html",
+    "published_field": "english_summary, relevance, topics, classification_error",
+    "evidence": "The full English government-portal release targets 2030 networks and explicitly calls for more secure and resilient communication networks. Embodied AI is one item in a broader integration list. The provider rejected the model request; this correction follows direct full-source review rather than a model retry.",
+    "reviewed_at": "2026-11-26",
+    "english_summary": "China’s plan aims to build advanced, secure and greener communication networks by 2030, including 6G and low-Earth-orbit satellite internet. It also promotes integrated networks, industrial standards, private-sector participation and access to resources. Network infrastructure is among six priorities for the 2026–2030 plan period.",
+    "relevance": "related",
+    "topics": [
+      "critical_infrastructure"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Chinese authorities",
+        "summary": "China’s plan aims to build advanced, secure and greener communication networks by 2030, including 6G and low-Earth-orbit satellite internet. It also promotes integrated networks, industrial standards, private-sector participation and access to resources. Network infrastructure is among six priorities for the 2026–2030 plan period.",
+        "target": "China plans secure, resilient next-generation communication networks, including 6G and satellite internet, by 2030.",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": ""
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "",
+    "ticker_message": "China plans secure, resilient next-generation communication networks, including 6G and satellite internet, by 2030.",
+    "short_rationale": "The plan specifies essential communication infrastructure and measures for secure, resilient networks. Embodied AI appears in a technology-integration list, without a distinct AI security measure; an AI topic is not established.",
+    "resolves_classification_error": "http_400_invalid_prompt"
+  },
+  {
+    "id": "136d80f0ae1c351eaf79",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "2cb22fd00dc33de2e6ed7c572189483d6ba0e4bfe3bce0c1022b61d73c5a1b79",
+    "fault_type": "editorial",
+    "source_url": "https://gouvernement.lu/fr/actualites/toutes_actualites/communiques/2026/11-novembre/25-conseil-gouvernement.html",
+    "published_field": "english_summary, relevance, topics, classification_error",
+    "evidence": "The complete cabinet communiqué states adoption of ALBA bills, approval of ratification of the amended terrorism convention, agreement to a radio-jamming bill against drone threats and a draft 3.75% statutory rate for 2027. This source-reviewed summary resolves the overlong generated summary without truncation.",
+    "reviewed_at": "2026-11-26",
+    "english_summary": "Luxembourg’s cabinet approved bills to create the ALBA anti-money-laundering authority, ratify an updated counter-terrorism convention, and permit radio jamming against drone threats. It also approved a 3.75% statutory interest rate for 2027.",
+    "relevance": "related",
+    "topics": [
+      "terrorism_organised_crime",
+      "economic_financial_security",
+      "civil_protection"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Luxembourg cabinet",
+        "summary": "Luxembourg’s cabinet approved bills to create the ALBA anti-money-laundering authority, ratify an updated counter-terrorism convention, and permit radio jamming against drone threats. It also approved a 3.75% statutory interest rate for 2027.",
+        "target": "Luxembourg’s cabinet backs anti-money-laundering oversight, counter-terrorism cooperation and radio jamming against drone threats.",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": ""
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "",
+    "ticker_message": "Luxembourg’s cabinet backs anti-money-laundering oversight, counter-terrorism cooperation and radio jamming against drone threats.",
+    "short_rationale": "The approved proposals address money laundering, terrorist financing, counter-terrorism cooperation and protection against drone threats. The release describes bills and a draft regulation, rather than completed enactments.",
+    "resolves_classification_error": "summary_exceeds_45_words"
+  },
+  {
+    "id": "bdd50418aa7b45f7fd9f",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "0e762805f9ec42d741d222c0cdc3646d42b05f258381cf2195718c0585c84a67",
+    "fault_type": "editorial",
+    "source_url": "https://www.gov.pl/web/premier/rzad-wspiera-piecze-zastepcza-i-asystentow-rodziny",
+    "published_field": "english_summary, relevance, topics, classification_error",
+    "evidence": "The full Polish article includes 35.6 million złoty foster-care support, 70 million złoty family-assistant support, Academy reform, 65% insurance subsidies, and a substantial air-defence and missile-alert rebuttal. The short summary retains the major developments.",
+    "reviewed_at": "2026-11-26",
+    "english_summary": "Poland approved funding for foster care and family assistants, changes to the Polish Academy of Sciences, and 65% crop and livestock insurance subsidies for 2027. Government spokesperson Adam Szłapka also defended air-defence spending and rejected claims about missing missile alerts.",
+    "relevance": "related",
+    "topics": [
+      "military_defence",
+      "food_security"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Government spokesperson Adam Szłapka",
+        "summary": "Poland approved funding for foster care and family assistants, changes to the Polish Academy of Sciences, and 65% crop and livestock insurance subsidies for 2027. Government spokesperson Adam Szłapka also defended air-defence spending and rejected claims about missing missile alerts.",
+        "target": "Poland backs family support and farm insurance; its spokesperson defends air defence and rejects missile-alert claims.",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": ""
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "",
+    "ticker_message": "Poland backs family support and farm insurance; its spokesperson defends air defence and rejects missile-alert claims.",
+    "short_rationale": "Beyond routine family policy, the release explicitly discusses crop protection against weather risks and food-production security, air and missile defence, anti-drone systems and warnings about Russian missiles. These substantive sections establish the selected topics.",
+    "resolves_classification_error": "summary_exceeds_45_words"
+  },
+  {
+    "id": "7656a0893eaf315cfcb6",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "e42af55aef8a9b8f78cb3c0755baecb93d63c246a376ef8a39b485a3f9e5d82e",
+    "fault_type": "editorial",
+    "source_url": "https://www.gov.uk/government/news/nuclear-test-veterans-and-their-families-have-waited-too-long-for-the-truth-pm-announces-independent-panel-on-nuclear-weapons-testing",
+    "published_field": "english_summary, relevance, topics, classification_error",
+    "evidence": "The full GOV.UK release names Bishop James Jones, describes a non-statutory independent panel using the Hillsborough model, and seeks an interim report for the 75th anniversary. This 43-word source-reviewed summary replaces the rejected overlong output.",
+    "reviewed_at": "2026-11-26",
+    "english_summary": "The UK announced an independent panel chaired by Bishop James Jones to examine the potential impact of nuclear weapons testing on veterans and their families. It will follow the Hillsborough Panel model and seek an interim report for the first test’s 75th anniversary.",
+    "relevance": "related",
+    "topics": [
+      "nuclear_cbrn"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "UK Prime Minister",
+        "summary": "The UK announced an independent panel chaired by Bishop James Jones to examine the potential impact of nuclear weapons testing on veterans and their families. It will follow the Hillsborough Panel model and seek an interim report for the first test’s 75th anniversary.",
+        "target": "The UK announces an independent panel examining nuclear weapons testing’s potential impact on veterans and families.",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": ""
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "",
+    "ticker_message": "The UK announces an independent panel examining nuclear weapons testing’s potential impact on veterans and families.",
+    "short_rationale": "The announcement establishes an independent inquiry into the potential impact of nuclear weapons testing. It announces an investigation, not a finding that testing caused particular harms.",
+    "resolves_classification_error": "summary_exceeds_45_words"
+  },
+  {
+    "id": "74cd75edc1e345e3a8c4",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "38fbd55592a6e18464b7f5c8c6ea64765521813a0cc3099a76b771dce2a7be5f",
+    "fault_type": "editorial",
+    "source_url": "https://portugal.gov.pt/pt/gc25/comunicacao/comunicados/agenda-do-primeiro-ministro-para-o-dia-26-de-novembro-de-2026",
+    "published_field": "english_summary, viewpoints[0].summary, ticker_message",
+    "evidence": "The original official page is explicitly the prime minister’s agenda for 26 November; its entry says Brussels, 10:00, European Council, Europa Building. No personal name is inferred.",
+    "reviewed_at": "2026-11-26",
+    "english_summary": "Portugal’s prime minister is scheduled to participate in the European Council in Brussels at 10:00, at the Europa Building.",
+    "viewpoints": [
+      {
+        "speaker": "Official schedule",
+        "summary": "The schedule states that Portugal’s prime minister participates in a European Council meeting.",
+        "target": "European Council",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "Participates in the European Council"
+      }
+    ],
+    "ticker_message": "Portugal’s prime minister is scheduled to attend the European Council in Brussels."
+  },
+  {
+    "id": "5bd2df9dbfa2f47946dc",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "b732ef576012f9e74f5076d6fbfc9ea3329fe37c2baa28fab1a7d91c4984cf58",
+    "fault_type": "editorial",
+    "source_url": "https://kryeministri.rks-gov.net/news/deklarimi-per-media-i-kryeministrit-kurti-ne-nisje-te-samitit-bashkimi-evropian-ballkani-perendimor-ne-bruksel/",
+    "published_field": "english_summary",
+    "evidence": "The full original statement affirms Kosovo’s existing alignment with EU sanctions on Russia. It does not call on another actor to comply with them. The saved attributed viewpoint and rationale already reflect this.",
+    "reviewed_at": "2026-11-26",
+    "english_summary": "Kosovo Prime Minister Albin Kurti urged EU candidate status, enlargement and mobility agreements, and Serbia’s handover of Milan Radoičić. He also affirmed Kosovo’s alignment with EU sanctions on Russia following its invasion of Ukraine."
+  },
+  {
+    "id": "27093a1e132fe9ec446d",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "1c430bcfe428d62ef041c713acf1c0037622a264344c64350e63428fe327c17d",
+    "fault_type": "editorial",
+    "source_url": "https://english.www.gov.cn/news/202611/26/content_WS6b079533c6d00ca5f9a0e9bc.html",
+    "published_field": "viewpoints[1].target",
+    "evidence": "The full English source distinguishes Wang Yi’s one-China principle from the Dutch government’s one-China policy. The saved viewpoint and summary already attribute the latter to the Netherlands.",
+    "reviewed_at": "2026-11-26",
+    "viewpoints": [
+      {
+        "speaker": "Wang Yi",
+        "summary": "China regards the Taiwan question as concerning a core interest and expects the Netherlands to honor the one-China principle.",
+        "target": "Taiwan and the one-China principle",
+        "speaker_sentiment": "negative",
+        "evidence_quote": "Wang said the Taiwan question concerns one of China’s core interests."
+      },
+      {
+        "speaker": "Tom Berendsen",
+        "summary": "The Dutch government adheres to its one-China policy and its position will not change.",
+        "target": "The Netherlands’ one-China policy",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": "The Dutch government adheres to the one-China policy, and this position will not change, he said."
+      },
+      {
+        "speaker": "Wang Yi and Tom Berendsen",
+        "summary": "Both expressed support for constructive China-Europe or Europe-China relations and cooperation.",
+        "target": "China-Europe relations",
+        "speaker_sentiment": "positive",
+        "evidence_quote": "Strengthening Europe-China cooperation serves the interests of all parties"
+      }
+    ]
+  },
+  {
+    "id": "640048090fb6266e6831",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "e34c2eddcf89d716a5a2e54b47665984838c21a0af57b1e60fc16e217498d99b",
+    "fault_type": "editorial",
+    "source_url": "https://gouvernement.lu/fr/actualites/toutes_actualites/communiques/2026/11-novembre/25-backes-conference-quantum-defence.html",
+    "published_field": "topics, short_rationale",
+    "evidence": "The full French release describes defence sensing, secure quantum communications protecting sensitive data and critical infrastructure, and proposed NATO cooperation. It mentions industrial expertise but no technology-supply dependency. The prior rationale contradicted its topic list.",
+    "reviewed_at": "2026-11-26",
+    "topics": [
+      "military_defence",
+      "cyber",
+      "diplomacy_alliances"
+    ],
+    "short_rationale": "The conference addresses future defence capabilities and secure quantum communications protecting sensitive data and critical infrastructure. Luxembourg’s announced interest in NATO’s quantum community establishes allied defence cooperation. The release does not establish a technology-supply dependency."
   }
 ]
