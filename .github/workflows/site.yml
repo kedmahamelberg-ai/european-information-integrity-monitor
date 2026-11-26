@@ -64,6 +64,11 @@ jobs:
           allowed = {
               '.github/workflows/site.yml',
               'data/government_corrections.json',
+              'data/government_full_sources.json',
+              '.github/workflows/government-news.yml',
+              '.github/workflows/government-source-audit.yml',
+              'pyproject.toml',
+              'apps/dashboard/app.js',
               'scripts/build_site.py',
               'scripts/collect_government_news.py',
               'scripts/government_reviews.py',
@@ -73,6 +78,7 @@ jobs:
               'tests/test_canada_china_collectors.py',
               'tests/test_hungary_collector.py',
               'tests/test_government_transport_url.py',
+              'tests/test_government_recovery.py',
           }
           try:
               changed = set(subprocess.check_output(

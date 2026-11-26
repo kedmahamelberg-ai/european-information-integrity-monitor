@@ -1,6 +1,8 @@
 """Regression checks for government review publication and source binding."""
 
 import sys
+import io
+import zipfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -9,11 +11,50 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from government_reviews import apply_confirmed_corrections, source_fingerprint, source_evidence_fingerprint, source_identity_fingerprint
-from collect_government_news import ROLE_ENTITY_CODES, article_text, canada_release_date, ai_topic_has_explicit_copy
+from collect_government_news import (ROLE_ENTITY_CODES, article_text, canada_release_date,
+    ai_topic_has_explicit_copy, extract_china_docx_attachment, canonical_source_url,
+    canonical_government_items, source_record_id)
 from repair_government_full_speech import full_speech_text
 
 
 class GovernmentReviewTests(unittest.TestCase):
+    def test_full_word_attachment_is_read_and_its_identity_checked(self):
+        document = io.BytesIO()
+        text = 'APEC statement on digital technology'
+        with zipfile.ZipFile(document, 'w') as z:
+            z.writestr('word/document.xml', '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'
+                '<w:p><w:r><w:t>'+text+'</w:t></w:r></w:p><w:p><w:r><w:t>'+
+                ('Complete source paragraph. '*20)+'</w:t></w:r></w:p></w:body></w:document>')
+        actual = extract_china_docx_attachment(document.getvalue(), 'Full text: '+text)
+        self.assertTrue(actual.endswith('Complete source paragraph.'))
+        self.assertEqual(actual.count('Complete source paragraph.'), 20)
+        with self.assertRaisesRegex(RuntimeError, 'title does not match'):
+            extract_china_docx_attachment(document.getvalue(), 'A different document')
+
+    def test_repaired_source_alias_preserves_id_and_deduplicates(self):
+        old = 'https://primeminister.kz/kz/news/meks-ulttyk-zhobasyn-zhuzege-asyru-kanat-bozymbaev-zhobalyk-kensenin-otyrysyn-otkizdi-32042'
+        canonical = canonical_source_url(old)
+        self.assertNotEqual(old, canonical)
+        self.assertEqual(source_record_id(canonical), '8106788210277bf9e221')
+        items = canonical_government_items([
+            dict(id='8106788210277bf9e221', url=old, classification_status='provisional'),
+            dict(id='new-discovery', url=canonical, classification_status='pending_classification')])
+        self.assertEqual(list(items), ['8106788210277bf9e221'])
+        self.assertEqual(items['8106788210277bf9e221']['classification_status'], 'provisional')
+
+    def test_source_access_repair_does_not_claim_classification_passed(self):
+        self.item.pop('relevance');self.item.pop('topics')
+        self.item.update(classification_status='needs_review',classification_error='RuntimeError')
+        correction = dict(id='source-1', source_repair_only=True,
+                          resolves_classification_error='RuntimeError',
+                          source_evidence_fingerprint=source_evidence_fingerprint(self.item),
+                          url='https://example.test/canonical')
+        self.assertEqual(apply_confirmed_corrections([self.item],[correction]),(['source-1'],[]))
+        self.assertEqual(self.item['classification_status'],'pending_classification')
+        self.assertNotIn('classification_error',self.item)
+        self.assertFalse(self.item.get('human_reviewed'))
+        self.assertFalse(self.item.get('source_reviewed'))
+
     def test_ai_label_requires_explicit_connection_in_published_copy(self):
         ai = {"topics": ["artificial_intelligence"],
               "ticker_message": "The Netherlands expands defence production."}

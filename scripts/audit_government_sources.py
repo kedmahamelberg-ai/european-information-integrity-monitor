@@ -247,8 +247,10 @@ def select_batch(items, checked, attempted, limit, now, seen_ids=None):
                       >= now.date() - dt.timedelta(days=3))
         except ValueError:
             recent = False
-        return (not changed, not newly_seen,
-                item.get("country_code") not in BENCHMARKS, not recent, ident)
+        # A coverage/ruleset upgrade reopens older checks too. It must not
+        # postpone new publications behind the entire historical backlog.
+        return (not recent, not changed, not newly_seen,
+                item.get("country_code") not in BENCHMARKS, ident)
     ordered = sorted(items, key=priority)
     pending = []
     for item in ordered:

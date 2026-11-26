@@ -16,6 +16,8 @@ REVIEW_FIELDS = (
     "roles", "viewpoint_structure", "viewpoints", "evidence_status",
     "evidence_quote", "short_rationale", "ticker_message", "english_summary",
     "published_at", "published_date",
+    "url", "title", "full_source_url", "source_text_chars", "source_text_sha256",
+    "translated_text_chars", "translation_complete",
 )
 
 
@@ -65,7 +67,8 @@ def apply_confirmed_corrections(items, corrections):
             stale.append(item["id"])
             continue
         evidence_fingerprint = correction.get("source_evidence_fingerprint")
-        allowed_evidence = {evidence_fingerprint, correction.get("source_evidence_fingerprint_after")}
+        allowed_evidence = {evidence_fingerprint, correction.get("source_evidence_fingerprint_after"),
+                            correction.get("source_evidence_fingerprint_alias")}
         repaired_full_source = (correction.get("source_identity_fingerprint") and
             correction["source_identity_fingerprint"] == source_identity_fingerprint(item) and
             correction.get("full_source_url") == item.get("full_source_url") and
@@ -100,6 +103,15 @@ def apply_confirmed_corrections(items, corrections):
         for key in REVIEW_FIELDS:
             if key in correction:
                 item[key] = correction[key]
+        if correction.get("source_repair_only"):
+            # Repair access without claiming that the article's classification
+            # or editorial copy passed review. A new complete source can enter
+            # the repository's normal classifier once, without a blind retry.
+            if item.get("classification_status") == "needs_review" and not item.get("relevance"):
+                item["classification_status"] = "pending_classification"
+                item.pop("classification_error", None)
+            applied.append(item["id"])
+            continue
         topics = item.get("topics") or []
         source_reviewed = correction.get("review_origin") == "source_reviewed_agent"
         item.update({
@@ -112,5 +124,7 @@ def apply_confirmed_corrections(items, corrections):
         })
         if resolved_error:
             item.pop("classification_error", None)
+        if correction.get("restores_full_source") and item.get("source_text_sha256") and item.get("full_source_url"):
+            item.pop("withhold_reason", None)
         applied.append(item["id"])
     return applied, stale

@@ -60,7 +60,8 @@ class SourceAuditTests(unittest.TestCase):
     def test_new_or_changed_publication_precedes_backlog(self):
         now = dt.datetime(2026, 11, 18, tzinfo=dt.timezone.utc)
         old = dict(self.item, id="a-old", published_at="2026-10-01T04:00:00+00:00")
-        changed = dict(old, id="z-changed", topics=["artificial_intelligence"])
+        changed = dict(old, id="z-changed", topics=["artificial_intelligence"],
+                       published_at="2026-11-18T04:00:00+00:00")
         new = dict(self.item, id="z-new", country_code="HR",
                    published_at="2026-11-18T08:00:00+00:00")
         checked = {"z-changed": {"fingerprint": audit_fingerprint(old)}}
@@ -68,6 +69,14 @@ class SourceAuditTests(unittest.TestCase):
                              seen_ids={"a-old", "z-changed"})
         self.assertEqual([item["id"] for item in batch],
                          ["z-changed", "z-new", "a-old"])
+
+    def test_old_coverage_rechecks_do_not_starve_recent_publication(self):
+        now = dt.datetime(2026,11,26,tzinfo=dt.timezone.utc)
+        old = dict(self.item, id='old', published_at='2026-10-01T04:00:00+00:00')
+        fresh = dict(self.item, id='fresh', published_at='2026-11-25T04:00:00+00:00')
+        batch = select_batch([old,fresh], {'old':{'fingerprint':'old-ruleset'}}, {}, 1, now,
+                             seen_ids={'old','fresh'})
+        self.assertEqual([x['id'] for x in batch], ['fresh'])
 
     def test_pending_record_enters_audit_after_classification(self):
         now = dt.datetime(2026, 11, 18, tzinfo=dt.timezone.utc)

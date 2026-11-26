@@ -6,6 +6,7 @@ import email.utils
 import hashlib
 import html
 import http.client
+import io
 import json
 import os
 import random
@@ -19,6 +20,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
+import zipfile
 from html.parser import HTMLParser
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -127,6 +129,22 @@ def classification_order(item):
 
 # Verified publisher rename: retain the existing classified canonical record.
 SOURCE_URL_ALIASES = {"https://www.rijksoverheid.nl/actueel/nieuws/2026/10/19/persbericht-laat-je-niet-interneppen": "https://www.rijksoverheid.nl/actueel/nieuws/2026/10/19/we-twijfelen-allemaal-maar-klikken-toch-vier-op-de-tien-heeft-weleens-klikspijt"}
+SOURCE_URL_ALIASES.update({
+    "https://primeminister.kz/kz/news/meks-ulttyk-zhobasyn-zhuzege-asyru-kanat-bozymbaev-zhobalyk-kensenin-otyrysyn-otkizdi-32042":
+        "https://primeminister.kz/kz/news/ekszh-ulttyk-zhobasyn-zhuzege-asyru-kanat-bozymbaev-zhobalyk-kensenin-otyrysyn-otkizdi-32042",
+    "https://media.gov.gr/simeia-synentefksis-yfypourgou-para-to-prothypourgo-kai-kyvernitikou-ekprosopou-pavlou-marinaki-stin-ekpompi-ston-eksosti-tous-skai-1003-kai-tous-dimosiografous-antoni-antzoleto-kai-gianni-kant/":
+        "https://media.gov.gr/simeia-synentefksis-yfypourgou-para-to-prothypourgo-kai-kyvernitikou-ekprosopou-pavlou-marinaki-stin-ekpompi-tou-skai-1003-ston-eksosti/",
+})
+STABLE_SOURCE_IDS = {
+    SOURCE_URL_ALIASES[old]: ident for old, ident in (
+        ("https://primeminister.kz/kz/news/meks-ulttyk-zhobasyn-zhuzege-asyru-kanat-bozymbaev-zhobalyk-kensenin-otyrysyn-otkizdi-32042", "8106788210277bf9e221"),
+        ("https://media.gov.gr/simeia-synentefksis-yfypourgou-para-to-prothypourgo-kai-kyvernitikou-ekprosopou-pavlou-marinaki-stin-ekpompi-ston-eksosti-tous-skai-1003-kai-tous-dimosiografous-antoni-antzoleto-kai-gianni-kant/", "ba25c064692188229ba3"),
+    )}
+
+
+def source_record_id(url):
+    url = canonical_source_url(url)
+    return STABLE_SOURCE_IDS.get(url, hashlib.sha256(url.encode()).hexdigest()[:20])
 
 
 def canonical_source_url(url):
@@ -147,7 +165,7 @@ def canonical_government_items(items):
         aliases = set(item.get("source_aliases") or [])
         if url != item["url"]:
             aliases.add(item["url"])
-        item.update(url=url, id=hashlib.sha256(url.encode()).hexdigest()[:20])
+        item.update(url=url, id=source_record_id(url))
         previous = result.get(item["id"])
         if previous:
             aliases.update(previous.get("source_aliases") or [])
@@ -2440,7 +2458,42 @@ def discover(country,start,end):
     raise NotImplementedError("Date-complete official-news adapter is not yet verified for this source")
 
 
+def extract_china_docx_attachment(document, title):
+    """Read the whole official Word attachment only after bounded identity checks."""
+    with zipfile.ZipFile(io.BytesIO(document)) as archive:
+        info = archive.getinfo("word/document.xml")
+        if info.file_size > 2_000_000:
+            raise RuntimeError("Official attachment text exceeds the safety limit")
+        root = ET.fromstring(archive.read(info))
+    ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+    text = "\n".join("".join(t.text or "" for t in p.findall(".//w:t", ns))
+                     for p in root.findall(".//w:p", ns)).strip()
+    normalize = lambda value: re.sub(r"[^a-z0-9]+", " ", value.casefold()).strip()
+    expected = normalize(re.sub(r"^Full text:\s*", "", title, flags=re.I))
+    if len(text) < 300 or not expected or expected not in normalize(text[:600]):
+        raise RuntimeError("Official attachment title does not match the archive record")
+    return text
+
+
 def article_text(item):
+    if canonical_source_url(item["url"]) != item["url"]:
+        item = dict(item, url=canonical_source_url(item["url"]))
+    reviewed_path = ROOT / "data/government_full_sources.json"
+    reviewed = json.loads(reviewed_path.read_text()) if reviewed_path.exists() else []
+    for source in reviewed:
+        if source["id"] == item.get("id") and source["url"] == item["url"]:
+            _, document = fetch(source["full_source_url"], limit=2_000_000, timeout=25)
+            if hashlib.sha256(document).hexdigest() != source["document_sha256"]:
+                raise RuntimeError("Reviewed full-source document changed; source review required")
+            from pypdf import PdfReader
+            reader = PdfReader(io.BytesIO(document))
+            if reader.is_encrypted or not 1 <= len(reader.pages) <= 20:
+                raise RuntimeError("Reviewed official PDF has unsupported access or length")
+            text = "\n".join(page.extract_text() or "" for page in reader.pages)
+            if not 300 <= len(text) <= 75_000 or any(
+                    phrase not in text for phrase in source["required_phrases"]):
+                raise RuntimeError("Reviewed official PDF failed full-text identity checks")
+            return text
     if item["country_code"]=="CA":
         if not CANADA_ARTICLE.fullmatch(item["url"]): raise RuntimeError("Canada release URL is outside the official feed")
         _,body=fetch(item["url"],timeout=20)
@@ -2459,6 +2512,11 @@ def article_text(item):
             if item["url"] == CHINA_BOTSWANA_STATEMENT_URL and CHINA_BOTSWANA_ATTACHMENT_URL.removeprefix("https:") in body.decode("utf-8", "replace"):
                 _, document = fetch(CHINA_BOTSWANA_ATTACHMENT_URL, limit=100_000, timeout=20)
                 return extract_china_botswana_statement(document)
+            attachment = re.search(r'href=["\']((?:https:)?//english\.www\.gov\.cn/atts/stream/files/[a-f0-9]+)["\']', body.decode("utf-8", "replace"))
+            if attachment:
+                attachment_url = urllib.parse.urljoin(item["url"], attachment.group(1))
+                _, document = fetch(attachment_url, limit=2_000_000, timeout=25)
+                return extract_china_docx_attachment(document, item["title"])
             raise RuntimeError("China news is an attachment notice without full article text")
         if len(article)<80: raise RuntimeError("China news has no usable full article body")
         return article
@@ -2969,7 +3027,8 @@ def main():
                     elif pub and not(source_start<=pub<=end): continue
                     if not pub: continue
                     item["url"]=canonical_source_url(item["url"])
-                    item["published_at"]=(pub or end).isoformat(); item["id"]=hashlib.sha256(item["url"].encode()).hexdigest()[:20]
+                    item["url"]=canonical_source_url(item["url"])
+                    item["published_at"]=(pub or end).isoformat(); item["id"]=source_record_id(item["url"])
                     if item["id"] in existing:
                         for key in ("published_date","publication_precision"):
                             if key in item: existing[item["id"]][key]=item[key]
