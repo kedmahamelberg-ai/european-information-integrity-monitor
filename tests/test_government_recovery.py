@@ -11,9 +11,12 @@ from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 tree = ast.parse((ROOT / "scripts/collect_government_news.py").read_text())
-names = {"canonical_source_url", "canonical_government_items", "discover_iceland"}
+names = {"canonical_source_url", "source_record_id", "canonical_government_items", "discover_iceland"}
 nodes = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name in names
-         or isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "SOURCE_URL_ALIASES" for t in n.targets)]
+         or isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id in {"SOURCE_URL_ALIASES", "STABLE_SOURCE_IDS"} for t in n.targets)
+         or isinstance(n, ast.Expr) and isinstance(n.value, ast.Call)
+         and isinstance(n.value.func, ast.Attribute) and isinstance(n.value.func.value, ast.Name)
+         and n.value.func.value.id == "SOURCE_URL_ALIASES"]
 scope = dict(dt=dt, hashlib=hashlib, html=html, re=re, urllib=urllib, REYKJAVIK=ZoneInfo("Atlantic/Reykjavik"))
 exec(compile(ast.Module(body=nodes, type_ignores=[]), "<collector-source-functions>", "exec"), scope)
 

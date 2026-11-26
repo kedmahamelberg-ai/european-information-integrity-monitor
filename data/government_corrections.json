@@ -2255,16 +2255,6 @@
     "short_rationale": "The full article focuses on Wang Yi's Global Governance Initiative, UN and institutional reform, peaceful dispute resolution and multilateral cooperation. AI governance appears once in a list of emerging fields, without a dedicated AI measure or program."
   },
   {
-    "id": "c81396d4e93b142f290f",
-    "review_origin": "source_reviewed_agent",
-    "source_evidence_fingerprint": "b341505de064b6ba90a3f970ff608e660f26bcc3c5c7047e8c49763c04f934dd",
-    "withhold_reason": "full_source_unavailable",
-    "fault_type": "source_extraction_and_publication",
-    "source_url": "https://www.bundesregierung.de/breg-de/aktuelles/pressemitteilungen/pressemitteilungen/wettbewerb-fuer-das-denkmal-zur-mahnung-und-erinnerung-an-die-opfer-der-kommunistischen-diktatur-in-deutschland-entschieden-2461476",
-    "published_field": "english_summary, ticker_message, classification_status",
-    "evidence": "The exact Bundesregierung page dated 2026-11-17 contains only Die Pressemitteilung finden Sie im Anhang. The HTML response has no usable attachment link; 42 extracted characters produced a provisional model response about missing text. A full official BKM article exists at https://kulturstaatsminister.de/presse/wettbewerb-fuer-das-denkmal-zur-mahnung-und-erinnerung-an-die-opfer-der-kommunistischen-diktatur-in-deutschland-entschieden, but this record has not been re-extracted and classified from that full source."
-  },
-  {
     "id": "006eabe20e778f7bb041",
     "review_origin": "source_reviewed_agent",
     "source_evidence_fingerprint": "41b13208debf233672a8d77db3887c6abeeced3ed04121b47b6f0b1d37bb488a",
@@ -2802,5 +2792,517 @@
       "diplomacy_alliances"
     ],
     "short_rationale": "The conference addresses future defence capabilities and secure quantum communications protecting sensitive data and critical infrastructure. Luxembourg’s announced interest in NATO’s quantum community establishes allied defence cooperation. The release does not establish a technology-supply dependency."
+  },
+  {
+    "id": "bd85652d8a626018af09",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://gouvernement.lu/fr/actualites/toutes_actualites/communiques/2026/11-novembre/25-frieden-wilmes-climate-youth-delegates.html",
+    "source_evidence_fingerprint": "662d5ef93c1908e94012ca419744055720e3e4edde6ad120a1d547cecb9c10c7",
+    "fault_type": "editorial",
+    "published_field": "english_summary, relevance, topics, roles, viewpoint_structure, viewpoints, evidence_status, evidence_quote, short_rationale, ticker_message",
+    "evidence": "The complete French release describes participation and dialogue. It identifies no specific climate hazard, protection measure or security proposition; ordinary climate-policy engagement does not establish a security narrative.",
+    "english_summary": "Luxembourg’s Climate Youth Delegates met Prime Minister Luc Frieden and Minister Serge Wilmes after COP31 to discuss youth priorities, climate challenges and dialogue with policymakers. The government also recalled its COP30 award for involving young delegates.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Luxembourg government",
+        "summary": "Luxembourg’s Climate Youth Delegates met Prime Minister Luc Frieden and Minister Serge Wilmes after COP31 to discuss youth priorities, climate challenges and dialogue with policymakers. The government also recalled its COP30 award for involving young delegates.",
+        "target": "Luxembourg’s leaders meet youth delegates after COP31 to discuss climate priorities and participation.",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": ""
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "",
+    "short_rationale": "The complete French release describes participation and dialogue. It identifies no specific climate hazard, protection measure or security proposition; ordinary climate-policy engagement does not establish a security narrative.",
+    "ticker_message": "Luxembourg’s leaders meet youth delegates after COP31 to discuss climate priorities and participation.",
+    "resolves_classification_error": "http_400_invalid_prompt",
+    "source_evidence_fingerprint_after": "662d5ef93c1908e94012ca419744055720e3e4edde6ad120a1d547cecb9c10c7"
+  },
+  {
+    "id": "215d50c53dc645a4c3e0",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://www.gov.uk/government/news/pm-meeting-with-his-royal-highness-the-prince-of-wales-24-november-2026",
+    "source_evidence_fingerprint": "2a956f10be4c19f873fca31d6fd1d3193c6b6866e3604b63e8c20d0a1bd3c0ea",
+    "fault_type": "editorial",
+    "published_field": "english_summary, relevance, topics, roles, viewpoint_structure, viewpoints, evidence_status, evidence_quote, short_rationale, ticker_message",
+    "evidence": "The full original release gives a broad meeting agenda, including defence and security, without a substantive security position, risk or measure. An agenda mention alone does not establish a topic.",
+    "english_summary": "The Prime Minister and the Prince of Wales discussed global challenges, the COP Summit, the Earthshot Prize, homelessness, defence and security, and the Commonwealth, and looked forward to meeting again.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "United Kingdom government",
+        "summary": "The Prime Minister and the Prince of Wales discussed global challenges, the COP Summit, the Earthshot Prize, homelessness, defence and security, and the Commonwealth, and looked forward to meeting again.",
+        "target": "The UK prime minister and Prince of Wales discuss climate, homelessness, defence and the Commonwealth.",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": ""
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "",
+    "short_rationale": "The full original release gives a broad meeting agenda, including defence and security, without a substantive security position, risk or measure. An agenda mention alone does not establish a topic.",
+    "ticker_message": "The UK prime minister and Prince of Wales discuss climate, homelessness, defence and the Commonwealth.",
+    "resolves_classification_error": "http_400_invalid_prompt",
+    "source_evidence_fingerprint_after": "2a956f10be4c19f873fca31d6fd1d3193c6b6866e3604b63e8c20d0a1bd3c0ea"
+  },
+  {
+    "id": "036fcd5bd2f1174a930b",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://www.primeminister.am/en/press-release/item/2026/11/24/Prime-Minister-meeting-with-President-Romanian-Senate/",
+    "source_evidence_fingerprint": "2fdc7d08328e9790826aabf5f131ac488f735ce4ca36b21fd8cb73973704762d",
+    "fault_type": "editorial",
+    "published_field": "english_summary, relevance, topics, roles, viewpoint_structure, viewpoints, evidence_status, evidence_quote, short_rationale, ticker_message",
+    "evidence": "The complete English release reports strategic partnership and concrete discussion of institutionalizing peace with Azerbaijan. This supports security-related diplomacy; routine reforms and visa policy do not establish additional security topics.",
+    "english_summary": "Armenian Prime Minister Nikol Pashinyan and Romanian Senate President Mircea Abrudean discussed strategic partnership, parliamentary cooperation, Armenia-EU relations and reforms, regional developments, and efforts to institutionalize peace with Azerbaijan. Abrudean also recognized the Armenian community’s contribution to Romania.",
+    "relevance": "related",
+    "topics": [
+      "diplomacy_alliances"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Armenia government",
+        "summary": "Armenian Prime Minister Nikol Pashinyan and Romanian Senate President Mircea Abrudean discussed strategic partnership, parliamentary cooperation, Armenia-EU relations and reforms, regional developments, and efforts to institutionalize peace with Azerbaijan. Abrudean also recognized the Armenian community’s contribution to Romania.",
+        "target": "Armenia and Romania discuss strategic partnership, EU relations and steps to institutionalize Armenia-Azerbaijan peace.",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": ""
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "",
+    "short_rationale": "The complete English release reports strategic partnership and concrete discussion of institutionalizing peace with Azerbaijan. This supports security-related diplomacy; routine reforms and visa policy do not establish additional security topics.",
+    "ticker_message": "Armenia and Romania discuss strategic partnership, EU relations and steps to institutionalize Armenia-Azerbaijan peace.",
+    "resolves_classification_error": "http_400_invalid_prompt",
+    "source_evidence_fingerprint_after": "2fdc7d08328e9790826aabf5f131ac488f735ce4ca36b21fd8cb73973704762d"
+  },
+  {
+    "id": "10dd1237ef87585bd2b3",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://vlada.gov.cz/cz/media-centrum/aktualne/vlada-andreje-babise-navrhuje-zprisnit-tresty-pro-agresivni-ridice-a-prodlouzila-regulaci-cen-pohonnych-hmot-230273/",
+    "source_evidence_fingerprint": "b22914b1c98d19b23dd65487d87f47229414aec973362b2d2a7806fdcbd8f2a1",
+    "fault_type": "editorial",
+    "published_field": "english_summary, relevance, topics, roles, viewpoint_structure, viewpoints, evidence_status, evidence_quote, short_rationale, ticker_message",
+    "evidence": "The full Czech release concerns routine criminal, price, fee and budget administration. It specifies no nuclear hazard or strategic fuel-supply vulnerability; the name of the nuclear regulator alone does not establish a nuclear-security narrative.",
+    "english_summary": "The Czech cabinet proposed tougher penalties for dangerous driving, extended fuel-price regulation through December, and raised nuclear-safety regulator fees from January 2027 while exempting research facilities. It also approved the prime minister’s mandate for EU budget talks.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Czechia government",
+        "summary": "The Czech cabinet proposed tougher penalties for dangerous driving, extended fuel-price regulation through December, and raised nuclear-safety regulator fees from January 2027 while exempting research facilities. It also approved the prime minister’s mandate for EU budget talks.",
+        "target": "The Czech cabinet backs driving penalties, continued fuel-price regulation and revised nuclear-safety fees.",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": ""
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "",
+    "short_rationale": "The full Czech release concerns routine criminal, price, fee and budget administration. It specifies no nuclear hazard or strategic fuel-supply vulnerability; the name of the nuclear regulator alone does not establish a nuclear-security narrative.",
+    "ticker_message": "The Czech cabinet backs driving penalties, continued fuel-price regulation and revised nuclear-safety fees.",
+    "resolves_classification_error": "http_400_invalid_prompt",
+    "source_evidence_fingerprint_after": "b22914b1c98d19b23dd65487d87f47229414aec973362b2d2a7806fdcbd8f2a1"
+  },
+  {
+    "id": "6107837fe8d1dd33b8d3",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://gouvernement.lu/fr/actualites/toutes_actualites/communiques/2026/11-novembre/19-hansen-herzeboesch.html",
+    "source_evidence_fingerprint": "09481b36aea1c911f3bcfd34075d7634e849af80f4e7940483f64da8423eb842",
+    "fault_type": "editorial",
+    "published_field": "english_summary, relevance, topics, roles, viewpoint_structure, viewpoints, evidence_status, evidence_quote, short_rationale, ticker_message",
+    "evidence": "The complete French release describes ordinary sports cooperation and facilities, without a security risk, essential-service dependency or protection measure.",
+    "english_summary": "Luxembourg’s Sports Minister Martine Hansen visited Belgium’s Herzebösch biathlon centre to explore joint training, coach exchanges, talent development and shared sporting facilities. The visit informed cross-border sporting cooperation ahead of Luxembourg’s 2027–2028 Greater Region presidency.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Luxembourg government",
+        "summary": "Luxembourg’s Sports Minister Martine Hansen visited Belgium’s Herzebösch biathlon centre to explore joint training, coach exchanges, talent development and shared sporting facilities. The visit informed cross-border sporting cooperation ahead of Luxembourg’s 2027–2028 Greater Region presidency.",
+        "target": "Luxembourg and Belgium explore joint training and shared sporting facilities after a biathlon-centre visit.",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": ""
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "",
+    "short_rationale": "The complete French release describes ordinary sports cooperation and facilities, without a security risk, essential-service dependency or protection measure.",
+    "ticker_message": "Luxembourg and Belgium explore joint training and shared sporting facilities after a biathlon-centre visit.",
+    "resolves_classification_error": "http_400_invalid_prompt",
+    "source_evidence_fingerprint_after": "09481b36aea1c911f3bcfd34075d7634e849af80f4e7940483f64da8423eb842"
+  },
+  {
+    "id": "cdbc6742bedc5b7c15a3",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://www.bundesregierung.de/breg-de/aktuelles/pressemitteilungen/pressemitteilungen/verschollenes-le-brun-meisterwerk-kehrt-nach-ueber-80-jahren-nach-sanssouci-zurueck-staatsminister-weimer-diese-rueckkehr-ist-eine-kulturhistorische-sensation--2461558",
+    "source_evidence_fingerprint": "94e5abce6dc3a0d89fe966fce7581f4bd1b068ea330b12c983224184fbd20472",
+    "fault_type": "editorial",
+    "published_field": "english_summary, relevance, topics, roles, viewpoint_structure, viewpoints, evidence_status, evidence_quote, short_rationale, ticker_message",
+    "evidence": "The full German release reports the return of a painting and cultural funding. Its historical wartime provenance does not establish a current security narrative.",
+    "english_summary": "Charles Le Brun’s painting “Holy Family” returned to Potsdam’s New Palace after disappearing from Prussian collections following the Second World War. Culture Minister Wolfram Weimer welcomed its return from Canada, supported by two cultural foundations.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Germany government",
+        "summary": "Charles Le Brun’s painting “Holy Family” returned to Potsdam’s New Palace after disappearing from Prussian collections following the Second World War. Culture Minister Wolfram Weimer welcomed its return from Canada, supported by two cultural foundations.",
+        "target": "Le Brun’s “Holy Family” returns to Potsdam’s New Palace after more than 80 years.",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": ""
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "",
+    "short_rationale": "The full German release reports the return of a painting and cultural funding. Its historical wartime provenance does not establish a current security narrative.",
+    "ticker_message": "Le Brun’s “Holy Family” returns to Potsdam’s New Palace after more than 80 years.",
+    "resolves_classification_error": "http_400_invalid_prompt",
+    "source_evidence_fingerprint_after": "94e5abce6dc3a0d89fe966fce7581f4bd1b068ea330b12c983224184fbd20472"
+  },
+  {
+    "id": "0aba39206b69653f5453",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-24-althjodasamvinna-i-breyttum-heimi",
+    "source_evidence_fingerprint": "9828136b7119167a25ed20ad7c1bcea426d4756eb7548abf7d386ed8f1867a4d",
+    "fault_type": "editorial",
+    "published_field": "topics, short_rationale",
+    "evidence": "The full Icelandic release lists AI, investment and trade as general cooperation opportunities. It specifies no AI measure. Its concrete institutional position concerns African representation and UN Security Council legitimacy.",
+    "topics": [
+      "diplomacy_alliances",
+      "political_institutions"
+    ],
+    "short_rationale": "The minister calls for greater African representation to strengthen UN Security Council legitimacy. AI appears only in a broad cooperation list, so the AI topic is unsupported.",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "source_evidence_fingerprint_after": "9828136b7119167a25ed20ad7c1bcea426d4756eb7548abf7d386ed8f1867a4d"
+  },
+  {
+    "id": "9204a699072d9a5da321",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://www.rijksoverheid.nl/actueel/nieuws/2026/11/23/61-miljoen-euro-voor-onderzoek-kernenergie",
+    "source_evidence_fingerprint": "ccb9ba402dbd30f42fef3ba4056ad4e23d70d1cb311ca850adb5e07b0f1a6c31",
+    "fault_type": "editorial",
+    "published_field": "topics",
+    "evidence": "The complete Dutch release funds research on nuclear reactors, fuels, safety and waste, tied to a stable energy supply. It contains no AI measure; the original rationale already says this.",
+    "topics": [
+      "energy",
+      "nuclear_cbrn"
+    ],
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "source_evidence_fingerprint_after": "ccb9ba402dbd30f42fef3ba4056ad4e23d70d1cb311ca850adb5e07b0f1a6c31"
+  },
+  {
+    "id": "a0cca09e7fed8c60188e",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://departmentofinformation.gov.mt/press-release/2026/pr262002",
+    "source_evidence_fingerprint": "63d8c1ea0a90db65ecbea8c828428be6e12c26404281e016958277d7f6eff540",
+    "fault_type": "editorial",
+    "published_field": "english_summary",
+    "evidence": "The exact Maltese original, PR262002 dated 23 November, separately describes military AI discussions and a bilateral meeting on AI/cybersecurity where Malta highlighted its decision to legislate on deepfakes. This is a specific AI-related policy position beyond a committee agenda list.",
+    "english_summary": "Malta’s delegation discussed military AI and cybersecurity at NATO’s Parliamentary Assembly and highlighted Malta’s decision to legislate on deepfakes. It also joined sessions on terrorism, deterrence and protection of undersea infrastructure.",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "source_evidence_fingerprint_after": "63d8c1ea0a90db65ecbea8c828428be6e12c26404281e016958277d7f6eff540"
+  },
+  {
+    "id": "2f03c8786055ccadf3ae",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://english.www.gov.cn/news/202611/22/content_WS6b025e06c6d00ca5f9a0e8ed.html",
+    "source_evidence_fingerprint": "a3c9687b9a876016942d7105037d08be1559d2a411b2d6113a8b52af60a4c5c9",
+    "fault_type": "editorial",
+    "published_field": "english_summary, relevance, topics, roles, viewpoint_structure, viewpoints, evidence_status, evidence_quote, short_rationale, ticker_message",
+    "evidence": "The full English article reports views on regional development and generic digital, clean-energy and SME cooperation. It contains no AI measure or concrete strategic supply-chain dependency. General prosperity and aspirations for peace alone do not establish a security narrative.",
+    "english_summary": "At the APEC leaders’ meeting in Shenzhen, Xi urged a stronger Asia-Pacific community built on openness, connectivity, innovation and inclusive development. Experts and business representatives welcomed China’s cooperation proposals and potential in digital development, clean energy and SME partnerships.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "China government",
+        "summary": "At the APEC leaders’ meeting in Shenzhen, Xi urged a stronger Asia-Pacific community built on openness, connectivity, innovation and inclusive development. Experts and business representatives welcomed China’s cooperation proposals and potential in digital development, clean energy and SME partnerships.",
+        "target": "Experts welcome Xi’s APEC proposals for regional cooperation, new institutions and practical funding.",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": ""
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "",
+    "short_rationale": "The full English article reports views on regional development and generic digital, clean-energy and SME cooperation. It contains no AI measure or concrete strategic supply-chain dependency. General prosperity and aspirations for peace alone do not establish a security narrative.",
+    "ticker_message": "Experts welcome Xi’s APEC proposals for regional cooperation, new institutions and practical funding.",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "source_evidence_fingerprint_after": "a3c9687b9a876016942d7105037d08be1559d2a411b2d6113a8b52af60a4c5c9"
+  },
+  {
+    "id": "543564a5f2496bb9970b",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-19",
+    "source_evidence_fingerprint": "2cddffc1d85a66e1ae8775b7698452b8de7b27b24cd67f38041f29841ce32dbc",
+    "fault_type": "editorial",
+    "published_field": "english_summary, ticker_message",
+    "evidence": "The complete Icelandic article identifies speech synthesis, speech recognition and voice-control access, links Icelandic explicitly to AI, and describes people losing their communication voice when custom software fails. The supported AI connection must be explicit in the published summary.",
+    "english_summary": "Iceland is urging Apple to add Icelandic speech synthesis, recognition and voice control to accessibility tools. The government says Icelandic must be part of everyday AI and digital technology; users describe communication barriers and loss of speech when custom software fails.",
+    "ticker_message": "Iceland urges Apple to add Icelandic speech tools so people can use everyday AI and accessibility technology.",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "source_evidence_fingerprint_after": "2cddffc1d85a66e1ae8775b7698452b8de7b27b24cd67f38041f29841ce32dbc"
+  },
+  {
+    "id": "f5a5611825205c2d1c68",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://english.www.gov.cn/news/202611/20/content_WS6affcaffc6d00ca5f9a0e7e9.html",
+    "source_evidence_fingerprint": "2b492c3e75fb25f4eb018c8f75fbed2481f6903b417351ab61840be82d3c4514",
+    "fault_type": "editorial",
+    "published_field": "english_summary, topics, short_rationale",
+    "evidence": "The complete English report says the endorsed statement aligns AI cooperation with employment, public services and digital infrastructure. Its supply-chain passage is generic connectivity, without a specific technology dependency.",
+    "english_summary": "Wang Yi said APEC endorsed a statement aligning AI and emerging-technology cooperation with employment, public services and digital infrastructure. He also highlighted the Shenzhen Outlook, stronger regional supply-chain connectivity and China’s proposed institutions and funding.",
+    "topics": [
+      "diplomacy_alliances",
+      "artificial_intelligence"
+    ],
+    "short_rationale": "The source reports an endorsed regional statement coordinating AI cooperation for employment, public services and digital infrastructure. The technology-supply-chain topic is not established by generic regional supply-chain connectivity.",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "source_evidence_fingerprint_after": "2b492c3e75fb25f4eb018c8f75fbed2481f6903b417351ab61840be82d3c4514"
+  },
+  {
+    "id": "2a6cab8d9ab69d09ef66",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://english.www.gov.cn/news/202611/20/content_WS6b0006eac6d00ca5f9a0e816.html",
+    "source_evidence_fingerprint": "4ae9602401f2a5e0a2d2442e9903a369e13956e97b0d2dae560d6a06825e3cb6",
+    "fault_type": "editorial",
+    "published_field": "topics, short_rationale, ticker_message",
+    "evidence": "The full English release mentions cooperation in emerging areas such as AI but gives no specific AI action. The substantive security positions concern sovereignty, strategic coordination and key infrastructure.",
+    "topics": [
+      "sovereignty_borders",
+      "diplomacy_alliances",
+      "critical_infrastructure"
+    ],
+    "short_rationale": "The source states sovereignty positions, strategic coordination and operation of key infrastructure projects. AI appears only as an example of an emerging cooperation area, without a specific measure or role.",
+    "ticker_message": "Xi and Anwar discuss sovereignty, strategic coordination and key infrastructure projects.",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "source_evidence_fingerprint_after": "4ae9602401f2a5e0a2d2442e9903a369e13956e97b0d2dae560d6a06825e3cb6"
+  },
+  {
+    "id": "be9ef5df2b0bb0c98001",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://departmentofinformation.gov.mt/press-release/2026/pr261961en",
+    "source_evidence_fingerprint": "097266ace6d6c75a160061d535bd0bd2c5f3115ebcf2c0dea8bb7621137904aa",
+    "fault_type": "editorial",
+    "published_field": "topics, short_rationale",
+    "evidence": "The exact Maltese original, PR261961en dated 19 November, links circular electronics to strategic-material recovery and reduced import dependence. Its AI reference concerns eligible spending in a separate general SME scheme; it does not identify an AI role in this circular-electronics work.",
+    "topics": [
+      "critical_minerals_resources",
+      "technology_supply_chains",
+      "economic_financial_security",
+      "climate_environment"
+    ],
+    "short_rationale": "The release identifies strategic-material import dependence and recovery of electronic waste as a response. Its separate SME-funding reference does not establish a substantive AI role in that response.",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "source_evidence_fingerprint_after": "097266ace6d6c75a160061d535bd0bd2c5f3115ebcf2c0dea8bb7621137904aa"
+  },
+  {
+    "id": "367ee3ce47297d2bab38",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://english.www.gov.cn/news/202611/19/content_WS6afeefbfc6d00ca5f9a0e7a3.html",
+    "source_evidence_fingerprint": "1bb440653c190f0e59a8023691fcd553473114006fc92d5b42f18e434a0355eb",
+    "fault_type": "editorial",
+    "published_field": "topics, short_rationale, ticker_message",
+    "evidence": "The complete English release explicitly calls for energy and food security cooperation. Its separate broad call for wider AI application describes no AI role in those protection measures, and generic regional supply chains do not establish a technology dependency.",
+    "topics": [
+      "energy",
+      "food_security",
+      "diplomacy_alliances"
+    ],
+    "short_rationale": "The source explicitly proposes cooperation on energy and food security. The broad AI-application call is not tied to a specific security use, measure or risk; no technology-supply dependency is stated.",
+    "ticker_message": "Xi urges APEC cooperation on energy and food security and pledges funding and new cooperation institutions.",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "source_evidence_fingerprint_after": "1bb440653c190f0e59a8023691fcd553473114006fc92d5b42f18e434a0355eb"
+  },
+  {
+    "id": "cc9f6ee6b3ee669a5d40",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://english.www.gov.cn/news/202611/20/content_WS6b002a40c6d00ca5f9a0e883.html",
+    "source_evidence_fingerprint": "76270115171655dd166e1718db3048d5f62ff70b93204fa2375e544638fa437a",
+    "fault_type": "editorial",
+    "published_field": "english_summary, relevance, topics, roles, viewpoint_structure, viewpoints, evidence_status, evidence_quote, short_rationale, ticker_message, full_source_url, source_text_chars, translated_text_chars, source_text_sha256, translation_complete",
+    "evidence": "The complete original Word statement contains generic digital-transition and public-service commitments. AI is named as a prior initiative; the operative commitments do not specify an AI security use or outcome. A broad resilience aspiration alone does not establish security relevance.",
+    "english_summary": "APEC leaders backed workforce training, worker protections and digital tools for employment and public services. The statement commends prior work, including the 2026–2030 AI Initiative, and assigns implementation to APEC’s human-resources bodies.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "China government",
+        "summary": "APEC leaders backed workforce training, worker protections and digital tools for employment and public services. The statement commends prior work, including the 2026–2030 AI Initiative, and assigns implementation to APEC’s human-resources bodies.",
+        "target": "APEC leaders back digital skills, worker protections and technology adoption for employment and public services.",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": ""
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "",
+    "short_rationale": "The complete original Word statement contains generic digital-transition and public-service commitments. AI is named as a prior initiative; the operative commitments do not specify an AI security use or outcome. A broad resilience aspiration alone does not establish security relevance.",
+    "ticker_message": "APEC leaders back digital skills, worker protections and technology adoption for employment and public services.",
+    "full_source_url": "https://english.www.gov.cn/atts/stream/files/6b002941c6d0c788099001a6",
+    "source_text_chars": 4392,
+    "translated_text_chars": 4392,
+    "source_text_sha256": "0f55fee7e4a762f15ceca59303168c056ab72125319c8d75533631729ac90358",
+    "translation_complete": true,
+    "resolves_classification_error": "RuntimeError",
+    "source_evidence_fingerprint_after": "6e51b9bc7dc3094bc79509623752ca2f684e8dd01341d40def8f396e1163dc1b"
+  },
+  {
+    "id": "8620177c91994f396837",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://english.www.gov.cn/news/202611/19/content_WS6aff084fc6d00ca5f9a0e7bb.html",
+    "source_evidence_fingerprint": "3189b544caa786f69fc89387b40baa6091576525eabd6dc57a300706f7db8037",
+    "fault_type": "editorial",
+    "published_field": "english_summary, relevance, topics, roles, viewpoint_structure, viewpoints, evidence_status, evidence_quote, short_rationale, ticker_message, full_source_url, source_text_chars, translated_text_chars, source_text_sha256, translation_complete",
+    "evidence": "The complete original Word declaration specifies essential-goods and energy continuity, critical infrastructure recovery, food-system resilience, data protection, macroeconomic shocks, corruption and environmental protection. AI is named only as a prior initiative; the broader digital commitments do not specify a substantive AI security role.",
+    "english_summary": "APEC’s Shenzhen Outlook commits to resilient essential-goods supply chains, reliable energy, food security, digital safeguards and cooperation against corruption. Leaders also backed infrastructure investment, workforce skills and public services, while commending prior work including the 2026–2030 AI Initiative.",
+    "relevance": "related",
+    "topics": [
+      "diplomacy_alliances",
+      "energy",
+      "food_security",
+      "critical_infrastructure",
+      "cyber",
+      "economic_financial_security",
+      "terrorism_organised_crime",
+      "climate_environment"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "China government",
+        "summary": "APEC’s Shenzhen Outlook commits to resilient essential-goods supply chains, reliable energy, food security, digital safeguards and cooperation against corruption. Leaders also backed infrastructure investment, workforce skills and public services, while commending prior work including the 2026–2030 AI Initiative.",
+        "target": "APEC’s Shenzhen Outlook backs energy and food security, resilient infrastructure, digital safeguards and anti-corruption cooperation.",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": ""
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "",
+    "short_rationale": "The complete original Word declaration specifies essential-goods and energy continuity, critical infrastructure recovery, food-system resilience, data protection, macroeconomic shocks, corruption and environmental protection. AI is named only as a prior initiative; the broader digital commitments do not specify a substantive AI security role.",
+    "ticker_message": "APEC’s Shenzhen Outlook backs energy and food security, resilient infrastructure, digital safeguards and anti-corruption cooperation.",
+    "full_source_url": "https://english.www.gov.cn/atts/stream/files/6aff04c4c6d0c78809900191",
+    "source_text_chars": 16396,
+    "translated_text_chars": 16396,
+    "source_text_sha256": "2127d76c69d34c35189d13463566c3918165470dd3afe96d19451f61bce4357c",
+    "translation_complete": true,
+    "resolves_classification_error": "RuntimeError",
+    "source_evidence_fingerprint_after": "5ae6e917d160ea0fa18156762ac1ea2d86d9c7e53105f683d2e0d4bb99210bc0"
+  },
+  {
+    "id": "c81396d4e93b142f290f",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://www.bundesregierung.de/breg-de/aktuelles/pressemitteilungen/pressemitteilungen/wettbewerb-fuer-das-denkmal-zur-mahnung-und-erinnerung-an-die-opfer-der-kommunistischen-diktatur-in-deutschland-entschieden-2461476",
+    "source_evidence_fingerprint": "b341505de064b6ba90a3f970ff608e660f26bcc3c5c7047e8c49763c04f934dd",
+    "fault_type": "editorial",
+    "published_field": "english_summary, relevance, topics, roles, viewpoint_structure, viewpoints, evidence_status, evidence_quote, short_rationale, ticker_message, full_source_url, source_text_chars, source_text_sha256, restores_full_source",
+    "evidence": "The complete six-page official PDF identifies the winning design, remembrance purpose, five-million-euro allocation, planned construction and exhibition. It concerns remembrance and design, rather than a concrete current security measure.",
+    "english_summary": "A jury selected “Formation und Aufbruch” for a Berlin memorial to victims of communist dictatorship. The government provides €5 million for the competition and construction, planned for 2027–2028; the submitted designs will be exhibited in January 2027.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Germany government",
+        "summary": "A jury selected “Formation und Aufbruch” for a Berlin memorial to victims of communist dictatorship. The government provides €5 million for the competition and construction, planned for 2027–2028; the submitted designs will be exhibited in January 2027.",
+        "target": "A design is selected for Berlin’s memorial to victims of communist dictatorship.",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": ""
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "",
+    "short_rationale": "The complete six-page official PDF identifies the winning design, remembrance purpose, five-million-euro allocation, planned construction and exhibition. It concerns remembrance and design, rather than a concrete current security measure.",
+    "ticker_message": "A design is selected for Berlin’s memorial to victims of communist dictatorship.",
+    "full_source_url": "https://www.bundesregierung.de/resource/blob/974430/2461478/8af650827644f88d31b95b73665a81e2/2026-11-17-bkm-pm-denkmal-wettbewerb-data.pdf?download=1",
+    "source_text_chars": 7639,
+    "source_text_sha256": "991106633db8f4ac7d988f4f9288f5b06f74de336586d2a5ff5a010d00602489",
+    "restores_full_source": true,
+    "source_evidence_fingerprint_after": "f8255277f61491fc5cfc04af7d74df836e67264bf26b3509e73be4727cd47c4a"
+  },
+  {
+    "id": "8106788210277bf9e221",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://primeminister.kz/kz/news/meks-ulttyk-zhobasyn-zhuzege-asyru-kanat-bozymbaev-zhobalyk-kensenin-otyrysyn-otkizdi-32042",
+    "source_evidence_fingerprint": "e5121495c2121fd548c97fa04298024e35afa4781e7848f9de0a7a51d6306519",
+    "fault_type": "editorial",
+    "published_field": "english_summary, relevance, topics, roles, viewpoint_structure, viewpoints, evidence_status, evidence_quote, short_rationale, ticker_message, url, title, source_text_chars, source_text_sha256",
+    "evidence": "The same official archive ID 32042 now has a corrected Kazakh slug and title. The complete article specifies worn heating/electric networks, accident-risk reduction, deadlines and daily monitoring; it contains no substantive AI measure.",
+    "english_summary": "Kazakhstan’s Deputy Prime Minister Kanat Bozumbayev ordered faster energy and utility upgrades, closer coordination and daily project monitoring. Regions were told to complete contracts and prepare 2027 projects, with performance assessed through renewed networks, reduced wear and lower accident risks.",
+    "relevance": "related",
+    "topics": [
+      "energy",
+      "critical_infrastructure"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Kazakhstan government",
+        "summary": "Kazakhstan’s Deputy Prime Minister Kanat Bozumbayev ordered faster energy and utility upgrades, closer coordination and daily project monitoring. Regions were told to complete contracts and prepare 2027 projects, with performance assessed through renewed networks, reduced wear and lower accident risks.",
+        "target": "Kazakhstan orders faster utility upgrades and monitoring to reduce network wear and accident risks.",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": ""
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "",
+    "short_rationale": "The same official archive ID 32042 now has a corrected Kazakh slug and title. The complete article specifies worn heating/electric networks, accident-risk reduction, deadlines and daily monitoring; it contains no substantive AI measure.",
+    "ticker_message": "Kazakhstan orders faster utility upgrades and monitoring to reduce network wear and accident risks.",
+    "url": "https://primeminister.kz/kz/news/ekszh-ulttyk-zhobasyn-zhuzege-asyru-kanat-bozymbaev-zhobalyk-kensenin-otyrysyn-otkizdi-32042",
+    "title": "ЭКСЖ ұлттық жобасын жүзеге асыру: Қанат Бозымбаев жобалық кеңсенің отырысын өткізді",
+    "source_text_chars": 3029,
+    "source_text_sha256": "8ef471ac8a993922320e8f572c960d1660880e661e2b765c371f6552bc52f039",
+    "resolves_classification_error": "RuntimeError",
+    "source_evidence_fingerprint_after": "5cf7aa6fe8caecabaffc847865da9f6c8052a5e581f30489434817f676b651e3",
+    "source_evidence_fingerprint_alias": "33aa32bcafbec7718d1632dfae1d3eb94816a57184605f70031342efc9635f7f"
+  },
+  {
+    "id": "ba25c064692188229ba3",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://media.gov.gr/simeia-synentefksis-yfypourgou-para-to-prothypourgo-kai-kyvernitikou-ekprosopou-pavlou-marinaki-stin-ekpompi-ston-eksosti-tous-skai-1003-kai-tous-dimosiografous-antoni-antzoleto-kai-gianni-kant/",
+    "source_evidence_fingerprint": "447b156ab54cc84cafcb740e7bccad74dad200abc016161ec36e4795c2763a56",
+    "fault_type": "editorial",
+    "published_field": "url, source_repair_only",
+    "evidence": "The original saved URL redirects to the homepage. The official homepage links the same interview, with the same speakers, station and journalists, at this canonical URL. Full article extraction succeeds there. Repair source access; leave classification and publication-copy review to the repository workflow.",
+    "url": "https://media.gov.gr/simeia-synentefksis-yfypourgou-para-to-prothypourgo-kai-kyvernitikou-ekprosopou-pavlou-marinaki-stin-ekpompi-tou-skai-1003-ston-eksosti/",
+    "source_repair_only": true,
+    "resolves_classification_error": "RuntimeError",
+    "source_evidence_fingerprint_after": "610e7dc9fffe8935a84f2990bae89f483e14526690befd95ba474a2e8f6b2a9e",
+    "source_evidence_fingerprint_alias": "610e7dc9fffe8935a84f2990bae89f483e14526690befd95ba474a2e8f6b2a9e"
   }
 ]
