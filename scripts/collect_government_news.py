@@ -1546,34 +1546,54 @@ def discover_kazakhstan(country,start,end):
 
 
 def discover_liechtenstein(country,start,end):
-    """Use only the government's media-release cards and check archive coverage."""
+    """Traverse complete date-filtered pages instead of the truncated default list."""
     first,last=start.astimezone(VADUZ).date(),end.astimezone(VADUZ).date()
-    _,body=fetch(country["url"],timeout=20)
-    page=body.decode("utf-8","replace")
-    cards=[part.split("</li>",1)[0] for part in page.split('<div class="shortmsg ')[1:]]
-    if not cards: raise RuntimeError("Liechtenstein media-release section has no cards")
-    entries=[]; seen=set(); older=False
-    for card in cards:
+    if (last-first).days>370: raise RuntimeError("Liechtenstein requested history exceeds the bounded archive window")
+    windows=[];cursor=first
+    while cursor<=last:
+        stop=min(cursor+dt.timedelta(days=7),last+dt.timedelta(days=1))
+        windows.append((cursor,stop));cursor=stop
+    dated_cards=[];requests=0
+    while windows:
+        lower,upper=windows.pop(0);requests+=1
+        if requests>256: raise RuntimeError("Liechtenstein date-filter pagination exceeded its safety limit")
+        period=lower.strftime('%d.%m.%Y 00:00:00')+'_'+upper.strftime('%d.%m.%Y 00:00:00')
+        url=country['url']+'?'+urllib.parse.urlencode({'years':period})
+        _,body=fetch(url,timeout=20);page=body.decode('utf-8','replace')
+        if 'show-more-links' in page:
+            # The publisher explicitly reports more results. Split the actual
+            # UI date filter until each response contains the complete result.
+            days=(upper-lower).days
+            if days<=1: raise RuntimeError("Liechtenstein single-day archive remains truncated")
+            middle=lower+dt.timedelta(days=days//2)
+            windows[0:0]=[(lower,middle),(middle,upper)]
+            continue
+        cards=[part.split('</li>',1)[0] for part in page.split('<div class="shortmsg ')[1:]]
+        if not cards and 'Keine Einträge gefunden' not in html.unescape(page):
+            raise RuntimeError("Liechtenstein archive has neither dated cards nor an explicit empty result")
+        dated_cards.extend((card,lower,upper) for card in cards)
+    entries=[];seen=set()
+    for card,lower,upper in dated_cards:
         date_match=re.search(r'<div class="shortmsg__date"[^>]*>(.*?)</div>',card,re.S)
         title_match=re.search(r'<div class="shortmsg__text"[^>]*>(.*?)</div>',card,re.S)
-        link=re.search(r'<a class="shortmsg__more" href="(/medienportal-medium/16182/\d+/0/medienmitteilung)"',card)
+        link=re.search(r'<a class="shortmsg__more" href="(/medienportal-medium/16182/\d+/[01]/medienmitteilung)"',card)
         if not date_match or not title_match or not link: raise RuntimeError("Liechtenstein media-release card lacks date or title")
         date_text=re.sub(r'<[^>]+>',' ',html.unescape(date_match.group(1))).strip()
         dated=re.search(r'(\d{1,2})\.?\s+([\wÀ-ÿ]+)\s+(20\d{2})',date_text)
         month=LIECHTENSTEIN_MONTHS.get(dated.group(2).casefold()) if dated else None
         if not month: raise RuntimeError(f"Unexpected Liechtenstein publication date: {date_text[:80]}")
         day=dt.date(int(dated.group(3)),month,int(dated.group(1)))
-        if day<first: older=True; continue
+        if not lower<=day<=upper:
+            raise RuntimeError("Liechtenstein archive ignored the requested date filter")
         if day>last: continue
         article_url=urllib.parse.urljoin(country["url"],link.group(1))
-        if article_url in seen: raise RuntimeError("Liechtenstein media-release section repeated an article")
+        if article_url in seen: continue  # adjacent date windows may share an inclusive boundary
         seen.add(article_url)
         title=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",title_match.group(1)))).strip()
         published=dt.datetime.combine(day,dt.time.min,VADUZ).astimezone(dt.timezone.utc)
         entries.append({"country":country["name"],"country_code":"LI","url":article_url,"title":title,
                         "published_at":published.isoformat(),"published_date":day.isoformat(),
                         "publication_precision":"day","text":""})
-    if not older: raise RuntimeError("Liechtenstein media-release page does not reach the requested start date")
     return entries,country["url"]
 
 
