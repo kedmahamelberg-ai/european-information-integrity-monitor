@@ -183,6 +183,7 @@ jobs:
             build/government-source-coverage.json
             build/government-source-discovery.json
             data/government_state.json
+            data/government_source_identity_review.json
           retention-days: 30
       - name: Save permanent Field Wire editions
         if: github.ref == 'refs/heads/main' && inputs.discovery_only != true

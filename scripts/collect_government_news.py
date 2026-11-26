@@ -2204,6 +2204,14 @@ def discover_malta(country,start,end):
                 alternate={'country_code':'MT','url':article_url,'text':''}
                 other_body=article_text(alternate)
                 if prior_body != other_body:
+                    # Keep complete evidence in the review artifact, never Pages.
+                    evidence_path=ROOT/'data/government_source_identity_review.json'
+                    evidence_path.parent.mkdir(parents=True,exist_ok=True)
+                    evidence=json.loads(evidence_path.read_text()) if evidence_path.exists() else []
+                    evidence.append({'country_code':'MT','release_id':key,'published_date':day.isoformat(),
+                        'first':{'url':previous[1]['url'],'title':previous[1]['title'],'body':prior_body},
+                        'second':{'url':article_url,'title':title,'body':other_body}})
+                    evidence_path.write_text(json.dumps(evidence,ensure_ascii=False,indent=2)+'\n')
                     raise RuntimeError(f"Malta release identity needs review: {key}: "
                         f"{previous[1]['url']} ({previous[1]['title']}) <> {article_url} ({title}); "
                         f"different full bodies ({len(prior_body)}, {len(other_body)} characters)")
