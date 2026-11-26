@@ -1,6 +1,7 @@
 import datetime as dt
 from pathlib import Path
 import sys
+import subprocess
 import unittest
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
@@ -54,6 +55,12 @@ class GovernmentBacklogTests(unittest.TestCase):
     def test_drained_queue_stops_without_another_job(self):
         state=self.state();state['items']=[]
         self.assertEqual(pending_work(state,123)[0],0)
+
+    def test_fresh_only_flag_is_recognized_and_requires_classify_only(self):
+        command=Path(__file__).resolve().parents[1]/'scripts/collect_government_news.py'
+        result=subprocess.run([sys.executable,str(command),'--fresh-pending-only'],capture_output=True,text=True)
+        self.assertEqual(result.returncode,2)
+        self.assertIn('requires --classify-only',result.stderr)
 
 
 if __name__=='__main__':unittest.main()

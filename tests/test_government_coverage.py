@@ -81,6 +81,14 @@ class GovernmentCoverageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'absent'):
             verify(proof,{'as_of':self.end.isoformat(),'items':[]})
 
+    def test_live_copy_and_labels_must_match_the_saved_publication(self):
+        item,proof=self.proof();snapshot={'as_of':self.end.isoformat(),'items':[{**item,'english_summary':'Correct source-bound copy.'}]}
+        self.assertTrue(verify(proof,snapshot,snapshot)['saved_publication_fields_match'])
+        with self.assertRaisesRegex(ValueError,'english_summary'):
+            verify(proof,{'as_of':snapshot['as_of'],'items':[{**item,'english_summary':'Stale copy.'}]},snapshot)
+        with self.assertRaisesRegex(ValueError,'cutoff'):
+            verify(proof,{**snapshot,'as_of':'2026-11-25T14:00:00+00:00'},snapshot)
+
     def test_inaccessible_source_is_partial_not_zero_announcements(self):
         item,proof=self.proof();proof['sources'][0].update(status='source_unverified',error='Timeout')
         result=verify(proof,{'as_of':self.end.isoformat(),'items':[item]})

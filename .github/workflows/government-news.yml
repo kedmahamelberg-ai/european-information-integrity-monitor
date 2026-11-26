@@ -239,6 +239,7 @@ jobs:
         run: |
           mkdir -p build
           cp archive-proof/build/government-source-coverage.json build/government-source-coverage.json
+          cp archive-proof/build/government-data.json government-expected-data.json
       - name: Verify official archive identities against live Monitor records
         run: python scripts/verify_government_source_coverage.py
       - name: Record incomplete sources without duplicate issues

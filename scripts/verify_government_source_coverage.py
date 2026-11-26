@@ -13,7 +13,7 @@ ROOT=Path(__file__).resolve().parents[1]
 REPORT=ROOT/'build/government-source-coverage.json'
 
 
-def verify(report, snapshot):
+def verify(report, snapshot, expected=None):
     if not isinstance(snapshot.get('items'),list) or not snapshot.get('as_of'):
         raise ValueError('Live government snapshot is invalid')
     sources=report.get('sources') or []
@@ -55,6 +55,18 @@ def verify(report, snapshot):
             'complete':not unverified and not missing}
     if missing:
         raise ValueError('Official archive records absent from live Monitor: '+json.dumps(missing[:8]))
+    if expected is not None:
+        if snapshot['as_of']!=expected['as_of']:
+            raise ValueError('The live government deployment does not match the saved publication cutoff')
+        saved={item['id']:item for item in expected['items']}
+        live={item['id']:item for item in snapshot['items']}
+        changed=[]
+        for ident in sorted(set(saved)|set(live)):
+            left=saved.get(ident,{});right=live.get(ident,{})
+            fields=sorted(key for key in set(left)|set(right) if left.get(key)!=right.get(key))
+            if fields:changed.append({'id':ident,'source_url':left.get('url') or right.get('url'),'fields':fields})
+        if changed:raise ValueError('Live government fields differ from the saved publication: '+json.dumps(changed[:8]))
+        result['saved_publication_fields_match']=True
     return result
 
 
@@ -70,7 +82,8 @@ def main():
             payload=response.read(25_000_001)
         if len(payload)>25_000_000:
             raise ValueError('Live government snapshot exceeds the bounded 25 MB limit')
-        result=verify(report,json.loads(payload))
+        expected=json.loads((ROOT/'government-expected-data.json').read_text())
+        result=verify(report,json.loads(payload),expected)
     except Exception as error:
         result_path.write_text(json.dumps({'complete':False,'verification_error':str(error)},ensure_ascii=False,indent=2)+'\n')
         raise
