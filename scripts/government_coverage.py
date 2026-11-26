@@ -5,6 +5,7 @@ import datetime as dt
 import re
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from zoneinfo import ZoneInfo
+from government_source_identities import resolved_source_url
 
 POLICY = 'official-archive-reconciliation-v1'
 HISTORY_DAY = dt.date(2026, 10, 1)
@@ -48,6 +49,7 @@ def normalized_url(url):
 
 def publisher_identity(code, url):
     """Use a documented CMS ID where slugs or section paths can change."""
+    url = resolved_source_url(url)
     parts = urlsplit(url)
     if code == 'KZ' and parts.hostname == 'primeminister.kz':
         match = re.search(r'-(\d{4,8})/?$', parts.path)
@@ -96,6 +98,36 @@ def register_aliases(item, entry):
     aliases.discard(item['url'])
     if aliases:
         item['source_aliases'] = sorted(aliases)
+
+
+def known_window_records(code, items, start, end):
+    result = set()
+    for item in items:
+        if item.get('country_code') != code:
+            continue
+        try:
+            published = dt.datetime.fromisoformat(item['published_at'].replace('Z', '+00:00'))
+        except (KeyError, TypeError, ValueError):
+            continue
+        if published.tzinfo and start <= published <= end:
+            result.add(item['id'])
+    return result
+
+
+def validate_archive_window(source, entries, items, start, end, full):
+    """A stale/partial archive cannot erase known coverage with a false zero."""
+    if full and not entries and known_window_records(source['iso2'], items, start, end):
+        raise RuntimeError('Official archive returned zero despite saved records in this window: '+source['iso2'])
+
+
+def reconcile_coverage_ids(report, items):
+    """Keep saved archive proofs attached to records after a verified URL merge."""
+    index = index_records(items)
+    for row in report.get('sources', []):
+        for record in row.get('archive_records', []):
+            item = index.get(publisher_identity(row['country_code'], record['url']))
+            if item is not None:
+                record['id'] = item['id']
 
 
 def coverage_row(source, entries, index, *, full, start, end):

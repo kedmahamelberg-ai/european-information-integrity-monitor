@@ -94,6 +94,14 @@ class GovernmentCoverageTests(unittest.TestCase):
         result=verify(proof,{'as_of':self.end.isoformat(),'items':[item]})
         self.assertFalse(result['complete']);self.assertEqual(result['verified_country_count'],0)
 
+    def test_false_zero_with_saved_records_cannot_advance_or_pass_verification(self):
+        item,proof=self.proof();item['published_at']=self.end.isoformat()
+        with self.assertRaisesRegex(RuntimeError,'zero despite saved'):
+            coverage.validate_archive_window({'iso2':'US'},[],[item],self.end-dt.timedelta(days=30),self.end,True)
+        proof['sources'][0].update(archive_unique_records=0,archive_records=[])
+        result=verify(proof,{'as_of':self.end.isoformat(),'items':[item]})
+        self.assertFalse(result['complete']);self.assertEqual(result['verified_country_count'],0)
+
     def test_duplicate_publisher_identity_fails_even_with_different_record_ids(self):
         item,proof=self.proof()
         with self.assertRaisesRegex(ValueError,'Duplicate publisher'):

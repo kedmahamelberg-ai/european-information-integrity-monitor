@@ -30,7 +30,8 @@ sys.path.insert(0,str(ROOT / "src"))
 from eiim.storage import Store
 from government_reviews import apply_confirmed_corrections
 from government_coverage import (POLICY as COVERAGE_POLICY, discovery_window,
-    index_records, match_record, register_aliases, coverage_row)
+    index_records, match_record, register_aliases, coverage_row, reconcile_coverage_ids, validate_archive_window)
+from government_source_identities import resolved_source_url, STABLE_IDS
 SOURCES = json.loads((ROOT / "config/government_sources.json").read_text())["sources"]
 HYBRID = json.loads((ROOT / "config/hybrid.json").read_text())
 TOPICS = HYBRID["topics"]
@@ -146,14 +147,11 @@ STABLE_SOURCE_IDS = {
 
 def source_record_id(url):
     url = canonical_source_url(url)
-    return STABLE_SOURCE_IDS.get(url, hashlib.sha256(url.encode()).hexdigest()[:20])
+    return STABLE_SOURCE_IDS.get(url, STABLE_IDS.get(url, hashlib.sha256(url.encode()).hexdigest()[:20]))
 
 
 def canonical_source_url(url):
-    url = SOURCE_URL_ALIASES.get(url, url)
-    if url.startswith("https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/"):
-        url = url.rstrip("/")
-    return url
+    return SOURCE_URL_ALIASES.get(resolved_source_url(url), resolved_source_url(url))
 
 
 def canonical_government_items(items):
@@ -161,6 +159,9 @@ def canonical_government_items(items):
     result = {}
     priority = {"human_reviewed": 5, "provisional": 4, "needs_review": 3,
                 "pending_classification": 2, "awaiting_calibration": 1}
+    def rank(item):
+        return (bool(item.get("human_reviewed")), bool(item.get("source_reviewed")),
+                priority.get(item.get("classification_status"), 0))
     for original in items:
         item = dict(original)
         if (not item.get("classification_status") and not item.get("human_reviewed")
@@ -174,7 +175,7 @@ def canonical_government_items(items):
         previous = result.get(item["id"])
         if previous:
             aliases.update(previous.get("source_aliases") or [])
-            if priority.get(previous.get("classification_status"), 0) >= priority.get(item.get("classification_status"), 0):
+            if rank(previous) >= rank(item):
                 item = dict(previous)
         if aliases:
             item["source_aliases"] = sorted(aliases)
@@ -581,33 +582,57 @@ def discover_armenia(country, start, end):
 
 
 def discover_austria(country, start, end):
-    """Select dated news cards from the Austrian federal chancellery archive."""
+    """Read explicit monthly archives; the bare year URL can serve a stale page."""
     first, last = start.astimezone(AMSTERDAM).date(), end.astimezone(AMSTERDAM).date()
-    entries=[]
-    for year in range(first.year,last.year+1):
-        archive=re.sub(r"/20\d{2}\.html$",f"/{year}.html",country["url"])
-        final,page=fetch(archive)
-        body=page.decode("utf-8","replace")
-        seen=set()
-        for match in re.finditer(r'<a\b[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>',body,re.I|re.S):
-            url=urllib.parse.urljoin(final,html.unescape(match.group(1)))
-            if not re.match(rf"^https://www\.bundeskanzleramt\.gv\.at/bundeskanzleramt/nachrichten-der-bundesregierung/{year}/\d{{2}}/[^/]+\.html$",url): continue
-            if url in seen: continue
-            seen.add(url)
-            card=match.group(2)
-            card_date=re.search(r'class=["\']card-date["\'][^>]*>\s*(\d{1,2})\.\s+\w+\s+(20\d{2})',card,re.I)
-            if not card_date: raise RuntimeError(f"Austrian news card has no date: {url}")
-            month=int(re.search(rf'/{year}/(\d{{2}})/',url).group(1))
-            day=dt.date(year,month,int(card_date.group(1)))
-            if not first<=day<=last: continue
-            title_match=re.search(r'<h2[^>]*>(.*?)</h2>',card,re.I|re.S)
-            if not title_match: raise RuntimeError(f"Austrian news card has no title: {url}")
-            title=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',title_match.group(1)))).strip()
-            _,article=fetch(url)
-            published=publication_date(article,url)
-            if not published: raise RuntimeError(f"Austrian article has no publication date: {url}")
-            entries.append({"country":country["name"],"country_code":country["iso2"],"url":url,"title":title,"published_at":published.isoformat(),"text":official_article_text(article)})
-    return entries,country["url"]
+    entries = []
+    current = first.replace(day=1)
+    seen = set()
+    while current <= last:
+        archive = re.sub(r"/20\d{2}\.html$", current.strftime("/%Y/%m.html"), country["url"])
+        for page_number in range(100):
+            url = archive + (f"?currentPage={page_number}" if page_number else "")
+            final, page = fetch(url)
+            body = page.decode("utf-8", "replace")
+            cards = 0
+            for match in re.finditer(r"<a\b[^>]*href=[\"']([^\"']+)[\"'][^>]*>(.*?)</a>", body, re.I|re.S):
+                article_url = urllib.parse.urljoin(final, html.unescape(match.group(1)))
+                dated = re.fullmatch(r"https://www\.bundeskanzleramt\.gv\.at/bundeskanzleramt/nachrichten-der-bundesregierung/(20\d{2})/(\d{2})/[^/]+\.html", article_url)
+                if not dated:
+                    continue
+                cards += 1
+                if (int(dated.group(1)), int(dated.group(2))) != (current.year, current.month):
+                    raise RuntimeError("Austrian monthly archive returned the wrong month")
+                card = match.group(2)
+                card_date = re.search(r"class=[\"']card-date[\"'][^>]*>\s*(\d{1,2})\.\s+\w+\s+(20\d{2})", card, re.I)
+                if not card_date:
+                    raise RuntimeError(f"Austrian news card has no date: {article_url}")
+                day = dt.date(current.year, current.month, int(card_date.group(1)))
+                if not first <= day <= last:
+                    continue
+                if article_url in seen:
+                    raise RuntimeError("Austrian archive repeated a dated article")
+                seen.add(article_url)
+                title_match = re.search(r'<h2[^>]*>(.*?)</h2>', card, re.I|re.S)
+                if not title_match:
+                    raise RuntimeError(f"Austrian news card has no title: {article_url}")
+                title = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', title_match.group(1)))).strip()
+                _, article = fetch(article_url)
+                published = publication_date(article, article_url)
+                if not published:
+                    raise RuntimeError(f"Austrian article has no publication date: {article_url}")
+                entries.append({"country":country["name"], "country_code":"AT", "url":article_url,
+                    "title":title, "published_at":published.isoformat(), "published_date":day.isoformat(),
+                    "publication_precision":"day", "text":official_article_text(article)})
+            if not cards:
+                raise RuntimeError("Austrian monthly archive has no dated news cards")
+            next_page = any(urllib.parse.parse_qs(urllib.parse.urlsplit(html.unescape(link)).query).get('currentPage') == [str(page_number+1)]
+                for link in re.findall(r"href=[\"']([^\"']+)[\"']", body))
+            if not next_page:
+                break
+        else:
+            raise RuntimeError("Austrian monthly archive exceeded 100 pages")
+        current = (current.replace(day=28)+dt.timedelta(days=4)).replace(day=1)
+    return entries, country["url"]
 
 
 def georgia_page(body):
@@ -2168,7 +2193,7 @@ def discover_malta(country,start,end):
             if not title: raise RuntimeError("Malta press-release card has no title")
             previous=entries.get(key); is_english=number.endswith("en")
             if previous and previous[0]==is_english and previous[1]["url"]!=article_url:
-                raise RuntimeError("Malta archive repeated a release number")
+                raise RuntimeError(f"Malta archive repeated release {key}: {previous[1]['url']} <> {article_url}")
             if not previous or is_english:
                 published=dt.datetime.combine(day,dt.time.min,MALTA).astimezone(dt.timezone.utc)
                 entries[key]=(is_english,{"country":country["name"],"country_code":"MT","url":article_url,
@@ -3125,6 +3150,8 @@ def main():
             source=futures[future]
             try:
                 entries, final=future.result()
+                validate_archive_window(source, entries, existing.values(),
+                    starts_by_code[source["iso2"]], end, reconciliation_plans[source["iso2"]][1])
                 archive_entries[source["iso2"]]=entries
                 source_start=starts_by_code[source["iso2"]]
                 for item in entries:
@@ -3211,6 +3238,7 @@ def main():
                                              if source["iso2"] not in COLLECTOR_READY_CODES),
             "sources":sorted(coverage_sources,key=lambda row:row["country_code"])}
     if state.get("source_coverage_report"):
+        reconcile_coverage_ids(state["source_coverage_report"], existing.values())
         PUBLIC.parent.mkdir(exist_ok=True)
         (PUBLIC.parent/"government-source-coverage.json").write_text(
             json.dumps(state["source_coverage_report"],ensure_ascii=False,indent=2)+"\n")

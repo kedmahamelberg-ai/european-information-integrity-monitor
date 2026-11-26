@@ -7,7 +7,8 @@ from pathlib import Path
 import time
 import urllib.request
 
-from government_coverage import index_records, publisher_identity
+from government_coverage import index_records, publisher_identity, known_window_records
+import datetime as dt
 
 ROOT=Path(__file__).resolve().parents[1]
 REPORT=ROOT/'build/government-source-coverage.json'
@@ -36,6 +37,13 @@ def verify(report, snapshot, expected=None):
     index=index_records(snapshot['items'])
     missing=[]; unverified=[]; total=0
     for row in sources:
+        if row.get('full_reconciliation') and row.get('archive_unique_records') == 0:
+            start = dt.datetime.fromisoformat(row['window_start'].replace('Z', '+00:00'))
+            end = dt.datetime.fromisoformat(row['window_end'].replace('Z', '+00:00'))
+            if known_window_records(row['country_code'], snapshot['items'], start, end):
+                unverified.append({'country_code':row['country_code'], 'source_url':row['source_url'],
+                    'error':'Archive returned zero despite retained records in the same window'})
+                continue
         if row['status']!='complete':
             unverified.append({'country_code':row['country_code'],'source_url':row['source_url'],
                                'error':row.get('error') or row['status']})

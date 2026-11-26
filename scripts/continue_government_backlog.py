@@ -40,9 +40,9 @@ def pending_work(state,run_id):
     return len(items),'Only fresh pending records without source or model errors are eligible.'
 
 
-def github(path,body=None,*,public=False):
+def github(path,body=None):
     headers={'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'EIIM-backlog/1.0'}
-    if not public:headers['Authorization']='Bearer '+os.environ['GITHUB_TOKEN']
+    headers['Authorization']='Bearer '+os.environ['GITHUB_TOKEN']
     payload=json.dumps(body).encode() if body is not None else None
     if payload is not None:headers['Content-Type']='application/json'
     request=urllib.request.Request('https://api.github.com'+path,headers=headers,data=payload)
@@ -56,7 +56,7 @@ def github(path,body=None,*,public=False):
 def preflight():
     repo=os.environ['GITHUB_REPOSITORY']
     runs=github(f'/repos/{repo}/actions/runs?per_page=100')['workflow_runs']
-    brief=github(f'/repos/{BRIEF}/actions/runs?per_page=100',public=True)['workflow_runs']
+    brief=github(f'/repos/{BRIEF}/actions/runs?per_page=100')['workflow_runs']
     return plan(dt.datetime.now(dt.timezone.utc),runs,brief)
 
 
