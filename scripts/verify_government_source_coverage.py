@@ -40,11 +40,11 @@ def verify(report, snapshot, expected=None):
             unverified.append({'country_code':row['country_code'],'source_url':row['source_url'],
                                'error':row.get('error') or row['status']})
             continue
-        expected=row.get('archive_records')
-        if not isinstance(expected,list) or len(expected)!=row['archive_unique_records']:
+        archive_records=row.get('archive_records')
+        if not isinstance(archive_records,list) or len(archive_records)!=row['archive_unique_records']:
             raise ValueError('Archive proof lacks exact record identities: '+row['country_code'])
-        total+=len(expected)
-        for record in expected:
+        total+=len(archive_records)
+        for record in archive_records:
             item=index.get(publisher_identity(row['country_code'],record['url']))
             if item is None or item['id']!=record['id']:
                 missing.append({'country_code':row['country_code'],**record})
