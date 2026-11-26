@@ -33,6 +33,7 @@ class FieldWireEditions(unittest.TestCase):
             self.assertIn('id="gov-abc"', html)
             self.assertIn("Original finding.", html)
             self.assertIn("Corrected finding.", html)
+            self.assertIn("<title>Corrected finding | Field Wire · 2026-11-21</title>", html)
             self.assertIn('href="/?record=abc#government"', html)
             self.assertRegex((second / "index.html").read_text(), r'id="gov-abc-[a-f0-9]{12}"')
             third = build(3, 22, "def", "Next edition.")

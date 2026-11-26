@@ -106,10 +106,14 @@ if "--live" in sys.argv or "--camera-only" in sys.argv:
     refresh(out / "cameras.json", os.environ.get("YOUTUBE_API_KEY"),
             strict="--camera-only" in sys.argv)
 from field_wire import render as render_field_wire
-edition_dates = render_field_wire(out, json.loads((out / "data.json").read_text()), json.loads(gov_public.read_text()),
+from search_pages import add_page_view_script, build_findings, coverage_summary, sitemap
+research = json.loads((out / "data.json").read_text())
+government = json.loads(gov_public.read_text())
+edition_dates = render_field_wire(out, research, government,
     Path(os.environ.get("FIELD_WIRE_ARCHIVE", ROOT / "build-cache" / "editions")))
+findings = build_findings(out, ROOT / "config" / "public-findings.json")
 from check_public_counts import check
-check(json.loads((out / "data.json").read_text()))
+check(research)
 # Bind code, styles and the data snapshot to one deployment revision.
 revision = hashlib.sha256(
     b"".join((out / name).read_bytes() for name in ["map-data.js", "app.js", "live.js", "analytics.js", "visitor-count.js", "ads.js", "style.css", "data.json", "cameras.json", "government-data.json", "government-sources.json"])
@@ -126,6 +130,7 @@ html = html.replace('src="visitor-count.js"', f'src="visitor-count.js?v={revisio
 html = html.replace('src="analytics.js"', f'src="analytics.js?v={revision}"')
 html = html.replace('src="map-data.js"', f'src="map-data.js?v={revision}"')
 html = html.replace('src="ads.js"', f'src="ads.js?v={revision}"')
+html = html.replace("<!-- public-research-summary -->", coverage_summary(research, government, edition_dates, findings))
 page.write_text(html)
 research_page = out / "research.html"
 research_page.write_text(research_page.read_text().replace('src="ads.js"', f'src="ads.js?v={revision}"'))
@@ -145,7 +150,10 @@ about = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 </body></html>""".replace("REV", revision).replace("BODY", (out / "methodology.html").read_text())
 (out / "about.html").write_text(about)
 (out / "robots.txt").write_text("User-agent: *\nAllow: /\nSitemap: https://monitor.hamelberg-ai.com/sitemap.xml\n")
-(out / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://monitor.hamelberg-ai.com/</loc></url><url><loc>https://monitor.hamelberg-ai.com/field-wire/</loc></url><url><loc>https://monitor.hamelberg-ai.com/about.html</loc></url><url><loc>https://monitor.hamelberg-ai.com/contact.html</loc></url><url><loc>https://monitor.hamelberg-ai.com/research.html</loc></url><url><loc>https://monitor.hamelberg-ai.com/privacy.html</loc></url>' + ''.join(
-    f'<url><loc>https://monitor.hamelberg-ai.com/field-wire/{stamp}/</loc></url>' for stamp in edition_dates
-) + '</urlset>')
+(out / "sitemap.xml").write_text(sitemap([
+    "/", "/field-wire/", "/about.html", "/contact.html", "/research.html", "/privacy.html",
+    *(f"/field-wire/{stamp}/" for stamp in edition_dates),
+    *(entry["path"] for entry in findings),
+]))
+add_page_view_script(out, findings, edition_dates)
 print("Public website built in build/")
