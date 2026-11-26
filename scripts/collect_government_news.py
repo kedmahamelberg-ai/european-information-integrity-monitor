@@ -30,7 +30,8 @@ sys.path.insert(0,str(ROOT / "src"))
 from eiim.storage import Store
 from government_reviews import apply_confirmed_corrections
 from government_coverage import (POLICY as COVERAGE_POLICY, discovery_window,
-    index_records, match_record, register_aliases, coverage_row, reconcile_coverage_ids, validate_archive_window)
+    index_records, match_record, register_aliases, coverage_row, reconcile_coverage_ids, validate_archive_window,
+    publisher_identity)
 from government_source_identities import resolved_source_url, STABLE_IDS
 SOURCES = json.loads((ROOT / "config/government_sources.json").read_text())["sources"]
 HYBRID = json.loads((ROOT / "config/hybrid.json").read_text())
@@ -156,12 +157,13 @@ def canonical_source_url(url):
 
 def canonical_government_items(items):
     """Merge verified URL aliases before selecting anything for classification."""
-    result = {}
+    result = {}; identities = {}
     priority = {"human_reviewed": 5, "provisional": 4, "needs_review": 3,
                 "pending_classification": 2, "awaiting_calibration": 1}
     def rank(item):
         return (bool(item.get("human_reviewed")), bool(item.get("source_reviewed")),
-                priority.get(item.get("classification_status"), 0))
+                priority.get(item.get("classification_status"), 0),
+                item.get('country_code')=='MT' and urllib.parse.urlsplit(item['url']).hostname=='www.gov.mt')
     for original in items:
         item = dict(original)
         if (not item.get("classification_status") and not item.get("human_reviewed")
@@ -171,15 +173,40 @@ def canonical_government_items(items):
         aliases = set(item.get("source_aliases") or [])
         if url != item["url"]:
             aliases.add(item["url"])
-        item.update(url=url, id=source_record_id(url))
-        previous = result.get(item["id"])
+        stable=STABLE_SOURCE_IDS.get(url,STABLE_IDS.get(url))
+        item.update(url=url, id=stable or item.get('id') or source_record_id(url))
+        identity=publisher_identity(item.get('country_code',''),url)
+        previous = result.get(item["id"]) or result.get(identities.get(identity))
         if previous:
+            if (previous.get('human_reviewed') and item.get('human_reviewed')
+                    and previous['id']!=item['id']):
+                raise RuntimeError('Conflicting owner-reviewed publisher identities require review')
             aliases.update(previous.get("source_aliases") or [])
+            aliases.update([previous['url'],item['url']])
+            def identity_rank(record):
+                legacy=(record.get('country_code')=='MT' and
+                        urllib.parse.urlsplit(record['url']).hostname=='www.gov.mt')
+                return (*rank(record)[:2],legacy)
+            stable_id=(item['id'] if identity_rank(item)>identity_rank(previous) else previous['id'])
             if rank(previous) >= rank(item):
                 item = dict(previous)
+            if stable_id!=previous['id']:
+                result.pop(previous['id'])
+            item['id']=stable_id
+        # DOI moved its archive. A release number is the stable publisher ID;
+        # use only a current URL actually observed in the same release's aliases.
+        if item.get('country_code')=='MT' and urllib.parse.urlsplit(item['url']).hostname=='www.gov.mt':
+            stem=urllib.parse.unquote(urllib.parse.urlsplit(item['url']).path).rsplit('/',1)[-1].removesuffix('.aspx').lower()
+            current=[alias for alias in aliases if urllib.parse.urlsplit(alias).hostname=='departmentofinformation.gov.mt'
+                     and publisher_identity('MT',alias)==identity]
+            same_language=[alias for alias in current if urllib.parse.urlsplit(alias).path.rsplit('/',1)[-1].lower()==stem]
+            if same_language:
+                aliases.add(item['url']);item['url']=sorted(same_language)[0]
+        aliases.discard(item['url'])
         if aliases:
             item["source_aliases"] = sorted(aliases)
         result[item["id"]] = item
+        identities[identity]=item['id']
     return result
 
 

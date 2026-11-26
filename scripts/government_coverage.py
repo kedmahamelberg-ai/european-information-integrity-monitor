@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import datetime as dt
 import re
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit, unquote
 from zoneinfo import ZoneInfo
 from government_source_identities import resolved_source_url
 
@@ -72,6 +72,11 @@ def publisher_identity(code, url):
         match = re.fullmatch(r'/press-release/20\d{2}/(pr\d{6})(?:en)?(?:-\d+)?/?', parts.path, re.I)
         if match:
             return code + ':release:' + match.group(1).lower()
+    if code == 'MT' and parts.hostname == 'www.gov.mt':
+        match = re.fullmatch(r'/en/Government/DOI/Press Releases/Pages/(20\d{2})/\d{2}/\d{2}/(pr\d{6})(?:en)?\.aspx',
+                             unquote(parts.path), re.I)
+        if match and match.group(1)[2:] == match.group(2)[2:4]:
+            return code + ':release:' + match.group(2).lower()
     return code + ':url:' + normalized_url(url)
 
 
@@ -85,6 +90,20 @@ def index_records(items):
             if key not in result or priority(item) > priority(result[key]):
                 result[key] = item
     return result
+
+
+def duplicate_publisher_identities(items):
+    owners = {}
+    duplicates = set()
+    for item in items:
+        if not item.get('url') or not item.get('country_code') or not item.get('id'):
+            continue
+        for url in [item['url'], *(item.get('source_aliases') or [])]:
+            key = publisher_identity(item['country_code'], url)
+            if key in owners and owners[key] != item['id']:
+                duplicates.add(key)
+            owners.setdefault(key, item['id'])
+    return sorted(duplicates)
 
 
 def match_record(entry, index):

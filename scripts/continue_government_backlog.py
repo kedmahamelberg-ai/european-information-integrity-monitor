@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import urllib.request
 from zoneinfo import ZoneInfo
+from government_coverage import duplicate_publisher_identities
 
 GOVERNMENT='.github/workflows/government-news.yml'
 BLOCKING={'government-news.yml','government-source-audit.yml','site.yml','retention.yml','recover-government-pages.yml'}
@@ -35,6 +36,9 @@ def pending_work(state,run_id):
         return 0,'No successful classification progress was proved for this exact checkpoint.'
     if not state.get('calibration_complete'):
         return 0,'The researcher calibration gate is still pending.'
+    duplicates=duplicate_publisher_identities(state.get('items',[]))
+    if duplicates:
+        return 0, f'{len(duplicates)} conflicting publisher identities require reconciliation before another classification.'
     items=[item for item in state.get('items',[]) if item.get('classification_status')=='pending_classification'
            and not item.get('classification_error') and not item.get('human_reviewed') and not item.get('source_reviewed')]
     return len(items),'Only fresh pending records without source or model errors are eligible.'

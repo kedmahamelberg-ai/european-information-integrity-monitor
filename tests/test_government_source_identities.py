@@ -8,6 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 import collect_government_news as collector
 from government_source_identities import REGISTRY
 from government_coverage import publisher_identity, reconcile_coverage_ids
+from government_reviews import apply_confirmed_corrections,source_evidence_fingerprint
 from verify_government_source_coverage import verify
 
 
@@ -42,6 +43,46 @@ class PublisherIdentityTests(unittest.TestCase):
         rows=[{'url':base+'2026-11-19', 'title':'Same title'},
               {'url':base+'2026-11-19-different-article', 'title':'Same title'}]
         self.assertEqual(len(collector.canonical_government_items(rows)), 2)
+
+    def test_legacy_doi_release_keeps_owner_id_and_judgment_with_current_citation(self):
+        old='https://www.gov.mt/en/Government/DOI/Press%20Releases/Pages/2026/10/07/PR261650.aspx'
+        new='https://departmentofinformation.gov.mt/press-release/2026/pr261650'
+        owner={'id':'owner-original-id','country_code':'MT','url':old,'human_reviewed':True,
+               'classification_status':'human_reviewed','topics':['cyber'],'english_summary':'Owner wording.'}
+        model={'id':'new-model-id','country_code':'MT','url':new,'classification_status':'provisional','topics':[]}
+        correction={'id':owner['id'],'source_evidence_fingerprint':source_evidence_fingerprint(owner),
+                    'topics':['cyber'],'english_summary':'Owner wording.'}
+        for order in ([owner,model],[model,owner]):
+            result=list(collector.canonical_government_items(order).values())
+            self.assertEqual(len(result),1)
+            # An owner-signed original ID takes precedence in either order.
+            self.assertEqual(result[0]['id'],owner['id'])
+            self.assertEqual(result[0]['url'],new)
+            self.assertEqual(result[0]['topics'],['cyber'])
+            self.assertEqual(result[0]['english_summary'],'Owner wording.')
+            self.assertIn(old,result[0]['source_aliases'])
+            self.assertEqual(apply_confirmed_corrections(result,[correction])[1],[])
+            again=list(collector.canonical_government_items(result).values())
+            self.assertEqual(again[0]['id'],owner['id'])
+
+    def test_legacy_release_year_must_match_the_printed_number(self):
+        old='https://www.gov.mt/en/Government/DOI/Press%20Releases/Pages/2025/10/07/PR261650.aspx'
+        new='https://departmentofinformation.gov.mt/press-release/2026/pr261650'
+        self.assertNotEqual(publisher_identity('MT',old),publisher_identity('MT',new))
+
+    def test_legacy_id_is_retained_when_publication_order_changes(self):
+        old={'id':'original-id','country_code':'MT','classification_status':'provisional',
+             'url':'https://www.gov.mt/en/Government/DOI/Press%20Releases/Pages/2026/10/07/PR261650.aspx',
+             'topics':[],'english_summary':'Retained original copy.'}
+        new={'id':'duplicate-id','country_code':'MT','classification_status':'provisional',
+             'url':'https://departmentofinformation.gov.mt/press-release/2026/pr261650',
+             'topics':['artificial_intelligence'],'english_summary':'Another model answer.'}
+        for rows in ([old,new],[new,old]):
+            merged=list(collector.canonical_government_items(rows).values())
+            self.assertEqual([x['id'] for x in merged],['original-id'])
+            self.assertEqual(merged[0]['url'],new['url'])
+            self.assertEqual(merged[0]['topics'],old['topics'])
+            self.assertEqual(merged[0]['english_summary'],old['english_summary'])
 
     def test_alias_merge_rebinds_archive_proof_and_verifier_detects_reintroduced_duplicate(self):
         row=self.rows[0]
