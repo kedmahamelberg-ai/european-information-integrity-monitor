@@ -68,7 +68,27 @@ class SourceAuditTests(unittest.TestCase):
         batch = select_batch([old, new, changed], checked, {}, 3, now,
                              seen_ids={"a-old", "z-changed"})
         self.assertEqual([item["id"] for item in batch],
-                         ["z-changed", "z-new", "a-old"])
+                         ["z-new", "z-changed", "a-old"])
+
+    def test_verified_short_agenda_is_not_an_attachment_stub(self):
+        item = dict(self.item, country_code='PT', source_text_chars=65)
+        with patch('audit_government_sources.article_text',
+                   return_value='Brussels, 10:00: Prime minister attends the European Council.'), \
+             patch('audit_government_sources.audit_model', return_value=[]):
+            self.assertEqual(audit_one(item), [])
+
+    def test_recent_never_audited_record_precedes_ruleset_rechecks(self):
+        now = dt.datetime(2026,11,26,tzinfo=dt.timezone.utc)
+        old = dict(self.item, id='old', published_at='2026-11-25T04:00:00+00:00')
+        fresh = dict(old,id='fresh')
+        batch = select_batch([old,fresh],{'old':{'fingerprint':'old-ruleset'}},{},1,now,
+                             seen_ids={'old','fresh'})
+        self.assertEqual([x['id'] for x in batch],['fresh'])
+
+    def test_matching_local_time_is_not_a_date_finding(self):
+        issue = dict(field='published_at',kind='date',evidence='12:20 local time',
+                     explanation='The UTC value corresponds to 12:20, matching the article’s local date and time.')
+        self.assertFalse(supported_issue(self.item,issue))
 
     def test_old_coverage_rechecks_do_not_starve_recent_publication(self):
         now = dt.datetime(2026,11,26,tzinfo=dt.timezone.utc)

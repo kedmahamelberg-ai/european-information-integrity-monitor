@@ -3028,9 +3028,9 @@
     "source_url": "https://english.www.gov.cn/news/202611/22/content_WS6b025e06c6d00ca5f9a0e8ed.html",
     "source_evidence_fingerprint": "a3c9687b9a876016942d7105037d08be1559d2a411b2d6113a8b52af60a4c5c9",
     "fault_type": "editorial",
-    "published_field": "english_summary, relevance, topics, roles, viewpoint_structure, viewpoints, evidence_status, evidence_quote, short_rationale, ticker_message",
+    "published_field": "english_summary, relevance, topics, classification_error",
     "evidence": "The full English article reports views on regional development and generic digital, clean-energy and SME cooperation. It contains no AI measure or concrete strategic supply-chain dependency. General prosperity and aspirations for peace alone do not establish a security narrative.",
-    "english_summary": "At the APEC leaders’ meeting in Shenzhen, Xi urged a stronger Asia-Pacific community built on openness, connectivity, innovation and inclusive development. Experts and business representatives welcomed China’s cooperation proposals and potential in digital development, clean energy and SME partnerships.",
+    "english_summary": "Experts welcomed Xi Jinping’s APEC proposals for closer regional cooperation. China pledged $20 million for practical APEC work and plans a Shenzhen policy-research centre plus cooperation institutions covering digital technology, cross-border data flows, clean energy and small businesses.",
     "relevance": "not_related",
     "topics": [],
     "roles": [],
@@ -3058,12 +3058,16 @@
     "source_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-19",
     "source_evidence_fingerprint": "2cddffc1d85a66e1ae8775b7698452b8de7b27b24cd67f38041f29841ce32dbc",
     "fault_type": "editorial",
-    "published_field": "english_summary, ticker_message",
-    "evidence": "The complete Icelandic article identifies speech synthesis, speech recognition and voice-control access, links Icelandic explicitly to AI, and describes people losing their communication voice when custom software fails. The supported AI connection must be explicit in the published summary.",
-    "english_summary": "Iceland is urging Apple to add Icelandic speech synthesis, recognition and voice control to accessibility tools. The government says Icelandic must be part of everyday AI and digital technology; users describe communication barriers and loss of speech when custom software fails.",
-    "ticker_message": "Iceland urges Apple to add Icelandic speech tools so people can use everyday AI and accessibility technology.",
+    "published_field": "topics, english_summary, ticker_message, short_rationale, classification_error",
+    "evidence": "Full-source review distinguishes the concrete Icelandic speech-accessibility campaign from a closing aspiration about Icelandic in future AI and digital solutions. The source does not identify an AI implementation or an AI-specific commitment by Apple. Remove the inferred AI label and wording while preserving the documented technology dependency.",
+    "english_summary": "Iceland is urging Apple to add Icelandic speech synthesis, recognition and voice control to accessibility tools. Users describe communication barriers and losing speech when custom software fails; the government has supplied language-technology data and is collecting examples to support the campaign.",
+    "ticker_message": "Iceland urges Apple to add Icelandic speech tools to improve accessibility and reduce reliance on custom workarounds.",
     "resolves_classification_error": "ai_topic_without_explicit_published_connection",
-    "source_evidence_fingerprint_after": "2cddffc1d85a66e1ae8775b7698452b8de7b27b24cd67f38041f29841ce32dbc"
+    "source_evidence_fingerprint_after": "2cddffc1d85a66e1ae8775b7698452b8de7b27b24cd67f38041f29841ce32dbc",
+    "topics": [
+      "technology_supply_chains"
+    ],
+    "short_rationale": "The source identifies a concrete dependence on Apple’s language support, including loss of communication when custom software fails. AI appears only in an aspirational quotation; the campaign does not establish an AI-specific measure or implementation."
   },
   {
     "id": "f5a5611825205c2d1c68",
