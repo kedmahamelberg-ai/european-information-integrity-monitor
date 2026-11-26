@@ -28,7 +28,7 @@ PUBLISHED_FIELDS = {"title", "published_at", "published_date", "country",
                     "source_text_chars", "viewpoints", "viewpoint_structure",
                     "short_rationale", "evidence_quote"}
 NO_FINDING = re.compile(
-    r"\b(?:matches? the (?:official )?(?:article|source)|"
+    r"\b(?:match(?:es|ing)? the (?:official )?(?:article|source)|"
     r"no (?:title|date|topic|role|label|source) mismatch|"
     r"not a finding|cannot be verified or contradicted|"
     r"no concrete topic-label mismatch|"
@@ -190,7 +190,7 @@ def audit_model(source, item, *, official_title=None, official_date=None):
 
 def audit_one(item):
     source = full_speech_text() if item.get("id") == RECORD_ID else article_text(item)
-    if not source or len(source) < 80:
+    if not source or len(source) < 40:
         raise RuntimeError("Full official article text is unavailable")
     if len(source) > 75000:
         raise RuntimeError("Full official article exceeds audit model limit")
@@ -249,7 +249,7 @@ def select_batch(items, checked, attempted, limit, now, seen_ids=None):
             recent = False
         # A coverage/ruleset upgrade reopens older checks too. It must not
         # postpone new publications behind the entire historical backlog.
-        return (not recent, not changed, not newly_seen,
+        return (not recent, ident in checked, not changed, not newly_seen,
                 item.get("country_code") not in BENCHMARKS, ident)
     ordered = sorted(items, key=priority)
     pending = []
