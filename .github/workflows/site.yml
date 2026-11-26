@@ -79,6 +79,7 @@ jobs:
               'scripts/government_coverage.py',
               'scripts/verify_government_source_coverage.py',
               'scripts/continue_government_backlog.py',
+              'scripts/setup_malta_warp.sh',
               'config/government_source_identities.json',
               'data/government_ai_backfill_priority.json',
               'tests/test_malta_collector.py',
