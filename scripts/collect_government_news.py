@@ -2359,7 +2359,10 @@ def discover_canada(country,start,end,metadata_cache=None):
                 "sort":"publishedDate","skip":page*100})
             url=f"https://api.io.canada.ca/io-server/gc/news/{language}/v2?{query}"
             _,body=fetch(url,timeout=20)
-            records=ET.fromstring(body).findall(ATOM+"entry")
+            # The all-type feed emits literal HTML nonbreaking spaces inside
+            # Atom summaries (observed on English pages 5 and 6). XML accepts
+            # the numeric reference, not HTML's undeclared named entity.
+            records=ET.fromstring(body.replace(b"&nbsp;",b"&#160;")).findall(ATOM+"entry")
             if page==0 and not records: raise RuntimeError("Canada official release feed returned no entries")
             dates=[]
             for record in records:

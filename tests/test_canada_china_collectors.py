@@ -16,6 +16,14 @@ def atom(entries):
 
 
 class BenchmarkCollectorTest(unittest.TestCase):
+    def test_canada_accepts_publishers_html_nbsp_inside_atom_summary(self):
+        source=next(x for x in collector.SOURCES if x['iso2']=='CA')
+        url='https://www.canada.ca/en/agency/news/2026/10/investment.html'
+        feed=atom([('Investment','2026-10-03T12:00:00-04:00',url)]).replace(b'</entry>',b'<summary type="html">Investment of $8.7&nbsp;billion.</summary></entry>')
+        with patch.object(collector,'fetch',return_value=(url,feed)),patch.object(collector,'canada_news_metadata',return_value={'day':dt.date(2026,10,3),'alternates':{},'text':'Complete original government announcement.'}):
+            items,_=collector.discover_canada(source,dt.datetime(2026,10,1,tzinfo=dt.timezone.utc),dt.datetime(2026,10,5,tzinfo=dt.timezone.utc))
+        self.assertEqual([x['url'] for x in items],[url])
+
     def test_all_news_types_and_distinct_simultaneous_french_items_are_retained(self):
         source=next(x for x in collector.SOURCES if x['iso2']=='CA')
         types=('newsreleases','statements','speeches','readouts','backgrounders','mediaadvisories')
