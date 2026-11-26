@@ -30,6 +30,11 @@ on:
         required: false
         default: false
         type: boolean
+      fresh_pending_only:
+        description: Continue only fresh saved work; do not retry records carrying errors
+        required: false
+        default: false
+        type: boolean
 permissions:
   contents: write
   actions: read
@@ -72,6 +77,7 @@ jobs:
       COLLECTION_COUNTRIES: ${{ inputs.countries }}
       CLASSIFY_ONLY: ${{ inputs.classify_only }}
       DISCOVERY_ONLY: ${{ inputs.discovery_only }}
+      FRESH_PENDING_ONLY: ${{ inputs.fresh_pending_only }}
       DAILY_PHASE: ${{ inputs.daily_phase }}
       MALTA_WARP_TERMS_APPROVED: ${{ vars.MALTA_WARP_TERMS_APPROVED }}
     steps:
@@ -139,6 +145,7 @@ jobs:
           if [ -n "$COLLECTION_COUNTRIES" ]; then args+=(--countries "$COLLECTION_COUNTRIES"); fi
           if [ "$CLASSIFY_ONLY" = "true" ]; then args+=(--classify-only); fi
           if [ "$DISCOVERY_ONLY" = "true" ]; then args+=(--discovery-only); fi
+          if [ "$FRESH_PENDING_ONLY" = "true" ]; then args+=(--fresh-pending-only); fi
           python scripts/collect_government_news.py "${args[@]}"
       - name: Disconnect the Malta WARP proxy
         if: always() && steps.malta_warp.outcome == 'success'

@@ -91,6 +91,13 @@ class GovernmentCoverageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'Duplicate publisher'):
             verify(proof,{'as_of':self.end.isoformat(),'items':[item,{**item,'id':'two'}]})
 
+    def test_separate_translation_record_cannot_duplicate_a_publisher_language_pair(self):
+        item,proof=self.proof()
+        alternate='https://www.whitehouse.gov/releases/2026/11/translated/'
+        with self.assertRaisesRegex(ValueError,'Duplicate publisher'):
+            verify(proof,{'as_of':self.end.isoformat(),'items':[{**item,'source_aliases':[alternate]},
+                {**item,'id':'translated','url':alternate}]})
+
     def test_atomic_checkpoint_saves_preserve_daily_and_private_progress(self):
         with tempfile.TemporaryDirectory() as folder:
             target=Path(folder)/'state.json';state={'last_successful_collection_end':None,

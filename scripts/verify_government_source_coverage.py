@@ -1,7 +1,6 @@
 """Check saved archive identities against the live Monitor; never call a model."""
 from __future__ import annotations
 
-from collections import Counter
 import json
 import os
 from pathlib import Path
@@ -26,10 +25,14 @@ def verify(report, snapshot):
     ids=[item['id'] for item in snapshot['items']]
     if len(ids)!=len(set(ids)):
         raise ValueError('Live government data contains duplicate record IDs')
-    identities=Counter(publisher_identity(item['country_code'],item['url']) for item in snapshot['items'])
-    duplicated=[key for key,n in identities.items() if n>1]
+    owners={};duplicated=set()
+    for item in snapshot['items']:
+        keys={publisher_identity(item['country_code'],url) for url in [item['url'],*(item.get('source_aliases') or [])]}
+        for key in keys:
+            if key in owners and owners[key]!=item['id']:duplicated.add(key)
+            else:owners[key]=item['id']
     if duplicated:
-        raise ValueError('Duplicate publisher communications: '+', '.join(duplicated[:8]))
+        raise ValueError('Duplicate publisher communications: '+', '.join(sorted(duplicated)[:8]))
     index=index_records(snapshot['items'])
     missing=[]; unverified=[]; total=0
     for row in sources:

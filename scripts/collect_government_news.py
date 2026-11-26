@@ -3052,8 +3052,11 @@ def translate_document(source_text, checkpoint=None, on_progress=None, *, source
 
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument("--since",default=""); ap.add_argument("--until",default=""); ap.add_argument("--countries",default="",help="Comma-separated ISO country codes for an isolated source check"); ap.add_argument("--skip-countries",default="",help="Optional country codes to omit from a manual run"); ap.add_argument("--discovery-only",action="store_true"); ap.add_argument("--classify-only",action="store_true",help="Classify pending checkpoint items without re-fetching source archives"); args=ap.parse_args()
+    ap=argparse.ArgumentParser(); ap.add_argument("--since",default=""); ap.add_argument("--until",default=""); ap.add_argument("--countries",default="",help="Comma-separated ISO country codes for an isolated source check"); ap.add_argument("--skip-countries",default="",help="Optional country codes to omit from a manual run"); ap.add_argument("--discovery-only",action="store_true"); ap.add_argument("--classify-only",action="store_true",help="Classify pending checkpoint items without re-fetching source archives")
+    ap.add_argument('--fresh-pending-only',action='store_true')
+    args=ap.parse_args()
     if args.discovery_only and args.classify_only: ap.error("--discovery-only and --classify-only cannot be combined")
+    if args.fresh_pending_only and not args.classify_only:ap.error('--fresh-pending-only requires --classify-only')
     now=dt.datetime.now(dt.timezone.utc).replace(microsecond=0)
     state=json.loads(STATE.read_text()) if STATE.exists() else {"last_successful_collection_end":None,"items":[]}
     initial_start=dt.datetime(2026,10,1,tzinfo=AMSTERDAM).astimezone(dt.timezone.utc)
@@ -3109,6 +3112,9 @@ def main():
                 item["classification_status"]="needs_review"
         candidates.extend(x for x in existing.values()
                           if x.get("classification_status") in {"awaiting_calibration", "pending_classification"}
+                          and not x.get("human_reviewed") and not x.get("source_reviewed")
+                          and (not args.fresh_pending_only or not x.get('classification_error')
+                               or (x.get('classification_error')=='summary_exceeds_45_words' and x['id'] in summary_override_map))
                           and (not selected_codes or x["country_code"] in selected_codes))
     # Discover the official sources concurrently and log each completion.
     # With bounded request timeouts, slow sites cannot stall the whole batch.
@@ -3216,7 +3222,9 @@ def main():
         # for researcher review; the workflow keeps subsequent items queued until
         # GOVERNMENT_CALIBRATION_READY is explicitly enabled after corrections.
         calibrating=not calibration_complete
-        candidates.sort(key=classification_order)
+        # Approved source-bound repairs reuse translations already paid for and
+        # are completed before unrelated fresh archive backfill work.
+        candidates.sort(key=lambda item:(item['id'] not in summary_override_map,classification_order(item)))
         # The 15:00 pass drains the checkpoint as far as the runner's time
         # budget permits. Other runs retain small checkpointed tranches.
         afternoon_full_pass=os.environ.get("DAILY_PHASE")=="retry" and not selected_codes
@@ -3253,6 +3261,8 @@ def main():
                     existing[item["id"]]=item
                     save_government_checkpoint(state,existing.values(),source_cursors,calibration_complete)
                 summary_override=source_bound_summary_override(item,text,summary_override_map)
+                if item['id'] in summary_override_map and summary_override is None:
+                    raise ModelOutputError('source_bound_summary_evidence_changed')
                 if summary_override:
                     item["english_translation"],item["english_summary"]=translate_document(text,item.setdefault("translation_checkpoint",{}),save_translation_progress,source_bound_summary=summary_override)
                     print(f"Used source-bound summary for {item['country_code']} {item['id']}",flush=True)
@@ -3340,6 +3350,10 @@ def main():
     out={"as_of":end.isoformat(),"window_start":start.isoformat(),"window_end":end.isoformat(),"taxonomy_version":HYBRID["version"],"sources":sources_status,"items":sorted(existing.values(),key=lambda x:x.get("published_at",""),reverse=True),"review":{"routine_sample_percent":3,"calibration_tranche_percent":10,"calibration_ready":calibration_complete}}
     collection_complete=not args.classify_only and not selected_codes and not skipped_codes and bool(selected_sources) and len(sources_status)==len(selected_sources) and all(x["status"]=="discovered" for x in sources_status)
     cursor=end.isoformat() if collection_complete else state.get("last_successful_collection_end")
+    state['classification_progress']={'run_id':os.getenv('GITHUB_RUN_ID'),
+        'classified':successful_classifications,'candidates':len(candidates),
+        'fresh_pending':sum(x.get('classification_status')=='pending_classification'
+                            and not x.get('classification_error') for x in out['items'])}
     STATE.parent.mkdir(exist_ok=True); state["last_successful_collection_end"]=cursor; save_government_checkpoint(state,out["items"],source_cursors,calibration_complete)
     PUBLIC.parent.mkdir(exist_ok=True)
     public={**out,"items":[{k:v for k,v in item.items() if k not in {"text","english_translation","translation_checkpoint"}} for item in out["items"]]}
