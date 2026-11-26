@@ -161,6 +161,9 @@ def canonical_government_items(items):
                 "pending_classification": 2, "awaiting_calibration": 1}
     for original in items:
         item = dict(original)
+        if (not item.get("classification_status") and not item.get("human_reviewed")
+                and not any(key in item for key in ("relevance", "topics", "roles", "viewpoints"))):
+            item["classification_status"] = "pending_classification"
         url = canonical_source_url(item["url"])
         aliases = set(item.get("source_aliases") or [])
         if url != item["url"]:
@@ -3026,7 +3029,6 @@ def main():
                         if not source_start.astimezone(source_tz).date()<=day<=end.astimezone(source_tz).date(): continue
                     elif pub and not(source_start<=pub<=end): continue
                     if not pub: continue
-                    item["url"]=canonical_source_url(item["url"])
                     item["url"]=canonical_source_url(item["url"])
                     item["published_at"]=(pub or end).isoformat(); item["id"]=source_record_id(item["url"])
                     if item["id"] in existing:

@@ -3302,7 +3302,135 @@
     "url": "https://media.gov.gr/simeia-synentefksis-yfypourgou-para-to-prothypourgo-kai-kyvernitikou-ekprosopou-pavlou-marinaki-stin-ekpompi-tou-skai-1003-ston-eksosti/",
     "source_repair_only": true,
     "resolves_classification_error": "RuntimeError",
-    "source_evidence_fingerprint_after": "610e7dc9fffe8935a84f2990bae89f483e14526690befd95ba474a2e8f6b2a9e",
+    "source_evidence_fingerprint_after": "8780ebbe9ebc69c69eff1a55033d33135d41239a2e9ffbabe2e37fc1ac695c4c",
     "source_evidence_fingerprint_alias": "610e7dc9fffe8935a84f2990bae89f483e14526690befd95ba474a2e8f6b2a9e"
+  },
+  {
+    "id": "dd57d820099d6b17c8dd",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://www.admin.ch/de/newnsb/Oq0CiNf6IUcX",
+    "source_evidence_fingerprint": "8a113b3064cf288e6d9e12718fd0fece62ca595f1031a592aacdbf8832a752d5",
+    "fault_type": "classification_queue",
+    "published_field": "classification_status, english_summary, relevance, topics",
+    "evidence": "The saved record had only source metadata and no status, so pending selection ignored it. The complete official German release describes a proposed amendment preserving Ukrainian S-status travel rights while introducing restrictions for other asylum categories.",
+    "english_summary": "Switzerland’s Federal Council proposed keeping permit-free foreign travel and re-entry for Ukrainians with S protection status. Stricter travel rules would apply to asylum seekers and people admitted temporarily; stays in Ukraine would remain limited to 15 days per half-year.",
+    "relevance": "related",
+    "topics": [
+      "migration_displacement"
+    ],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Swiss Federal Council",
+        "summary": "Switzerland’s Federal Council proposed keeping permit-free foreign travel and re-entry for Ukrainians with S protection status. Stricter travel rules would apply to asylum seekers and people admitted temporarily; stays in Ukraine would remain limited to 15 days per half-year.",
+        "target": "Cross-border travel rules for people seeking protection",
+        "speaker_sentiment": "neutral",
+        "evidence_quote": ""
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "",
+    "ticker_message": "Switzerland proposes retaining permit-free travel for Ukrainians with S protection status while restricting other asylum travel.",
+    "short_rationale": "The proposal sets specific cross-border travel and return rules for Ukrainians under S protection, asylum seekers and people admitted temporarily. This directly supports the migration and displacement topic.",
+    "source_text_chars": 2597,
+    "source_text_sha256": "3e561cc8f9fea0d972ae69330df6cf91c0140672316c37c01f5a930cbcf85aa6",
+    "source_evidence_fingerprint_after": "02ffbd5c79aa0095ab9d498ab97bad86207024e3785f0a58c8e73c713e845c47"
+  },
+  {
+    "id": "6b5705fcc3d11be3f1bd",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://valitsus.ee/uudised/valitsus-suunab-60-miljonit-valisabi-keskkonda-rahvatervisesse-ja-kriisikindlusse",
+    "source_evidence_fingerprint": "826788550b26f23436fe4ff8ed6e0c5c4b3804dc7fe73cb6f3b0ce84423f84c4",
+    "fault_type": "editorial",
+    "published_field": "english_summary, ticker_message, roles",
+    "evidence": "The complete Estonian release allocates crisis-readiness funding to analysis of AI solutions in Emergency Response Centre workflows, alongside warning systems and emergency equipment. It describes planned analysis, not deployment. Only Estonia is described undertaking preparedness actions; donor funding alone does not establish readiness roles.",
+    "english_summary": "Estonia approved rules for about €60 million in EEA and Norway grants for environmental projects, public health and crisis readiness. The crisis programme includes analysing AI tools for Emergency Response Centre workflows, warning systems, bomb-disposal equipment and offshore-wind accident preparedness.",
+    "ticker_message": "Estonia’s grants programme funds crisis readiness, including analysis of AI tools for emergency-response workflows.",
+    "roles": [
+      {
+        "entity": "Estonia",
+        "entity_code": "EST",
+        "role": "readiness",
+        "evidence_quote": "€4.7 million will be invested in strengthening civil protection and crisis preparedness.",
+        "rationale": "The funding explicitly strengthens civil protection and crisis preparedness."
+      }
+    ],
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection"
+  },
+  {
+    "id": "9e6bac629261183c8c59",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://www.gov.pl/web/premier/polska-nauka-ma-powody-do-dumy-nagrody-prezesa-rady-ministrow-wreczone",
+    "source_evidence_fingerprint": "f18ea27650c9c5df64c00f159f075a58c193f68d177a352e25bd7ebe761e4dfa",
+    "fault_type": "editorial",
+    "published_field": "topics, short_rationale, ticker_message",
+    "evidence": "The complete Polish awards release directly attributes defence technologies and military equipment to scientists. AI, quantum and satellite fields appear in broad lists, without a concrete security use. Academy governance reform is routine; the saved rationale already rejects its political-institutions label.",
+    "topics": [
+      "military_defence"
+    ],
+    "short_rationale": "The release explicitly links scientific work to defence technologies and military equipment. The broad AI, quantum and satellite lists do not establish specific security uses. Routine Academy governance reform is not an institutional-security issue.",
+    "ticker_message": "Poland awards researchers and highlights science’s contribution to defence technology and national development.",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection"
+  },
+  {
+    "id": "e6baa0ba30a810c724f1",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://www.gov.pl/web/premier/kprm-trzeci-raz-apeluje-do-prezydenta-w-sprawie-medali-za-dlugoletnie-pozycie-malzenskie-premier-skieruje-listy-gratulacyjne-do-144-tys-oczekujacych-malzenstw",
+    "source_evidence_fingerprint": "96db67cf8d0a1abcf59b2502f9255d245feb617b2a3d652bc77152f2b19c3b42",
+    "fault_type": "editorial",
+    "published_field": "english_summary, relevance, topics, roles, viewpoint_structure, viewpoints, evidence_status, evidence_quote, short_rationale, ticker_message",
+    "evidence": "The full Polish release reports a third government appeal over delayed long-service marriage medals and proposed congratulatory letters. This is routine honours administration and political criticism, without an institutional-security proposition.",
+    "english_summary": "Poland’s prime minister will send congratulatory letters to 144,000 couples awaiting marriage medals. The government says presidential processing delays average 17 months and has issued a third appeal for action; awarding the medals remains the president’s constitutional prerogative.",
+    "relevance": "not_related",
+    "topics": [],
+    "roles": [],
+    "viewpoint_structure": "single_viewpoint",
+    "viewpoints": [
+      {
+        "speaker": "Polish prime minister’s office",
+        "summary": "Poland’s prime minister will send congratulatory letters to 144,000 couples awaiting marriage medals. The government says presidential processing delays average 17 months and has issued a third appeal for action; awarding the medals remains the president’s constitutional prerogative.",
+        "target": "Delays in awarding long-service marriage medals",
+        "speaker_sentiment": "negative",
+        "evidence_quote": ""
+      }
+    ],
+    "evidence_status": "reported",
+    "evidence_quote": "",
+    "short_rationale": "The report concerns honours administration and government criticism of processing delays. A constitutional prerogative alone does not establish a security narrative.",
+    "ticker_message": "Poland’s prime minister plans congratulatory letters for couples awaiting delayed marriage medals.",
+    "resolves_classification_error": "summary_exceeds_45_words"
+  },
+  {
+    "id": "036f16e25936a10e4a02",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://www.govern.ad/ca/w/el-cap-de-govern-reafirma-el-compromis-del-govern-per-erradicar-la-violencia-envers-les-dones",
+    "source_evidence_fingerprint": "c2a0339c7ae75b100aeece8e06ac0478e674bd715fe6ccea0b3a9e9ba38da611",
+    "fault_type": "editorial",
+    "published_field": "topics, short_rationale",
+    "evidence": "The full Catalan release describes a recent femicide, victim-protection services and collective prevention of violence against women. It identifies no terrorism, organised crime, institutional-security threat or collective health threat. The existing other-security category covers the explicitly framed collective physical-safety response.",
+    "topics": [
+      "other_security"
+    ],
+    "short_rationale": "The release frames violence against women as a collective physical-safety threat and describes prevention and victim protection. It does not establish terrorism, organised crime, institutional-security threats or a public-health threat."
+  },
+  {
+    "id": "9aca175fc67d0f4b4643",
+    "review_origin": "source_reviewed_agent",
+    "reviewed_at": "2026-11-26",
+    "source_url": "https://www.govern.ad/ca/w/nou-reglament-per-consolidar-els-mecanismes-de-control-dels-jocs-d-atzar",
+    "source_evidence_fingerprint": "d1dd392184a52af15bf77db0fd1d5848792f0e4833ba3837ebd7427686cc5aa2",
+    "fault_type": "editorial",
+    "published_field": "topics, short_rationale",
+    "evidence": "The full Catalan regulation explicitly provides authentication, encryption, access controls and logging to protect registry information. Gambling-sector oversight and player protection do not themselves establish a strategic economic-security risk.",
+    "topics": [
+      "cyber"
+    ],
+    "short_rationale": "The regulation specifies authentication, encryption, access controls and logging to protect information and prevent misuse. Ordinary gambling-sector supervision does not establish the separate economic-security topic."
   }
 ]
