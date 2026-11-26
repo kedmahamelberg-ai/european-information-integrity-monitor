@@ -5,9 +5,10 @@ from zoneinfo import ZoneInfo
 from hashlib import sha256
 import shutil
 from field_wire_preview import preview_data, draw_preview
-from html import escape
+from html import escape, unescape
 from pathlib import Path
 from string import Template
+from textwrap import shorten
 from urllib.parse import urlencode, quote
 import json
 import re
@@ -152,6 +153,25 @@ def render_page(path, rows, stamp, dated, chart, dates, earlier=()):
         edition=max((r["date"] for r in rows), default="—"), count=len(news), samples=len(audience)))
 
 
+def edition_search_headline(html, stamp):
+    """Apply a source-led headline to the public copy of a dated edition."""
+    desk = html.partition('<h2>Dispatch log</h2>')[2].split('</section>', 1)[0]
+    lead = re.search(r'<h3>([^<]+)</h3>', desk)
+    if not lead:
+        return html
+    topic = unescape(lead.group(1)).strip()
+    lead_title = text(shorten(topic.rstrip('.!?'), width=78, placeholder='…'))
+    if not lead_title:
+        return html
+    title = f'{lead_title} | Field Wire · {stamp}'
+    old = f'Field Wire · {stamp} | European Security Monitor'
+    html = html.replace(f'<title>{old}</title>', f'<title>{title}</title>', 1)
+    html = html.replace(f'<meta property="og:title" content="{old}">',
+                        f'<meta property="og:title" content="{title}">', 1)
+    mast = f'<h1>Field Wire · {stamp}</h1>'
+    return html.replace(mast, mast + f'<p class="table-note">{text(topic)}</p>', 1)
+
+
 def render(out, research, government, archive, today=None):
     stamp = (today or datetime.now(ZoneInfo("Europe/Amsterdam")).date()).isoformat()
     rows = list(government_dispatches(government.get("items", [])))
@@ -187,8 +207,9 @@ def render(out, research, government, archive, today=None):
         folder = archive / d
         public = output / d
         public.mkdir(exist_ok=True)
-        for asset in ("index.html", "preview.png"):
-            shutil.copyfile(folder / asset, public / asset)
+        html = edition_search_headline((folder / "index.html").read_text(), d)
+        (public / "index.html").write_text(html)
+        shutil.copyfile(folder / "preview.png", public / "preview.png")
         keys.update(r["key"] for r in json.loads((folder / "rows.json").read_text()).values())
     render_page(output / "index.html", rows, stamp if rows else "", False, chart, dates)
     (output / "items.json").write_text(json.dumps(sorted(keys)))
