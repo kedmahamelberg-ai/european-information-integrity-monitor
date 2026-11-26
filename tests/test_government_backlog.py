@@ -59,6 +59,15 @@ class GovernmentBacklogTests(unittest.TestCase):
         state=self.state();state['items']=[]
         self.assertEqual(pending_work(state,123)[0],0)
 
+    def test_conflicting_native_publisher_ids_stop_only_that_checkpoint(self):
+        state=self.state();state['items'].extend([
+            {'id':'original','country_code':'MT','url':'https://www.gov.mt/en/Government/DOI/Press%20Releases/Pages/2026/10/07/PR261650.aspx'},
+            {'id':'duplicate','country_code':'MT','url':'https://departmentofinformation.gov.mt/press-release/2026/pr261650'}])
+        count,reason=pending_work(state,123)
+        self.assertEqual(count,0);self.assertIn('conflicting publisher identities',reason)
+        state['items'].pop()
+        self.assertEqual(pending_work(state,123)[0],1)
+
     def test_both_repository_checks_use_authentication_before_any_dispatch(self):
         class Response(io.BytesIO):
             status=200

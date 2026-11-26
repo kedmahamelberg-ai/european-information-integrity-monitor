@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+from government_coverage import publisher_identity
 
 
 SOURCE_FIELDS = (
@@ -45,6 +46,17 @@ def source_identity_fingerprint(item):
     return hashlib.sha256(encoded).hexdigest()
 
 
+def citation_fingerprints(item, fingerprint):
+    """Keep a DOI review bound to its original record after citation migration."""
+    values={fingerprint(item)}
+    identity=publisher_identity(item.get('country_code',''),item.get('url',''))
+    if identity.startswith('MT:release:'):
+        for alias in item.get('source_aliases') or []:
+            if publisher_identity('MT',alias)==identity:
+                values.add(fingerprint({**item,'url':alias}))
+    return values
+
+
 def apply_confirmed_corrections(items, corrections):
     """Mutate matching items and return (applied IDs, stale IDs)."""
     by_id = {correction["id"]: correction for correction in corrections
@@ -63,7 +75,7 @@ def apply_confirmed_corrections(items, corrections):
             stale.append(item["id"])
             continue
         fingerprint = correction.get("source_fingerprint")
-        if fingerprint and fingerprint != source_fingerprint(item):
+        if fingerprint and fingerprint not in citation_fingerprints(item,source_fingerprint):
             stale.append(item["id"])
             continue
         evidence_fingerprint = correction.get("source_evidence_fingerprint")
@@ -73,7 +85,7 @@ def apply_confirmed_corrections(items, corrections):
             correction["source_identity_fingerprint"] == source_identity_fingerprint(item) and
             correction.get("full_source_url") == item.get("full_source_url") and
             bool(item.get("source_text_sha256")))
-        if evidence_fingerprint and source_evidence_fingerprint(item) not in allowed_evidence and not repaired_full_source:
+        if evidence_fingerprint and not citation_fingerprints(item,source_evidence_fingerprint)&allowed_evidence and not repaired_full_source:
             stale.append(item["id"])
             continue
         if correction.get("withhold_reason") == "full_source_unavailable":
