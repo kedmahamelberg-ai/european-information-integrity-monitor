@@ -2336,12 +2336,11 @@ def canada_news_metadata(url):
     # November 27") which are not additional publication datelines.
     datelines = [CANADA_DATELINE.fullmatch(p) for p in parser.paragraphs[:4]
                  if not re.match(r'^(?:when|date|dates|time|event date)\s*:',p,re.I)]
-    visible_days = {dt.datetime.strptime(" ".join(m.groups()), "%B %d %Y").date()
-                    for m in datelines if m}
-    if len(visible_days) > 1:
-        raise RuntimeError("Canada release has conflicting publication datelines: " + url)
-    if visible_days:
-        issued = visible_days.pop()
+    # The opening dateline identifies publication. Later standalone dates can
+    # be event details even when their "Date" label is a separate HTML element.
+    opening_dateline=next((match for match in datelines if match),None)
+    if opening_dateline:
+        issued=dt.datetime.strptime(" ".join(opening_dateline.groups()),"%B %d %Y").date()
     article = re.split(r"\s+(?:Contacts|Personnes-ressources)\s+", article, maxsplit=1)[0]
     return {"day": issued, "alternates": parser.alternates, "text": article}
 
@@ -2402,10 +2401,16 @@ def discover_canada(country,start,end,metadata_cache=None):
         else: raise RuntimeError("Canada release feed exceeded pagination safety limit")
         paired={alias: item for item in entries.values() for alias in item.get("source_aliases",[])}
         unpaired=[item for url,item in language_entries.items() if url not in paired and url not in entries]
+        metadata_failures=[]
         with ThreadPoolExecutor(max_workers=6) as pool:
             pending={pool.submit(canada_cached_metadata,item,metadata_cache):item for item in unpaired}
             for future in as_completed(pending):
-                item=pending[future]; info=future.result();day=info["day"]
+                item=pending[future]
+                try:info=future.result()
+                except Exception as error:
+                    metadata_failures.append(item['url']+' — '+type(error).__name__+': '+str(error))
+                    continue
+                day=info["day"]
                 if not first_day<=day<=last_day: continue
                 # The publisher's hreflang link is identity evidence. Equal
                 # timestamps alone never discard a distinct French announcement.
@@ -2428,6 +2433,8 @@ def discover_canada(country,start,end,metadata_cache=None):
                     item["text"]=info["text"]
                     item["source_text_sha256"]=hashlib.sha256(info["text"].encode()).hexdigest()
                 entries[item["url"]]=item
+        if metadata_failures:
+            raise RuntimeError(f"Canada original-source metadata unverified for {len(metadata_failures)} item(s): "+' | '.join(sorted(metadata_failures)[:20]))
     return list(entries.values()),country["url"]
 
 

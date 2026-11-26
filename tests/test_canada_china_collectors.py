@@ -16,6 +16,15 @@ def atom(entries):
 
 
 class BenchmarkCollectorTest(unittest.TestCase):
+    def test_advisory_separate_event_date_cannot_override_the_opening_dateline(self):
+        page=('<meta name="dcterms.issued" content="2026-10-14">'
+              '<div class="news-release-container"><p>From: Agriculture and Agri-Food Canada</p>'
+              '<p>October 14, 2026 – Saint-Hugues, Québec - Agriculture and Agri-Food Canada</p>'
+              '<p>The ministers will announce investments in AI crop research.</p>'
+              '<p>October 15, 2026</p><p>1:55 pm (ET)</p></div>')
+        with patch.object(collector,'fetch',return_value=('source',page.encode())):
+            self.assertEqual(collector.canada_news_metadata('source')['day'],dt.date(2026,10,14))
+
     def test_advisory_publication_date_is_distinct_from_its_event_date(self):
         page=('<meta name="dcterms.issued" content="2026-11-26">'
               '<div class="news-release-container"><p>From: National Defence</p>'
