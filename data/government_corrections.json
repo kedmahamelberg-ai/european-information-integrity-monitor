@@ -2438,7 +2438,9 @@
     "review_origin": "source_reviewed_agent",
     "source_url": "https://english.www.gov.cn/news/202611/19/content_WS6afe6164c6d00ca5f9a0e70d.html",
     "source_evidence_fingerprint": "9ae6f2dad10ebe607e6feba1fd80b6b7dd969fdd45012e1c015057ff3016ee1e",
-    "source_text_sha256": "9005d707868923b67bbb952dfec65d76a5d72caf9ddf4f67e7542f648ce28fa1"
+    "source_text_sha256": "4169a890ffbe114a7a5c82188f29f9b847a88671213e064232d8b24361273f20",
+    "reviewed_page_sha256": "9005d707868923b67bbb952dfec65d76a5d72caf9ddf4f67e7542f648ce28fa1",
+    "source_hash_scope": "Complete 1320-character article body; the separately reviewed page includes photo captions."
   },
   {
     "id": "b4287079579f46e5f20c",
@@ -3497,11 +3499,13 @@
     "source_text_sha256": "ba6c1278537dc688e5c6fbea51ad50ea33d0a715a5e9892495e2b47ef1da090b",
     "topics": [
       "food_security",
-      "economic_financial_security"
+      "economic_financial_security",
+      "technology_supply_chains"
     ],
-    "fault_type": "label",
-    "published_field": "topics.technology_supply_chains",
-    "evidence": "The complete release describes food security, canned vegetable tariff-rate quotas, domestic producers and product exclusions. Its supply chain is a food supply chain; no technology measure or technology supply chain is described."
+    "fault_type": "audit_false_positive",
+    "published_field": "topics (retained)",
+    "evidence": "The source explicitly says the domestic canned vegetable sector helps maintain a resilient supply chain. The agreed technology_supply_chains definition requires technology dependence OR supply chains, so the food supply-chain measure supports this existing topic alongside food and economic security.",
+    "short_rationale": "The safeguard responds to imports threatening serious injury to domestic producers. The release explicitly connects domestic production with food security and resilient supply chains, supporting food, economic-security and supply-chain topics."
   },
   {
     "id": "1d978cfeba81f4c737f8",
