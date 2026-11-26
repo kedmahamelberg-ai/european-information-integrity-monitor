@@ -162,7 +162,8 @@ def canonical_government_items(items):
                 "pending_classification": 2, "awaiting_calibration": 1}
     def rank(item):
         return (bool(item.get("human_reviewed")), bool(item.get("source_reviewed")),
-                priority.get(item.get("classification_status"), 0))
+                priority.get(item.get("classification_status"), 0),
+                item.get('country_code')=='MT' and urllib.parse.urlsplit(item['url']).hostname=='www.gov.mt')
     for original in items:
         item = dict(original)
         if (not item.get("classification_status") and not item.get("human_reviewed")
@@ -182,7 +183,11 @@ def canonical_government_items(items):
                 raise RuntimeError('Conflicting owner-reviewed publisher identities require review')
             aliases.update(previous.get("source_aliases") or [])
             aliases.update([previous['url'],item['url']])
-            stable_id=(item['id'] if rank(item)[:2]>rank(previous)[:2] else previous['id'])
+            def identity_rank(record):
+                legacy=(record.get('country_code')=='MT' and
+                        urllib.parse.urlsplit(record['url']).hostname=='www.gov.mt')
+                return (*rank(record)[:2],legacy)
+            stable_id=(item['id'] if identity_rank(item)>identity_rank(previous) else previous['id'])
             if rank(previous) >= rank(item):
                 item = dict(previous)
             if stable_id!=previous['id']:

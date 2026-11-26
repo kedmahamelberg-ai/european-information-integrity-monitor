@@ -70,6 +70,20 @@ class PublisherIdentityTests(unittest.TestCase):
         new='https://departmentofinformation.gov.mt/press-release/2026/pr261650'
         self.assertNotEqual(publisher_identity('MT',old),publisher_identity('MT',new))
 
+    def test_legacy_id_is_retained_when_publication_order_changes(self):
+        old={'id':'original-id','country_code':'MT','classification_status':'provisional',
+             'url':'https://www.gov.mt/en/Government/DOI/Press%20Releases/Pages/2026/10/07/PR261650.aspx',
+             'topics':[],'english_summary':'Retained original copy.'}
+        new={'id':'duplicate-id','country_code':'MT','classification_status':'provisional',
+             'url':'https://departmentofinformation.gov.mt/press-release/2026/pr261650',
+             'topics':['artificial_intelligence'],'english_summary':'Another model answer.'}
+        for rows in ([old,new],[new,old]):
+            merged=list(collector.canonical_government_items(rows).values())
+            self.assertEqual([x['id'] for x in merged],['original-id'])
+            self.assertEqual(merged[0]['url'],new['url'])
+            self.assertEqual(merged[0]['topics'],old['topics'])
+            self.assertEqual(merged[0]['english_summary'],old['english_summary'])
+
     def test_alias_merge_rebinds_archive_proof_and_verifier_detects_reintroduced_duplicate(self):
         row=self.rows[0]
         old={'id':row['id'], 'country_code':'IS', 'url':row['preferred_url']}
