@@ -3540,5 +3540,39 @@
     "fault_type": "editorial",
     "published_field": "english_summary, ticker_message, short_rationale",
     "evidence": "Full 5 November transcript: the prime minister calls for European AI investment to avoid falling behind the US and China and discusses European digital-service capacity; AI qualification rests on that strategic argument, alongside the separate training announcement. All other labels and attributed viewpoints are retained."
+  },
+  {
+    "id": "8f816493f4126f65ad83",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.canada.ca/en/innovation-science-economic-development/news/2026/11/backgrounder-government-of-canada-supports-44-canadian-companies-using-ai-to-transform-industries-and-create-jobs.html",
+    "source_evidence_fingerprint": "25c788ddaef9ed026110b2c5bb6d46970af9b961e2ed72e37fac73b1a1892a9f",
+    "source_text_sha256": "20af9dc35d734e145b17c10348d6f95f1b2b9d7748ead31671cfc4d9a5d29fbe",
+    "english_summary": "Canada’s backgrounder lists 44 companies awarded $66 million on 12 May 2026 through the AI Compute Access Fund. Projects include AI for cybersecurity, wildfire monitoring and agriculture, supported by access to computing resources for Canadian AI development.",
+    "ticker_message": "Canada details May awards to 44 AI companies, including cybersecurity and wildfire-detection projects.",
+    "topics": [
+      "artificial_intelligence",
+      "technology_supply_chains",
+      "cyber",
+      "energy",
+      "food_security",
+      "climate_environment",
+      "critical_infrastructure",
+      "health_biosecurity",
+      "economic_financial_security"
+    ],
+    "published_field": "english_summary, ticker_message, topics.migration_displacement",
+    "fault_type": "editorial_and_label",
+    "evidence": "Full 13,357-character backgrounder is published26November but explicitly dates the44-recipient $66million announcement to12May. Fiddlehead describes truck-freight risk and border inspections, not movement or displacement of people; no listed project supports the migration label. All other topics are retained."
+  },
+  {
+    "id": "7a75e8b457aad440fea1",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.canada.ca/en/innovation-science-economic-development/news/2026/11/backgrounder-government-of-canada-announces-support-for-45-canadian-companies-through-the-ai-compute-access-fund.html",
+    "source_evidence_fingerprint": "b44815bc8cb133b025978b49e9962122730a04179fd2495e73a8f47ab2160b62",
+    "source_text_sha256": "1077c0e55c834b3c5c729273f72c14665c9763fafb92fa9f77d230f458c8d2de",
+    "english_summary": "Canada’s backgrounder details more than $52 million for 45 AI Compute Access Fund recipients announced on 26 November. Projects cover applications including cybersecurity, energy and health, using computing support to develop and scale Canadian AI.",
+    "published_field": "english_summary",
+    "fault_type": "editorial",
+    "evidence": "The complete 12,402-character original ends with ezSec’s complete cybersecurity project description, disclosure guidance and related links. The published claim that the final entry is incomplete is unsupported. The replacement summarizes the source-supported award and applications."
   }
 ]

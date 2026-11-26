@@ -118,6 +118,15 @@ def classifier_reports_missing_source(labels):
         copy, re.I))
 
 
+def summary_reports_source_access(summary):
+    """Model input/access diagnostics are review failures, never public copy."""
+    return bool(re.search(
+        r"\b(?:the\s+)?source['’]s\s+(?:final|last)\s+(?:project\s+)?entry\s+is\s+(?:incomplete|truncated)\b"
+        r"|\b(?:provided|supplied)\s+(?:source\s+)?(?:text|document|article)\s+(?:is|was|appears)\s+(?:incomplete|truncated|missing)\b"
+        r"|\bno\s+(?:press release|source text|article text)\s+(?:was|is)\s+provided\b",
+        summary or '',re.I))
+
+
 def classification_order(item):
     """Review explicitly AI-titled pending releases before a large backfill.
 
@@ -3365,6 +3374,9 @@ def main():
                     print(f"Used source-bound summary for {item['country_code']} {item['id']}",flush=True)
                 else:
                     item["english_translation"],item["english_summary"]=translate_document(text,item.setdefault("translation_checkpoint",{}),save_translation_progress)
+                if summary_reports_source_access(item['english_summary']):
+                    item.pop('english_summary',None)
+                    raise ModelOutputError('summary_source_access_diagnostic')
                 examples=[{**correction,"title":correction.get("source_title") or existing.get(ident,{}).get("title"),"summary":correction.get("source_summary") or existing.get(ident,{}).get("english_summary")} for ident,correction in correction_map.items() if not correction.get("withhold_reason")]
                 validation_note=""
                 for validation_attempt in range(2):

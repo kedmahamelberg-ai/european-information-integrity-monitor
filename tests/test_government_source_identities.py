@@ -16,6 +16,12 @@ class PublisherIdentityTests(unittest.TestCase):
     def setUp(self):
         self.rows = json.loads(REGISTRY.read_text())['identities']
 
+    def test_model_source_access_diagnostics_cannot_be_public_summaries(self):
+        self.assertTrue(collector.summary_reports_source_access("The source’s final project entry is incomplete."))
+        self.assertTrue(collector.summary_reports_source_access('No press release was provided.'))
+        self.assertFalse(collector.summary_reports_source_access('Canada will reject incomplete funding applications.'))
+        self.assertFalse(collector.summary_reports_source_access('The government announced funding for 45 AI companies.'))
+
     def test_every_verified_rename_keeps_the_original_record_id(self):
         for row in self.rows:
             with self.subTest(id=row['id']):
