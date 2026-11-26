@@ -30,11 +30,19 @@ on:
         required: false
         default: false
         type: boolean
+      fresh_pending_only:
+        description: Continue only fresh saved work; do not retry records carrying errors
+        required: false
+        default: false
+        type: boolean
 permissions:
   contents: write
   actions: read
   pages: write
   id-token: write
+concurrency:
+  group: government-collection-and-deployment
+  cancel-in-progress: false
 jobs:
   prepare:
     runs-on: ubuntu-latest
@@ -57,7 +65,7 @@ jobs:
       group: pages
       cancel-in-progress: false
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 75
     env:
       DAILY_UNTIL: ${{ needs.prepare.outputs.until }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -69,6 +77,7 @@ jobs:
       COLLECTION_COUNTRIES: ${{ inputs.countries }}
       CLASSIFY_ONLY: ${{ inputs.classify_only }}
       DISCOVERY_ONLY: ${{ inputs.discovery_only }}
+      FRESH_PENDING_ONLY: ${{ inputs.fresh_pending_only }}
       DAILY_PHASE: ${{ inputs.daily_phase }}
       MALTA_WARP_TERMS_APPROVED: ${{ vars.MALTA_WARP_TERMS_APPROVED }}
     steps:
@@ -77,6 +86,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Validate classifier and Supabase configuration
+        if: inputs.discovery_only != true
         run: |
           test -n "$OPENAI_API_KEY" || { echo '::error::OPENAI_API_KEY is required'; exit 1; }
           test -n "$SUPABASE_URL" || { echo '::error::SUPABASE_URL is required'; exit 1; }
@@ -97,6 +107,7 @@ jobs:
           key: government-checkpoint-hybrid-v3-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
             government-checkpoint-hybrid-v3-${{ github.ref_name }}-
+            government-checkpoint-hybrid-v3-main-
             government-checkpoint-hybrid-v2-${{ github.ref_name }}-
       - name: Restore source-reviewed full China speech
         run: python scripts/repair_government_full_speech.py
@@ -134,6 +145,7 @@ jobs:
           if [ -n "$COLLECTION_COUNTRIES" ]; then args+=(--countries "$COLLECTION_COUNTRIES"); fi
           if [ "$CLASSIFY_ONLY" = "true" ]; then args+=(--classify-only); fi
           if [ "$DISCOVERY_ONLY" = "true" ]; then args+=(--discovery-only); fi
+          if [ "$FRESH_PENDING_ONLY" = "true" ]; then args+=(--fresh-pending-only); fi
           python scripts/collect_government_news.py "${args[@]}"
       - name: Disconnect the Malta WARP proxy
         if: always() && steps.malta_warp.outcome == 'success'
@@ -142,20 +154,23 @@ jobs:
         if: always()
         run: python scripts/report_government_sources.py
       - name: Save collection checkpoint
-        if: always()
+        if: always() && inputs.discovery_only != true
         uses: actions/cache/save@v4
         with:
           path: data/government_state.json
           key: government-checkpoint-hybrid-v3-${{ github.ref_name }}-${{ github.run_id }}
       - name: Install edition graphics dependency
+        if: inputs.discovery_only != true
         run: python -m pip install '.[publish]'
       - name: Restore permanent Field Wire editions
+        if: inputs.discovery_only != true
         uses: actions/checkout@v4
         with:
           ref: field-wire-editions
           path: build-cache
           sparse-checkout: editions
       - name: Build public dashboard
+        if: inputs.discovery_only != true
         run: python scripts/build_site.py --live
       - uses: actions/upload-artifact@v4
         if: always()
@@ -165,20 +180,22 @@ jobs:
             build/government-review-queue.json
             build/government-data.json
             build/government-source-diagnostics.json
+            build/government-source-coverage.json
+            build/government-source-discovery.json
             data/government_state.json
           retention-days: 30
       - name: Save permanent Field Wire editions
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && inputs.discovery_only != true
         env:
           GH_TOKEN: ${{ github.token }}
         run: python scripts/save_field_wire_edition.py build-cache
       - uses: actions/upload-pages-artifact@v3
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && inputs.discovery_only != true
         with:
           path: build
   deploy:
     needs: collect
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && inputs.discovery_only != true
     permissions:
       contents: read
       actions: read
@@ -198,3 +215,41 @@ jobs:
       - name: Deploy updated monitor
         id: deployment
         uses: ./.github/actions/deploy-monitor-pages
+  verify-coverage:
+    needs: deploy
+    if: github.ref == 'refs/heads/main' && inputs.discovery_only != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: government-human-review-queue
+          path: archive-proof
+      - name: Load the exact saved archive proof
+        run: |
+          mkdir -p build
+          cp archive-proof/build/government-source-coverage.json build/government-source-coverage.json
+          cp archive-proof/build/government-data.json government-expected-data.json
+      - name: Verify official archive identities against live Monitor records
+        run: python scripts/verify_government_source_coverage.py
+      - name: Record incomplete sources without duplicate issues
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/publish_government_coverage_findings.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: government-live-archive-coverage
+          path: government-source-coverage-check.json
+          retention-days: 30

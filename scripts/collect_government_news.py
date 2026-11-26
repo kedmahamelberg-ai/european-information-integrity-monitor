@@ -29,6 +29,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT / "src"))
 from eiim.storage import Store
 from government_reviews import apply_confirmed_corrections
+from government_coverage import (POLICY as COVERAGE_POLICY, discovery_window,
+    index_records, match_record, register_aliases, coverage_row)
 SOURCES = json.loads((ROOT / "config/government_sources.json").read_text())["sources"]
 HYBRID = json.loads((ROOT / "config/hybrid.json").read_text())
 TOPICS = HYBRID["topics"]
@@ -178,6 +180,16 @@ def canonical_government_items(items):
             item["source_aliases"] = sorted(aliases)
         result[item["id"]] = item
     return result
+
+
+def save_government_checkpoint(state, items, source_cursors, calibration_complete):
+    """Retain reconciliation proofs and private progress in every atomic save."""
+    payload={**state,"source_cursors":source_cursors,
+             "calibration_complete":calibration_complete,"items":list(items)}
+    STATE.parent.mkdir(parents=True,exist_ok=True)
+    temporary=STATE.with_suffix(STATE.suffix+".tmp")
+    temporary.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n")
+    temporary.replace(STATE)
 
 
 class Links(HTMLParser):
@@ -1534,34 +1546,54 @@ def discover_kazakhstan(country,start,end):
 
 
 def discover_liechtenstein(country,start,end):
-    """Use only the government's media-release cards and check archive coverage."""
+    """Traverse complete date-filtered pages instead of the truncated default list."""
     first,last=start.astimezone(VADUZ).date(),end.astimezone(VADUZ).date()
-    _,body=fetch(country["url"],timeout=20)
-    page=body.decode("utf-8","replace")
-    cards=[part.split("</li>",1)[0] for part in page.split('<div class="shortmsg ')[1:]]
-    if not cards: raise RuntimeError("Liechtenstein media-release section has no cards")
-    entries=[]; seen=set(); older=False
-    for card in cards:
+    if (last-first).days>370: raise RuntimeError("Liechtenstein requested history exceeds the bounded archive window")
+    windows=[];cursor=first
+    while cursor<=last:
+        stop=min(cursor+dt.timedelta(days=7),last+dt.timedelta(days=1))
+        windows.append((cursor,stop));cursor=stop
+    dated_cards=[];requests=0
+    while windows:
+        lower,upper=windows.pop(0);requests+=1
+        if requests>256: raise RuntimeError("Liechtenstein date-filter pagination exceeded its safety limit")
+        period=lower.strftime('%d.%m.%Y 00:00:00')+'_'+upper.strftime('%d.%m.%Y 00:00:00')
+        url=country['url']+'?'+urllib.parse.urlencode({'years':period})
+        _,body=fetch(url,timeout=20);page=body.decode('utf-8','replace')
+        if 'show-more-links' in page:
+            # The publisher explicitly reports more results. Split the actual
+            # UI date filter until each response contains the complete result.
+            days=(upper-lower).days
+            if days<=1: raise RuntimeError("Liechtenstein single-day archive remains truncated")
+            middle=lower+dt.timedelta(days=days//2)
+            windows[0:0]=[(lower,middle),(middle,upper)]
+            continue
+        cards=[part.split('</li>',1)[0] for part in page.split('<div class="shortmsg ')[1:]]
+        if not cards and 'Keine Einträge gefunden' not in html.unescape(page):
+            raise RuntimeError("Liechtenstein archive has neither dated cards nor an explicit empty result")
+        dated_cards.extend((card,lower,upper) for card in cards)
+    entries=[];seen=set()
+    for card,lower,upper in dated_cards:
         date_match=re.search(r'<div class="shortmsg__date"[^>]*>(.*?)</div>',card,re.S)
         title_match=re.search(r'<div class="shortmsg__text"[^>]*>(.*?)</div>',card,re.S)
-        link=re.search(r'<a class="shortmsg__more" href="(/medienportal-medium/16182/\d+/0/medienmitteilung)"',card)
+        link=re.search(r'<a class="shortmsg__more" href="(/medienportal-medium/16182/\d+/[01]/medienmitteilung)"',card)
         if not date_match or not title_match or not link: raise RuntimeError("Liechtenstein media-release card lacks date or title")
         date_text=re.sub(r'<[^>]+>',' ',html.unescape(date_match.group(1))).strip()
         dated=re.search(r'(\d{1,2})\.?\s+([\wÀ-ÿ]+)\s+(20\d{2})',date_text)
         month=LIECHTENSTEIN_MONTHS.get(dated.group(2).casefold()) if dated else None
         if not month: raise RuntimeError(f"Unexpected Liechtenstein publication date: {date_text[:80]}")
         day=dt.date(int(dated.group(3)),month,int(dated.group(1)))
-        if day<first: older=True; continue
+        if not lower<=day<=upper:
+            raise RuntimeError("Liechtenstein archive ignored the requested date filter")
         if day>last: continue
         article_url=urllib.parse.urljoin(country["url"],link.group(1))
-        if article_url in seen: raise RuntimeError("Liechtenstein media-release section repeated an article")
+        if article_url in seen: continue  # adjacent date windows may share an inclusive boundary
         seen.add(article_url)
         title=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",title_match.group(1)))).strip()
         published=dt.datetime.combine(day,dt.time.min,VADUZ).astimezone(dt.timezone.utc)
         entries.append({"country":country["name"],"country_code":"LI","url":article_url,"title":title,
                         "published_at":published.isoformat(),"published_date":day.isoformat(),
                         "publication_precision":"day","text":""})
-    if not older: raise RuntimeError("Liechtenstein media-release page does not reach the requested start date")
     return entries,country["url"]
 
 
@@ -2193,8 +2225,8 @@ def discover_norway(country,start,end):
     return entries,country["url"]
 
 
-WHITE_HOUSE_ARTICLE = re.compile(r"https://www\.whitehouse\.gov/briefings-statements/20\d{2}/(?:0?[1-9]|1[0-2])/[a-z0-9-]+/\Z")
-WHITE_HOUSE_ARCHIVE = re.compile(r"https://www\.whitehouse\.gov/briefings-statements/(?:page/[1-9]\d*/)?\Z")
+WHITE_HOUSE_ARTICLE = re.compile(r"https://www\.whitehouse\.gov/(?:briefings-statements|releases|fact-sheets|presidential-actions|remarks|research)/20\d{2}/(?:0?[1-9]|1[0-2])/[a-z0-9-]+/\Z")
+WHITE_HOUSE_ARCHIVE = re.compile(r"https://www\.whitehouse\.gov/(?:news|briefings-statements)/(?:page/[1-9]\d*/)?\Z")
 US_BENCHMARK_START = dt.datetime(2026,10,4,tzinfo=SOURCE_TIMEZONES["US"]).astimezone(dt.timezone.utc)
 CANADA_ARTICLE = re.compile(r"https://www\.canada\.ca/(?:en|fr)/[^?#]+/(?:news|nouvelles)/20\d{2}/\d{2}/[^/?#]+\.html\Z")
 CHINA_ARTICLE = re.compile(r"https://english\.www\.gov\.cn/(?:news|policies/latestreleases|archive/statistics)/20\d{4}/\d{2}/content_WS[0-9a-f]+\.html\Z")
@@ -2262,8 +2294,14 @@ class CanadaReleaseText(ClassText):
         super().__init__("news-release-container")
         self.paragraphs = []
         self.paragraph = None
+        self.alternates = {}
 
     def handle_starttag(self, tag, attrs):
+        values = dict(attrs)
+        if tag in {"a", "link"} and values.get("hreflang") in {"en", "fr"}:
+            url = html.unescape(values.get("href", ""))
+            if CANADA_ARTICLE.fullmatch(url):
+                self.alternates[values["hreflang"]] = url
         super().handle_starttag(tag, attrs)
         if self.depth and tag == "p":
             self.paragraph = []
@@ -2280,45 +2318,72 @@ class CanadaReleaseText(ClassText):
         super().handle_endtag(tag)
 
 
-def canada_release_date(url):
-    """Use the source article's issued date, not its sometimes stale feed timestamp."""
+CANADA_TEXT_POLICY = "canada-official-news-body-v2"
+
+
+def canada_news_metadata(url):
+    """Read an official news page once, including its explicit language pair."""
     _,body=fetch(url,timeout=20)
-    markup=body.decode("utf-8","replace")
+    markup=re.sub(r'<p class="teaser hidden">.*?</p>',"",body.decode("utf-8","replace"),flags=re.S)
     match=CANADA_ISSUED.search(markup)
     if not match: raise RuntimeError("Canada release has no original issued date")
     parser=CanadaReleaseText();parser.feed(markup)
-    article=" ".join(parser.parts)
+    article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
     if len(article)<80: raise RuntimeError("Canada release has no usable full article body")
     issued=dt.date.fromisoformat(match.group(1))
-    # The introduction can repeat an earlier event date before the real
-    # publication dateline. Only a standalone dateline paragraph qualifies.
-    datelines = [CANADA_DATELINE.fullmatch(p) for p in parser.paragraphs[:10]]
-    visible_days = {dt.datetime.strptime(" ".join(m.groups()), "%B %d %Y").date()
-                    for m in datelines if m}
-    if len(visible_days) > 1:
-        raise RuntimeError("Canada release has conflicting publication datelines: " + url)
-    if visible_days:
-        return visible_days.pop()
-    return issued
+    # Only an opening standalone dateline can override stale metadata. Media
+    # advisories include later event schedules (for example "When: Friday,
+    # November 27") which are not additional publication datelines.
+    datelines = [CANADA_DATELINE.fullmatch(p) for p in parser.paragraphs[:4]
+                 if not re.match(r'^(?:when|date|dates|time|event date)\s*:',p,re.I)]
+    # The opening dateline identifies publication. Later standalone dates can
+    # be event details even when their "Date" label is a separate HTML element.
+    opening_dateline=next((match for match in datelines if match),None)
+    if opening_dateline:
+        issued=dt.datetime.strptime(" ".join(opening_dateline.groups()),"%B %d %Y").date()
+    article = re.split(r"\s+(?:Contacts|Personnes-ressources)\s+", article, maxsplit=1)[0]
+    return {"day": issued, "alternates": parser.alternates, "text": article}
 
 
-def discover_canada(country,start,end):
-    """Page the official bilingual federal release feeds; retain one language per release."""
+def canada_release_date(url):
+    """Retain the source-date API used by independent editorial audits."""
+    return canada_news_metadata(url)["day"]
+
+
+def canada_cached_metadata(item, cache):
+    proof=cache.get(item["url"],{})
+    if (proof.get("policy")==CANADA_TEXT_POLICY
+            and proof.get("index_timestamp")==item["published_at"]):
+        return {"day":dt.date.fromisoformat(proof["day"]),
+                "alternates":proof["alternates"],"text":""}
+    info=canada_news_metadata(item["url"])
+    cache[item["url"]]={"policy":CANADA_TEXT_POLICY,"index_timestamp":item["published_at"],
+                         "day":info["day"].isoformat(),"alternates":info["alternates"]}
+    return info
+
+
+def discover_canada(country,start,end,metadata_cache=None):
+    """Collect every federal news type and deduplicate publisher-declared translations."""
     first_day=start.astimezone(SOURCE_TIMEZONES["CA"]).date()
     last_day=end.astimezone(SOURCE_TIMEZONES["CA"]).date()
-    entries=[]; english_times=set(); seen=set()
-    # The feed's updated timestamp pairs translated releases. A small number
-    # of French-only releases have no English counterpart and remain eligible.
+    entries={}; metadata_cache=metadata_cache if metadata_cache is not None else {}
+    # Reconcile the whole requested official index and assign dates from each
+    # original page. A later cursor must not hide a backdated archive entry.
+    index_first=first_day
     for language in ("en","fr"):
+        language_entries={}
         for page in range(100):
             # The official API responds HTTP 200 with an empty Atom feed and
             # "Invalid date" when a publishedDate filter is supplied. Page the
             # descending feed and stop at the timestamp boundary below.
             query=urllib.parse.urlencode({"format":"atom","orderBy":"desc","pick":100,
-                "sort":"publishedDate","type":"newsreleases","skip":page*100})
+                "sort":"publishedDate","skip":page*100})
             url=f"https://api.io.canada.ca/io-server/gc/news/{language}/v2?{query}"
             _,body=fetch(url,timeout=20)
-            records=ET.fromstring(body).findall(ATOM+"entry")
+            # The all-type feed emits literal HTML nonbreaking spaces inside
+            # Atom summaries (observed on English pages 5 and 6). XML accepts
+            # the numeric reference, not HTML's undeclared named entity.
+            records=ET.fromstring(body.replace(b"&nbsp;",b"&#160;")).findall(ATOM+"entry")
             if page==0 and not records: raise RuntimeError("Canada official release feed returned no entries")
             dates=[]
             for record in records:
@@ -2329,29 +2394,48 @@ def discover_canada(country,start,end):
                 if not title or not published or not CANADA_ARTICLE.fullmatch(article_url):
                     raise RuntimeError("Canada release feed has invalid article metadata")
                 day=published.astimezone(SOURCE_TIMEZONES["CA"]).date();dates.append(day)
-                if language=="en": english_times.add(published)
-                if not first_day<=day<=last_day or not start<=published<=end: continue
-                if language=="fr" and published in english_times: continue
-                if article_url in seen: continue
-                seen.add(article_url)
-                entries.append({"country":country["name"],"country_code":"CA","url":article_url,
-                    "title":title,"published_at":published.isoformat(),"text":""})
-            if not records or min(dates)<first_day or len(records)<100: break
+                if not index_first<=day<=last_day or published>end: continue
+                language_entries.setdefault(article_url,{"country":country["name"],"country_code":"CA","url":article_url,
+                    "title":title,"published_at":published.isoformat(),"source_language":language})
+            if not records or min(dates)<index_first or len(records)<100: break
         else: raise RuntimeError("Canada release feed exceeded pagination safety limit")
-    # The feed's updated field can differ by weeks from the article's issued
-    # date. Verify each full page before assigning a publication day or moving
-    # this source's cursor; day-only precision avoids inventing a clock time.
-    checked=[]
-    with ThreadPoolExecutor(max_workers=6) as pool:
-        dates={pool.submit(canada_release_date,item["url"]):item for item in entries}
-        for future in as_completed(dates):
-            item=dates[future];day=future.result()
-            if first_day<=day<=last_day:
+        paired={alias: item for item in entries.values() for alias in item.get("source_aliases",[])}
+        unpaired=[item for url,item in language_entries.items() if url not in paired and url not in entries]
+        metadata_failures=[]
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            pending={pool.submit(canada_cached_metadata,item,metadata_cache):item for item in unpaired}
+            for future in as_completed(pending):
+                item=pending[future]
+                try:info=future.result()
+                except Exception as error:
+                    metadata_failures.append(item['url']+' — '+type(error).__name__+': '+str(error))
+                    continue
+                day=info["day"]
+                if not first_day<=day<=last_day: continue
+                # The publisher's hreflang link is identity evidence. Equal
+                # timestamps alone never discard a distinct French announcement.
+                english=info["alternates"].get("en")
+                if language=="fr" and english in entries:
+                    aliases=set(entries[english].get("source_aliases",[]));aliases.add(item["url"])
+                    entries[english]["source_aliases"]=sorted(aliases)
+                    continue
+                if language=="fr" and english and english!=item["url"]:
+                    # An English counterpart can be absent from its own feed.
+                    # Retain the complete French original instead of dropping it.
+                    item["source_aliases"]=[english]
                 item["published_date"]=day.isoformat()
                 item["published_at"]=dt.datetime.combine(day,dt.time.min,SOURCE_TIMEZONES["CA"]).isoformat()
                 item["publication_precision"]="day"
-                checked.append(item)
-    return checked,country["url"]
+                item["source_aliases"]=sorted(set(item.get("source_aliases",[])) |
+                    {url for url in info["alternates"].values() if url!=item["url"]})
+                if info["text"]:
+                    item["source_extraction_version"]=CANADA_TEXT_POLICY
+                    item["text"]=info["text"]
+                    item["source_text_sha256"]=hashlib.sha256(info["text"].encode()).hexdigest()
+                entries[item["url"]]=item
+        if metadata_failures:
+            raise RuntimeError(f"Canada original-source metadata unverified for {len(metadata_failures)} item(s): "+' | '.join(sorted(metadata_failures)[:20]))
+    return list(entries.values()),country["url"]
 
 
 def discover_china(country,start,end):
@@ -2384,7 +2468,7 @@ def discover_china(country,start,end):
 
 
 def discover_united_states(country,start,end):
-    """Traverse the White House's dated Briefings & Statements archive."""
+    """Traverse every dated announcement type in the official White House News archive."""
     start=max(start,US_BENCHMARK_START)
     first_day=start.astimezone(SOURCE_TIMEZONES["US"]).date()
     last_day=end.astimezone(SOURCE_TIMEZONES["US"]).date()
@@ -2411,9 +2495,9 @@ def discover_united_states(country,start,end):
     return entries,country["url"]
 
 
-def discover(country,start,end):
+def discover(country,start,end,metadata_cache=None):
     if country["iso2"]=="US": return discover_united_states(country,start,end)
-    if country["iso2"]=="CA": return discover_canada(country,start,end)
+    if country["iso2"]=="CA": return discover_canada(country,start,end,metadata_cache)
     if country["iso2"]=="CN": return discover_china(country,start,end)
     if country["iso2"]=="AM": return discover_armenia(country,start,end)
     if country["iso2"]=="BE": return discover_belgium(country,start,end)
@@ -2499,6 +2583,10 @@ def article_text(item):
             return text
     if item["country_code"]=="CA":
         if not CANADA_ARTICLE.fullmatch(item["url"]): raise RuntimeError("Canada release URL is outside the official feed")
+        cached=item.get("text", "")
+        if (item.get("source_extraction_version")==CANADA_TEXT_POLICY and len(cached)>=80
+                and hashlib.sha256(cached.encode()).hexdigest()==item.get("source_text_sha256")):
+            return cached
         _,body=fetch(item["url"],timeout=20)
         markup=re.sub(r'<p class="teaser hidden">.*?</p>',"",body.decode("utf-8","replace"),flags=re.S)
         parser=ClassText("news-release-container");parser.feed(markup)
@@ -2964,8 +3052,11 @@ def translate_document(source_text, checkpoint=None, on_progress=None, *, source
 
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument("--since",default=""); ap.add_argument("--until",default=""); ap.add_argument("--countries",default="",help="Comma-separated ISO country codes for an isolated source check"); ap.add_argument("--skip-countries",default="",help="Optional country codes to omit from a manual run"); ap.add_argument("--discovery-only",action="store_true"); ap.add_argument("--classify-only",action="store_true",help="Classify pending checkpoint items without re-fetching source archives"); args=ap.parse_args()
+    ap=argparse.ArgumentParser(); ap.add_argument("--since",default=""); ap.add_argument("--until",default=""); ap.add_argument("--countries",default="",help="Comma-separated ISO country codes for an isolated source check"); ap.add_argument("--skip-countries",default="",help="Optional country codes to omit from a manual run"); ap.add_argument("--discovery-only",action="store_true"); ap.add_argument("--classify-only",action="store_true",help="Classify pending checkpoint items without re-fetching source archives")
+    ap.add_argument('--fresh-pending-only',action='store_true')
+    args=ap.parse_args()
     if args.discovery_only and args.classify_only: ap.error("--discovery-only and --classify-only cannot be combined")
+    if args.fresh_pending_only and not args.classify_only:ap.error('--fresh-pending-only requires --classify-only')
     now=dt.datetime.now(dt.timezone.utc).replace(microsecond=0)
     state=json.loads(STATE.read_text()) if STATE.exists() else {"last_successful_collection_end":None,"items":[]}
     initial_start=dt.datetime(2026,10,1,tzinfo=AMSTERDAM).astimezone(dt.timezone.utc)
@@ -2981,9 +3072,17 @@ def main():
     if selected_codes-{source["iso2"] for source in matching_sources}: raise SystemExit("Country selection contains missing or unverified codes")
     selected_sources=[] if args.classify_only else matching_sources
     source_cursors=dict(state.get("source_cursors") or {})
-    starts_by_code={source["iso2"]:requested_start or date_value(source_cursors.get(source["iso2"])) or (US_BENCHMARK_START if source["iso2"]=="US" else initial_start) for source in selected_sources}
+    requested_source_start=(dt.date.fromisoformat(args.since)
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}",args.since) else requested_start)
+    reconciliation_plans={source["iso2"]:discovery_window(state,source["iso2"],end,SOURCE_TIMEZONES,requested_source_start)
+                          for source in selected_sources}
+    starts_by_code={code:plan[0] for code,plan in reconciliation_plans.items()}
+    source_reconciliations=state.setdefault("source_reconciliations",{})
+    source_metadata=state.setdefault("source_metadata",{})
+    coverage_sources=[]; archive_entries={}
     start=min(starts_by_code.values(),default=requested_start or initial_start)
     existing=canonical_government_items(state.get("items",[])); sources_status=[]; candidates=[]; discovered_links={}; article_failures=[]; model_failures=[]
+    identity_index=index_records(existing.values())
     corrections=json.loads(CORRECTIONS.read_text()) if CORRECTIONS.exists() else []
     correction_map={x["id"]:x for x in corrections if x.get("id")}
     summary_overrides=json.loads(SUMMARY_OVERRIDES.read_text()) if SUMMARY_OVERRIDES.exists() else []
@@ -3006,18 +3105,27 @@ def main():
         if requeue_reviewed_attachment(item):
             print(f"Requeued source-reviewed China attachment {item['id']}",flush=True)
     if calibration_complete:
+        for item in existing.values():
+            if (item.get("classification_status")=="pending_classification"
+                    and item.get("classification_error")=="summary_exceeds_45_words"
+                    and item["id"] not in summary_override_map):
+                item["classification_status"]="needs_review"
         candidates.extend(x for x in existing.values()
                           if x.get("classification_status") in {"awaiting_calibration", "pending_classification"}
+                          and not x.get("human_reviewed") and not x.get("source_reviewed")
+                          and (not args.fresh_pending_only or not x.get('classification_error')
+                               or (x.get('classification_error')=='summary_exceeds_45_words' and x['id'] in summary_override_map))
                           and (not selected_codes or x["country_code"] in selected_codes))
     # Discover the official sources concurrently and log each completion.
     # With bounded request timeouts, slow sites cannot stall the whole batch.
     with ThreadPoolExecutor(max_workers=16) as pool:
-        futures={pool.submit(discover,source,starts_by_code[source["iso2"]],end):source for source in selected_sources}
+        futures={pool.submit(discover,source,starts_by_code[source["iso2"]],end,
+                             source_metadata.setdefault(source["iso2"],{})):source for source in selected_sources}
         for future in as_completed(futures):
             source=futures[future]
             try:
                 entries, final=future.result()
-                sources_status.append({"country_code":source["iso2"],"country":source["name"],"official_home":final,"status":"discovered","candidate_count":len(entries)})
+                archive_entries[source["iso2"]]=entries
                 source_start=starts_by_code[source["iso2"]]
                 for item in entries:
                     pub=date_value(item.get("published_at"))
@@ -3031,18 +3139,36 @@ def main():
                     if not pub: continue
                     item["url"]=canonical_source_url(item["url"])
                     item["published_at"]=(pub or end).isoformat(); item["id"]=source_record_id(item["url"])
-                    if item["id"] in existing:
-                        for key in ("published_date","publication_precision"):
-                            if key in item: existing[item["id"]][key]=item[key]
+                    previous=match_record(item,identity_index)
+                    if previous is not None:
+                        register_aliases(previous,item)
+                        identity_index.update(index_records([previous]))
+                        # A new archive timestamp must not overwrite a signed
+                        # or source-bound date correction.
+                        if not previous.get("human_reviewed") and not previous.get("source_reviewed"):
+                            for key in ("published_date","publication_precision"):
+                                if key in item: previous[key]=item[key]
                     elif item["id"] not in discovered_links:
                         discovered_links[item["id"]]={key:item[key] for key in ("id","url","country_code","published_at")}
                         candidates.append(item)
+                        # Staging an identity here also merges language pairs
+                        # and publisher aliases discovered later in this pass.
+                        identity_index.update(index_records([item]))
+                sources_status.append({"country_code":source["iso2"],"country":source["name"],"official_home":final,"status":"discovered","candidate_count":len(entries)})
                 print(f"Discovered {source['name']}: {len(entries)} candidate links",flush=True)
             except Exception as e:
                 sources_status.append({"country_code":source["iso2"],"country":source["name"],"official_home":source["url"],"status":"source_unavailable","error":type(e).__name__,**source_failure_diagnostic(e)})
+                coverage_sources.append({"country_code":source["iso2"],"country":source["name"],
+                    "source_url":source["url"],"status":"source_unverified", "error":str(e),
+                    "policy":COVERAGE_POLICY,"full_reconciliation":reconciliation_plans[source["iso2"]][1]})
                 print(f"Unavailable {source['name']}: {type(e).__name__}: {e}",flush=True)
     if args.discovery_only:
-        print(json.dumps({"window_start":start.isoformat(),"window_end":end.isoformat(),"sources":sources_status,"items":[{"country":x["country"],"url":x["url"],"title":x["title"],"published_at":x["published_at"]} for x in candidates]},ensure_ascii=False,indent=2))
+        discovery={"window_start":start.isoformat(),"window_end":end.isoformat(),"sources":sources_status,
+                   "items":[{"id":x["id"],"country":x["country"],"country_code":x["country_code"],"url":x["url"],
+                             "title":x["title"],"published_at":x["published_at"]} for x in candidates]}
+        PUBLIC.parent.mkdir(exist_ok=True)
+        (PUBLIC.parent/"government-source-discovery.json").write_text(json.dumps(discovery,ensure_ascii=False,indent=2)+"\n")
+        print(json.dumps(discovery,ensure_ascii=False,indent=2))
         if any(x["status"]!="discovered" for x in sources_status): raise SystemExit("One or more selected official sources could not be verified for this window")
         return
     # Store only source-link metadata in Supabase. Article text, translations,
@@ -3064,17 +3190,41 @@ def main():
     for status in sources_status:
         if status["status"]=="discovered":
             code=status["country_code"]
+            source=next(x for x in selected_sources if x["iso2"]==code)
+            proof=coverage_row(source,archive_entries[code],index_records(existing.values()),
+                full=reconciliation_plans[code][1],start=starts_by_code[code],end=end)
+            coverage_sources.append(proof)
+            if proof["missing_urls"]:
+                raise RuntimeError("Archive records were not saved before source checkpoint: "+code)
+            if proof["full_reconciliation"]:
+                source_reconciliations[code]={"policy":COVERAGE_POLICY,
+                    "day":end.astimezone(AMSTERDAM).date().isoformat(),
+                    "window_start":starts_by_code[code].isoformat(),"window_end":end.isoformat(),
+                    "archive_unique_records":proof["archive_unique_records"]}
             prior=date_value(source_cursors.get(code))
             if prior is None or end>prior: source_cursors[code]=end.isoformat()
+    if selected_sources:
+        state["source_coverage_report"]={"version":1,"policy":COVERAGE_POLICY,
+            "observed_at":now.isoformat(),"window_end":end.isoformat(),
+            "active_country_codes":sorted(selected_codes or COLLECTOR_READY_CODES-skipped_codes),
+            "disabled_country_codes":sorted(source["iso2"] for source in SOURCES
+                                             if source["iso2"] not in COLLECTOR_READY_CODES),
+            "sources":sorted(coverage_sources,key=lambda row:row["country_code"])}
+    if state.get("source_coverage_report"):
+        PUBLIC.parent.mkdir(exist_ok=True)
+        (PUBLIC.parent/"government-source-coverage.json").write_text(
+            json.dumps(state["source_coverage_report"],ensure_ascii=False,indent=2)+"\n")
     STATE.parent.mkdir(exist_ok=True)
-    STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
+    save_government_checkpoint(state,existing.values(),source_cursors,calibration_complete)
     successful_classifications=0; request_rejections=0
     if not args.discovery_only:
         # The first tenth of a backfill is a calibration tranche. It is published
         # for researcher review; the workflow keeps subsequent items queued until
         # GOVERNMENT_CALIBRATION_READY is explicitly enabled after corrections.
         calibrating=not calibration_complete
-        candidates.sort(key=classification_order)
+        # Approved source-bound repairs reuse translations already paid for and
+        # are completed before unrelated fresh archive backfill work.
+        candidates.sort(key=lambda item:(item['id'] not in summary_override_map,classification_order(item)))
         # The 15:00 pass drains the checkpoint as far as the runner's time
         # budget permits. Other runs retain small checkpointed tranches.
         afternoon_full_pass=os.environ.get("DAILY_PHASE")=="retry" and not selected_codes
@@ -3101,7 +3251,7 @@ def main():
                 article_failures.append({"country_code":item["country_code"],"url":item["url"],
                                          "error":type(error).__name__,**source_failure_diagnostic(error)})
                 existing[item["id"]]=item
-                STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
+                save_government_checkpoint(state,existing.values(),source_cursors,calibration_complete)
                 print(f"Deferred {item['country_code']} {item['id']}: {type(error).__name__}",flush=True)
                 continue
             item.pop("classification_error",None)
@@ -3109,8 +3259,10 @@ def main():
             try:
                 def save_translation_progress():
                     existing[item["id"]]=item
-                    STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
+                    save_government_checkpoint(state,existing.values(),source_cursors,calibration_complete)
                 summary_override=source_bound_summary_override(item,text,summary_override_map)
+                if item['id'] in summary_override_map and summary_override is None:
+                    raise ModelOutputError('source_bound_summary_evidence_changed')
                 if summary_override:
                     item["english_translation"],item["english_summary"]=translate_document(text,item.setdefault("translation_checkpoint",{}),save_translation_progress,source_bound_summary=summary_override)
                     print(f"Used source-bound summary for {item['country_code']} {item['id']}",flush=True)
@@ -3128,14 +3280,14 @@ def main():
             except (ModelRateLimit,ModelProcessingError) as error:
                 # A rejected article should enter the review queue once the
                 # same run has proved that the model configuration works.
-                item["classification_status"]="needs_review" if isinstance(error,ModelRequestError) and successful_classifications else "pending_classification"
+                item["classification_status"]="needs_review" if isinstance(error,ModelProcessingError) else "pending_classification"
                 item["classification_error"]=error.code if isinstance(error,ModelRateLimit) else str(error)
                 model_failures.append({"country_code":item["country_code"],"id":item["id"],"url":item["url"],"error":item["classification_error"]})
                 # Malta's article body comes from the archive response. Keep it
                 # in the private checkpoint for a later classify-only retry.
                 if item["country_code"]!="MT": item.pop("text",None)
                 existing[item["id"]]=item
-                STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
+                save_government_checkpoint(state,existing.values(),source_cursors,calibration_complete)
                 print(f"::warning::Model processing deferred {item['country_code']} {item['id']}: {item['classification_error']}",flush=True)
                 if isinstance(error,ModelRequestError):
                     request_rejections+=1
@@ -3147,7 +3299,7 @@ def main():
             if not valid:
                 item.update(labels); item["classification_status"]="needs_review"; item["classification_error"]="inconsistent_relevance_topics_roles"; item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item
                 print(f"Needs review: {item['country_code']} {item['id']} inconsistent relevance/topics/roles",flush=True)
-                STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
+                STATE.parent.mkdir(exist_ok=True); save_government_checkpoint(state,existing.values(),source_cursors,calibration_complete)
                 continue
             if classifier_reports_missing_source(labels):
                 for key in ("english_summary", "ticker_message", "short_rationale",
@@ -3163,7 +3315,7 @@ def main():
                             translated_text_chars=len(item["english_translation"]),
                             translation_complete=False)
                 existing[item["id"]]=item
-                STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
+                save_government_checkpoint(state,existing.values(),source_cursors,calibration_complete)
                 print(f"::warning::Withheld {item['country_code']} {item['id']}: classifier reported missing source text",flush=True)
                 continue
             if not ai_topic_has_explicit_copy(labels, item.get("english_summary")):
@@ -3178,10 +3330,10 @@ def main():
                 item.pop("text", None)
                 item.pop("english_translation", None)
                 existing[item["id"]] = item
-                STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
+                save_government_checkpoint(state,existing.values(),source_cursors,calibration_complete)
                 print(f"::warning::Held {item['country_code']} {item['id']}: AI topic absent from published copy",flush=True)
                 continue
-            item.update(labels); item["related"]=labels["relevance"]=="related"; item["primary_narrative"]=(labels["topics"] or ["none_unclear"])[0]; item["secondary_narratives"]=labels["topics"][1:]; item["classification_status"]="provisional"; item["classifier_prompt_version"]=CLASSIFIER_PROMPT_VERSION; item["review_sample"]=(int(item["id"][:8],16)%100<3); item["calibration_item"]=bool(calibrating and not calibration_ids); item["source_text_chars"]=len(text); item["translated_text_chars"]=len(item["english_translation"]); item["translation_complete"]=True; item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item; STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":state.get("last_successful_collection_end"),"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":list(existing.values())},ensure_ascii=False,indent=2)+"\n")
+            item.update(labels); item["related"]=labels["relevance"]=="related"; item["primary_narrative"]=(labels["topics"] or ["none_unclear"])[0]; item["secondary_narratives"]=labels["topics"][1:]; item["classification_status"]="provisional"; item["classifier_prompt_version"]=CLASSIFIER_PROMPT_VERSION; item["review_sample"]=(int(item["id"][:8],16)%100<3); item["calibration_item"]=bool(calibrating and not calibration_ids); item["source_text_chars"]=len(text); item["translated_text_chars"]=len(item["english_translation"]); item["translation_complete"]=True; item.pop("text",None); item.pop("english_translation",None); existing[item["id"]]=item; STATE.parent.mkdir(exist_ok=True); save_government_checkpoint(state,existing.values(),source_cursors,calibration_complete)
             print(f"Classified {position}/{cap}: {item['country_code']} {item['id']} {labels['relevance']} {','.join(labels['topics'])}",flush=True)
             successful_classifications+=1
         for item in candidates[cap:]:
@@ -3198,7 +3350,11 @@ def main():
     out={"as_of":end.isoformat(),"window_start":start.isoformat(),"window_end":end.isoformat(),"taxonomy_version":HYBRID["version"],"sources":sources_status,"items":sorted(existing.values(),key=lambda x:x.get("published_at",""),reverse=True),"review":{"routine_sample_percent":3,"calibration_tranche_percent":10,"calibration_ready":calibration_complete}}
     collection_complete=not args.classify_only and not selected_codes and not skipped_codes and bool(selected_sources) and len(sources_status)==len(selected_sources) and all(x["status"]=="discovered" for x in sources_status)
     cursor=end.isoformat() if collection_complete else state.get("last_successful_collection_end")
-    STATE.parent.mkdir(exist_ok=True); STATE.write_text(json.dumps({"last_successful_collection_end":cursor,"source_cursors":source_cursors,"calibration_complete":calibration_complete,"items":out["items"]},ensure_ascii=False,indent=2)+"\n")
+    state['classification_progress']={'run_id':os.getenv('GITHUB_RUN_ID'),
+        'classified':successful_classifications,'candidates':len(candidates),
+        'fresh_pending':sum(x.get('classification_status')=='pending_classification'
+                            and not x.get('classification_error') for x in out['items'])}
+    STATE.parent.mkdir(exist_ok=True); state["last_successful_collection_end"]=cursor; save_government_checkpoint(state,out["items"],source_cursors,calibration_complete)
     PUBLIC.parent.mkdir(exist_ok=True)
     public={**out,"items":[{k:v for k,v in item.items() if k not in {"text","english_translation","translation_checkpoint"}} for item in out["items"]]}
     PUBLIC.write_text(json.dumps(public,ensure_ascii=False,indent=2)+"\n")

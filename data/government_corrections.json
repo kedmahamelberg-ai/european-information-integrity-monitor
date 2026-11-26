@@ -3436,5 +3436,56 @@
       "cyber"
     ],
     "short_rationale": "The regulation specifies authentication, encryption, access controls and logging to protect information and prevent misuse. Ordinary gambling-sector supervision does not establish the separate economic-security topic."
+  },
+  {
+    "id": "829a701fb15c7eca6b3d",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "8de1a92309638fb4d2fc4dda154db6023adf1272183867765b218df80173db92",
+    "source_text_sha256": "c925ad6fd90e80fe4b117c8fef8eeb10acb697932b70914b59434333f935a383",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "topics": [
+      "military_defence",
+      "diplomacy_alliances",
+      "economic_financial_security",
+      "technology_supply_chains"
+    ],
+    "roles": [
+      {
+        "entity": "Canada",
+        "entity_code": "CAN",
+        "role": "readiness",
+        "evidence_quote": "Canada’s participation will provide Canadian defence innovators with access to over €1 billion in deployable capital",
+        "rationale": "The release describes investment intended to strengthen Canada’s defence industrial capacity and access to capabilities for security and resilience."
+      },
+      {
+        "entity": "NATO",
+        "entity_code": "OTHER",
+        "role": "readiness",
+        "evidence_quote": "designed to strengthen the defence, security and resilience of NATO member states",
+        "rationale": "The fund is presented as a collective measure to build allied defence, security and resilience capabilities."
+      }
+    ],
+    "short_rationale": "Canada joined a joint investment fund with a contribution exceeding $100 million to strengthen its defence industrial base, access to capital and allied resilience. These are concrete defence, economic security and technology-capacity measures.",
+    "review_notes": {
+      "fault_type": "label",
+      "source_url": "https://www.canada.ca/en/department-national-defence/news/2026/11/canada-to-join-the-nato-innovation-fund.html",
+      "field": "topics.artificial_intelligence; roles[NATO].entity_code",
+      "evidence": "AI occurs only in a Quick facts list of ten technology investment categories, with no specific AI project or use described. NATO is an alliance and must not use the EU entity code."
+    }
+  },
+  {
+    "id": "b6ab6a865c7727dcab36",
+    "review_origin": "source_reviewed_agent",
+    "source_evidence_fingerprint": "d13f517b7bdbc4d7e0dc5023db507d395d737b33aab03e89665d94534b2e2137",
+    "source_text_sha256": "aadadc4585bd3273dfbd27a3b83e41e579ce5176efd5f50deef2226144391803",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "ticker_message": "Nordic and Baltic ministers seek digital sovereignty; Estonia, Latvia and Lithuania are invited to the New Nordics AI cooperation platform.",
+    "short_rationale": "Alongside the digital sovereignty declaration, Estonia, Latvia and Lithuania received formal invitations to the regional AI cooperation platform. The release connects AI cooperation to competitiveness, welfare and digital autonomy, alongside cloud procurement and submarine-cable security.",
+    "review_notes": {
+      "fault_type": "editorial",
+      "source_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-26-nordurlond-og-eystrasaltsriki-vilja-efla-stafraent-sjalfstaedi",
+      "field": "ticker_message",
+      "evidence": "The final paragraph explicitly identifies New Nordics AI as a regional AI cooperation platform and records formal invitations to Estonia, Latvia and Lithuania. The saved summary mentions it but the ticker omitted the AI connection."
+    }
   }
 ]

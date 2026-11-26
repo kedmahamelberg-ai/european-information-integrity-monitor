@@ -1,0 +1,41 @@
+name: Continue saved government classification
+on:
+  workflow_run:
+    workflows: ["Government full-source audit"]
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: read
+  actions: write
+concurrency:
+  group: government-backlog-dispatch
+  cancel-in-progress: false
+jobs:
+  continue:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Require an idle pipeline and a successful main government run
+        id: plan
+        run: python scripts/continue_government_backlog.py
+      - name: Read only that successful run's exact checkpoint
+        if: steps.plan.outputs.enabled == 'true'
+        id: checkpoint
+        uses: actions/cache/restore@v4
+        with:
+          path: data/government_state.json
+          key: government-checkpoint-hybrid-v3-main-${{ steps.plan.outputs.run_id }}
+      - name: Continue only proven fresh pending classifications
+        if: steps.checkpoint.outputs.cache-hit == 'true'
+        env:
+          EXPECTED_GOVERNMENT_RUN_ID: ${{ steps.plan.outputs.run_id }}
+        run: python scripts/continue_government_backlog.py --dispatch
