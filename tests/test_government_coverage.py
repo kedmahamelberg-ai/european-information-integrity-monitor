@@ -36,6 +36,18 @@ class GovernmentCoverageTests(unittest.TestCase):
         state={'source_reconciliations':{'US':{'policy':'old-narrow-scope','day':'2026-11-26'}}}
         self.assertTrue(coverage.discovery_window(state,'US',self.end,self.zones)[1])
 
+    def test_explicit_calendar_start_uses_each_publishers_local_midnight(self):
+        zones={'CN':ZoneInfo('Asia/Shanghai'),'CA':self.zones['CA']}
+        for code in zones:
+            start,full=coverage.discovery_window({},code,self.end,zones,dt.date(2026,10,1))
+            self.assertEqual(start.astimezone(zones[code]).isoformat()[:19],'2026-10-01T00:00:00')
+            self.assertTrue(full)
+
+    def test_omitted_active_source_cannot_be_reported_as_complete_coverage(self):
+        item,proof=self.proof();proof['active_country_codes'].append('CA')
+        with self.assertRaisesRegex(ValueError,'omits'):
+            verify(proof,{'as_of':self.end.isoformat(),'items':[item]})
+
     def test_cms_slug_change_keeps_existing_id_and_human_correction(self):
         old={'id':'preserve-this-id','country_code':'KZ','url':'https://primeminister.kz/kz/news/old-title-32004',
              'human_reviewed':True,'english_summary':'Owner approved copy.'}

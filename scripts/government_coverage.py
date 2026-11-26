@@ -19,6 +19,9 @@ def discovery_window(state, code, end, timezones, requested_start=None):
     """Reconcile the whole archive daily; revisit recent dates between checks."""
     baseline = history_start(code, timezones)
     if requested_start is not None:
+        if isinstance(requested_start,dt.date) and not isinstance(requested_start,dt.datetime):
+            requested_start=dt.datetime.combine(requested_start,dt.time.min,
+                timezones.get(code,ZoneInfo('Europe/Amsterdam'))).astimezone(dt.timezone.utc)
         return max(baseline, requested_start), requested_start <= baseline
     proof = (state.get('source_reconciliations') or {}).get(code, {})
     day = end.astimezone(ZoneInfo('Europe/Amsterdam')).date().isoformat()

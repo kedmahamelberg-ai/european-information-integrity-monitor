@@ -21,24 +21,44 @@
     "id": "85a56ea8e6c05b43b37a",
     "url": "https://www.canada.ca/en/canadian-heritage/news/2026/11/ministers-miller-and-solomon-announce-members-of-the-advisory-council-on-artificial-intelligence-and-culture.html",
     "source_sha256": "39230f29b3cf86a6dc5df2edf3d20012b09e9b8d36d7f8e1c45583488eebd6fd",
-    "short_english_summary": "Canada appointed a new AI and Culture advisory council and held its first meeting. Creators, researchers, labour and technology representatives will advise the national AI strategy, focusing on responsible adoption, cultural diversity and the value of human creativity."
+    "short_english_summary": "Canada appointed a new AI and Culture advisory council and held its first meeting. Creators, researchers, labour and technology representatives will advise the national AI strategy, focusing on responsible adoption, cultural diversity and the value of human creativity.",
+    "review_notes": {
+      "fault_type": "editorial",
+      "field": "classification_error: summary_exceeds_45_words",
+      "evidence": "The original appoints the council, records its inaugural meeting and assigns ongoing advice for the national AI strategy and creative industries."
+    }
   },
   {
     "id": "403f279062fee1e50c35",
     "url": "https://www.canada.ca/en/housing-infrastructure-communities/news/2026/11/build-canada-homes-marks-completion-of-new-homes-in-kugluktuk-advancing-housing-delivery-across-nunavut.html",
     "source_sha256": "da6367a6637c1359890f8d10c05f047343a83feb2bfe6767ce29c9199a1231cb",
-    "short_english_summary": "Nunavut completed 10 modular public homes in Kugluktuk, bringing the partnership’s finished total to 80. Canada, Nunavut and Inuit partners plan up to 750 homes, supported by up to $250 million federally and $230 million territorially."
+    "short_english_summary": "Nunavut completed 10 modular public homes in Kugluktuk, bringing the partnership’s finished total to 80. Canada, Nunavut and Inuit partners plan up to 750 homes, supported by up to $250 million federally and $230 million territorially.",
+    "review_notes": {
+      "fault_type": "editorial",
+      "field": "classification_error: summary_exceeds_45_words",
+      "evidence": "The original reports 10 completed Kugluktuk units, 80 completed across the portfolio, up to 750 planned homes and federal/territorial contributions capped at $250 million/$230 million."
+    }
   },
   {
     "id": "159b57e8bff08ca06aff",
     "url": "https://www.gov.uk/government/speeches/pm-statement-on-nuclear-test-veterans-25-november",
     "source_sha256": "75e421d5a5ffb150d0cb6fcfaf0620b8bc0ad73a7a0f3f92044099588e8a179a",
-    "short_english_summary": "The UK will establish an independent panel, chaired by Bishop James Jones, to examine its nuclear test programme and veterans’ treatment. A listening exercise will shape its remit, with an interim report planned for 3 October 2027."
+    "short_english_summary": "The UK will establish an independent panel, chaired by Bishop James Jones, to examine its nuclear test programme and veterans’ treatment. A listening exercise will shape its remit, with an interim report planned for 3 October 2027.",
+    "review_notes": {
+      "fault_type": "editorial",
+      "field": "classification_error: summary_exceeds_45_words",
+      "evidence": "The full statement establishes the independent panel chaired by Bishop James Jones and gives 3 October 2027 as the interim-report target."
+    }
   },
   {
     "id": "52465880a2f3ec7e27ba",
     "url": "https://www.gov.bg/bg/prestsentar/novini/premierat-rumen-radev-balgariya-shte-otstoyava-politikata-na-sblizhavane-podkrepata-za-stranite-ot-chernomorskiya-region-i-spravedlivo-opredelyane-na-sobstvenite-resursi-v-noviya-byudzhet-na-es",
     "source_sha256": "61f0a131262537dd1da77f7c08762498d9ae9afa6ce6b0fe2e022af570b56ce5",
-    "short_english_summary": "Bulgaria will defend cohesion funding and Black Sea security support in EU budget talks. Prime Minister Rumen Radev also seeks changes to EU revenue contributions and targeted non-military support for Bulgarian communities in Ukraine."
+    "short_english_summary": "Bulgaria will defend cohesion funding and Black Sea security support in EU budget talks. Prime Minister Rumen Radev also seeks changes to EU revenue contributions and targeted non-military support for Bulgarian communities in Ukraine.",
+    "review_notes": {
+      "fault_type": "editorial",
+      "field": "classification_error: summary_exceeds_45_words",
+      "evidence": "The full Bulgarian release covers cohesion funding, Black Sea security costs, EU revenue contributions and targeted non-military support for Bulgarian communities in Ukraine."
+    }
   }
 ]

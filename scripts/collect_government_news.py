@@ -3062,7 +3062,9 @@ def main():
     if selected_codes-{source["iso2"] for source in matching_sources}: raise SystemExit("Country selection contains missing or unverified codes")
     selected_sources=[] if args.classify_only else matching_sources
     source_cursors=dict(state.get("source_cursors") or {})
-    reconciliation_plans={source["iso2"]:discovery_window(state,source["iso2"],end,SOURCE_TIMEZONES,requested_start)
+    requested_source_start=(dt.date.fromisoformat(args.since)
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}",args.since) else requested_start)
+    reconciliation_plans={source["iso2"]:discovery_window(state,source["iso2"],end,SOURCE_TIMEZONES,requested_source_start)
                           for source in selected_sources}
     starts_by_code={code:plan[0] for code,plan in reconciliation_plans.items()}
     source_reconciliations=state.setdefault("source_reconciliations",{})
@@ -3191,7 +3193,7 @@ def main():
     if selected_sources:
         state["source_coverage_report"]={"version":1,"policy":COVERAGE_POLICY,
             "observed_at":now.isoformat(),"window_end":end.isoformat(),
-            "active_country_codes":sorted(source["iso2"] for source in selected_sources),
+            "active_country_codes":sorted(selected_codes or COLLECTOR_READY_CODES-skipped_codes),
             "disabled_country_codes":sorted(source["iso2"] for source in SOURCES
                                              if source["iso2"] not in COLLECTOR_READY_CODES),
             "sources":sorted(coverage_sources,key=lambda row:row["country_code"])}
