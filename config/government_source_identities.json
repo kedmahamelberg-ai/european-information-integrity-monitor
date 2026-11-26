@@ -1,0 +1,745 @@
+{
+  "version": 1,
+  "identities": [
+    {
+      "id": "501b8eae51859664918a",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/tilraunaverkefni-hafid-talthjalfun-veitt-i-grunnskolum",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-05-tilraunaverkefni-hafid-talthjalfun-veitt-i-grunnskolum"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "fe99da59e07f1fab9732",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/domsmalaradherra-fekk-vidbunadarbaeklinginn-verum-vidbuin",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-05-domsmalaradherra-fekk-vidbunadarbaeklinginn-verum-vidbuin"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "f9d89770863d7c83c9cb",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/log-um-dyralaekna-og-heilbrigdisthjonustu-vid-dyr-endurskodud",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-05-log-um-dyralaekna-og-heilbrigdisthjonustu-vid-dyr-endurskodud"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "0225533f3a74c2600bb0",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/opid-fyrir-umsoknir-vegna-geitfjarraektar",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-04-opid-fyrir-umsoknir-vegna-geitfjarraektar"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "f678d5cc16fa7c815cac",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/vidtaekara-norraent-samstarf-um-lyfjakaup",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-04-vidtaekara-norraent-samstarf-um-lyfjakaup"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "9b922bb5c76406ca4fba",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/greining-a-jardakaupum-erlendra-adila",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-04-greining-a-jardakaupum-erlendra-adila"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "e40c66ec701e1b1aa68b",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/samtal-vid-tengilidi-farsaeldar-i-framhaldsskolum",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-04-samtal-vid-tengilidi-farsaeldar-i-framhaldsskolum"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "111789a83e445fc2f650",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/afram-fjarfest-i-orkusparnadi-og-samkeppnishaefni-gardyrkjunnar",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-04-afram-fjarfest-i-orkusparnadi-og-samkeppnishaefni-gardyrkjunnar"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "2bf73ebc6a7438d7c345",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/27-milljonir-til-tolf-vinnustadaklasa-a-landsbyggdinni",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-04-27-milljonir-til-tolf-vinnustadaklasa-a-landsbyggdinni"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "8b777447316014b469f8",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/radherra-faer-afhenta-arsskyrslu-kaerunefndar-jafnrettismala",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-04-radherra-faer-afhenta-arsskyrslu-kaerunefndar-jafnrettismala"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "5500ca7c86470004e3a9",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/umbra-og-cert-is-fa-adgang-ad-serhaefdri-gervigreind-openai-til-netvarna",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-04-umbra-og-cert-is-fa-adgang-ad-serhaefdri-gervigreind-openai-til-netvarna"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "cc83776f7ab072a0a357",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/skipar-starfshop-um-leigutryggingar-og-eftirlit-a-leigumarkadi",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-03-skipar-starfshop-um-leigutryggingar-og-eftirlit-a-leigumarkadi"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "c26bceda7f40eb04c101",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/stefnt-ad-nyrri-adgerdaaaetlun-gott-ad-eldast-fyrir-2028-2032",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-05-stefnt-ad-nyrri-adgerdaaaetlun-gott-ad-eldast-fyrir-2028-2032"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "fc5757dd897c416e09d5",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/21761e25-5f37-493c-92bb-6cc144fb11b4",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-03-radstefna-um-menningu-og-listir-a-vestfjordum-26-november"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "3bf00d65a45b76cf5db3",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/gunnar-tryggvason-nyr-formadur-6-afanga-rammaaaetlunar",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-03-gunnar-tryggvason-nyr-formadur-6-afanga-rammaaaetlunar"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "de0a9f751d29464fb92c",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/lykill-ad-samfelaginu-morgunverdarfundur-innflytjendarads-og-afhending-styrkja",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-04-lykill-ad-samfelaginu-morgunverdarfundur-innflytjendarads-og-afhending-styrkja"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "ad0f7ef950cb1c39d76b",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/skyr-og-raunhaef-framfaersluskilyrdi-fyrir-umsoknir-um-dvalarleyfi",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-03-skyr-og-raunhaef-framfaersluskilyrdi-fyrir-umsoknir-um-dvalarleyfi"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "5f5e494c239eba081f83",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/03f00df3-ff92-42d1-a2e9-e7afbd8330e1",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-03-maelti-fyrir-vaendiskaupafrumvarpi-a-althingi"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "b35b55e29d11403a62e5",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/arlegt-samrad-vid-bandarikin-a-svidi-varnar-og-oryggispolitiskra-mala",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-03-arlegt-samrad-vid-bandarikin-a-svidi-varnar-og-oryggispolitiskra-mala"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "aee46a8b7e749a4f047e",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/4254a07d-fd64-41d3-b521-afbab5366e04",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-02-graenbok-um-landgraedslu-og-skograekt-sett-i-samradsgatt"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "b09d1783b51ea285dcd2",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/island-tekur-saeti-i-radgjafaradi-ted-stevens-nordurslodamidstodvarinnar",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-02-island-tekur-saeti-i-radgjafaradi-ted-stevens-nordurslodamidstodvarinnar"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "637d765babdb27d9f100",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/styrkir-til-menningarsamstarfs-milli-noregs-og-islands-opid-fyrir-umsoknir-til-2-desember",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-03-styrkir-til-menningarsamstarfs-milli-noregs-og-islands-opid-fyrir-umsoknir-til-2-desember"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "fb977480d066a57c4091",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/born-fa-aukna-fraedslu-um-gervigreind-og-netoryggi",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-02-born-fa-aukna-fraedslu-um-gervigreind-og-netoryggi"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "76d9504790555a3d1fd0",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/bolusetningar-hefjast-i-apotekum",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-02-bolusetningar-hefjast-i-apotekum"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "c7bd5098d98e67a8d99c",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/45f5e35b-a053-4469-8489-9a5e04dac729",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-02-nidurstodur-tilbodsmarkadar-fyrir-greidslumark-mjolkur"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "e44cbd268f00342936d5",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/fjarskiptaoryggi-baett-a-fimm-stodum-um-landid",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-30-fjarskiptaoryggi-baett-a-fimm-stodum-um-landid"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "bc7c123d272245706c84",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/innleiding-atvinnustefnu-gengur-vel-og-fjorum-adgerdum-lokid",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-29-innleiding-atvinnustefnu-gengur-vel-og-fjorum-adgerdum-lokid"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "fa669572beb7bc4ae3b9",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/radherra-undirritar-viljayfirlysingu-um-vardveislu-thristsins",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-30-radherra-undirritar-viljayfirlysingu-um-vardveislu-thristsins"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "31ce890a682ac218632c",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/styttri-bid-og-oflugri-thjonusta-a-bradamottoku-landspitala",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-29-styttri-bid-og-oflugri-thjonusta-a-bradamottoku-landspitala"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "a25d64fcbd4cbb16d672",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/fjolbreytt-erindi-a-fjarsysludeginum",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-29-fjolbreytt-erindi-a-fjarsysludeginum"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "b26189c8ce691ea33a53",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/thorgerdur-katrin-atti-fund-med-utanrikisradherra-kina",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-29-thorgerdur-katrin-atti-fund-med-utanrikisradherra-kina"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "0d77932af0221493c0b0",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/radherra-leggur-aherslu-a-jafnraedi-faereyja-graenlands-og-alandseyja",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-29-radherra-leggur-aherslu-a-jafnraedi-faereyja-graenlands-og-alandseyja"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "1111b8eb0bcd016f3f88",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/ny-og-metnadarfull-loggaesluaaetlun-kynnt-a-morgunverdarfundi",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-28-ny-og-metnadarfull-loggaesluaaetlun-kynnt-a-morgunverdarfundi"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "591a8337a3d16af1147a",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/sjonum-beint-ad-ungu-folki-a-minningardegi-um-fornarlomb-umferdarslysa-15-november",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-28-sjonum-beint-ad-ungu-folki-a-minningardegi-um-fornarlomb-umferdarslysa-15-november"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "aa8c5e23ddebff54e4c9",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/vinnustadanamssjodur-auglysir-eftir-umsoknum",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-28-vinnustadanamssjodur-auglysir-eftir-umsoknum"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "a3b6c222742d10eed35e",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/betri-adgengilegri-og-hagkvaemari-thjonusta-med-nyrri-raduneytisstofnun-um-stafraena-thjonustu-og-upplysingataekni",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-28-betri-adgengilegri-og-hagkvaemari-thjonusta-med-nyrri-raduneytisstofnun-um-stafraena-thjonustu-og-upplysingataekni"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "dcca7abd9b652b946ecb",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/utanrikisradherra-for-fyrir-islenskri-sendinefnd-a-sjavarutvegssyningunni-i-qingdao",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-28-utanrikisradherra-for-fyrir-islenskri-sendinefnd-a-sjavarutvegssyningunni-i-qingdao"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "c0ca914b31f61621364a",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/nyr-faedingarspitali-opnadur-i-malavi-stor-afangi-i-throunarsamvinnu-islands",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-28-nyr-faedingarspitali-opnadur-i-malavi-stor-afangi-i-throunarsamvinnu-islands"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "9439f9d393162551f40b",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/island-hlytur-brautargengi-til-setu-i-framkvaemdastjorn-althjodaheilbrigdismalastofnunarinnar",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-28-island-hlytur-brautargengi-til-setu-i-framkvaemdastjorn-althjodaheilbrigdismalastofnunarinnar"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "c25eaf5f08744c0d3ac8",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/tekid-a-moti-fyrsta-aaetlunarfluginu-fra-kina",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-27-tekid-a-moti-fyrsta-aaetlunarfluginu-fra-kina"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "0099b78ef7f4eb01c16b",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/dvalarleyfisfrumvarp-domsmalaradherra-afgreitt-ur-rikisstjorn",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-27-dvalarleyfisfrumvarp-domsmalaradherra-afgreitt-ur-rikisstjorn"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "fb4746bf59a5d6da159f",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/rettur-til-endurgreidslu-sjukrakostnadar-utan-ees-framlengdur-til-loka-september-2027",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-27-rettur-til-endurgreidslu-sjukrakostnadar-utan-ees-framlengdur-til-loka-september-2027"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "4903511d02b5bfbbb5a8",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/sameiginleg-yfirlysing-forsaetisradherra-nordurlanda-um-ahrif-nyrrar-taekni-a-born-og-ungmenni",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-27-sameiginleg-yfirlysing-forsaetisradherra-nordurlanda-um-ahrif-nyrrar-taekni-a-born-og-ungmenni"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "baa9c9018c698ac7a1f4",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/samkomulag-islands-liechtenstein-noregs-og-ungverjalands-um-nytt-timabil-uppbyggingarsjods-ees-undirritad",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-27-samkomulag-islands-liechtenstein-noregs-og-ungverjalands-um-nytt-timabil-uppbyggingarsjods-ees-undirritad"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "3c0e49ffad3955843145",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/heilbrigdisradherra-styrir-evropufundi-althjodaheilbrigdismalastofnunarinnar-i-kaupmannahofn",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-27-heilbrigdisradherra-styrir-evropufundi-althjodaheilbrigdismalastofnunarinnar-i-kaupmannahofn"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "21bf9e0800aafe5031c7",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/leyfi-sameinud-og-afgreidd-a-innan-vid-18-manudum",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-27-leyfi-sameinud-og-afgreidd-a-innan-vid-18-manudum"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "419e19fc1a507d45b61f",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/ellefu-verkefni-a-svidi-jafnrettismala-hljota-styrk",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-24-ellefu-verkefni-a-svidi-jafnrettismala-hljota-styrk"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "bbcd6c8c5f958ff70a57",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/kynning-a-greiningu-a-tillogu-framkvaemdastjornar-evropusambandsins-um-endurskodun-ets-kerfisins",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-26-kynning-a-greiningu-a-tillogu-framkvaemdastjornar-evropusambandsins-um-endurskodun-ets-kerfisins"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "e55ce33afa8ec913e814",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/stofnun-thekkingarseturs-vid-breidafjord",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-23-stofnun-thekkingarseturs-vid-breidafjord"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "cf7bfc35b8fbc3245e20",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/hvernig-jofnum-vid-taekifaeri-barna-malthing-um-fataekt-barna-29-oktober",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-23-hvernig-jofnum-vid-taekifaeri-barna-malthing-um-fataekt-barna-29-oktober"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "e835b33c9f9bfaace690",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/nytt-fyrirkomulag-afslattarkoda-loftbruar-fost-kronutala-i-stad-prosentu",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-23-nytt-fyrirkomulag-afslattarkoda-loftbruar-fost-kronutala-i-stad-prosentu"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "224d8adb32197a7b24a9",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/markviss-sokn-i-grunnfaerni-og-studning-vid-hvert-barn",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-23-markviss-sokn-i-grunnfaerni-og-studning-vid-hvert-barn"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "29fb76e9307daa4c2a03",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/einfaldara-regluverk-og-markvissara-byggingareftirlit-frumvarp-birt-i-samradsgatt",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-23-einfaldara-regluverk-og-markvissara-byggingareftirlit-frumvarp-birt-i-samradsgatt"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "a0e631628d735673f720",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/heilbrigdisraduneytid-auglysir-styrki-til-felagasamtaka",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-23-heilbrigdisraduneytid-auglysir-styrki-til-felagasamtaka"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "ab9aa81e07902953b9e7",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/c3053f5c-cee8-4306-bbc7-a8455897669e",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-23-hert-vidurlog-og-sterkari-urraedi-gegn-utanvegaakstri"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "2ce4bb73871c69593418",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/opid-fyrir-umsoknir-um-radstofun-sereignarsparnadar-inn-a-husnaedislan",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-23-opid-fyrir-umsoknir-um-radstofun-sereignarsparnadar-inn-a-husnaedislan"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "bdf8775ed2e856f93402",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/timabokanir-teknar-i-notkun-fyrir-apostille-vottunarthjonustu",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-22-timabokanir-teknar-i-notkun-fyrir-apostille-vottunarthjonustu"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "63c4e976169d57660087",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/grunnfaerni-og-framtid-menntunar-i-brennidepli-a-radherrafundi-i-dyflinni",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-22-grunnfaerni-og-framtid-menntunar-i-brennidepli-a-radherrafundi-i-dyflinni"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "12b7e7d6592ce4aba40a",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/spretthopur-um-taekifaeri-og-askoranir-i-utanrikisvidskiptum",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-22-spretthopur-um-taekifaeri-og-askoranir-i-utanrikisvidskiptum"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "b33a63949b0bd9d40e5b",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/birgir-rafn-thrainsson-skipadur-skrifstofustjori-netoryggis-og-fjarskipta",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-22-birgir-rafn-thrainsson-skipadur-skrifstofustjori-netoryggis-og-fjarskipta"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "968f70e792c8e8a5a2f0",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/adgerdir-til-ad-efla-virka-ferdamata-verkefnastjorn-hefur-hafid-storf",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-21-adgerdir-til-ad-efla-virka-ferdamata-verkefnastjorn-hefur-hafid-storf"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "e34d6537146f1435a526",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/hverju-myndi-islenska-i-apple-taekjum-breyta-fyrir-thig",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-21-hverju-myndi-islenska-i-apple-taekjum-breyta-fyrir-thig"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "d49d64384ad5c1c405f2",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/tilkynning-er-vardar-netoryggi-alvarlegir-veikleikar-i-php",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-21-tilkynning-er-vardar-netoryggi-alvarlegir-veikleikar-i-php"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "b6dc701274c4087d59ae",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/yfirmadur-sameiginlegu-vidbragdssveitarinnar-jef-heimsotti-island",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-20-yfirmadur-sameiginlegu-vidbragdssveitarinnar-jef-heimsotti-island"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "37326918eec9ed715f50",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/friverslunarsamningur-vid-vietnam-undirritadur-i-hanoi",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-20-friverslunarsamningur-vid-vietnam-undirritadur-i-hanoi"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "ca9da1508d48771bdef9",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/framtidarsyn-um-samhaefda-stafraena-innvidi-i-thagu-farsaeldar-barna",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-20-framtidarsyn-um-samhaefda-stafraena-innvidi-i-thagu-farsaeldar-barna"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "66192173bcfc0d347b73",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/hjukrunarheimilid-hlevangur-opnadur-eftir-endurbaetur",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-21-hjukrunarheimilid-hlevangur-opnadur-eftir-endurbaetur"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "1baead9ff809c705f6c3",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/15-milljona-krona-styrkur-til-ad-efla-thatttoku-fatlads-folks-i-notendaradum-um-land-allt",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-20-15-milljona-krona-styrkur-til-ad-efla-thatttoku-fatlads-folks-i-notendaradum-um-land-allt"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "15a28510d95b2b4ec431",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/skraning-hafin-heilbrigdisthing-um-gedheilsu-barna-og-ungmenna",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-20-skraning-hafin-heilbrigdisthing-um-gedheilsu-barna-og-ungmenna"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "963c18b10725aa89da4a",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/345973f7-4e13-4982-b704-d9996149d06e",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-19-arsfundir-althjodabankans-og-althjodagjaldeyrissjodsins-barattan-gegn-fataekt-lidur-fyrir-thegar-althjodlegum-krisum-fjolgar"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "b04cad4b271c23b05fbf",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/skoflustunga-tekin-ad-nyju-oryggisfangelsi-ad-stora-hrauni",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-20-skoflustunga-tekin-ad-nyju-oryggisfangelsi-ad-stora-hrauni"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "ee28d92fecc755867a14",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-08",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-08-rekstrarstyrkir-auglystir-til-umsoknar"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "48b0509bb1ff87a653dc",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-05",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-05-maelti-fyrir-frumvarpi-sem-styrkir-stodu-leigjenda"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    },
+    {
+      "id": "3b0a0e7065be81cbdfb3",
+      "country_code": "IS",
+      "preferred_url": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/skipar-svaedisrad-um-strandsvaedisskipulag-fyrir-austfirdi",
+      "aliases": [
+        "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-19-skipar-svaedisrad-um-strandsvaedisskipulag-fyrir-austfirdi"
+      ],
+      "evidence": "http_200_redirect_and_matching_publisher_canonical",
+      "checked_date": "2026-11-26"
+    }
+  ]
+}

@@ -1,8 +1,10 @@
 """Check the DOI archive, RSS fallback, and per-article retrieval."""
 import datetime as dt
 import importlib.util
+import json
 from pathlib import Path
 import sys
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -43,6 +45,68 @@ class MaltaCollectorTests(unittest.TestCase):
         self.assertEqual(items[0]["url"], ENGLISH_URL)
         self.assertIn("Official government communication", items[0]["text"])
         self.assertEqual(fetch.call_count, 2)  # No article fetch can abort discovery.
+
+    def test_english_translation_without_en_suffix_is_one_release_in_either_order(self):
+        maltese=card('PR261927','STQARRIJA MILL-MINISTERU Climate negotiations', '15/11/2026')
+        english=card('PR261927','PRESS RELEASE BY THE MINISTRY Climate negotiations', '15/11/2026').replace('pr261927"','pr261927-0"')
+        for rows in ([maltese,english],[english,maltese]):
+            with patch.object(collector,'fetch_malta_html',return_value=''.join(rows)), \
+                 patch.object(collector,'malta_rss_text',return_value={}):
+                items,_=collector.discover_malta(self.country,self.start,self.end)
+            self.assertEqual(len(items),1)
+            self.assertTrue(items[0]['url'].endswith('/pr261927-0'))
+            self.assertEqual(items[0]['source_aliases'],['https://departmentofinformation.gov.mt/press-release/2026/pr261927'])
+
+    def test_conflicting_same_language_release_still_requires_source_review(self):
+        a=card('PR261927','PRESS RELEASE BY THE MINISTRY One', '15/11/2026')
+        b=card('PR261927','PRESS RELEASE BY THE MINISTRY Another', '15/11/2026').replace('pr261927"','pr261927-0"')
+        with patch.object(collector,'fetch_malta_html',return_value=a+b), \
+             patch.object(collector,'article_text',side_effect=['Full original one.','A different original.']):
+            with self.assertRaisesRegex(RuntimeError,'identity needs review'):
+                collector.discover_malta(self.country,self.start,self.end)
+
+    def test_republished_same_language_copy_requires_identical_complete_bodies(self):
+        a=card('PR261861','STQARRIJA Original', '15/11/2026')
+        b=card('PR261861','STQARRIJA Original', '15/11/2026').replace('pr261861"','pr261861-1"')
+        with patch.object(collector,'fetch_malta_html',return_value=a+b), \
+             patch.object(collector,'article_text',return_value='The same complete official original.') as read, \
+             patch.object(collector,'malta_rss_text',return_value={}):
+            items,_=collector.discover_malta(self.country,self.start,self.end)
+        self.assertEqual(read.call_count,2)
+        self.assertEqual(len(items),1)
+        self.assertEqual(items[0]['source_aliases'],['https://departmentofinformation.gov.mt/press-release/2026/pr261861-1'])
+
+    def test_republished_typographic_quotes_preserve_all_words_and_numbers(self):
+        a=card('PR261861','STQARRIJA Original', '15/11/2026')
+        b=a.replace('pr261861"','pr261861-1"')
+        first='The minister said: “The workers’ 2027–2031 strategy.”'
+        same='The minister said: "The workers\' 2027–2031 strategy."'
+        for second,accepted in [(same,True),(same.replace('2031','2032'),False),
+                                (same.replace('workers','employers'),False)]:
+            with self.subTest(second=second),patch.object(collector,'fetch_malta_html',return_value=a+b), \
+                 patch.object(collector,'article_text',side_effect=[first,second]), \
+                 patch.object(collector,'malta_rss_text',return_value={}):
+                if accepted:
+                    self.assertEqual(len(collector.discover_malta(self.country,self.start,self.end)[0]),1)
+                else:
+                    with self.assertRaisesRegex(RuntimeError,'identity needs review'):
+                        collector.discover_malta(self.country,self.start,self.end)
+
+    def test_only_reviewed_duplicate_final_full_stop_is_normalized(self):
+        self.assertEqual(collector.malta_identity_text('The source sentence. .'),'The source sentence.')
+        self.assertEqual(collector.malta_identity_text('An omission . . .'),'An omission . . .')
+        self.assertNotEqual(collector.malta_identity_text('Total 10.5.'),collector.malta_identity_text('Total 105.'))
+
+    def test_all_conflicting_originals_are_saved_for_one_source_review(self):
+        rows=''.join(card(n,'Same printed release')+card(n,'Same printed release').replace(n.lower()+'"',n.lower()+'-1"') for n in ['PR261858','PR261859'])
+        with tempfile.TemporaryDirectory() as folder,patch.object(collector,'ROOT',Path(folder)), \
+             patch.object(collector,'fetch_malta_html',return_value=rows), \
+             patch.object(collector,'article_text',side_effect=['First full original.','Changed full original.']*2) as read:
+            with self.assertRaisesRegex(RuntimeError,'identity needs review'):
+                collector.discover_malta(self.country,self.start,self.end)
+            evidence=json.loads((Path(folder)/'data/government_source_identity_review.json').read_text())
+        self.assertEqual(read.call_count,4)
+        self.assertEqual({row['release_id'] for row in evidence},{'pr261858','pr261859'})
 
     def test_fetches_article_body_when_rss_does_not_cover_it(self):
         item = {"country_code": "MT", "url": ENGLISH_URL, "text": ""}

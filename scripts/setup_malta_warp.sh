@@ -39,7 +39,9 @@ fi
 
 proxy='socks5h://127.0.0.1:40000'
 curl -fsS --max-time 10 --proxy "$proxy" https://www.cloudflare.com/cdn-cgi/trace | grep -qx 'warp=on'
-curl -fsS --compressed --max-time 10 --proxy "$proxy" \
+# Match the collector's bounded source timeout/retries. A single slow archive
+# response must not discard an otherwise connected, verified WARP route.
+curl -fsS --compressed --max-time 20 --retry 2 --retry-all-errors --retry-delay 1 --proxy "$proxy" \
   'https://departmentofinformation.gov.mt/en/search/press-releases' \
   | python3 -c 'import sys; assert "href=\"/press-release/" in sys.stdin.read()'
 

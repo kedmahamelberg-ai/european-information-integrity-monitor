@@ -64,6 +64,12 @@ class GovernmentCoverageTests(unittest.TestCase):
         self.assertEqual(coverage.publisher_identity('AD','https://gov.example/a?b=2&a=1&utm_source=x#part'),
                          coverage.publisher_identity('AD','https://gov.example/a?a=1&b=2'))
 
+    def test_malta_language_pair_preserves_an_existing_reviewed_release(self):
+        old={'id':'keep-maltese-id','country_code':'MT','human_reviewed':True,
+             'url':'https://departmentofinformation.gov.mt/press-release/2026/pr261927'}
+        entry={'country_code':'MT','url':'https://departmentofinformation.gov.mt/press-release/2026/pr261927-0'}
+        self.assertIs(coverage.match_record(entry,coverage.index_records([old])),old)
+
     def test_different_documents_or_countries_cannot_merge_by_title_or_time(self):
         first={'id':'one','country_code':'CA','url':'https://www.canada.ca/en/a/news/2026/11/one.html'}
         other={'country_code':'CA','url':'https://www.canada.ca/en/a/news/2026/11/two.html'}
@@ -91,6 +97,14 @@ class GovernmentCoverageTests(unittest.TestCase):
 
     def test_inaccessible_source_is_partial_not_zero_announcements(self):
         item,proof=self.proof();proof['sources'][0].update(status='source_unverified',error='Timeout')
+        result=verify(proof,{'as_of':self.end.isoformat(),'items':[item]})
+        self.assertFalse(result['complete']);self.assertEqual(result['verified_country_count'],0)
+
+    def test_false_zero_with_saved_records_cannot_advance_or_pass_verification(self):
+        item,proof=self.proof();item['published_at']=self.end.isoformat()
+        with self.assertRaisesRegex(RuntimeError,'zero despite saved'):
+            coverage.validate_archive_window({'iso2':'US'},[],[item],self.end-dt.timedelta(days=30),self.end,True)
+        proof['sources'][0].update(archive_unique_records=0,archive_records=[])
         result=verify(proof,{'as_of':self.end.isoformat(),'items':[item]})
         self.assertFalse(result['complete']);self.assertEqual(result['verified_country_count'],0)
 

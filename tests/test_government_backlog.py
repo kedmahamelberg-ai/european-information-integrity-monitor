@@ -3,9 +3,12 @@ from pathlib import Path
 import sys
 import subprocess
 import unittest
+import io
+import json
+from unittest.mock import patch
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
-from continue_government_backlog import plan,pending_work,GOVERNMENT
+from continue_government_backlog import plan,pending_work,GOVERNMENT,preflight
 
 
 class GovernmentBacklogTests(unittest.TestCase):
@@ -55,6 +58,21 @@ class GovernmentBacklogTests(unittest.TestCase):
     def test_drained_queue_stops_without_another_job(self):
         state=self.state();state['items']=[]
         self.assertEqual(pending_work(state,123)[0],0)
+
+    def test_both_repository_checks_use_authentication_before_any_dispatch(self):
+        class Response(io.BytesIO):
+            status=200
+        requests=[]
+        def opened(request,timeout):
+            requests.append(request)
+            return Response(json.dumps({'workflow_runs':[self.run] if len(requests)==1 else []}).encode())
+        with patch.dict('os.environ',{'GITHUB_TOKEN':'test-token','GITHUB_REPOSITORY':'owner/monitor'}), \
+             patch('continue_government_backlog.urllib.request.urlopen',side_effect=opened):
+            preflight()
+        self.assertEqual(len(requests),2)
+        self.assertIn('aieo-brief/actions/runs?per_page=100',requests[1].full_url)
+        self.assertTrue(all(r.get_header('Authorization')=='Bearer test-token' for r in requests))
+        self.assertTrue(all(r.get_method()=='GET' for r in requests))
 
     def test_fresh_only_flag_is_recognized_and_requires_classify_only(self):
         command=Path(__file__).resolve().parents[1]/'scripts/collect_government_news.py'

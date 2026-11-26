@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 source = ROOT / "apps/dashboard"
 out = ROOT / "build"
 out.mkdir(exist_ok=True)
-from collect_government_news import COLLECTOR_READY_CODES
+from collect_government_news import COLLECTOR_READY_CODES, canonical_government_items
 from government_reviews import apply_confirmed_corrections
 government_sources = json.loads((ROOT / "config/government_sources.json").read_text())["sources"]
 (out / "government-sources.json").write_text(json.dumps({"sources": [
@@ -55,6 +55,7 @@ if not gov_public.exists() and ("--live" in sys.argv or "--camera-only" in sys.a
         if error.code!=404 or "--camera-only" in sys.argv: raise
 if not gov_public.exists():
     snapshot = snapshot or {"items": []}
+    snapshot["items"] = list(canonical_government_items(snapshot["items"]).values())
     corrections_file = ROOT / "data" / "government_corrections.json"
     corrections = json.loads(corrections_file.read_text()) if corrections_file.exists() else []
     _, stale = apply_confirmed_corrections(snapshot["items"], corrections)
