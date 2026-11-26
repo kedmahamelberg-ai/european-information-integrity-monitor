@@ -2431,13 +2431,14 @@
   {
     "id": "988bc52e00995f14128a",
     "fault_type": "editorial",
-    "published_field": "english_summary, ticker_message",
-    "evidence": "The official November 19 Xinhua article says Xi urged stronger digital infrastructure and the broad application of AI as part of the innovation pillar. The existing summary omits that explicit AI proposal, while the ticker recasts it as regional cooperation on AI; the article instead calls for AI application.",
-    "english_summary": "Xi called for stronger Asia-Pacific trade and connectivity, digital infrastructure and data governance, and broad use of AI to spur industrial innovation. He also urged cooperation on energy and food security and a green transition.",
+    "published_field": "english_summary",
+    "evidence": "The full article calls for digital infrastructure and broad AI application within its innovation discussion. It contains no data-governance proposal and does not specify an industrial-innovation purpose for AI. Its governance reference concerns cross-border anti-corruption.",
+    "english_summary": "At the APEC leaders’ meeting in Shenzhen, Xi urged wider AI use and digital infrastructure investment, stronger trade and connectivity, and cooperation on energy, food security and a green transition.",
     "ticker_message": "Xi urges wider AI use and stronger Asia-Pacific trade, connectivity, energy and food-security cooperation.",
     "review_origin": "source_reviewed_agent",
     "source_url": "https://english.www.gov.cn/news/202611/19/content_WS6afe6164c6d00ca5f9a0e70d.html",
-    "source_evidence_fingerprint": "9ae6f2dad10ebe607e6feba1fd80b6b7dd969fdd45012e1c015057ff3016ee1e"
+    "source_evidence_fingerprint": "9ae6f2dad10ebe607e6feba1fd80b6b7dd969fdd45012e1c015057ff3016ee1e",
+    "source_text_sha256": "9005d707868923b67bbb952dfec65d76a5d72caf9ddf4f67e7542f648ce28fa1"
   },
   {
     "id": "b4287079579f46e5f20c",
@@ -3487,5 +3488,40 @@
       "field": "ticker_message",
       "evidence": "The final paragraph explicitly identifies New Nordics AI as a regional AI cooperation platform and records formal invitations to Estonia, Latvia and Lithuania. The saved summary mentions it but the ticker omitted the AI connection."
     }
+  },
+  {
+    "id": "a4ac3a98bc59ac7247a1",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.canada.ca/en/department-finance/news/2026/11/canada-moves-forward-with-final-safeguard-measure-on-canned-vegetables-imports-to-protect-canadian-producers.html",
+    "source_evidence_fingerprint": "814613bc36bfa160655502736857fb85110c03cf4166a8159a37591ead970376",
+    "source_text_sha256": "ba6c1278537dc688e5c6fbea51ad50ea33d0a715a5e9892495e2b47ef1da090b",
+    "topics": [
+      "food_security",
+      "economic_financial_security"
+    ],
+    "fault_type": "label",
+    "published_field": "topics.technology_supply_chains",
+    "evidence": "The complete release describes food security, canned vegetable tariff-rate quotas, domestic producers and product exclusions. Its supply chain is a food supply chain; no technology measure or technology supply chain is described."
+  },
+  {
+    "id": "1d978cfeba81f4c737f8",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.bundesregierung.de/breg-de/aktuelles/pressemitteilungen/pressemitteilungen/14-eu-staaten-schliessen-sich-deutscher-initiative-zum-schutz-des-digitalen-raums-an-staatsminister-weimer-starkes-urheberrecht-und-jugendmedienschutz-haben-hoechste-prioritaet--2462122",
+    "source_evidence_fingerprint": "d609afc41cc07ef3d60c792ea60f307f438351a08e00e892794f430643505f7d",
+    "source_text_sha256": "4195575d588881a78b23061c84e027ba0f4bace7aafd900f0054e365aeedb065",
+    "ticker_message": "Germany seeks stronger AI copyright protections and child safeguards, alongside a European ownership structure for TikTok’s operations in Europe.",
+    "fault_type": "editorial",
+    "published_field": "ticker_message",
+    "evidence": "The final source paragraph calls for a European ownership structure for TikTok operations in Europe. It does not propose European ownership of TikTok globally."
+  },
+  {
+    "id": "7ea1ce2006c5ede19a79",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.canada.ca/en/crown-indigenous-relations-northern-affairs/news/2026/11/government-of-canada-announces-campaign-to-raise-awareness-of-survivors-options-regarding-iap-records-in-advance-of-september-2027-deadline.html",
+    "source_evidence_fingerprint": "05d20bf79745c4bf4423805b18aa16e1d7974b58463e0f3b93921a26de84e202",
+    "source_text_sha256": "c2ce1ba51962483690148255e61a2c4a475b9e1a21a24a0ae874ac4c8031ba6b",
+    "fault_type": "audit_false_positive",
+    "published_field": "viewpoint_structure and viewpoints (retained)",
+    "evidence": "The source explicitly contrasts Canada’s historical retention argument with the Survivors’ lawyers’ destruction argument. Both saved viewpoints use past-tense argued and accurately attribute the reported historical positions; multiple reported viewpoints need not all be new statements at the current release."
   }
 ]
