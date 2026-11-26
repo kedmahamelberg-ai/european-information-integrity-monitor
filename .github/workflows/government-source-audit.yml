@@ -1,7 +1,7 @@
 name: Government full-source audit
 on:
-  schedule:
-    - cron: "17 * * * *"
+  # The private Supabase clock performs an hourly GitHub preflight and dispatch.
+  # See ops/government-source-audit-clock.md; completion triggers remain a backup.
   workflow_run:
     workflows: ["Daily government communications"]
     types: [completed]

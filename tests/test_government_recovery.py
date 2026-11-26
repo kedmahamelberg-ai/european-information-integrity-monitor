@@ -22,6 +22,15 @@ exec(compile(ast.Module(body=nodes, type_ignores=[]), "<collector-source-functio
 
 
 class GovernmentRecoveryTests(unittest.TestCase):
+    def test_metadata_only_record_without_status_enters_pending_queue(self):
+        item = {'url':'https://www.admin.ch/de/newnsb/Oq0CiNf6IUcX','title':'Official release'}
+        saved = next(iter(scope['canonical_government_items']([item]).values()))
+        self.assertEqual(saved['classification_status'],'pending_classification')
+        reviewed = dict(item, human_reviewed=True, relevance='not_related', topics=[])
+        saved = next(iter(scope['canonical_government_items']([reviewed]).values()))
+        self.assertNotIn('classification_status',saved)
+        self.assertTrue(saved['human_reviewed'])
+
     def test_renamed_pending_item_reuses_existing_classification(self):
         old, new = next(iter(scope["SOURCE_URL_ALIASES"].items()))
         records = [{"url":old,"classification_status":"pending_classification"},
