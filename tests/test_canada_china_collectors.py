@@ -16,6 +16,15 @@ def atom(entries):
 
 
 class BenchmarkCollectorTest(unittest.TestCase):
+    def test_advisory_publication_date_is_distinct_from_its_event_date(self):
+        page=('<meta name="dcterms.issued" content="2026-11-26">'
+              '<div class="news-release-container"><p>From: National Defence</p>'
+              '<p>November 26, 2026 – St. Thomas, Ontario – National Defence</p>'
+              '<p>The minister will attend a groundbreaking ceremony.</p>'
+              '<p>When: Friday, November 27, 2026</p><p>Time: 1:30 PM EST</p></div>')
+        with patch.object(collector,'fetch',return_value=('source',page.encode())):
+            self.assertEqual(collector.canada_news_metadata('source')['day'],dt.date(2026,11,26))
+
     def test_canada_accepts_publishers_html_nbsp_inside_atom_summary(self):
         source=next(x for x in collector.SOURCES if x['iso2']=='CA')
         url='https://www.canada.ca/en/agency/news/2026/10/investment.html'

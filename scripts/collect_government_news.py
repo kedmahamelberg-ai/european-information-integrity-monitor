@@ -2331,9 +2331,11 @@ def canada_news_metadata(url):
     article=re.sub(r"\s+"," "," ".join(parser.parts)).strip()
     if len(article)<80: raise RuntimeError("Canada release has no usable full article body")
     issued=dt.date.fromisoformat(match.group(1))
-    # The introduction can repeat an earlier event date before the real
-    # publication dateline. Only a standalone dateline paragraph qualifies.
-    datelines = [CANADA_DATELINE.fullmatch(p) for p in parser.paragraphs[:10]]
+    # Only an opening standalone dateline can override stale metadata. Media
+    # advisories include later event schedules (for example "When: Friday,
+    # November 27") which are not additional publication datelines.
+    datelines = [CANADA_DATELINE.fullmatch(p) for p in parser.paragraphs[:4]
+                 if not re.match(r'^(?:when|date|dates|time|event date)\s*:',p,re.I)]
     visible_days = {dt.datetime.strptime(" ".join(m.groups()), "%B %d %Y").date()
                     for m in datelines if m}
     if len(visible_days) > 1:
