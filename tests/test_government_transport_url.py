@@ -12,13 +12,27 @@ import urllib.request
 
 ROOT=Path(__file__).resolve().parents[1]
 tree=ast.parse((ROOT/"scripts/collect_government_news.py").read_text())
-names={"transport_url","_fetch_once","fetch_ipv4"}
+names={"transport_url","_fetch_once","fetch_ipv4","fetch_archive_with_route_fallback"}
 nodes=[node for node in tree.body if isinstance(node,ast.FunctionDef) and node.name in names]
 scope={"urllib":urllib,"ssl":ssl,"subprocess":subprocess,"UA":"test-agent"}
 exec(compile(ast.Module(body=nodes,type_ignores=[]),"<government-transport>","exec"),scope)
 
 
 class GovernmentTransportURLTests(unittest.TestCase):
+    def test_archive_fallback_preserves_the_exact_official_url(self):
+        url = 'https://nk.gov.az/az/xeberler/matbuat-xidmatinin-malumati'
+        with patch.dict(scope, fetch=lambda *a,**k: (_ for _ in ()).throw(TimeoutError()),
+                        fetch_ipv4=lambda source,**k: (source,b'official archive')):
+            self.assertEqual(scope['fetch_archive_with_route_fallback'](url),
+                             (url,b'official archive'))
+
+    def test_archive_fallback_does_not_bypass_access_or_missing_source_errors(self):
+        url = 'https://www.gov.me/vijesti?page=1&sort=published_at&tags=239'
+        error = urllib.error.HTTPError(url,403,'Forbidden',{},None)
+        with patch.dict(scope, fetch=lambda *a,**k: (_ for _ in ()).throw(error)):
+            with self.assertRaises(urllib.error.HTTPError):
+                scope['fetch_archive_with_route_fallback'](url)
+
     def test_unicode_path_and_query_are_encoded_once(self):
         source="https://www.gouv.mc/actualites/communiqué-ᵉ?topic=é&lang=fr#section"
         request=scope["transport_url"](source)

@@ -125,13 +125,40 @@ class GovernmentReviewTests(unittest.TestCase):
         with patch("collect_government_news.fetch", return_value=("https://example.test", page.encode())):
             self.assertEqual(canada_release_date("https://example.test").isoformat(), "2026-10-27")
 
-    def test_canada_conflicting_unconfirmed_dates_require_review(self):
+    def test_canada_standalone_dateline_overrides_stale_issued_date(self):
         page = ('<meta name="dcterms.issued" content="2026-10-29">'
                 '<div class="news-release-container"><p>October 27, 2026 - Edmundston - ACOA</p>'
                 '<p>' + 'This is a full official article body. ' * 5 + '</p></div>')
         with patch("collect_government_news.fetch", return_value=("https://example.test", page.encode())):
-            with self.assertRaisesRegex(RuntimeError, "source review required"):
-                canada_release_date("https://example.test")
+            self.assertEqual(canada_release_date("https://example.test").isoformat(), "2026-10-27")
+
+    def test_canada_event_date_in_intro_is_not_the_release_dateline(self):
+        page = ('<meta name="dcterms.issued" content="2026-11-24">'
+                '<div class="news-release-container"><p>On November 20, 2026, a lockdown began.</p>'
+                '<p>November 24, 2026 – Springhill, Nova Scotia – Correctional Service Canada</p>'
+                '<p>The search protects the institution and its staff.</p></div>')
+        with patch("collect_government_news.fetch", return_value=(None, page.encode())):
+            self.assertEqual(canada_release_date("https://example.test").isoformat(), "2026-11-24")
+
+    def test_source_review_clears_only_the_error_it_resolved(self):
+        self.item.update(classification_status="needs_review", classification_error="copy_hold")
+        correction = {"id": "source-1", "review_origin": "source_reviewed_agent",
+                      "source_evidence_fingerprint": source_evidence_fingerprint(self.item),
+                      "resolves_classification_error": "copy_hold",
+                      "english_summary": "Source-reviewed replacement."}
+        self.assertEqual(apply_confirmed_corrections([self.item], [correction]), (["source-1"], []))
+        self.assertNotIn("classification_error", self.item)
+        self.item["classification_error"] = "different_failure"
+        self.assertEqual(apply_confirmed_corrections([self.item], [correction]), ([], ["source-1"]))
+        self.assertEqual(self.item["classification_error"], "different_failure")
+
+    def test_agent_review_cannot_overwrite_a_human_review(self):
+        self.item.update(human_reviewed=True, classification_status="human_reviewed")
+        correction = {"id": "source-1", "review_origin": "source_reviewed_agent",
+                      "english_summary": "An agent replacement."}
+        self.assertEqual(apply_confirmed_corrections([self.item], [correction]), ([], ["source-1"]))
+        self.assertEqual(self.item["classification_status"], "human_reviewed")
+        self.assertEqual(self.item["english_summary"], "Ambulance staff safety proposal.")
 
     def test_future_roles_require_coded_entity(self):
         self.assertIn("SWE", ROLE_ENTITY_CODES)

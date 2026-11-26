@@ -68,6 +68,11 @@ jobs:
               'scripts/collect_government_news.py',
               'scripts/government_reviews.py',
               'tests/test_government_reviews.py',
+              'scripts/audit_government_sources.py',
+              'tests/test_government_source_audit.py',
+              'tests/test_canada_china_collectors.py',
+              'tests/test_hungary_collector.py',
+              'tests/test_government_transport_url.py',
           }
           try:
               changed = set(subprocess.check_output(

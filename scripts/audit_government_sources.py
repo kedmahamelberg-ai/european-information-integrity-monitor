@@ -19,12 +19,14 @@ STATE = Path("data/government_source_audit.json")
 REPORT = Path("government-source-audit-report.json")
 MODEL_FIELDS = ("title", "published_at", "published_date", "publication_precision",
                 "country", "english_summary",
-                "ticker_message", "relevance", "topics", "roles")
+                "ticker_message", "relevance", "topics", "roles",
+                "viewpoints", "viewpoint_structure", "short_rationale", "evidence_quote")
 BENCHMARKS = {"CA", "CN", "US"}
-AUDIT_RULESET_VERSION = 2
+AUDIT_RULESET_VERSION = 3
 PUBLISHED_FIELDS = {"title", "published_at", "published_date", "country",
                     "english_summary", "ticker_message", "relevance", "topics", "roles",
-                    "source_text_chars"}
+                    "source_text_chars", "viewpoints", "viewpoint_structure",
+                    "short_rationale", "evidence_quote"}
 NO_FINDING = re.compile(
     r"\b(?:matches? the (?:official )?(?:article|source)|"
     r"no (?:title|date|topic|role|label|source) mismatch|"
@@ -45,6 +47,17 @@ def china_page_metadata(item):
     date = re.search(r'<meta\s+name="publishdate"\s+content="(20\d{2}-\d{2}-\d{2})"',
                      markup, re.I)
     return title, date.group(1) if date else None
+
+
+def official_page_metadata(item):
+    if item.get("country_code") == "CN":
+        return china_page_metadata(item)
+    _, body = fetch(item["url"], timeout=20)
+    markup = body.decode("utf-8", "replace")
+    heading = re.search(r"<h1\b[^>]*>(.*?)</h1>", markup, re.I | re.S)
+    title = (" ".join(html.unescape(re.sub(r"<[^>]+>", " ", heading.group(1))).split())
+             if heading else None)
+    return title, None
 
 
 def supported_issue(item, issue, *, official_title=None, official_date=None):
@@ -117,7 +130,10 @@ def audit_model(source, item, *, official_title=None, official_date=None):
         "Only check fields "
         "present in saved_record; if an issuer or location is not a published field, "
         "flag only a concrete misstatement in the summary or ticker. "
-        "Check title, date, summary, ticker, security "
+        "Check title, date, summary, ticker, speaker identities, attributed positions, "
+        "evidence quotes, and consistency between the rationale and selected labels. "
+        "Use the source's spelling of a person's name; do not invent a translated name. "
+        "Check security "
         "relevance and topics, including false positive AND false negative AI and "
         "superintelligence labels. A ministry name, broad agenda/sector list, or "
         "incidental AI mention is not a substantive AI action. Do not infer a security "
@@ -179,9 +195,9 @@ def audit_one(item):
     if len(source) > 75000:
         raise RuntimeError("Full official article exceeds audit model limit")
     official_title = official_date = None
-    if item.get("country_code") == "CN":
+    if item.get("country_code") in {"CN", "LU", "KZ"}:
         try:
-            official_title, official_date = china_page_metadata(item)
+            official_title, official_date = official_page_metadata(item)
         except Exception:
             # The complete source was already retrieved. Optional page metadata
             # must not turn an accessible source into an unverified record.

@@ -16,6 +16,20 @@ def atom(entries):
 
 
 class BenchmarkCollectorTest(unittest.TestCase):
+    def test_uk_uses_the_live_prime_minister_office_organisation_filter(self):
+        seen = []
+        def fetched(url, **_):
+            seen.append(url)
+            return url, atom([('Old release','2026-10-01T12:00:00Z',
+                             'https://www.gov.uk/government/news/old-release')])
+        source = next(x for x in collector.SOURCES if x['iso2']=='GB')
+        with patch.object(collector,'fetch',side_effect=fetched):
+            items,_ = collector.discover_united_kingdom(source,
+                dt.datetime(2026,11,25,tzinfo=dt.timezone.utc),
+                dt.datetime(2026,11,26,tzinfo=dt.timezone.utc))
+        self.assertEqual(items,[])
+        self.assertIn('organisations%5B%5D=prime-ministers-office-no-10',seen[0])
+
     def test_explicit_ai_titles_are_reviewed_first_without_assigning_labels(self):
         neutral={"id":"neutral", "title":"Les ministres ont parlé; j'ai répondu"}
         french={"id":"french", "title":"L'intelligence artificielle et la sécurité"}

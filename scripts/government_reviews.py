@@ -52,6 +52,14 @@ def apply_confirmed_corrections(items, corrections):
         correction = by_id.get(item.get("id"))
         if not correction:
             continue
+        # Automated source reviews cannot supersede an owner's signed review.
+        if correction.get("review_origin") == "source_reviewed_agent" and item.get("human_reviewed"):
+            stale.append(item["id"])
+            continue
+        resolved_error = correction.get("resolves_classification_error")
+        if resolved_error and item.get("classification_error") not in (None, resolved_error):
+            stale.append(item["id"])
+            continue
         fingerprint = correction.get("source_fingerprint")
         if fingerprint and fingerprint != source_fingerprint(item):
             stale.append(item["id"])
@@ -102,5 +110,7 @@ def apply_confirmed_corrections(items, corrections):
             "human_reviewed": False if source_reviewed else True,
             "source_reviewed": source_reviewed or bool(item.get("source_reviewed")),
         })
+        if resolved_error:
+            item.pop("classification_error", None)
         applied.append(item["id"])
     return applied, stale
