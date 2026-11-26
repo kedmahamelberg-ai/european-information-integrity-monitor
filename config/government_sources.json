@@ -325,16 +325,16 @@
     {
       "iso2": "US",
       "name": "United States",
-      "url": "https://www.whitehouse.gov/briefings-statements/",
+      "url": "https://www.whitehouse.gov/news/",
       "verification_status": "verified",
-      "scope_note": "Benchmark outside the European aggregate. White House Briefings & Statements only, from 4 October 2026; not all United States government communications."
+      "scope_note": "Benchmark outside the European aggregate. All dated White House News categories from 4 October 2026: releases, briefings and statements, fact sheets, presidential actions, remarks and research. This is White House publication coverage, not every US federal department."
     },
     {
       "iso2": "CA",
       "name": "Canada",
       "url": "https://www.canada.ca/en/news.html",
       "verification_status": "verified",
-      "scope_note": "Benchmark outside the European aggregate. Dated Government of Canada news releases from the official English and French news feeds; paired translations are one communication. This covers federal departments, not every Prime Minister communication or provincial government."
+      "scope_note": "Benchmark outside the European aggregate. All dated federal news types in the official English and French feeds: news releases, statements, speeches, readouts, backgrounders and media advisories. Publisher-declared translations are one communication; different announcements are never merged by timestamp. The separate Prime Minister portal and provincial governments are outside this feed."
     },
     {
       "iso2": "CN",

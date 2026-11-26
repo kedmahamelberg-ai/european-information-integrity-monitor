@@ -235,7 +235,7 @@ class GovernmentModelRecoveryTests(unittest.TestCase):
                     collector.main()
             saved=json.loads(state.read_text())["items"]
             self.assertEqual(len(saved),3)
-            self.assertTrue(all(item["classification_status"]=="pending_classification" for item in saved))
+            self.assertTrue(all(item["classification_status"]=="needs_review" for item in saved))
 
     def test_network_reset_retries_and_http_denial_remains_visible(self):
         reset=urllib.error.URLError(ConnectionResetError("Connection reset by peer"))

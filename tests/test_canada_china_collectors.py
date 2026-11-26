@@ -16,6 +16,39 @@ def atom(entries):
 
 
 class BenchmarkCollectorTest(unittest.TestCase):
+    def test_all_news_types_and_distinct_simultaneous_french_items_are_retained(self):
+        source=next(x for x in collector.SOURCES if x['iso2']=='CA')
+        types=('newsreleases','statements','speeches','readouts','backgrounders','mediaadvisories')
+        urls=[f'https://www.canada.ca/en/agency/news/2026/10/{kind}.html' for kind in types]
+        french='https://www.canada.ca/fr/agence/nouvelles/2026/10/autre.html'
+        stamp='2026-10-03T12:00:00-04:00';seen=[]
+        def fetched(url,**_):
+            seen.append(url)
+            rows=[(kind,stamp,link) for kind,link in zip(types,urls)] if '/en/' in url else [('Distinct French item',stamp,french)]
+            return url,atom(rows)
+        metadata={'day':dt.date(2026,10,3),'alternates':{},'text':'A complete and distinct original government announcement.'}
+        cache={}
+        with patch.object(collector,'fetch',side_effect=fetched),patch.object(collector,'canada_news_metadata',return_value=metadata) as read:
+            args=(source,dt.datetime(2026,10,1,tzinfo=dt.timezone.utc),dt.datetime(2026,10,5,tzinfo=dt.timezone.utc),cache)
+            items,_=collector.discover_canada(*args)
+            collector.discover_canada(*args)
+        self.assertEqual({x['url'] for x in items},set(urls+[french]))
+        self.assertTrue(all('type=' not in url for url in seen))
+        self.assertEqual(read.call_count,7)  # unchanged metadata is reused on the second archive check
+
+    def test_publisher_language_pair_is_one_record_despite_different_timestamps(self):
+        source=next(x for x in collector.SOURCES if x['iso2']=='CA')
+        en='https://www.canada.ca/en/agency/news/2026/10/one.html'
+        fr='https://www.canada.ca/fr/agence/nouvelles/2026/10/un.html'
+        def fetched(url,**_):
+            row=('Original','2026-10-03T12:00:00-04:00',en) if '/en/' in url else ('Traduction','2026-10-04T13:00:00-04:00',fr)
+            return url,atom([row])
+        metadata={'day':dt.date(2026,10,3),'alternates':{'en':en,'fr':fr},'text':'A complete original government announcement.'}
+        with patch.object(collector,'fetch',side_effect=fetched),patch.object(collector,'canada_news_metadata',return_value=metadata) as read:
+            items,_=collector.discover_canada(source,dt.datetime(2026,10,1,tzinfo=dt.timezone.utc),dt.datetime(2026,10,5,tzinfo=dt.timezone.utc))
+        self.assertEqual([x['url'] for x in items],[en])
+        self.assertEqual(items[0]['source_aliases'],[fr]);self.assertEqual(read.call_count,1)
+
     def test_uk_uses_the_live_prime_minister_office_organisation_filter(self):
         seen = []
         def fetched(url, **_):
@@ -56,8 +89,8 @@ class BenchmarkCollectorTest(unittest.TestCase):
             if '/en/' in url:
                 return url,atom([('English release',shared,en),('Older release',older,en)])
             return url,atom([('Communiqué traduit',shared,fr),('Communiqué français',unique,fr_only),('Ancien',older,fr)])
-        def issued(url): return dt.date(2026,10,2) if url==fr_only else dt.date(2026,10,3)
-        with patch.object(collector,'fetch',side_effect=fetched),patch.object(collector,'canada_release_date',side_effect=issued):
+        def issued(url): return {'day': dt.date(2026,10,2) if url==fr_only else dt.date(2026,10,3), 'alternates': {'en':en, 'fr':fr} if url in (en,fr) else {}, 'text':'Complete original federal announcement.'}
+        with patch.object(collector,'fetch',side_effect=fetched),patch.object(collector,'canada_news_metadata',side_effect=issued):
             items,_=collector.discover_canada(source,dt.datetime(2026,10,1,tzinfo=dt.timezone.utc),dt.datetime(2026,10,5,tzinfo=dt.timezone.utc))
         self.assertEqual({x['url'] for x in items},{en,fr_only})
         self.assertTrue(all(x['publication_precision']=='day' for x in items))
@@ -71,7 +104,7 @@ class BenchmarkCollectorTest(unittest.TestCase):
         en='https://www.canada.ca/en/agency/news/2026/10/new.html'
         def feed(url,**_):
             return url,atom([('New release','2026-10-30T12:00:00-04:00',en)] if '/en/' in url else [('Ancien communiqué','2026-10-30T09:48:12-04:00',old)])
-        with patch.object(collector,'fetch',side_effect=feed),patch.object(collector,'canada_release_date',side_effect=lambda u:dt.date(2026,9,4) if u==old else dt.date(2026,10,30)):
+        with patch.object(collector,'fetch',side_effect=feed),patch.object(collector,'canada_news_metadata',side_effect=lambda u:{'day':dt.date(2026,9,4) if u==old else dt.date(2026,10,30),'alternates':{},'text':'Complete original federal announcement.'}):
             items,_=collector.discover_canada(source,dt.datetime(2026,10,1,tzinfo=dt.timezone.utc),dt.datetime(2026,10,31,tzinfo=dt.timezone.utc))
         self.assertEqual([x['url'] for x in items],[en])
 
