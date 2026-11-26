@@ -44,6 +44,24 @@ class MaltaCollectorTests(unittest.TestCase):
         self.assertIn("Official government communication", items[0]["text"])
         self.assertEqual(fetch.call_count, 2)  # No article fetch can abort discovery.
 
+    def test_english_translation_without_en_suffix_is_one_release_in_either_order(self):
+        maltese=card('PR261927','STQARRIJA MILL-MINISTERU Climate negotiations', '15/11/2026')
+        english=card('PR261927','PRESS RELEASE BY THE MINISTRY Climate negotiations', '15/11/2026').replace('pr261927"','pr261927-0"')
+        for rows in ([maltese,english],[english,maltese]):
+            with patch.object(collector,'fetch_malta_html',return_value=''.join(rows)), \
+                 patch.object(collector,'malta_rss_text',return_value={}):
+                items,_=collector.discover_malta(self.country,self.start,self.end)
+            self.assertEqual(len(items),1)
+            self.assertTrue(items[0]['url'].endswith('/pr261927-0'))
+            self.assertEqual(items[0]['source_aliases'],['https://departmentofinformation.gov.mt/press-release/2026/pr261927'])
+
+    def test_conflicting_same_language_release_still_requires_source_review(self):
+        a=card('PR261927','PRESS RELEASE BY THE MINISTRY One', '15/11/2026')
+        b=card('PR261927','PRESS RELEASE BY THE MINISTRY Another', '15/11/2026').replace('pr261927"','pr261927-0"')
+        with patch.object(collector,'fetch_malta_html',return_value=a+b):
+            with self.assertRaisesRegex(RuntimeError,'repeated release'):
+                collector.discover_malta(self.country,self.start,self.end)
+
     def test_fetches_article_body_when_rss_does_not_cover_it(self):
         item = {"country_code": "MT", "url": ENGLISH_URL, "text": ""}
         with patch.object(collector, "fetch_malta_html", return_value=ARTICLE):

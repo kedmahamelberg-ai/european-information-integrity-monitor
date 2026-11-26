@@ -80,6 +80,8 @@ jobs:
               'scripts/verify_government_source_coverage.py',
               'scripts/continue_government_backlog.py',
               'config/government_source_identities.json',
+              'data/government_ai_backfill_priority.json',
+              'tests/test_malta_collector.py',
               'tests/test_government_source_identities.py',
               'tests/test_government_coverage.py',
               'tests/test_government_backlog.py',

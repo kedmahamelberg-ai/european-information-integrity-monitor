@@ -68,6 +68,10 @@ def publisher_identity(code, url):
         match = re.fullmatch(r'/(?:de|fr|it|en)/newnsb/([A-Za-z0-9_-]+)', parts.path)
         if match:
             return code + ':article:' + match.group(1)
+    if code == 'MT' and parts.hostname == 'departmentofinformation.gov.mt':
+        match = re.fullmatch(r'/press-release/20\d{2}/(pr\d{6})(?:en)?(?:-\d+)?/?', parts.path, re.I)
+        if match:
+            return code + ':release:' + match.group(1).lower()
     return code + ':url:' + normalized_url(url)
 
 

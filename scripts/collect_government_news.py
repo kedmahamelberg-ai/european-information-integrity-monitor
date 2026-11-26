@@ -2191,14 +2191,24 @@ def discover_malta(country,start,end):
             number=number_match.group(1).lower(); key=number.removesuffix("en")
             title=re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",spans[-1]))).strip()
             if not title: raise RuntimeError("Malta press-release card has no title")
-            previous=entries.get(key); is_english=number.endswith("en")
+            # DOI PR261927's English translation uses -0 and the same printed
+            # number as its Maltese original, without the usual EN suffix.
+            previous=entries.get(key)
+            is_english=number.endswith("en") or title.upper().startswith("PRESS RELEASE BY ")
+            if previous and previous[1]['published_date'] != day.isoformat():
+                raise RuntimeError(f"Malta release {key} has conflicting publication dates")
             if previous and previous[0]==is_english and previous[1]["url"]!=article_url:
                 raise RuntimeError(f"Malta archive repeated release {key}: {previous[1]['url']} <> {article_url}")
             if not previous or is_english:
                 published=dt.datetime.combine(day,dt.time.min,MALTA).astimezone(dt.timezone.utc)
-                entries[key]=(is_english,{"country":country["name"],"country_code":"MT","url":article_url,
+                item={"country":country["name"],"country_code":"MT","url":article_url,
                                           "title":title,"published_at":published.isoformat(),
-                                          "published_date":day.isoformat(),"publication_precision":"day","text":""})
+                                          "published_date":day.isoformat(),"publication_precision":"day","text":""}
+                if previous:
+                    register_aliases(item,previous[1])
+                entries[key]=(is_english,item)
+            else:
+                register_aliases(previous[1],{'url':article_url})
         if older or not re.search(r'href="/en/search/press-releases\?p='+str(page_number+1)+r'"',page): break
     else: raise RuntimeError("Malta press-release archive exceeded 100 pages")
     try:

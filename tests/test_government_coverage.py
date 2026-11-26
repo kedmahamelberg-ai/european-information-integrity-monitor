@@ -64,6 +64,12 @@ class GovernmentCoverageTests(unittest.TestCase):
         self.assertEqual(coverage.publisher_identity('AD','https://gov.example/a?b=2&a=1&utm_source=x#part'),
                          coverage.publisher_identity('AD','https://gov.example/a?a=1&b=2'))
 
+    def test_malta_language_pair_preserves_an_existing_reviewed_release(self):
+        old={'id':'keep-maltese-id','country_code':'MT','human_reviewed':True,
+             'url':'https://departmentofinformation.gov.mt/press-release/2026/pr261927'}
+        entry={'country_code':'MT','url':'https://departmentofinformation.gov.mt/press-release/2026/pr261927-0'}
+        self.assertIs(coverage.match_record(entry,coverage.index_records([old])),old)
+
     def test_different_documents_or_countries_cannot_merge_by_title_or_time(self):
         first={'id':'one','country_code':'CA','url':'https://www.canada.ca/en/a/news/2026/11/one.html'}
         other={'country_code':'CA','url':'https://www.canada.ca/en/a/news/2026/11/two.html'}

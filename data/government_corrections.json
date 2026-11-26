@@ -3527,5 +3527,18 @@
     "fault_type": "audit_false_positive",
     "published_field": "viewpoint_structure and viewpoints (retained)",
     "evidence": "The source explicitly contrasts Canada’s historical retention argument with the Survivors’ lawyers’ destruction argument. Both saved viewpoints use past-tense argued and accurately attribute the reported historical positions; multiple reported viewpoints need not all be new statements at the current release."
+  },
+  {
+    "id": "7480232694c7eb45e52b",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://valitsus.ee/uudised/valitsuse-pressikonverents-5-november-2026",
+    "source_evidence_fingerprint": "795eb2d111b43d8998ed518ef3e9f03070ffbeedbc67ddea607885f47fae7a46",
+    "source_text_sha256": "dd0c13e202f32c131f1f374faeb0adcad45f60129e1bfb722820517e485fb11a",
+    "english_summary": "Estonia called for European AI investment to avoid falling behind the United States and China, alongside AI skills training. Ministers also backed restrictions on Russian and Belarusian participation in international sport during Russia’s war against Ukraine.",
+    "ticker_message": "Estonia urges European AI investment to compete with the US and China, alongside wider AI training.",
+    "short_rationale": "The AI discussion explicitly compares Europe’s investment and digital-service capacity with the United States and China. Separate passages describe Russia’s war, coordinated sports restrictions and visa measures. These substantive passages support their respective topics.",
+    "fault_type": "editorial",
+    "published_field": "english_summary, ticker_message, short_rationale",
+    "evidence": "Full 5 November transcript: the prime minister calls for European AI investment to avoid falling behind the US and China and discusses European digital-service capacity; AI qualification rests on that strategic argument, alongside the separate training announcement. All other labels and attributed viewpoints are retained."
   }
 ]
