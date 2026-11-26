@@ -58,9 +58,21 @@ class MaltaCollectorTests(unittest.TestCase):
     def test_conflicting_same_language_release_still_requires_source_review(self):
         a=card('PR261927','PRESS RELEASE BY THE MINISTRY One', '15/11/2026')
         b=card('PR261927','PRESS RELEASE BY THE MINISTRY Another', '15/11/2026').replace('pr261927"','pr261927-0"')
-        with patch.object(collector,'fetch_malta_html',return_value=a+b):
-            with self.assertRaisesRegex(RuntimeError,'repeated release'):
+        with patch.object(collector,'fetch_malta_html',return_value=a+b), \
+             patch.object(collector,'article_text',side_effect=['Full original one.','A different original.']):
+            with self.assertRaisesRegex(RuntimeError,'identity needs review'):
                 collector.discover_malta(self.country,self.start,self.end)
+
+    def test_republished_same_language_copy_requires_identical_complete_bodies(self):
+        a=card('PR261861','STQARRIJA Original', '15/11/2026')
+        b=card('PR261861','STQARRIJA Original', '15/11/2026').replace('pr261861"','pr261861-1"')
+        with patch.object(collector,'fetch_malta_html',return_value=a+b), \
+             patch.object(collector,'article_text',return_value='The same complete official original.') as read, \
+             patch.object(collector,'malta_rss_text',return_value={}):
+            items,_=collector.discover_malta(self.country,self.start,self.end)
+        self.assertEqual(read.call_count,2)
+        self.assertEqual(len(items),1)
+        self.assertEqual(items[0]['source_aliases'],['https://departmentofinformation.gov.mt/press-release/2026/pr261861-1'])
 
     def test_fetches_article_body_when_rss_does_not_cover_it(self):
         item = {"country_code": "MT", "url": ENGLISH_URL, "text": ""}

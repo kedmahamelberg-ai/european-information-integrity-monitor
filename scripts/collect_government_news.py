@@ -2198,7 +2198,18 @@ def discover_malta(country,start,end):
             if previous and previous[1]['published_date'] != day.isoformat():
                 raise RuntimeError(f"Malta release {key} has conflicting publication dates")
             if previous and previous[0]==is_english and previous[1]["url"]!=article_url:
-                raise RuntimeError(f"Malta archive repeated release {key}: {previous[1]['url']} <> {article_url}")
+                # A suffix can also be a republished copy. Accept it only when
+                # both complete original bodies prove the same release.
+                prior_body=article_text(previous[1])
+                alternate={'country_code':'MT','url':article_url,'text':''}
+                other_body=article_text(alternate)
+                if prior_body != other_body:
+                    raise RuntimeError(f"Malta release identity needs review: {key}: "
+                        f"{previous[1]['url']} ({previous[1]['title']}) <> {article_url} ({title}); "
+                        f"different full bodies ({len(prior_body)}, {len(other_body)} characters)")
+                register_aliases(previous[1],alternate)
+                print(f"Verified identical Malta release bodies: {key}: {previous[1]['url']} <> {article_url}",flush=True)
+                continue
             if not previous or is_english:
                 published=dt.datetime.combine(day,dt.time.min,MALTA).astimezone(dt.timezone.utc)
                 item={"country":country["name"],"country_code":"MT","url":article_url,
@@ -2218,7 +2229,7 @@ def discover_malta(country,start,end):
         feed_text={}
     items=[]
     for _,item in entries.values():
-        item["text"]=feed_text.get(canonical_source_url(item["url"]),"")
+        item["text"]=feed_text.get(canonical_source_url(item["url"]),item.get("text",""))
         items.append(item)
     return items,country["url"]
 
