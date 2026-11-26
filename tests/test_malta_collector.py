@@ -74,6 +74,22 @@ class MaltaCollectorTests(unittest.TestCase):
         self.assertEqual(len(items),1)
         self.assertEqual(items[0]['source_aliases'],['https://departmentofinformation.gov.mt/press-release/2026/pr261861-1'])
 
+    def test_republished_typographic_quotes_preserve_all_words_and_numbers(self):
+        a=card('PR261861','STQARRIJA Original', '15/11/2026')
+        b=a.replace('pr261861"','pr261861-1"')
+        first='The minister said: “The workers’ 2027–2031 strategy.”'
+        same='The minister said: "The workers\' 2027–2031 strategy."'
+        for second,accepted in [(same,True),(same.replace('2031','2032'),False),
+                                (same.replace('workers','employers'),False)]:
+            with self.subTest(second=second),patch.object(collector,'fetch_malta_html',return_value=a+b), \
+                 patch.object(collector,'article_text',side_effect=[first,second]), \
+                 patch.object(collector,'malta_rss_text',return_value={}):
+                if accepted:
+                    self.assertEqual(len(collector.discover_malta(self.country,self.start,self.end)[0]),1)
+                else:
+                    with self.assertRaisesRegex(RuntimeError,'identity needs review'):
+                        collector.discover_malta(self.country,self.start,self.end)
+
     def test_fetches_article_body_when_rss_does_not_cover_it(self):
         item = {"country_code": "MT", "url": ENGLISH_URL, "text": ""}
         with patch.object(collector, "fetch_malta_html", return_value=ARTICLE):

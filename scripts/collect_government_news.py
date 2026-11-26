@@ -2116,6 +2116,7 @@ def discover_san_marino(country,start,end):
 
 MALTA_ARCHIVE = "https://departmentofinformation.gov.mt/en/search/press-releases"
 MALTA_ARTICLE_PATH = re.compile(r"/press-release/20\d{2}/[^/?#]+\Z")
+MALTA_QUOTE_STYLES = str.maketrans({'’': "'", '‘': "'", '“': '"', '”': '"'})
 
 
 def fetch_malta_html(url, expect_html=True):
@@ -2203,7 +2204,9 @@ def discover_malta(country,start,end):
                 prior_body=article_text(previous[1])
                 alternate={'country_code':'MT','url':article_url,'text':''}
                 other_body=article_text(alternate)
-                if prior_body != other_body:
+                # PR261861's two complete originals differ only in straight
+                # versus typographic quotation marks and apostrophes.
+                if prior_body.translate(MALTA_QUOTE_STYLES) != other_body.translate(MALTA_QUOTE_STYLES):
                     # Keep complete evidence in the review artifact, never Pages.
                     evidence_path=ROOT/'data/government_source_identity_review.json'
                     evidence_path.parent.mkdir(parents=True,exist_ok=True)
@@ -2216,7 +2219,7 @@ def discover_malta(country,start,end):
                         f"{previous[1]['url']} ({previous[1]['title']}) <> {article_url} ({title}); "
                         f"different full bodies ({len(prior_body)}, {len(other_body)} characters)")
                 register_aliases(previous[1],alternate)
-                print(f"Verified identical Malta release bodies: {key}: {previous[1]['url']} <> {article_url}",flush=True)
+                print(f"Verified equivalent Malta release text (quote style only): {key}: {previous[1]['url']} <> {article_url}",flush=True)
                 continue
             if not previous or is_english:
                 published=dt.datetime.combine(day,dt.time.min,MALTA).astimezone(dt.timezone.utc)
