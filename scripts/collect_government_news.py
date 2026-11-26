@@ -2119,6 +2119,13 @@ MALTA_ARTICLE_PATH = re.compile(r"/press-release/20\d{2}/[^/?#]+\Z")
 MALTA_QUOTE_STYLES = str.maketrans({'’': "'", '‘': "'", '“': '"', '”': '"'})
 
 
+def malta_identity_text(text):
+    """Compare reviewed typography without changing source words or numbers."""
+    # PR261858's republished original adds a separate final full stop after
+    # the completed sentence. Preserve ellipses and all other punctuation.
+    return re.sub(r'(?<=\w)\.\s+\.$', '.', text.translate(MALTA_QUOTE_STYLES))
+
+
 def fetch_malta_html(url, expect_html=True):
     """Use the WARP proxy for the DOI's current official archive and articles."""
     parsed=urllib.parse.urlsplit(url)
@@ -2169,7 +2176,7 @@ def malta_rss_text():
 def discover_malta(country,start,end):
     """Page the DOI's dated archive and prefer English versions of each release."""
     first,last=start.astimezone(MALTA).date(),end.astimezone(MALTA).date()
-    entries={}
+    entries={}; identity_conflicts=[]
     for page_number in range(1,101):
         url=MALTA_ARCHIVE+(f"?p={page_number}" if page_number>1 else "")
         page=fetch_malta_html(url)
@@ -2206,7 +2213,7 @@ def discover_malta(country,start,end):
                 other_body=article_text(alternate)
                 # PR261861's two complete originals differ only in straight
                 # versus typographic quotation marks and apostrophes.
-                if prior_body.translate(MALTA_QUOTE_STYLES) != other_body.translate(MALTA_QUOTE_STYLES):
+                if malta_identity_text(prior_body) != malta_identity_text(other_body):
                     # Keep complete evidence in the review artifact, never Pages.
                     evidence_path=ROOT/'data/government_source_identity_review.json'
                     evidence_path.parent.mkdir(parents=True,exist_ok=True)
@@ -2215,11 +2222,12 @@ def discover_malta(country,start,end):
                         'first':{'url':previous[1]['url'],'title':previous[1]['title'],'body':prior_body},
                         'second':{'url':article_url,'title':title,'body':other_body}})
                     evidence_path.write_text(json.dumps(evidence,ensure_ascii=False,indent=2)+'\n')
-                    raise RuntimeError(f"Malta release identity needs review: {key}: "
+                    identity_conflicts.append(f"{key}: "
                         f"{previous[1]['url']} ({previous[1]['title']}) <> {article_url} ({title}); "
                         f"different full bodies ({len(prior_body)}, {len(other_body)} characters)")
+                    continue
                 register_aliases(previous[1],alternate)
-                print(f"Verified equivalent Malta release text (quote style only): {key}: {previous[1]['url']} <> {article_url}",flush=True)
+                print(f"Verified equivalent Malta release text (reviewed typography only): {key}: {previous[1]['url']} <> {article_url}",flush=True)
                 continue
             if not previous or is_english:
                 published=dt.datetime.combine(day,dt.time.min,MALTA).astimezone(dt.timezone.utc)
@@ -2233,6 +2241,8 @@ def discover_malta(country,start,end):
                 register_aliases(previous[1],{'url':article_url})
         if older or not re.search(r'href="/en/search/press-releases\?p='+str(page_number+1)+r'"',page): break
     else: raise RuntimeError("Malta press-release archive exceeded 100 pages")
+    if identity_conflicts:
+        raise RuntimeError('Malta release identity needs review: '+'; '.join(identity_conflicts))
     try:
         feed_text=malta_rss_text()
     except (RuntimeError,ET.ParseError,TimeoutError) as error:

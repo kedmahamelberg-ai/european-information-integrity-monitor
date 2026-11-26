@@ -1,8 +1,10 @@
 """Check the DOI archive, RSS fallback, and per-article retrieval."""
 import datetime as dt
 import importlib.util
+import json
 from pathlib import Path
 import sys
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -89,6 +91,22 @@ class MaltaCollectorTests(unittest.TestCase):
                 else:
                     with self.assertRaisesRegex(RuntimeError,'identity needs review'):
                         collector.discover_malta(self.country,self.start,self.end)
+
+    def test_only_reviewed_duplicate_final_full_stop_is_normalized(self):
+        self.assertEqual(collector.malta_identity_text('The source sentence. .'),'The source sentence.')
+        self.assertEqual(collector.malta_identity_text('An omission . . .'),'An omission . . .')
+        self.assertNotEqual(collector.malta_identity_text('Total 10.5.'),collector.malta_identity_text('Total 105.'))
+
+    def test_all_conflicting_originals_are_saved_for_one_source_review(self):
+        rows=''.join(card(n,'Same printed release')+card(n,'Same printed release').replace(n.lower()+'"',n.lower()+'-1"') for n in ['PR261858','PR261859'])
+        with tempfile.TemporaryDirectory() as folder,patch.object(collector,'ROOT',Path(folder)), \
+             patch.object(collector,'fetch_malta_html',return_value=rows), \
+             patch.object(collector,'article_text',side_effect=['First full original.','Changed full original.']*2) as read:
+            with self.assertRaisesRegex(RuntimeError,'identity needs review'):
+                collector.discover_malta(self.country,self.start,self.end)
+            evidence=json.loads((Path(folder)/'data/government_source_identity_review.json').read_text())
+        self.assertEqual(read.call_count,4)
+        self.assertEqual({row['release_id'] for row in evidence},{'pr261858','pr261859'})
 
     def test_fetches_article_body_when_rss_does_not_cover_it(self):
         item = {"country_code": "MT", "url": ENGLISH_URL, "text": ""}
