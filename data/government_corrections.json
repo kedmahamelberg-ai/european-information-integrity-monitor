@@ -3764,5 +3764,92 @@
     "resolves_classification_error": "ai_topic_without_explicit_published_connection",
     "english_summary": "The White House announced more than $6 billion in science initiatives. It says these include Super Intelligence tools for researchers, alongside quantum computing, virtual biology and nuclear space power projects; the amounts and expected benefits are administration claims.",
     "ticker_message": "White House proposes Super Intelligence research tools within a broader $6 billion science package."
+  },
+  {
+    "id": "98b16e84a62e90bdb638",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.canada.ca/en/natural-resources-canada/news/2026/11/the-honourable-tim-hodgson-minister-of-energy-and-natural-resources-powering-canadas-next-century-from-ambition-to-construction-keynote-address-ele.html",
+    "source_evidence_fingerprint": "5353b786ff0605b8b67d1d9a0b791a0b1007427daf7d968c7a1d4f2a07501fbf",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "topics": [
+      "energy",
+      "critical_infrastructure",
+      "economic_financial_security",
+      "technology_supply_chains",
+      "climate_environment"
+    ],
+    "short_rationale": "The electricity speech mentions Canada’s AI Strategy once in a list of government strategies. It describes grid expansion and energy security, not a specific AI action or use; this incidental strategy reference does not support an AI topic."
+  },
+  {
+    "id": "2e6aa8379bccd2514d7f",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.canada.ca/en/innovation-science-economic-development/news/2026/11/statement-from-minister-joly-on-her-meeting-with-telecommunication-ceos.html",
+    "source_evidence_fingerprint": "185ebc81db905e42a2a141ce945a7e23d884c3cecd6d97fb8a675084a459e1b4",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "topics": [
+      "critical_infrastructure",
+      "cyber",
+      "sovereignty_borders",
+      "civil_protection",
+      "technology_supply_chains"
+    ],
+    "short_rationale": "Minister Joly mentions AI once alongside satellites and other emerging technologies to motivate telecom infrastructure investment. The statement announces no AI-specific policy, system or use, so the AI topic is unsupported."
+  },
+  {
+    "id": "08a552c40418815c07e0",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.canada.ca/en/competition-bureau/news/2026/11/study-on-the-use-of-artificial-intelligence-in-algorithmic-pricing.html",
+    "source_evidence_fingerprint": "cb31f46afc872b7cbe131ace7bf09859c857de2482a3dd252c2b16aea60bca93",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "Canada’s Competition Bureau says AI-enabled pricing can help firms adjust prices but may also facilitate coordination or harm consumers. It cites consultations and investigations involving rental software and gas-station data and says it will assess conduct under competition law.",
+    "ticker_message": "Canada’s Competition Bureau examines AI-enabled pricing risks and enforcement under competition law."
+  },
+  {
+    "id": "69812e5686d44e2f41e0",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.canada.ca/en/agriculture-agri-food/news/2026/11/backgrounder-secretary-of-state-buckley-belanger-announces-funding-for-saskatchewan-based-agricultural-projects.html",
+    "source_evidence_fingerprint": "4ad8fb36bd50047fb4bcec66f9ee373d52bd4056802c277a1a29ab17e0786af0",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "Canada announced up to $15.8 million for 27 Saskatchewan agriculture projects. A $2.3958 million project by Super GeoAI Technology aims to develop geographic AI tools that guide fungicide use against Fusarium head blight. Other grants include an Indigenous-led food-sovereignty project.",
+    "ticker_message": "Canada funds geographic AI tools for fungicide decisions within Saskatchewan agriculture grants."
+  },
+  {
+    "id": "141bd36995884e4833f4",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://gov.md/index.php/ro/comunicate-de-presa/statele-unite-ofera-republicii-moldova-un-sprijin-de-15-milioane-de-dolari",
+    "source_evidence_fingerprint": "da1a5e12ba634d6fc1f90a19ac5b9d2e29ada7a248c6d8a8c0bee9a82236bf8f",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "topics": [
+      "cyber",
+      "critical_infrastructure",
+      "diplomacy_alliances"
+    ],
+    "short_rationale": "Moldova announces U.S. funding for cybersecurity equipment and training after an attack. The prime minister mentions general opportunities and risks from AI but neither the grant nor the exercise describes an AI-specific action or use."
+  },
+  {
+    "id": "db37bc46607aac74ec5a",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://gov.md/ro/comunicate-de-presa/premierul-vasile-tofan-la-reuniunea-platformei-pentru-conectivitate-digitala",
+    "source_evidence_fingerprint": "d846f5076662fcaabd5be34337b650d7ad5d0e98d76b97e69c9564195aa26e1d",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "Moldova and EU partners discussed secure connectivity after a government cyberattack. The prime minister proposed AI in stronger cyber protection, while a planned resilient data centre would support AI and cloud capacity. The EU also announced secure Wi-Fi funding for at least 30 localities.",
+    "ticker_message": "Moldova proposes AI-supported cyber protection and a data centre for AI capacity."
+  },
+  {
+    "id": "dee60a2b123b2fe5f44a",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.canada.ca/en/competition-bureau/news/2026/10/building-an-economy-that-can-bounce-forward.html",
+    "source_evidence_fingerprint": "f041f5ed602b1804d247695b1c046c804ad3eea5bc5eb3e71c6e10a6b0d8ab3c",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "ticker_message": "Canada’s Competition Bureau says AI raises competition and security questions while markets need room for challengers."
+  },
+  {
+    "id": "9f3589568482cbd7be76",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.canada.ca/en/communications-security/news/2026/10/statement-by-the-minister-of-national-defence-on-the-start-of-cyber-month-2026.html",
+    "source_evidence_fingerprint": "e9b2284bbad61410c5ad6e92cf174633310941138c05daa977506c6896c120d5",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "Canada’s defence minister says cybercriminals use AI to make phishing messages and scams more convincing. Launching Cyber Month, he urges stronger passwords, multifactor authentication and scam awareness as part of national cyber resilience.",
+    "ticker_message": "Canada’s Cyber Month warns of AI-assisted phishing and urges basic online security habits."
   }
 ]
