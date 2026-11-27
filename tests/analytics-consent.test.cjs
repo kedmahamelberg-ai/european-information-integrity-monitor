@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const analytics = fs.readFileSync('apps/dashboard/analytics.js', 'utf8');
 const visitor = fs.readFileSync('apps/dashboard/visitor-count.js', 'utf8');
-function page({mobile = false, userAgent = '', blocked = false, hostname = 'monitor.hamelberg-ai.com'} = {}) {
+function page({footer = true, mobile = false, userAgent = '', blocked = false, hostname = 'monitor.hamelberg-ai.com'} = {}) {
   const nodes = [], requests = [], store = new Map();
   const head = {appendChild(node) { nodes.push(node); }};
   const ids = {'visitor-message': {hidden: true}, 'visitor-number': {}};
@@ -13,8 +13,8 @@ function page({mobile = false, userAgent = '', blocked = false, hostname = 'moni
     localStorage: {getItem(k) { if (blocked) throw Error('blocked'); return store.get(k) || null; },
       setItem(k, v) { if (blocked) throw Error('blocked'); store.set(k, v); },
       removeItem(k) { if (blocked) throw Error('blocked'); store.delete(k); }},
-    document: {title: 'Monitor', cookie: '', head, body: {appendChild(node) { nodes.push(node); }},
-      createElement: tag => ({tag}), getElementById: k => ids[k]},
+    document: {addEventListener() {}, title: 'Monitor', cookie: '', head, body: {appendChild(node) { nodes.push(node); }},
+      createElement: tag => ({tag}), getElementById: k => footer ? ids[k] : null},
     navigator: {userAgent, userAgentData: {mobile}}, matchMedia: () => ({matches: mobile}),
     crypto: {randomUUID: () => 'be123456-1234-1234-1234-123456789012'},
     fetch: (url, options) => { requests.push({url, options}); return Promise.resolve({ok: true, json: () => Promise.resolve({number: 42})}); },
@@ -48,4 +48,11 @@ test('blocked storage still measures; local preview sends nothing', () => {
   assert.equal(p.ga().length, 1); assert.equal(p.requests.length, 1);
   const preview = page({hostname: 'localhost'});
   assert.equal(preview.ga().length, 0); assert.equal(preview.requests.length, 0);
+});
+
+test('direct article landings register a session without a dashboard footer', async () => {
+  const p = page({footer: false});
+  assert.equal(p.ga().length, 1);
+  assert.equal(p.requests.length, 1);
+  await new Promise(setImmediate);
 });

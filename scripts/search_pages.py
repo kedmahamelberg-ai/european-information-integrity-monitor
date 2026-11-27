@@ -45,7 +45,7 @@ ARTICLE = Template("""<!doctype html>
 <body><main class="methodology"><nav aria-label="Monitor"><a href="/">European Security Monitor</a> ·
 <a href="/field-wire/">Field Wire</a> · <a href="/research.html">Research methods</a></nav>
 <article><p class="eyebrow">$section</p><h1>$title</h1><p><time datetime="$source_date">$date_label</time></p>
-<p>$description</p>$body<h2>Sources</h2>$links</article></main></body></html>
+<p data-finding-views hidden></p><p>$description</p>$body<h2>Sources</h2>$links</article></main></body></html>
 """)
 
 
@@ -106,8 +106,13 @@ def coverage_summary(research, government, editions, findings):
 
 
 def add_page_view_script(out, findings, editions):
-    version = sha256((out / "page-views.js").read_bytes()).hexdigest()[:12]
-    script = f'<script defer src="/page-views.js?v={version}"></script>'
+    assets = ["analytics.js", "visitor-count.js", "page-views.js"]
+    tags = []
+    for asset in assets:
+        version = sha256((out / asset).read_bytes()).hexdigest()[:12]
+        tags.append(f'<script defer src="/{asset}?v={version}"></script>')
+    # Saved Field Wire editions can already include an earlier copy of the tag.
+    existing = re.compile(r'<script\b[^>]*\bsrc="/?(?:analytics|visitor-count|page-views)\.js(?:\?[^"]*)?"[^>]*></script>')
     pages = ["index.html", "about.html", "contact.html", "research.html", "privacy.html", "field-wire/index.html"]
     pages.extend(f"field-wire/{stamp}/index.html" for stamp in editions)
     pages.extend(entry["path"].strip("/") + "/index.html" for entry in findings)
@@ -116,7 +121,7 @@ def add_page_view_script(out, findings, editions):
         html = target.read_text()
         if html.count("</head>") != 1:
             raise ValueError(f"{name} must have one closing head tag")
-        target.write_text(html.replace("</head>", script + "</head>"))
+        target.write_text(existing.sub("", html).replace("</head>", "".join(tags) + "</head>"))
 
 
 def sitemap(paths):

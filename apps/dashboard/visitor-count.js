@@ -3,11 +3,12 @@
 
   const message = document.getElementById("visitor-message");
   const number = document.getElementById("visitor-number");
-  if (!message || !number || !globalThis.crypto?.randomUUID) return;
+  if (!globalThis.crypto?.randomUUID ||
+      /bot\b|spider|crawler|headless|ChatGPT-User|Claude-User/i.test(navigator.userAgent)) return;
 
   let started = false, controller;
   function countVisit() {
-    if (started || !window.MonitorAnalytics?.allowed()) return;
+    if (started || document.visibilityState === 'hidden' || !window.MonitorAnalytics?.allowed()) return;
     started = true;
     controller = new AbortController();
     const storageKey = "esm-visit-session";
@@ -36,13 +37,13 @@
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token }),
-      cache: "no-store",
+      cache: "no-store", keepalive: true,
       signal: controller.signal
     }).then((response) => {
       if (!response.ok) throw new Error("Visit counter unavailable");
       return response.json();
     }).then((data) => {
-      if (!window.MonitorAnalytics?.allowed() || !Number.isSafeInteger(data.number) || data.number < 1) return;
+      if (!message || !number || !window.MonitorAnalytics?.allowed() || !Number.isSafeInteger(data.number) || data.number < 1) return;
       number.textContent = `#${new Intl.NumberFormat("en").format(data.number)}`;
       message.hidden = false;
     }).catch(() => {
@@ -51,7 +52,8 @@
   }
   window.addEventListener('monitor-consent', () => {
     if (window.MonitorAnalytics?.allowed()) countVisit();
-    else { controller?.abort(); message.hidden = true; }
+    else { controller?.abort(); if (message) message.hidden = true; }
   });
+  document.addEventListener('visibilitychange', countVisit);
   countVisit();
 })();
