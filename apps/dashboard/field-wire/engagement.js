@@ -72,7 +72,10 @@
   function paint(group, data) {
     group.data = data;
     for (const ui of group.cards) {
-      ui.views.textContent = data.views > 3 ? data.views + " views" : "";
+      ui.views.textContent = [
+        data.document_views >= 4 ? data.document_views + " dispatch views (30d)" : "",
+        data.views >= 4 ? data.views + " distinct browsers" : ""
+      ].filter(Boolean).join(" · ");
       for (const [key, el] of Object.entries(ui.reactions)) {
         el.setAttribute("aria-pressed", String(data.mine === key));
         el.textContent = labels[key] + (data.reactions[key] ? " " + data.reactions[key] : "");
@@ -97,15 +100,25 @@
     return next;
   }
 
-  const observer = new IntersectionObserver(entries => {
-    for (const entry of entries) {
-      if (!entry.isIntersecting) continue;
-      const group = groups.get(entry.target.closest("[data-wire]").dataset.wire);
+  const visibleHeadlines = new Set();
+  function countVisible() {
+    if (document.visibilityState !== "visible") return;
+    for (const headline of visibleHeadlines) {
+      const group = groups.get(headline.closest("[data-wire]").dataset.wire);
       if (group.viewed) continue;
       group.viewed = true;
-      send(group,"view").catch(() => { group.viewed = false; });
+      group.viewId ||= crypto.randomUUID();
+      send(group, "view", {request_id:group.viewId}).catch(() => { group.viewed = false; });
     }
+  }
+  const observer = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (entry.isIntersecting && entry.intersectionRatio >= 0.5) visibleHeadlines.add(entry.target);
+      else visibleHeadlines.delete(entry.target);
+    }
+    countVisible();
   }, {threshold:0.5});
+  document.addEventListener("visibilitychange", countVisible);
 
   for (const article of document.querySelectorAll("tr[data-wire]")) {
     const key = article.dataset.wire;

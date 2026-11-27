@@ -34,13 +34,23 @@
     if (sent || document.visibilityState !== 'visible') return;
     sent = true;
     document.removeEventListener('visibilitychange', recordVisiblePage);
-    fetch('https://jnzibjjejmfochertwco.supabase.co/rest/v1/rpc/monitor_record_page_view', {
-      method: 'POST',
-      credentials: 'omit',
-      referrerPolicy: 'no-referrer',
-      keepalive: true,
-      headers: {apikey: 'sb_publishable_g2yJxXm4YqDfKTFGLar34Q_F6v8BdXE', 'Content-Type': 'application/json'},
-      body: JSON.stringify({p_path: path, p_source: arrivalSource()})
+    const endpoint = 'https://jnzibjjejmfochertwco.supabase.co/rest/v1/rpc/';
+    const options = {
+      method: 'POST', credentials: 'omit', referrerPolicy: 'no-referrer', keepalive: true,
+      headers: {apikey: 'sb_publishable_g2yJxXm4YqDfKTFGLar34Q_F6v8BdXE', 'Content-Type': 'application/json'}
+    };
+    fetch(endpoint + 'monitor_record_page_view', {
+      ...options, body: JSON.stringify({p_path: path, p_source: arrivalSource()})
+    }).then(async response => {
+      const badge = document.querySelector('[data-finding-views]');
+      if (!response.ok || !badge) return;
+      const result = await fetch(endpoint + 'monitor_finding_views', {...options, body: JSON.stringify({p_path: path})});
+      if (!result.ok) return;
+      const count = await result.json();
+      if (Number.isSafeInteger(count) && count >= 4) {
+        badge.textContent = new Intl.NumberFormat().format(count) + ' page views in the last 30 days';
+        badge.hidden = false;
+      }
     }).catch(() => {});
   }
   document.addEventListener('visibilitychange', recordVisiblePage);
