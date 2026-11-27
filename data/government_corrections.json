@@ -3574,5 +3574,195 @@
     "published_field": "english_summary",
     "fault_type": "editorial",
     "evidence": "The complete 12,402-character original ends with ezSec’s complete cybersecurity project description, disclosure guidance and related links. The published claim that the final entry is incomplete is unsupported. The replacement summarizes the source-supported award and applications."
+  },
+  {
+    "id": "b3f67923647794df1159",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.whitehouse.gov/releases/2026/11/president-trump-unleashes-whole-of-government-effort-to-protect-americas-critical-infrastructure/",
+    "source_evidence_fingerprint": "27a005a2bca8d890eb19b4ca043730af73516e431c855b04565bda1bb1c45e63",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "The White House says its Super Intelligence Force will help protect critical infrastructure and that government teams are testing advanced models with technology companies to find cybersecurity vulnerabilities. The release also describes more cyber staff, faster patching and action against cybercrime.",
+    "ticker_message": "The White House links its Super Intelligence Force and advanced-model tests to critical-infrastructure defence."
+  },
+  {
+    "id": "480c8fbf68a85d43f712",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.bundeskanzleramt.gv.at/bundeskanzleramt/nachrichten-der-bundesregierung/2026/11/europa-muss-die-systemfrage-zu-tiktok-stellen-proell-und-weimer-treiben-allianz-fuer-europaeische-loesung-weiter-voran.html",
+    "source_evidence_fingerprint": "d983144dc740a4be6bc98554f807a1181a8dd485f5d47406e578a231561d9318",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "topics": [
+      "information_influence",
+      "political_institutions",
+      "technology_supply_chains",
+      "economic_financial_security",
+      "diplomacy_alliances"
+    ],
+    "short_rationale": "Austria and Germany seek European ownership and control of TikTok data, algorithms and infrastructure. The release does not describe AI development or use; an algorithm reference alone does not support an AI topic."
+  },
+  {
+    "id": "3e74012226626a1b355f",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://primeminister.kz/kz/news/kazakstan-2027-zhyldyn-sonyna-karay-3g-den-tolygymen-bas-tartady-zhicdm-32155",
+    "source_evidence_fingerprint": "42e1e252aedb88f2267607f211eb83a4f07acee176164d442a621ee840c596ff",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "Kazakhstan is upgrading telecom links, rural coverage and domestic data centres. The government says its Data Center Valley will expand computing capacity needed for cloud services and AI systems, while backup links and domestic satellite ground stations support resilience.",
+    "ticker_message": "Kazakhstan plans telecom upgrades and data centres that expand computing capacity for AI systems."
+  },
+  {
+    "id": "685aaad19850fddb38b6",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://primeminister.kz/kz/news/digital-qazaqstan-strategiyasyn-zhuzege-asyru-olzhas-bektenov-cifrlyk-ekonomika-ushin-infrakurylymdardyn-ozyk-karkynmen-damuy-manyzdy-ekenin-atap-otti-32156",
+    "source_evidence_fingerprint": "97acabd0f7fbc045ea00f1cdd1a95661b91edec7fea847cb9a538dd16ac2e745",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "ticker_message": "Kazakhstan orders resilient telecom networks and data-centre capacity for wider AI deployment."
+  },
+  {
+    "id": "82b3f4ce95d458cfabe4",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.whitehouse.gov/releases/2026/11/president-trump-taps-pentagon-cyber-chief-kirsten-davies-as-national-cyber-director/",
+    "source_evidence_fingerprint": "b655f6df626fa18c79d5a457d85c4dab51500275a7a1d2693bde005a64c33607",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "The White House nominated Kirsten Davies as National Cyber Director and highlighted cyber measures attributed to the administration. The release says it has used AI to defend federal and military networks and created a clearinghouse to find and patch vulnerabilities.",
+    "ticker_message": "White House names a cyber director and cites AI use in federal and military network defence."
+  },
+  {
+    "id": "3f4315819b6c7ca3e358",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.bundeskanzleramt.gv.at/bundeskanzleramt/nachrichten-der-bundesregierung/2026/11/tiktok-europaeisch-denken-start-fuer-eine-europaeische-initiative-aus-deutschland-und-oesterreich.html",
+    "source_evidence_fingerprint": "3e3920bccb49f6bce5bb10f899441eab634e340d3a57c1f05dd1693b9fc89d1b",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "topics": [
+      "information_influence",
+      "political_institutions",
+      "sovereignty_borders",
+      "economic_financial_security",
+      "technology_supply_chains",
+      "cyber"
+    ],
+    "short_rationale": "Germany and Austria propose European ownership and control of TikTok data, recommendation algorithms and infrastructure. The declaration does not describe AI development or use; algorithmic recommendation alone does not support an AI topic."
+  },
+  {
+    "id": "908fe68391079e5be8d6",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://primeminister.kz/kz/news/kazakstannyn-it-kyzmetterinin-eksporty-eki-eseden-astam-osti-32130",
+    "source_evidence_fingerprint": "baefdc4dee5177868ddd525e4507c634c5894fbf102fb9b9c796db7ee501e3f3",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "Kazakhstan says domestic technology procurement and Astana Hub support are helping IT exports. It reports 18 industrial digitalisation projects worth 9.6 billion tenge and 13 more starting at 3.1 billion tenge, including AI, digital twins, automation and safety applications.",
+    "ticker_message": "Kazakhstan funds industrial AI and digital-twin projects while supporting domestic technology exporters."
+  },
+  {
+    "id": "a60f8be2970c59dbab8b",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://vlada.gov.cz/cz/media-centrum/aktualne/premier-andrej-babis-jednal-v-izraeli-o-spolupraci-v-obrane-a-zdravotnictvi-230187/",
+    "source_evidence_fingerprint": "2ff4ed14c1884b8b3508bf37f53ace7ae1253e157c2cbff6fb589fb9b0a08f40",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "Czech Prime Minister Andrej Babiš discussed air and ballistic missile defence with Israeli leaders and companies. He also visited a hospital and said Czechia wants to explore cooperation on medical technology and AI; the visit did not announce a deployed AI system.",
+    "ticker_message": "Czechia discusses Israeli missile defence and possible healthcare AI cooperation."
+  },
+  {
+    "id": "be191e914bf51d4185f6",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://primeminister.kz/kz/news/kazakstanda-arbir-tortinshi-darilik-preparattyn-bagasy-tomendedi-dsm-32080",
+    "source_evidence_fingerprint": "abe28fdf7f2220f9a6527a48f3205cce72a3cc11b68768857bc17b8b189bb021",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "Kazakhstan says it introduced AI to review medicine-registration files, shortening the first review stage by ten days. The health ministry also described medicine-supply monitoring, domestic production and vaccine cold-chain measures intended to improve access and resilience.",
+    "ticker_message": "Kazakhstan says AI shortened medicine-registration review while it expands supply and quality monitoring."
+  },
+  {
+    "id": "df82e9a001f00c2c4fd8",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://primeminister.kz/kz/news/aleumettik-zhane-infrakurylymdyk-zhobalarga-65-trln-tenge-bagyttau-zhosparlanuda-32077",
+    "source_evidence_fingerprint": "3cbb67dcbed3b3aa75dfe167a8f7af9bf2195aafc8472c826839814955a2c984",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "Kazakhstan’s draft national action plan includes energy, water, transport and strategic-material reserves. Officials also plan to commission another supercomputing cluster and promote AI commercialisation as part of wider digital-economy measures.",
+    "ticker_message": "Kazakhstan pairs infrastructure and strategic-reserve plans with a new computing cluster and AI commercialisation."
+  },
+  {
+    "id": "8fa33d127b6fb353e610",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.whitehouse.gov/releases/2026/11/president-trumps-second-term-promises-made-promises-kept-results-delivered/",
+    "source_evidence_fingerprint": "1c95cdb9f8309dbbb050993acd7b57b09b0bd1338943504ae2ea006e60990534",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "In a broad record of claimed achievements, the White House cites its AI Action Plan, the rollback of a prior AI order and a science initiative it calls a Super Intelligence mission. The release presents these as administration actions, alongside unrelated security and economic policies.",
+    "ticker_message": "White House cites its AI Action Plan and Super Intelligence science mission among claimed achievements."
+  },
+  {
+    "id": "566cd96031b362693eb3",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.whitehouse.gov/releases/2026/10/memorandum-of-understanding-between-the-government-of-the-united-states-of-america-and-the-government-of-finland-regarding-the-technology-prosperity-deal/",
+    "source_evidence_fingerprint": "5ce8600538e1979bb669c7e809677d68f38653aeb17cfbfdb4819f22c9972dce",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "The United States and Finland signed a nonbinding technology memorandum that proposes cooperation on a secure Super Intelligence stack, including models, software and hardware. It also covers telecoms, semiconductors, energy, research security, shipbuilding and Arctic technology.",
+    "ticker_message": "U.S.–Finland memorandum proposes a secure Super Intelligence technology stack and broader research cooperation."
+  },
+  {
+    "id": "aa2d319dc0503157bb3e",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://primeminister.kz/kz/news/elimizde-2029-zhylga-karay-astykty-teren-ondeu-kuatyn-zhylyna-58-mln-tonnaga-deyin-arttyru-zhosparlanyp-otyr-32059",
+    "source_evidence_fingerprint": "fb7798f251b97ccf8a6e4ca0138d20d2382b92c9746a5546ea77c3772961e524",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "Kazakhstan plans to expand grain processing and domestic food production. Under its agricultural AI initiative, officials propose precision farming, smart farms, a shared sector platform and a data lake to support farm decisions.",
+    "ticker_message": "Kazakhstan links food-production plans to agricultural AI, precision farming and smart farms."
+  },
+  {
+    "id": "4c434bbeb19fea51354e",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://primeminister.kz/kz/news/2029-zhylga-karay-elektr-energiyasynyn-20-dyk-proficitin-kalyptastyru-zhosparlanyp-otyr-32050",
+    "source_evidence_fingerprint": "8432cfe51d5c6b6b39f2c337b50685cc78555f04ebe3f61b72754f4dec8e1a54",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "Kazakhstan plans 13.3 GW of new electricity generation by 2029 and projects a possible surplus if capacity arrives on schedule. Officials say the expansion must also meet demand from planned energy-intensive AI infrastructure and major data centres.",
+    "ticker_message": "Kazakhstan plans power generation to meet future demand from AI infrastructure and data centres."
+  },
+  {
+    "id": "b92cc197d05b1cb54aac",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://primeminister.kz/kz/news/prezident-zholdauyn-zhuzege-asyru-kazakstanda-geologiyalyk-barlaudyn-20-zhobasy-zhane-zhana-aukymdagy-tusirilim-iske-kosylady-32048",
+    "source_evidence_fingerprint": "84f7530b87aaf01cf70c564d98aee764c3bd9a63e4c29dc787a28e307e3e30fe",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "Kazakhstan is expanding geological exploration for strategic minerals and plans to organise historical survey records with AI to help identify new deposits. Officials also described water-supply and construction-oversight measures.",
+    "ticker_message": "Kazakhstan plans AI-assisted geological data work to support exploration of strategic minerals."
+  },
+  {
+    "id": "909eaa383838eda6e9a5",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://primeminister.kz/kz/news/su-resurstaryn-cifrlandyru-zhane-auyl-sharuashylygyna-zhasandy-intellekt-engizu-32057",
+    "source_evidence_fingerprint": "5d341c72744e8c60cfc10bd9e7625795056a9c91f819cd5211b93c1113558ec6",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "Kazakhstan says its national water-management system will use AI elements and outlines other AI applications in budget oversight and urban services. Officials discussed agriculture, transport and public-finance digitisation as part of implementing the President’s address.",
+    "ticker_message": "Kazakhstan plans AI tools for water management, budget oversight and urban services."
+  },
+  {
+    "id": "f91e324c711ad395e3dc",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://primeminister.kz/kz/news/halyktyk-kurylys-ukimet-pen-akimdikter-aleumettik-ekonomikalyk-zhane-turgyn-uy-kommunaldyk-sharuashylyk-nysandaryn-salu-zhane-zhangyrtu-ushin-resurstardy-zhumyldyrady-32055",
+    "source_evidence_fingerprint": "59cad5752a0d38f92de7bdd1d1d23d94b5a3c676ac0ee092e1abdfad2211523d",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "Kazakhstan assigned ministries to modernise energy, water and transport infrastructure. The government says its national water-information system should use AI elements and its subsoil platform should organise data with AI.",
+    "ticker_message": "Kazakhstan sets deadlines for AI-enabled water and subsoil data systems within its infrastructure programme."
+  },
+  {
+    "id": "de851c060439c3ffdba4",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://primeminister.kz/kz/news/prezident-zholdauyn-zhuzege-asyru-ukimet-prezident-koygan-mindetterdi-zhuyeli-turde-sheshu-ushin-barlyk-kazhetti-sharalardy-kabyldaydy-32054",
+    "source_evidence_fingerprint": "2795d6c8fdb8c07aafbe6c36c4eb931d308aba02603e8f84d66c93ff496322d6",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "ticker_message": "Kazakhstan orders AI use in budget oversight and agriculture alongside energy and food-supply measures."
+  },
+  {
+    "id": "c059d2bf95b3a10a9438",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://gouvernement.lu/fr/actualites/toutes_actualites/communiques/2026/10-octobre/22-obertin-visite-royaume-uni.html",
+    "source_evidence_fingerprint": "d2837b6b47f85f864fe38e3d519d1cb4e90979885aa96f0d0c1b6ad2477c743d",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "ticker_message": "Luxembourg discusses public-sector AI, research and digital sovereignty with UK partners."
+  },
+  {
+    "id": "b0763dd3341a352a2cdb",
+    "review_origin": "source_reviewed_agent",
+    "source_url": "https://www.whitehouse.gov/fact-sheets/2026/10/fact-sheet-trump-administration-announces-the-most-ambitious-set-of-science-initiatives-this-century/",
+    "source_evidence_fingerprint": "38bd0c7780e7b912081a24dc5d3c576ab72371d4667e566acb555cfc355469c4",
+    "resolves_classification_error": "ai_topic_without_explicit_published_connection",
+    "english_summary": "The White House announced more than $6 billion in science initiatives. It says these include Super Intelligence tools for researchers, alongside quantum computing, virtual biology and nuclear space power projects; the amounts and expected benefits are administration claims.",
+    "ticker_message": "White House proposes Super Intelligence research tools within a broader $6 billion science package."
   }
 ]
