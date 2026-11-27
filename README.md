@@ -1,136 +1,15 @@
 # European Information Integrity Monitor
 
-A transcript-based research monitor of conflict and hybrid-threat communication in European YouTube content. It codes topic relevance, portrayed military/security roles, execution style, comment agreement and comment sentiment. The active taxonomy replaces sectarianism; old observations and human reviews remain immutable legacy records.
+A transcript-based research monitor of conflict, security and hybrid-threat communication in public European video content.
+
+## Contribution
+
+The Monitor creates a traceable evidence record of topics, security-role portrayals, communicative execution and audience responses. It treats public videos and comments as situated communication—not as direct evidence of public opinion, intent or causal influence.
+
+**AI as methodology:** AI-assisted classification is paired with saved source text, versioned prompts, human review, provenance and explicit uncertainty.
+
+**AI as a research phenomenon:** the project examines how AI-enabled information environments shape the visibility and framing of security-related communication.
+
+**Teaching and impact:** an applied resource for courses in computational communication, media literacy, security studies and responsible AI. Its public interface makes methodological limits legible to policymakers, journalists and civil-society users.
 
 [Public monitor](https://monitor.hamelberg-ai.com/) · [Methods](https://monitor.hamelberg-ai.com/#methodology)
-
-## Evidence rules
-
-- Every included video needs saved English text from retrieved captions or automatic public-audio transcription. English audio without saved text is not sufficient. Preserve original language and caption/translation provenance.
-- Reclassification uses the frozen source sample, saved captions and retained comments. Caption recovery does not discover new videos or comments.
-- Security/resource/sovereignty relevance is related, not related or unclear. Topics include water, energy, food security and other essential resource dependencies as well as military and hybrid threats. No temporal classification or security-domains field is used. Scarcity does not establish aggression or intent to invade.
-- Roles are entity-specific, multi-label portrayals: **Defence readiness**, **Force projection & coercion**, **Target of hostile action**. A portrayal or allegation is not verified attribution.
-- Execution adapts Dall’Olio & Vakratsas (2022), Table 5: comparative, endorsement, entertainment/storytelling and mnemonic devices. Delivery is coded independently of Monitor relevance. Imagery/visual is omitted by researcher choice for this video-only study. Narrated historical accounts count as storytelling. This advertising-derived adaptation is not a validated persuasion/effectiveness scale.
-- Each video first records whether it presents one substantive viewpoint, multiple competing viewpoints, or insufficient evidence to decide. Every viewpoint has its own attributed speaker, proposition, target and speaker sentiment. Comment stance is then coded relative to the exact viewpoint or viewpoints it addresses; sentiment and its target remain independent. Original comments and saved English translations stay private.
-- Public counters are timestamped views, likes and total comments, with nullable missing values, video age and per-1,000-view ratios. Public shares are unavailable. No combined “engagement” sum or causal claims.
-- Minimum available comments: **2**. Existing collection retains up to 30 from a pool of up to 100 visible top-level comments. This is not the full audience.
-
-Weekly discovery searches each monitored country's name, demonym, local names, and up to three major-city cues within the full seven-day window. The city cues are population-ranked populated places from [GeoNames](https://download.geonames.org/export/dump/cities1000.zip); Monaco and Vatican City have fewer than three distinct listed places. Search uses one relevance-ordered page per country and the existing EU-wide page, so it does not increase the request budget. A clear tourism-only title is excluded unless the title or description signals public affairs; ambiguous material still goes through the relevance check. Video and comment IDs are deduplicated before storage, and immutable batch-scoped IDs make retries idempotent. This is a bounded discovery frame, not a census or a guarantee of even daily coverage.
-
-## Workflows
-
-`Sunday research collection` retains the existing discovery/sample design and feeds the conflict taxonomy. `Classify saved Monitor evidence` reuses a specified retained batch and refreshes counters for existing eligible videos. It never discovers additional videos or retrieves additional comments. Both share the same single-writer concurrency group and $5 weekly model budget.
-
-The Observatory model policy remains `gpt-5-nano`, switching to `gpt-6-luna` at 2026-12-10 00:00 UTC. Government-news model calls default to `gpt-6-luna`. Configuration is in `config/review_models.json`; taxonomy in `config/hybrid.json`; creator-video prompts in `prompts/hybrid-framing-1.7.txt` and `prompts/hybrid-comments-1.7.txt`. Retained labels and confirmed reviews remain valid; government-news classification keeps its separate 1.6 rubric while its current human review is in progress.
-
-```sh
-PYTHONPATH=src python -m eiim.hybrid --batch 2026-W40 --retrieve-captions
-PYTHONPATH=src python -m eiim.hybrid --collect
-PYTHONPATH=src python -m eiim.cli review-import --help
-PYTHONPATH=src python -m unittest discover -s tests -q
-python scripts/build_site.py --live
-```
-
-Production credentials stay in GitHub secrets and server-side service-role RPC calls. The public website is static GitHub Pages. No credentials, raw comments, transcripts or private review files are published. Existing Supabase private tables store versioned payloads; no new paid resource or public raw-data access is required.
-
-## Human review
-
-`eiim.hybrid_review.packet(store, batch)` and `write_html(packet, private_path)` generate the private embedded-video review page. Each video topic, role and execution classification, and each comment stance, target and sentiment classification requires an explicit agree/correct decision. No decisions are pre-confirmed. Exported reviews bind to the immutable source hash and model version and can be imported with the existing review CLI.
-
-Initial calibration requests 30 eligible videos (or the full pool if smaller); later batches use 3%, rounded up, minimum 5. Selection is independent of model outcomes and, when possible, includes videos both with and without classified comments. Every classified comment attached to a selected video is included in the same review cluster; there is no separate comment sample. The transcript gate creates a new eligible population; legacy review assignments are not repurposed. The English transcript and attributed viewpoint records provide reference context. “Speaker/narrator” means the person or voice responsible for the proposition; it does not label ideology, truth, nationality, personality or publisher endorsement. Each comment names the viewpoint and proposition it addresses. Existing older classifications and reviews remain immutable under their original version.
-
-The public exporter publishes the full sampled source inventory and caption health. AI labels publish immediately as provisional once saved English transcripts support classification; a human review is not a publication prerequisite. Validated human labels override the corresponding AI labels. Only aggregated comment alignment, focus and sentiment are public; raw discussion remains private. Calibration completion is not proof of model reliability.
-
-## Research foundations
-
-- [Dall’Olio & Vakratsas — Advertising creative strategy](https://doi.org/10.1177/00222429221074960): four retained execution categories adapted from the original five.
-- [NATO — Countering hybrid threats](https://www.nato.int/en/what-we-do/deterrence-and-defence/countering-hybrid-threats): scope of military and non-military coercion.
-- [Hybrid CoE — Hybrid threats](https://www.hybridcoe.fi/hybrid-threats/): attribution and coordinated-activity limits.
-- [Mohammad et al. — SemEval 2016 stance detection](https://aclanthology.org/S16-1003/): stance is distinct from sentiment.
-- [YouTube video statistics](https://developers.google.com/youtube/v3/docs/videos#statistics): available public counters.
-
-The country frame, random sampling, inclusion probabilities and original collection timestamps are preserved. Caption availability and visibility-based comment sampling limit generalization. No temporal label is collected. Historical actor names and dates stay in source evidence; aggregate portrayals must not be presented as current threat estimates. Raw observations follow the existing 30-day retention policy.
-
-The active execution codebook has four categories. Imagery/visual is retired by researcher choice; historical narration and clear implicit comparisons are explicit adaptations of the source paper. The paper’s execution categories are binary (1 present / 0 absent), not intensity scales; unavailable evidence is not a verified 0. Earlier human reviews remain under their original version, including the superseded groundwater exclusion. Country metadata use title/description, not language alone. `--refresh-engagement` refreshes only existing eligible IDs, preserving original snapshots.
-
-## Calibration update, 5 October 2026
-
-Version 1.3 separates main-message alignment from speaker/presentation praise. Establish the attributed speaker, main proposition, target, and speaker sentiment once per video. Each comment records focus, agreement with that proposition, proposition text, sentiment and its named object. Negative comments can align with a critical speaker. Praise for speaking skill alone is not agreement with policy claims. Neutral reporting of an event is not refuted merely by condemning the event. These are research annotations, not diagnoses or factual verification.
-
-All retained comments undergo independent language verification and English translation, including previously confident English detections. Originals remain immutable and both languages appear together. The form preserves corrections on repeated Disagree clicks, saves select changes, and names incomplete/incompatible fields beside confirmation. Earlier reviews remain attached as calibration evidence, never silently recoded as new human decisions.
-
-National laws and trade agreements are in scope, including European trade with non-European partners. Entertainment requires humor OR drama OR constructed plot; these are alternatives. An identified official presenting a substantive argument can be a knowledgeable-source execution device without certifying expertise or truth. Routine political criticism is not a hostile security attack.
-
-The YouTube API supplies thumbnail URLs, not a background-music flag. The private form displays retained thumbnails and counts explicit caption music cues, clearly marked as incomplete evidence. No cue does not prove silence. A thumbnail is packaging evidence, not evidence of a full story; music is mnemonic only when identity-linked/distinctive, not simply background accompaniment. Imagery is not an active classification field.
-
-Country/topic frequencies and message alignment measure the retained sample only. Inferring rising political capital would require a defined longitudinal measure, stable sampling, target resolution and validation. This calibration batch cannot establish Europe-wide public opinion, causal influence, or a trend. Changes informed by these reviews are development calibration, not an independent accuracy test.
-
-## Four-category release, 5 October 2026
-
-Version 1.4 retires imagery/visual and explicitly includes factual historical narration as storytelling. `eiim.calibration.project_four_categories` creates hash-linked copies of 1.3 classifications/reviews with only the retired field removed. Original records, reviewer names, timestamps and all other judgments remain unchanged. This is schema migration, not a new human review or an AI reclassification. The private form restores authenticated, hash-validated imported decisions; it does not ask the reviewer to repeat them.
-
-Future AI calls receive at most four retained video examples and six retained comment examples from validated human reviews, excluding the video being classified. Corrections are prioritized. Raw examples stay private and follow the existing retention period. This is in-context calibration, not fine-tuning. Reviewed videos are preserved on retries. Training/calibration examples must never be counted as an independent accuracy evaluation; human judgments can also contain uncertainty or inconsistency.
-
-## Viewpoint-attributed release, 12 October 2026
-
-Version 1.5 distinguishes a single proposition from a substantive debate. A debate retains each side as a separate attributed viewpoint with its own speaker/narrator, proposition, target, sentiment and exact evidence. The Ceuta case is the motivating pattern: “Ceuta is part of Spain” and “Ceuta is not part of Spain” cannot be collapsed into one mixed message. Comments select the viewpoint or viewpoints they address before agreement and sentiment are coded. If a comment’s side cannot be resolved, including an emoji-only reaction beneath a balanced debate, the label remains unclear rather than guessing. Older 1.4 classifications and reviews remain readable and publishable under their original schema.
-
-## Scheduled operation and coverage
-
-GitHub Actions collects the weekly sample on Sundays at 00:37 Europe/Amsterdam. The retained-source workflow is dispatched after recovered evidence is imported; there is no daily hosted download retry. Both require `EIIM_ENABLE_LIVE=true`, fail explicitly on missing required credentials and share the existing $5 per-batch model ledger. Completed/partial runs trigger a new Pages snapshot. Acquisition stops on repeated YouTube blocking. Optional owner-supplied cookies do not guarantee access; no proxy or TLS bypass is used. A successful eligible-pool classification is not proof of full sample coverage: the public pipeline reports saved, blocked, unavailable and unverified captions separately.
-
-Researcher corrections are preserved as human overrides. Retained validated examples enter later AI prompts (excluding the video itself); lasting codebook rules from the corrections are in versioned prompts. This is prompt calibration, not automatic model training. Examples expire with raw-data retention; written codebook rules persist. Full-week classification remains conditional on obtaining English source text.
-
-## Live presentation
-
-The public page is named **European Security Monitor**. Two compact side panels rotate public city cameras across European countries. The camera directory is in [CAMERAS.md](CAMERAS.md), with machine-readable candidates in `apps/dashboard/cameras.json`. Every two hours a camera-only Pages refresh checks live, embeddable and playable status without a Supabase query; open pages refresh the directory every five minutes. Video media are never downloaded, proxied, recorded or stored. Streams play muted when the browser permits autoplay, with manual start, pause, hold and next controls. A failed stream enters a temporary cooldown; offline and stale entries leave the rotation and return after a later verified-live check.
-
-The source feed cycles the retained weekly inventory every eight seconds, interleaving countries. It pauses on hover, keyboard focus, a selected video, hidden tabs, and explicit pause. Movement does not indicate newly collected evidence. The camera footage is contextual and is never counted as research evidence. The selected custom address and exact DNS setup are recorded in [DOMAIN-SETUP.md](DOMAIN-SETUP.md).
-
-
-## Caption retrieval bottleneck and optional fallback
-
-AI classification does not wait for human validation. Every eligible retained video is coded automatically, with reviewed examples included in later prompts. As of 5 October 2026, the retained 315-video batch has 10 saved English transcripts (all AI coded), 288 blocked caption lookups, and 17 with no usable English captions found. This is an acquisition bottleneck, not an instruction to the researcher to label 305 videos.
-
-The optional Supadata fallback is configured by adding `SUPADATA_API_KEY` to repository Actions secrets. No new account, purchase or paid transcription is triggered by this code. Weekly collection and explicitly requested retrieval runs use it when direct retrieval does not save English text. Requests explicitly use `mode=native`; automatic audio generation and paid translation endpoints are disabled. Only public video URLs are sent to the provider. A requested `lang=en` is not sufficient: returned language and segment languages must actually be English. Non-English fallback responses stay ineligible, preserving the original audio language.
-
-`EIIM_CAPTION_MONTHLY_REQUEST_LIMIT` is an Actions variable, default 100, shared across all batches. Durable request reservations in the existing cost ledger survive retries and raw-data retention; a video is requested at most once per calendar month. Failed requests retain their reservation because billing may already have occurred. Authentication/quota/rate-limit errors stop provider calls. Disable provider Auto Recharge in its account. The provider cap is separate from the unchanged $5 per-batch AI ceiling. Provider availability is not guaranteed; the full sample may still include excluded/no-English sources.
-
-The free provider plan currently includes 100 requests/month. It cannot clear a 305-video backlog or support approximately 315 new videos each week. Paid capacity requires a separate user decision. Verify current terms at https://supadata.ai/pricing. Activate with a small trial first; then raise the repository cap only to match approved capacity. See [caption setup](docs/CAPTION-SETUP.md).
-
-Run reports now distinguish `classification_status` for videos with saved evidence from overall `status` and full-sample `coverage`. A run with missing transcripts reports `awaiting_transcripts`, even if every eligible video was classified. Human review remains a separate quality sample and is never a classification gate.
-
-
-## Audio recovery, 7 October 2026
-
-The 315-source retained batch had 288 blocked caption requests, 17 without usable English captions and only 10 saved transcripts. All ten were already classified. `RequestBlocked` / `IpBlocked` describe failed acquisition, not a request for manual coding and not proof that the video has no subtitles. The optional Supadata key was not configured.
-
-Both scheduled workflows now try public captions, the optional bounded native-caption provider, then **Faster Whisper medium on CPU, in one pass** (`EIIM_ENABLE_AUDIO_TRANSCRIPTION=true`). This adapts the research notebook's captions-to-audio fallback. It uses no paid speech API, proxy, geolocation override or disabled TLS checks. An existing private owner-supplied cookie file is supported; no cookie export or rotation is performed. A failed subtitle track no longer prevents trying another available track. Public audio access may also be blocked; after three consecutive access/download failures the run stops audio attempts and reports that limitation.
-
-Recovery is capped at 80 attempted videos or 45 minutes per invocation, with a 15-minute worker timeout (so the final worker may extend the recovery window). Each audio file must be no longer than two hours and no larger than 256 MiB. Temporary audio is removed on success, failure and timeout. Live/upcoming videos are excluded. No video/camera footage is retained or published. Only timestamps, English text and provenance enter the existing private, 30-day evidence store.
-
-Whisper's multilingual model translates non-English speech into English and records the detected language separately from the publisher's original-language metadata. Automatic speech recognition/translation can be wrong. Low-confidence language detection, malformed timestamps, empty output and heavily repetitive output do not qualify. Short complete speech is allowed without a fixed 20-word minimum. The worker verifies full audio duration, English translation mode and coverage of every independently detected speech interval (250 ms timestamp tolerance). Silence outside those intervals is not missing speech; any rejected or uncovered speech keeps the whole transcript ineligible. Sparse text cannot stand in for a long speech. The classifier may not infer absence from missing material. These are conservative quality gates, not a claim that the transcript is human-verified. The public source detail identifies Whisper evidence.
-
-Saved transcripts are reused. Untouched sources are attempted before previous failures; failed audio attempts wait at least 24 hours. The retained-source workflow can resume all unpurged retained batches, newest first, rather than abandoning last week's backlog. The shared run cap applies across those batches. Captions, audio and classification status remain distinct; retrieval runs report incomplete acquisition, while saved-text-only runs succeed when classification_status is complete and failures is empty. Missing transcripts remain explicit in the report and dashboard. Logs now retain the acquisition report as well as the GitHub summary. Human reviews and the existing $5 per-batch AI ceiling are preserved.
-
-Validation includes live public-audio retrieval and a 101-second English-source transcription, plus regression tests for blocked-reader recovery, interrupted workers, restart reuse, malformed/repetitive output, translation provenance and alternate caption tracks. Local success does not establish availability from a GitHub-hosted IP; verify each Actions report's `audio` and `coverage` fields.
-
-### Optional YouTube cookies for GitHub recovery
-
-To use the same authenticated download method as the Colab notebook, the account owner can add a repository Actions secret named `YOUTUBE_COOKIES_TXT` containing a fresh Netscape-format `cookies.txt` export for YouTube. Paste the file contents into the secret value, not the filename. Never commit or upload this file as a repository artifact. See the [yt-dlp cookie export instructions](https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies). Cookies can expire or rotate and may need replacing; they cannot guarantee that a hosted IP can access every video.
-
-Both Sunday collection and retained-source recovery prepare a temporary file under the runner's temporary directory with owner-only permissions. Only unexpired youtube.com cookies are retained. The secret is available only to the preparation step, never printed, and each downloader uses its own temporary copy. Cleanup runs even after a failed job step. TLS verification stays enabled, no browser credentials are extracted, and no paid transcription service is introduced. Without the secret, public download behavior is unchanged. Invalid/expired cookie files fail preparation with a redacted error instead of silently claiming authenticated access.
-
-The audio report includes `authenticated_download`; it never includes cookie contents or paths. Previously failed anonymous downloads become eligible immediately when a cookie file is first configured. Saved transcripts remain cached. Whisper transcribes recovered audio, then the existing evidence checks and classification process apply. Direct caption retrieval remains a separate public path. Verify saved transcript and classified-source counts after a live run; successful configuration alone does not prove acquisition succeeded.
-
-## Sunday collection and Mac fallback
-
-Sunday collection runs at 00:37 Europe/Amsterdam. GitHub tries captions and bounded Whisper audio recovery, then classifies usable evidence. Hosted YouTube access was tested with cookies and JavaScript support on 7 October and remained blocked. Whisper cannot transcribe audio the host cannot download.
-
-The configured Mac fallback checks on Sundays at 07:30, 12:30, 15:30 and 18:30 Europe/Amsterdam, then prepares the linked video/comment review at 22:30. A Monday 18:30 checkpoint handles unfinished eligible work and the review fallback. It queries `scripts/collection-recovery-inventory.sql` through the existing Supabase connection, so it can start as soon as sampling is frozen rather than waiting for Pages. The Mac and Codex must be available. It uses the same local Whisper model without a transcription subscription. The automation imports accepted evidence privately, dispatches `classification-review.yml` with `classification_only=true`, and checks the report and Pages deployment. It does not queue duplicate classifications behind an active research job.
-
-The recovery helper is now versioned as `scripts/local_recovery.py`. From this checkout, use `.venv/bin/python scripts/local_recovery.py --snapshot private/collection-inventory.json --dry-run`, then omit `--dry-run` to recover. Each invocation locks against overlap, attempts at most 80 sources/45 minutes plus its final worker, reuses saved evidence, and enforces retry cooldowns. The Sunday automation resumes bounded chunks within its session, with a four-hour overall limit; remaining work is reported, never silently called complete. Evidence and model cache stay under ignored `private/`, raw records expire with the retained sample, and evidence must never be uploaded to GitHub. Cookie files stay private and must not be printed or exported again automatically.
-
-Use the database inventory again before importing each group of five through `public.eiim_write`. Record accepted IDs only after confirmed acceptance. Preserve human reviews and the existing model-spending ceiling. Unavailable audio, missing English text, budget exhaustion and invalid classification remain distinct states; no system can guarantee that every public YouTube video will be downloadable.
-
-The default map combines green video circles sized by lifetime views with separate coloured audience symbols. Layer controls show videos, comments or both; the audience measure selects alignment or sentiment. Country briefings and all-week response counts use one latest snapshot per video, within the 30-day retained window. Country associations describe content mentions, not audience location. AI sovereignty and biological weapons are explicit coding topics; these labels require substantive evidence and do not establish threat attribution.
