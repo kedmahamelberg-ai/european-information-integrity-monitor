@@ -6,6 +6,8 @@ const analytics = fs.readFileSync('apps/dashboard/analytics.js', 'utf8');
 const visitor = fs.readFileSync('apps/dashboard/visitor-count.js', 'utf8');
 function page({footer = true, mobile = false, userAgent = '', blocked = false, hostname = 'monitor.hamelberg-ai.com'} = {}) {
   const nodes = [], requests = [], store = new Map();
+  const listeners = new Map();
+  const uuids = require('node:crypto').randomUUID;
   const head = {appendChild(node) { nodes.push(node); }};
   const ids = {'visitor-message': {hidden: true}, 'visitor-number': {}};
   const ctx = {Date, JSON, Intl, AbortController,
@@ -16,14 +18,17 @@ function page({footer = true, mobile = false, userAgent = '', blocked = false, h
     document: {addEventListener() {}, title: 'Monitor', cookie: '', head, body: {appendChild(node) { nodes.push(node); }},
       createElement: tag => ({tag}), getElementById: k => footer ? ids[k] : null},
     navigator: {userAgent, userAgentData: {mobile}}, matchMedia: () => ({matches: mobile}),
-    crypto: {randomUUID: () => 'be123456-1234-1234-1234-123456789012'},
+    crypto: {randomUUID: uuids},
     fetch: (url, options) => { requests.push({url, options}); return Promise.resolve({ok: true, json: () => Promise.resolve({number: 42})}); },
-    addEventListener() {}
+    addEventListener(name, callback) {
+      if (!listeners.has(name)) listeners.set(name, []);
+      listeners.get(name).push(callback);
+    }
   };
   ctx.window = ctx; ctx.globalThis = ctx;
   vm.runInNewContext(analytics, ctx);
   vm.runInNewContext(visitor, ctx);
-  return {ctx, nodes, ids, store, requests,
+  return {ctx, nodes, ids, store, requests, restore() { for (const f of listeners.get('pageshow')) f({persisted: true}); },
     ga: () => nodes.filter(n => n.src && new URL(n.src).origin === 'https://www.googletagmanager.com')};
 }
 for (const [name, options] of [['phone', {mobile: true, userAgent: 'iPhone'}], ['tablet', {userAgent: 'iPad'}], ['narrow desktop', {mobile: true}], ['desktop', {}]]) {
@@ -55,4 +60,17 @@ test('direct article landings register a session without a dashboard footer', as
   assert.equal(p.ga().length, 1);
   assert.equal(p.requests.length, 1);
   await new Promise(setImmediate);
+});
+
+test('a cached return records a GA view and keeps the current visit number', () => {
+  for (const blocked of [false, true]) {
+    const p = page({blocked});
+    p.ctx.document.visibilityState = 'visible';
+    p.restore();
+    const tokens = p.requests.map(r => JSON.parse(r.options.body).token);
+    assert.equal(tokens.length, 2);
+    assert.equal(tokens[0], tokens[1]);
+    assert.equal(p.ga().length, 1);
+    assert.equal(p.ctx.dataLayer.filter(a => a[0] === 'event' && a[1] === 'page_view').length, 1);
+  }
 });
