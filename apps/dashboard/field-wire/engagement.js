@@ -108,7 +108,10 @@
       if (group.viewed) continue;
       group.viewed = true;
       group.viewId ||= crypto.randomUUID();
-      send(group, "view", {request_id:group.viewId}).catch(() => { group.viewed = false; });
+      const receipt = group.viewId;
+      send(group, "view", {request_id:receipt}).catch(() => {
+        if (group.viewId === receipt) group.viewed = false;
+      });
     }
   }
   const observer = new IntersectionObserver(entries => {
@@ -184,6 +187,19 @@
     group.cards.push({views,reactions,comments:panel.querySelector(".thread")});
     observer.observe(article.querySelector("h2,h3"));
   }
+
+  window.addEventListener("pageshow", event => {
+    if (!event.persisted) return;
+    observer.disconnect();
+    visibleHeadlines.clear();
+    for (const group of groups.values()) {
+      group.viewed = false;
+      group.viewId = null;
+    }
+    for (const row of document.querySelectorAll("tr[data-wire]")) {
+      observer.observe(row.querySelector("h2,h3"));
+    }
+  });
 
   // A shared dispatch can outlast the rolling bulletin. Keep its source reachable.
   if (location.hash && !document.getElementById(location.hash.slice(1))) {

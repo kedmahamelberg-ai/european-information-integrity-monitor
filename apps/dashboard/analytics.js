@@ -44,6 +44,18 @@
     allow_google_signals: false, allow_ad_personalization_signals: false,
     page_location: location.origin + location.pathname, page_referrer: ''
   });
+  let restoredViewPending = false;
+  function recordRestoredView() {
+    if (!restoredViewPending || document.visibilityState !== 'visible') return;
+    restoredViewPending = false;
+    window.MonitorAnalytics.event('page_view');
+  }
+  window.addEventListener('pageshow', event => {
+    if (!event.persisted) return;
+    restoredViewPending = true;
+    recordRestoredView();
+  });
+  document.addEventListener('visibilitychange', recordRestoredView);
   const script = document.createElement('script');
   script.async = true;
   script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(MEASUREMENT_ID);

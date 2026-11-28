@@ -30,17 +30,17 @@
   }
 
   let sent = false;
+  let restored = false;
   function recordVisiblePage() {
     if (sent || document.visibilityState !== 'visible') return;
     sent = true;
-    document.removeEventListener('visibilitychange', recordVisiblePage);
     const endpoint = 'https://jnzibjjejmfochertwco.supabase.co/rest/v1/rpc/';
     const options = {
       method: 'POST', credentials: 'omit', referrerPolicy: 'no-referrer', keepalive: true,
       headers: {apikey: 'sb_publishable_g2yJxXm4YqDfKTFGLar34Q_F6v8BdXE', 'Content-Type': 'application/json'}
     };
     fetch(endpoint + 'monitor_record_page_view', {
-      ...options, body: JSON.stringify({p_path: path, p_source: arrivalSource()})
+      ...options, body: JSON.stringify({p_path: path, p_source: restored ? 'direct_or_unknown' : arrivalSource()})
     }).then(async response => {
       const badge = document.querySelector('[data-finding-views]');
       if (!response.ok || !badge) return;
@@ -53,6 +53,12 @@
       }
     }).catch(() => {});
   }
+  window.addEventListener('pageshow', event => {
+    if (!event.persisted) return;
+    restored = true;
+    sent = false;
+    recordVisiblePage();
+  });
   document.addEventListener('visibilitychange', recordVisiblePage);
   recordVisiblePage();
 })();

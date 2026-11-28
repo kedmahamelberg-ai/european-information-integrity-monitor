@@ -6,7 +6,7 @@
   if (!globalThis.crypto?.randomUUID ||
       /bot\b|spider|crawler|headless|ChatGPT-User|Claude-User/i.test(navigator.userAgent)) return;
 
-  let started = false, controller;
+  let started = false, controller, lastSession;
   function countVisit() {
     if (started || document.visibilityState === 'hidden' || !window.MonitorAnalytics?.allowed()) return;
     started = true;
@@ -14,24 +14,17 @@
     const storageKey = "esm-visit-session";
     const idleLimitMs = 30 * 60 * 1000;
     const now = Date.now();
-    let token;
-
+    let saved = lastSession;
     try {
-      const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
-      if (saved && typeof saved.token === "string" && Number.isFinite(saved.lastSeen)
-          && now - saved.lastSeen >= 0 && now - saved.lastSeen < idleLimitMs) {
-        token = saved.token;
-      }
-    } catch (_) {
-      // A blocked storage API should not stop a visit from being counted.
-    }
-
-    token ||= crypto.randomUUID();
+      saved = JSON.parse(localStorage.getItem(storageKey)) || lastSession;
+    } catch (_) { /* A restored document can reuse its in-memory session. */ }
+    const active = saved && typeof saved.token === "string" && Number.isFinite(saved.lastSeen)
+      && now >= saved.lastSeen && now - saved.lastSeen < idleLimitMs;
+    const token = active ? saved.token : crypto.randomUUID();
+    lastSession = {token, lastSeen: now};
     try {
-      localStorage.setItem(storageKey, JSON.stringify({ token, lastSeen: now }));
-    } catch (_) {
-      // Private browsing may block storage; the request remains valid.
-    }
+      localStorage.setItem(storageKey, JSON.stringify(lastSession));
+    } catch (_) { /* Storage can be unavailable in private browsing. */ }
 
     fetch("https://jnzibjjejmfochertwco.supabase.co/functions/v1/monitor-visit", {
       method: "POST",
@@ -53,6 +46,11 @@
   window.addEventListener('monitor-consent', () => {
     if (window.MonitorAnalytics?.allowed()) countVisit();
     else { controller?.abort(); if (message) message.hidden = true; }
+  });
+  window.addEventListener('pageshow', event => {
+    if (!event.persisted) return;
+    started = false;
+    countVisit();
   });
   document.addEventListener('visibilitychange', countVisit);
   countVisit();

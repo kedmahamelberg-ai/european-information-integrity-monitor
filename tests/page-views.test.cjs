@@ -8,17 +8,19 @@ function page({path = '/field-wire/2026-11-26/', search = '', referrer = '', vis
   host = 'monitor.hamelberg-ai.com', userAgent = 'Mozilla/5.0'} = {}) {
   const requests = [];
   const listeners = new Set();
+  let onPageShow;
   const document = {
-    referrer, visibilityState: visible ? 'visible' : 'hidden',
+    querySelector: () => null, referrer, visibilityState: visible ? 'visible' : 'hidden',
     addEventListener: (_event, callback) => listeners.add(callback),
     removeEventListener: (_event, callback) => listeners.delete(callback)
   };
   vm.runInNewContext(script, {
+    window: {addEventListener: (name, listener) => { if (name === 'pageshow') onPageShow = listener; }},
     URL, URLSearchParams, document, navigator: {userAgent},
     location: {origin: 'https://' + host, hostname: host, pathname: path, search},
     fetch: (url, init) => { requests.push({url, ...init}); return Promise.resolve({ok: true}); }
   });
-  return {requests, show() {
+  return {requests, document, restore(persisted) { onPageShow({persisted}); }, show() {
     document.visibilityState = 'visible';
     for (const listener of listeners) listener();
   }};
@@ -53,4 +55,15 @@ test('excludes previews, crawlers and paths outside public report routes', () =>
     {userAgent: 'Googlebot'}, {path: '/field-wire/other-user@private/'}, {path: '/private/'}]) {
     assert.equal(page(context).requests.length, 0);
   }
+});
+
+test('a visible cached return is a second finding view regardless of repeated visibility events', () => {
+  const p = page({path: '/findings/example/', referrer: 'https://google.com/'});
+  p.restore(false);
+  p.document.visibilityState = 'hidden';
+  p.restore(true);
+  assert.equal(p.requests.length, 1);
+  p.show();
+  p.show();
+  assert.deepEqual(p.requests.map(r => JSON.parse(r.body).p_source), ['google', 'direct_or_unknown']);
 });
